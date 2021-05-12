@@ -1,5 +1,5 @@
-.. image:: https://github.com/jdufresne/appdirs/workflows/Test/badge.svg
-   :target: https://github.com/jdufresne/appdirs/actions?query=workflow%3ATest
+.. image:: https://github.com/jazzband/appdir/workflows/Test/badge.svg
+   :target: https://github.com/jazzband/appdir/actions?query=workflow%3ATest
 
 the problem
 ===========
@@ -25,10 +25,10 @@ spec <https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html>`_
     ~/.local/share/<AppName>
 
 
-``appdirs`` to the rescue
-=========================
+``appdir`` to the rescue
+========================
 
-This kind of thing is what the ``appdirs`` module is for. ``appdirs`` will
+This kind of thing is what the ``appdir`` module is for. ``appdir`` will
 help you choose an appropriate:
 
 - user data dir (``user_data_dir``)
@@ -50,7 +50,7 @@ some example output
 
 On macOS::
 
-    >>> from appdirs import *
+    >>> from appdir import *
     >>> appname = "SuperApp"
     >>> appauthor = "Acme"
     >>> user_data_dir(appname, appauthor)
@@ -64,7 +64,7 @@ On macOS::
 
 On Windows 7::
 
-    >>> from appdirs import *
+    >>> from appdir import *
     >>> appname = "SuperApp"
     >>> appauthor = "Acme"
     >>> user_data_dir(appname, appauthor)
@@ -78,7 +78,7 @@ On Windows 7::
 
 On Linux::
 
-    >>> from appdirs import *
+    >>> from appdir import *
     >>> appname = "SuperApp"
     >>> appauthor = "Acme"
     >>> user_data_dir(appname, appauthor)
@@ -105,7 +105,7 @@ On Linux::
 
 ::
 
-    >>> from appdirs import AppDirs
+    >>> from appdir import AppDirs
     >>> dirs = AppDirs("SuperApp", "Acme")
     >>> dirs.user_data_dir
     '/Users/trentm/Library/Application Support/SuperApp'
@@ -125,7 +125,7 @@ If you have multiple versions of your app in use that you want to be
 able to run side-by-side, then you may want version-isolation for these
 dirs::
 
-    >>> from appdirs import AppDirs
+    >>> from appdir import AppDirs
     >>> dirs = AppDirs("SuperApp", "Acme", version="1.0")
     >>> dirs.user_data_dir
     '/Users/trentm/Library/Application Support/SuperApp/1.0'

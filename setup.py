@@ -12,15 +12,15 @@ def read(fname):
     return out
 
 
-# Do not import `appdirs` yet, lest we import some random version on sys.path.
-for line in read("appdirs.py").splitlines():
+# Do not import `appdir` yet, lest we import some random version on sys.path.
+for line in read("appdir.py").splitlines():
     if line.startswith("__version__"):
         version = ast.literal_eval(line.split("=", 1)[1].strip())
         break
 
 
 setup(
-    name='appdirs',
+    name='appdir',
     version=version,
     description='A small Python module for determining appropriate ' + \
         'platform-specific dirs, e.g. a "user data dir".',
@@ -49,7 +49,7 @@ setup(
     author_email='trentm@gmail.com',
     maintainer='Jeff Rouse',
     maintainer_email='jr@its.to',
-    url='https://github.com/ActiveState/appdirs',
+    url='https://github.com/jazzband/appdir',
     license='MIT',
-    py_modules=["appdirs"],
+    py_modules=["appdir"],
 )

@@ -1,8 +1,10 @@
-appdirs Changelog
-=================
+appdir Changelog
+================
 
-UNRELEASED
-----------
+appdir 2.0.0 (UNRELEASED)
+-------------------------
+
+- Name change as part of the friendly fork
 - Add Python 3.7 support
 - Remove support for end-of-life Pythons 2.6, 3.2, and 3.3
 

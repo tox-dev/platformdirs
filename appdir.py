@@ -4,7 +4,7 @@
 
 """Utilities for determining application-specific dirs.
 
-See <https://github.com/ActiveState/appdirs> for details and usage.
+See <https://github.com/jazzband/appdir> for details and usage.
 """
 # Dev Notes:
 # - MSDN on where to store app data files:
