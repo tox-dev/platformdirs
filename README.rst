@@ -1,12 +1,13 @@
-.. image:: https://github.com/jazzband/appdir/workflows/Test/badge.svg
-   :target: https://github.com/jazzband/appdir/actions?query=workflow%3ATest
-
 .. image:: https://jazzband.co/static/img/jazzband.svg
    :target: https://jazzband.co/
    :alt: Jazzband
 
+
 the problem
 ===========
+
+.. image:: https://github.com/jazzband/appdir/workflows/Test/badge.svg
+   :target: https://github.com/jazzband/appdir/actions?query=workflow%3ATest
 
 What directory should your app use for storing user data? If running on macOS, you
 should use::
