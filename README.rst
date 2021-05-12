@@ -135,3 +135,13 @@ dirs::
     '/Users/trentm/Library/Caches/SuperApp/1.0'
     >>> dirs.user_log_dir
     '/Users/trentm/Library/Logs/SuperApp/1.0'
+
+
+Contributing and About
+======================
+
+This repository is a friendly fork of the wonderful work started by
+`ActiveState <https://github.com/ActiveState/appdirs>`_ who created
+``appdirs``, this package's ancestor.
+
+Contributions are most welcome.
