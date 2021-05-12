@@ -1,6 +1,10 @@
 .. image:: https://github.com/jazzband/appdir/workflows/Test/badge.svg
    :target: https://github.com/jazzband/appdir/actions?query=workflow%3ATest
 
+.. image:: https://jazzband.co/static/img/jazzband.svg
+   :target: https://jazzband.co/
+   :alt: Jazzband
+
 the problem
 ===========
 
@@ -145,3 +149,8 @@ This repository is a friendly fork of the wonderful work started by
 ``appdirs``, this package's ancestor.
 
 Contributions are most welcome.
+
+This is a `Jazzband <https://jazzband.co>`_ project. By
+contributing you agree to abide by the `Contributor Code of Conduct
+<https://jazzband.co/about/conduct>`_ and follow the `guidelines
+<https://jazzband.co/about/guidelines>`_.
