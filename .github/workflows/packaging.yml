@@ -24,7 +24,7 @@ jobs:
         name: dist
         path: dist
     - name: Publish package
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.python-version == '3.9' && runner.os == 'Linux'
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
