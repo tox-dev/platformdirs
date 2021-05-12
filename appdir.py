@@ -12,7 +12,7 @@ See <https://github.com/jazzband/appdir> for details and usage.
 # - Mac OS X: http://developer.apple.com/documentation/MacOSX/Conceptual/BPFileSystem/index.html
 # - XDG spec for Un*x: https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
-__version__ = "2.0.0a1"
+__version__ = "2.0.0a2"
 __version_info__ = tuple(int(segment) for segment in __version__.split("."))
 
 
