@@ -1,13 +1,8 @@
-.. image:: https://jazzband.co/static/img/jazzband.svg
-   :target: https://jazzband.co/
-   :alt: Jazzband
-
-
 the problem
 ===========
 
-.. image:: https://github.com/jazzband/appdir/workflows/Test/badge.svg
-   :target: https://github.com/jazzband/appdir/actions?query=workflow%3ATest
+.. image:: https://github.com/platformdirs/platformdirs/workflows/Test/badge.svg
+   :target: https://github.com/platformdirs/platformdirs/actions?query=workflow%3ATest
 
 What directory should your app use for storing user data? If running on macOS, you
 should use::
@@ -30,11 +25,11 @@ spec <https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html>`_
     ~/.local/share/<AppName>
 
 
-``appdir`` to the rescue
-========================
+``platformdirs`` to the rescue
+==============================
 
-This kind of thing is what the ``appdir`` module is for. ``appdir`` will
-help you choose an appropriate:
+This kind of thing is what the ``platformdirs`` module is for.
+``platformdirs`` will help you choose an appropriate:
 
 - user data dir (``user_data_dir``)
 - user config dir (``user_config_dir``)
@@ -55,7 +50,7 @@ some example output
 
 On macOS::
 
-    >>> from appdir import *
+    >>> from platformdirs import *
     >>> appname = "SuperApp"
     >>> appauthor = "Acme"
     >>> user_data_dir(appname, appauthor)
@@ -69,7 +64,7 @@ On macOS::
 
 On Windows 7::
 
-    >>> from appdir import *
+    >>> from platformdirs import *
     >>> appname = "SuperApp"
     >>> appauthor = "Acme"
     >>> user_data_dir(appname, appauthor)
@@ -83,7 +78,7 @@ On Windows 7::
 
 On Linux::
 
-    >>> from appdir import *
+    >>> from platformdirs import *
     >>> appname = "SuperApp"
     >>> appauthor = "Acme"
     >>> user_data_dir(appname, appauthor)
@@ -105,13 +100,13 @@ On Linux::
     '/etc/SuperApp:/usr/local/etc/SuperApp'
 
 
-``AppDirs`` for convenience
-===========================
+``PlatformDirs`` for convenience
+================================
 
 ::
 
-    >>> from appdir import AppDirs
-    >>> dirs = AppDirs("SuperApp", "Acme")
+    >>> from platformdirs import PlatformDirs
+    >>> dirs = PlatformDirs("SuperApp", "Acme")
     >>> dirs.user_data_dir
     '/Users/trentm/Library/Application Support/SuperApp'
     >>> dirs.site_data_dir
@@ -130,8 +125,8 @@ If you have multiple versions of your app in use that you want to be
 able to run side-by-side, then you may want version-isolation for these
 dirs::
 
-    >>> from appdir import AppDirs
-    >>> dirs = AppDirs("SuperApp", "Acme", version="1.0")
+    >>> from platformdirs import PlatformDirs
+    >>> dirs = PlatformDirs("SuperApp", "Acme", version="1.0")
     >>> dirs.user_data_dir
     '/Users/trentm/Library/Application Support/SuperApp/1.0'
     >>> dirs.site_data_dir
@@ -150,8 +145,3 @@ This repository is a friendly fork of the wonderful work started by
 ``appdirs``, this package's ancestor.
 
 Contributions are most welcome.
-
-This is a `Jazzband <https://jazzband.co>`_ project. By
-contributing you agree to abide by the `Contributor Code of Conduct
-<https://jazzband.co/about/conduct>`_ and follow the `guidelines
-<https://jazzband.co/about/guidelines>`_.

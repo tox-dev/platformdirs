@@ -4,7 +4,7 @@
 
 """Utilities for determining application-specific dirs.
 
-See <https://github.com/jazzband/appdir> for details and usage.
+See <https://github.com/platformdirs/platformdirs> for details and usage.
 """
 # Dev Notes:
 # - MSDN on where to store app data files:
@@ -411,7 +411,7 @@ def user_log_dir(appname=None, appauthor=None, version=None, opinion=True):
     return path
 
 
-class AppDirs(object):
+class PlatformDirs(object):
     """Convenience wrapper for getting application dirs."""
     def __init__(self, appname=None, appauthor=None, version=None,
             roaming=False, multipath=False):
@@ -455,6 +455,10 @@ class AppDirs(object):
     def user_log_dir(self):
         return user_log_dir(self.appname, self.appauthor,
                             version=self.version)
+
+
+# Backwards compatibility with appdirs
+AppDirs = PlatformDirs
 
 
 #---- internal support stuff
@@ -583,21 +587,21 @@ if __name__ == "__main__":
     print("-- app dirs %s --" % __version__)
 
     print("-- app dirs (with optional 'version')")
-    dirs = AppDirs(appname, appauthor, version="1.0")
+    dirs = PlatformDirs(appname, appauthor, version="1.0")
     for prop in props:
         print("%s: %s" % (prop, getattr(dirs, prop)))
 
     print("\n-- app dirs (without optional 'version')")
-    dirs = AppDirs(appname, appauthor)
+    dirs = PlatformDirs(appname, appauthor)
     for prop in props:
         print("%s: %s" % (prop, getattr(dirs, prop)))
 
     print("\n-- app dirs (without optional 'appauthor')")
-    dirs = AppDirs(appname)
+    dirs = PlatformDirs(appname)
     for prop in props:
         print("%s: %s" % (prop, getattr(dirs, prop)))
 
     print("\n-- app dirs (with disabled 'appauthor')")
-    dirs = AppDirs(appname, appauthor=False)
+    dirs = PlatformDirs(appname, appauthor=False)
     for prop in props:
         print("%s: %s" % (prop, getattr(dirs, prop)))

@@ -9,5 +9,5 @@ ADD . /app
 RUN python setup.py install && python -m unittest discover
 RUN python3 setup.py install && python3 -m unittest
 
-RUN python -m appdir
-RUN python3 -m appdir
+RUN python -m platformdirs
+RUN python3 -m platformdirs
