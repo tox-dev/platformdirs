@@ -1,3 +1,6 @@
+/.idea/
+/.vscode/
+
 *.pyc
 *.egg-info
 tmp/

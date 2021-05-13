@@ -40,6 +40,344 @@ else:
     system = sys.platform
 
 
+# https://docs.python.org/dev/library/sys.html#sys.platform
+if system == 'win32':
+    try:
+        from ctypes import windll
+    except ImportError:
+        try:
+            import com.sun.jna
+        except ImportError:
+            try:
+                if PY2:
+                    import _winreg as winreg
+                else:
+                    import winreg
+            except ImportError:
+                def _get_win_folder(csidl_name):
+                    """Get folder from environment variables."""
+                    if csidl_name == 'CSIDL_APPDATA':
+                        env_var_name = 'APPDATA'
+                    elif csidl_name == 'CSIDL_COMMON_APPDATA':
+                        env_var_name = 'ALLUSERSPROFILE'
+                    elif csidl_name == 'CSIDL_LOCAL_APPDATA':
+                        env_var_name = 'LOCALAPPDATA'
+                    else:
+                        raise ValueError('Unknown CSIDL name: {}'.format(csidl_name))
+
+                    if env_var_name in os.environ:
+                        return os.environ[env_var_name]
+                    else:
+                        raise ValueError('Unset environment variable: {}'.format(env_var_name))
+            else:
+                def _get_win_folder(csidl_name):
+                    """Get folder from the registry.
+
+                    This is a fallback technique at best. I'm not sure if using the
+                    registry for this guarantees us the correct answer for all CSIDL_*
+                    names.
+                    """
+                    if csidl_name == 'CSIDL_APPDATA':
+                        shell_folder_name = 'AppData'
+                    elif csidl_name == 'CSIDL_COMMON_APPDATA':
+                        shell_folder_name = 'Common AppData'
+                    elif csidl_name == 'CSIDL_LOCAL_APPDATA':
+                        shell_folder_name = 'Local AppData'
+                    else:
+                        raise ValueError('Unknown CSIDL name: {}'.format(csidl_name))
+
+                    key = winreg.OpenKey(
+                        winreg.HKEY_CURRENT_USER,
+                        r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
+                    )
+                    directory, _ = winreg.QueryValueEx(key, shell_folder_name)
+                    return directory
+        else:
+            def _get_win_folder_with_jna(csidl_name):
+                """Get folder with JNA."""
+                import array
+                from com.sun import jna
+                from com.sun.jna.platform import win32
+
+                buf_size = win32.WinDef.MAX_PATH * 2
+                buf = array.zeros('c', buf_size)
+                shell = win32.Shell32.INSTANCE
+                shell.SHGetFolderPath(
+                    None, getattr(win32.ShlObj, csidl_name), None, win32.ShlObj.SHGFP_TYPE_CURRENT, buf
+                )
+                directory = jna.Native.toString(buf.tostring()).rstrip('\0')
+
+                # Downgrade to short path name if have highbit chars. See
+                # <http://bugs.activestate.com/show_bug.cgi?id=85099>.
+                has_high_char = False
+                for c in directory:
+                    if ord(c) > 255:
+                        has_high_char = True
+                        break
+                if has_high_char:
+                    buf = array.zeros('c', buf_size)
+                    kernel = win32.Kernel32.INSTANCE
+                    if kernel.GetShortPathName(directory, buf, buf_size):
+                        directory = jna.Native.toString(buf.tostring()).rstrip('\0')
+
+                return directory
+    else:
+        def _get_win_folder(csidl_name):
+            """Get folder with ctypes."""
+            import ctypes
+
+            if csidl_name == 'CSIDL_APPDATA':
+                csidl_const = 26
+            elif csidl_name == 'CSIDL_COMMON_APPDATA':
+                csidl_const = 35
+            elif csidl_name == 'CSIDL_LOCAL_APPDATA':
+                csidl_const = 28
+            else:
+                raise ValueError('Unknown CSIDL name: {}'.format(csidl_name))
+
+            buf = ctypes.create_unicode_buffer(1024)
+            ctypes.windll.shell32.SHGetFolderPathW(None, csidl_const, None, 0, buf)
+
+            # Downgrade to short path name if have highbit chars. See
+            # <http://bugs.activestate.com/show_bug.cgi?id=85099>.
+            has_high_char = False
+            for c in buf:
+                if ord(c) > 255:
+                    has_high_char = True
+                    break
+            if has_high_char:
+                buf2 = ctypes.create_unicode_buffer(1024)
+                if ctypes.windll.kernel32.GetShortPathNameW(buf.value, buf2, 1024):
+                    buf = buf2
+
+            return buf.value
+
+    def _user_data_dir_impl(appname=None, appauthor=None, version=None, roaming=False):
+        if appauthor is None:
+            appauthor = appname
+
+        const = 'CSIDL_APPDATA' if roaming else 'CSIDL_LOCAL_APPDATA'
+        path = os.path.normpath(_get_win_folder(const))
+        if appname:
+            if appauthor is not False:
+                path = os.path.join(path, appauthor, appname)
+            else:
+                path = os.path.join(path, appname)
+
+            if version:
+                path = os.path.join(path, version)
+
+        return path
+
+    def _site_data_dir_impl(appname=None, appauthor=None, version=None, multipath=False):
+        if appauthor is None:
+            appauthor = appname
+
+        path = os.path.normpath(_get_win_folder('CSIDL_COMMON_APPDATA'))
+        if appname:
+            if appauthor is not False:
+                path = os.path.join(path, appauthor, appname)
+            else:
+                path = os.path.join(path, appname)
+
+            if version:
+                path = os.path.join(path, version)
+
+        return path
+
+    def _user_config_dir_impl(appname=None, appauthor=None, version=None, roaming=False):
+        return _user_data_dir_impl(appname=appname, appauthor=appauthor, version=version, roaming=roaming)
+
+    def _site_config_dir_impl(appname=None, appauthor=None, version=None, multipath=False):
+        return _site_data_dir_impl(appname=appname, appauthor=appauthor, version=version)
+
+    def _user_cache_dir_impl(appname=None, appauthor=None, version=None, opinion=True):
+        if appauthor is None:
+            appauthor = appname
+
+        path = os.path.normpath(_get_win_folder('CSIDL_LOCAL_APPDATA'))
+        if appname:
+            if appauthor is not False:
+                path = os.path.join(path, appauthor, appname)
+            else:
+                path = os.path.join(path, appname)
+
+            if opinion:
+                path = os.path.join(path, 'Cache')
+
+            if version:
+                path = os.path.join(path, version)
+
+        return path
+
+    def _user_state_dir_impl(appname=None, appauthor=None, version=None, roaming=False):
+        return _user_data_dir_impl(appname=appname, appauthor=appauthor, version=version, roaming=roaming)
+
+    def _user_log_dir_impl(appname=None, appauthor=None, version=None, opinion=True):
+        path = _user_data_dir_impl(appname=appname, appauthor=appauthor, version=version)
+        if opinion:
+            path = os.path.join(path, 'Logs')
+
+        return path
+
+elif system == 'darwin':
+
+    def _user_data_dir_impl(appname=None, appauthor=None, version=None, roaming=False):
+        path = os.path.expanduser('~/Library/Application Support/')
+        if appname:
+            path = os.path.join(path, appname)
+            if version:
+                path = os.path.join(path, version)
+
+        return path
+
+    def _site_data_dir_impl(appname=None, appauthor=None, version=None, multipath=False):
+        path = '/Library/Application Support'
+        if appname:
+            path = os.path.join(path, appname)
+            if version:
+                path = os.path.join(path, version)
+
+        return path
+
+    def _user_config_dir_impl(appname=None, appauthor=None, version=None, roaming=False):
+        path = os.path.expanduser('~/Library/Preferences/')
+        if appname:
+            path = os.path.join(path, appname)
+            if version:
+                path = os.path.join(path, version)
+
+        return path
+
+    def _site_config_dir_impl(appname=None, appauthor=None, version=None, multipath=False):
+        path = '/Library/Preferences'
+        if appname:
+            path = os.path.join(path, appname)
+
+        return path
+
+    def _user_cache_dir_impl(appname=None, appauthor=None, version=None, opinion=True):
+        path = os.path.expanduser('~/Library/Caches')
+        if appname:
+            path = os.path.join(path, appname)
+            if version:
+                path = os.path.join(path, version)
+
+        return path
+
+    def _user_state_dir_impl(appname=None, appauthor=None, version=None, roaming=False):
+        return _user_data_dir_impl(appname=appname, appauthor=appauthor, version=version, roaming=roaming)
+
+    def _user_log_dir_impl(appname=None, appauthor=None, version=None, opinion=True):
+        path = os.path.join(os.path.expanduser('~/Library/Logs'), appname)
+        if appname and version:
+            path = os.path.join(path, version)
+
+        return path
+
+else:
+
+    def _user_data_dir_impl(appname=None, appauthor=None, version=None, roaming=False):
+        if 'XDG_DATA_HOME' in os.environ:
+            path = os.environ['XDG_DATA_HOME']
+        else:
+            path = os.path.expanduser('~/.local/share')
+
+        if appname:
+            path = os.path.join(path, appname)
+            if version:
+                path = os.path.join(path, version)
+
+        return path
+
+    def _site_data_dir_impl(appname=None, appauthor=None, version=None, multipath=False):
+        # XDG default for $XDG_DATA_DIRS
+        # only first, if multipath is False
+        if 'XDG_DATA_DIRS' in os.environ:
+            path = os.environ['XDG_DATA_DIRS']
+        else:
+            path = '/usr/local/share{}/usr/share'.format(os.pathsep)
+
+        pathlist = [os.path.expanduser(x.rstrip(os.sep)) for x in path.split(os.pathsep)]
+        if appname:
+            if version:
+                appname = os.path.join(appname, version)
+            pathlist = [os.path.join(x, appname) for x in pathlist]
+
+        if multipath:
+            path = os.pathsep.join(pathlist)
+        else:
+            path = pathlist[0]
+
+        return path
+
+    def _user_config_dir_impl(appname=None, appauthor=None, version=None, roaming=False):
+        if 'XDG_CONFIG_HOME' in os.environ:
+            path = os.environ['XDG_CONFIG_HOME']
+        else:
+            path = os.path.expanduser('~/.config')
+
+        if appname:
+            path = os.path.join(path, appname)
+            if version:
+                path = os.path.join(path, version)
+
+        return path
+
+    def _site_config_dir_impl(appname=None, appauthor=None, version=None, multipath=False):
+        # XDG default for $XDG_CONFIG_DIRS
+        # only first, if multipath is False
+        if 'XDG_CONFIG_DIRS' in os.environ:
+            path = os.environ['XDG_CONFIG_DIRS']
+        else:
+            path = '/etc/xdg'
+
+        pathlist = [os.path.expanduser(x.rstrip(os.sep)) for x in path.split(os.pathsep)]
+        if appname:
+            if version:
+                appname = os.path.join(appname, version)
+            pathlist = [os.path.join(x, appname) for x in pathlist]
+
+        if multipath:
+            path = os.pathsep.join(pathlist)
+        else:
+            path = pathlist[0]
+
+        return path
+
+    def _user_cache_dir_impl(appname=None, appauthor=None, version=None, opinion=True):
+        if 'XDG_CACHE_HOME' in os.environ:
+            path = os.environ['XDG_CACHE_HOME']
+        else:
+            path = os.path.expanduser('~/.cache')
+
+        if appname:
+            path = os.path.join(path, appname)
+            if version:
+                path = os.path.join(path, version)
+
+        return path
+
+    def _user_state_dir_impl(appname=None, appauthor=None, version=None, roaming=False):
+        if 'XDG_STATE_HOME' in os.environ:
+            path = os.environ['XDG_STATE_HOME']
+        else:
+            path = os.path.expanduser('~/.local/state')
+
+        if appname:
+            path = os.path.join(path, appname)
+            if version:
+                path = os.path.join(path, version)
+
+        return path
+
+    def _user_log_dir_impl(appname=None, appauthor=None, version=None, opinion=True):
+        path = _user_cache_dir_impl(appname=appname, appauthor=appauthor, version=version)
+        if opinion:
+            path = os.path.join(path, 'log')
+
+        return path
+
 
 def user_data_dir(appname=None, appauthor=None, version=None, roaming=False):
     r"""Return full path to the user-specific data dir for this application.
@@ -73,27 +411,7 @@ def user_data_dir(appname=None, appauthor=None, version=None, roaming=False):
     For Unix, we follow the XDG spec and support $XDG_DATA_HOME.
     That means, by default "~/.local/share/<AppName>".
     """
-    if system == "win32":
-        if appauthor is None:
-            appauthor = appname
-        const = "CSIDL_APPDATA" if roaming else "CSIDL_LOCAL_APPDATA"
-        path = os.path.normpath(_get_win_folder(const))
-        if appname:
-            if appauthor is not False:
-                path = os.path.join(path, appauthor, appname)
-            else:
-                path = os.path.join(path, appname)
-    elif system == 'darwin':
-        path = os.path.expanduser('~/Library/Application Support/')
-        if appname:
-            path = os.path.join(path, appname)
-    else:
-        path = os.getenv('XDG_DATA_HOME', os.path.expanduser("~/.local/share"))
-        if appname:
-            path = os.path.join(path, appname)
-    if appname and version:
-        path = os.path.join(path, version)
-    return path
+    return _user_data_dir_impl(appname=appname, appauthor=appauthor, version=version, roaming=roaming)
 
 
 def site_data_dir(appname=None, appauthor=None, version=None, multipath=False):
@@ -127,39 +445,7 @@ def site_data_dir(appname=None, appauthor=None, version=None, multipath=False):
 
     WARNING: Do not use this on Windows. See the Vista-Fail note above for why.
     """
-    if system == "win32":
-        if appauthor is None:
-            appauthor = appname
-        path = os.path.normpath(_get_win_folder("CSIDL_COMMON_APPDATA"))
-        if appname:
-            if appauthor is not False:
-                path = os.path.join(path, appauthor, appname)
-            else:
-                path = os.path.join(path, appname)
-    elif system == 'darwin':
-        path = os.path.expanduser('/Library/Application Support')
-        if appname:
-            path = os.path.join(path, appname)
-    else:
-        # XDG default for $XDG_DATA_DIRS
-        # only first, if multipath is False
-        path = os.getenv('XDG_DATA_DIRS',
-                         os.pathsep.join(['/usr/local/share', '/usr/share']))
-        pathlist = [os.path.expanduser(x.rstrip(os.sep)) for x in path.split(os.pathsep)]
-        if appname:
-            if version:
-                appname = os.path.join(appname, version)
-            pathlist = [os.path.join(x, appname) for x in pathlist]
-
-        if multipath:
-            path = os.pathsep.join(pathlist)
-        else:
-            path = pathlist[0]
-        return path
-
-    if appname and version:
-        path = os.path.join(path, version)
-    return path
+    return _site_data_dir_impl(appname=appname, appauthor=appauthor, version=version, multipath=multipath)
 
 
 def user_config_dir(appname=None, appauthor=None, version=None, roaming=False):
@@ -191,19 +477,7 @@ def user_config_dir(appname=None, appauthor=None, version=None, roaming=False):
     For Unix, we follow the XDG spec and support $XDG_CONFIG_HOME.
     That means, by default "~/.config/<AppName>".
     """
-    if system == "win32":
-        path = user_data_dir(appname, appauthor, None, roaming)
-    elif system == 'darwin':
-        path = os.path.expanduser('~/Library/Preferences/')
-        if appname:
-            path = os.path.join(path, appname)
-    else:
-        path = os.getenv('XDG_CONFIG_HOME', os.path.expanduser("~/.config"))
-        if appname:
-            path = os.path.join(path, appname)
-    if appname and version:
-        path = os.path.join(path, version)
-    return path
+    return _user_config_dir_impl(appname=appname, appauthor=appauthor, version=version, roaming=roaming)
 
 
 def site_config_dir(appname=None, appauthor=None, version=None, multipath=False):
@@ -236,29 +510,7 @@ def site_config_dir(appname=None, appauthor=None, version=None, multipath=False)
 
     WARNING: Do not use this on Windows. See the Vista-Fail note above for why.
     """
-    if system == 'win32':
-        path = site_data_dir(appname, appauthor)
-        if appname and version:
-            path = os.path.join(path, version)
-    elif system == 'darwin':
-        path = os.path.expanduser('/Library/Preferences')
-        if appname:
-            path = os.path.join(path, appname)
-    else:
-        # XDG default for $XDG_CONFIG_DIRS
-        # only first, if multipath is False
-        path = os.getenv('XDG_CONFIG_DIRS', '/etc/xdg')
-        pathlist = [os.path.expanduser(x.rstrip(os.sep)) for x in path.split(os.pathsep)]
-        if appname:
-            if version:
-                appname = os.path.join(appname, version)
-            pathlist = [os.path.join(x, appname) for x in pathlist]
-
-        if multipath:
-            path = os.pathsep.join(pathlist)
-        else:
-            path = pathlist[0]
-    return path
+    return _site_config_dir_impl(appname=appname, appauthor=appauthor, version=version, multipath=multipath)
 
 
 def user_cache_dir(appname=None, appauthor=None, version=None, opinion=True):
@@ -294,28 +546,7 @@ def user_cache_dir(appname=None, appauthor=None, version=None, opinion=True):
     OPINION: This function appends "Cache" to the `CSIDL_LOCAL_APPDATA` value.
     This can be disabled with the `opinion=False` option.
     """
-    if system == "win32":
-        if appauthor is None:
-            appauthor = appname
-        path = os.path.normpath(_get_win_folder("CSIDL_LOCAL_APPDATA"))
-        if appname:
-            if appauthor is not False:
-                path = os.path.join(path, appauthor, appname)
-            else:
-                path = os.path.join(path, appname)
-            if opinion:
-                path = os.path.join(path, "Cache")
-    elif system == 'darwin':
-        path = os.path.expanduser('~/Library/Caches')
-        if appname:
-            path = os.path.join(path, appname)
-    else:
-        path = os.getenv('XDG_CACHE_HOME', os.path.expanduser('~/.cache'))
-        if appname:
-            path = os.path.join(path, appname)
-    if appname and version:
-        path = os.path.join(path, version)
-    return path
+    return _user_cache_dir_impl(appname=appname, appauthor=appauthor, version=version, opinion=opinion)
 
 
 def user_state_dir(appname=None, appauthor=None, version=None, roaming=False):
@@ -349,15 +580,7 @@ def user_state_dir(appname=None, appauthor=None, version=None, roaming=False):
 
     That means, by default "~/.local/state/<AppName>".
     """
-    if system in ["win32", "darwin"]:
-        path = user_data_dir(appname, appauthor, None, roaming)
-    else:
-        path = os.getenv('XDG_STATE_HOME', os.path.expanduser("~/.local/state"))
-        if appname:
-            path = os.path.join(path, appname)
-    if appname and version:
-        path = os.path.join(path, version)
-    return path
+    return _user_state_dir_impl(appname=appname, appauthor=appauthor, version=version, roaming=roaming)
 
 
 def user_log_dir(appname=None, appauthor=None, version=None, opinion=True):
@@ -392,23 +615,7 @@ def user_log_dir(appname=None, appauthor=None, version=None, opinion=True):
     value for Windows and appends "log" to the user cache dir for Unix.
     This can be disabled with the `opinion=False` option.
     """
-    if system == "darwin":
-        path = os.path.join(
-            os.path.expanduser('~/Library/Logs'),
-            appname)
-    elif system == "win32":
-        path = user_data_dir(appname, appauthor, version)
-        version = False
-        if opinion:
-            path = os.path.join(path, "Logs")
-    else:
-        path = user_cache_dir(appname, appauthor, version)
-        version = False
-        if opinion:
-            path = os.path.join(path, "log")
-    if appname and version:
-        path = os.path.join(path, version)
-    return path
+    return _user_log_dir_impl(appname=appname, appauthor=appauthor, version=version, opinion=opinion)
 
 
 class PlatformDirs(object):
@@ -461,118 +668,8 @@ class PlatformDirs(object):
 AppDirs = PlatformDirs
 
 
-#---- internal support stuff
-
-def _get_win_folder_from_registry(csidl_name):
-    """This is a fallback technique at best. I'm not sure if using the
-    registry for this guarantees us the correct answer for all CSIDL_*
-    names.
-    """
-    if PY2:
-        import _winreg
-    else:
-      import winreg as _winreg
-
-    shell_folder_name = {
-        "CSIDL_APPDATA": "AppData",
-        "CSIDL_COMMON_APPDATA": "Common AppData",
-        "CSIDL_LOCAL_APPDATA": "Local AppData",
-    }[csidl_name]
-
-    key = _winreg.OpenKey(
-        _winreg.HKEY_CURRENT_USER,
-        r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
-    )
-    dir, type = _winreg.QueryValueEx(key, shell_folder_name)
-    return dir
-
-
-def _get_win_folder_with_ctypes(csidl_name):
-    import ctypes
-
-    csidl_const = {
-        "CSIDL_APPDATA": 26,
-        "CSIDL_COMMON_APPDATA": 35,
-        "CSIDL_LOCAL_APPDATA": 28,
-    }[csidl_name]
-
-    buf = ctypes.create_unicode_buffer(1024)
-    ctypes.windll.shell32.SHGetFolderPathW(None, csidl_const, None, 0, buf)
-
-    # Downgrade to short path name if have highbit chars. See
-    # <http://bugs.activestate.com/show_bug.cgi?id=85099>.
-    has_high_char = False
-    for c in buf:
-        if ord(c) > 255:
-            has_high_char = True
-            break
-    if has_high_char:
-        buf2 = ctypes.create_unicode_buffer(1024)
-        if ctypes.windll.kernel32.GetShortPathNameW(buf.value, buf2, 1024):
-            buf = buf2
-
-    return buf.value
-
-def _get_win_folder_with_jna(csidl_name):
-    import array
-    from com.sun import jna
-    from com.sun.jna.platform import win32
-
-    buf_size = win32.WinDef.MAX_PATH * 2
-    buf = array.zeros('c', buf_size)
-    shell = win32.Shell32.INSTANCE
-    shell.SHGetFolderPath(None, getattr(win32.ShlObj, csidl_name), None, win32.ShlObj.SHGFP_TYPE_CURRENT, buf)
-    dir = jna.Native.toString(buf.tostring()).rstrip("\0")
-
-    # Downgrade to short path name if have highbit chars. See
-    # <http://bugs.activestate.com/show_bug.cgi?id=85099>.
-    has_high_char = False
-    for c in dir:
-        if ord(c) > 255:
-            has_high_char = True
-            break
-    if has_high_char:
-        buf = array.zeros('c', buf_size)
-        kernel = win32.Kernel32.INSTANCE
-        if kernel.GetShortPathName(dir, buf, buf_size):
-            dir = jna.Native.toString(buf.tostring()).rstrip("\0")
-
-    return dir
-
-def _get_win_folder_from_environ(csidl_name):
-    env_var_name = {
-        "CSIDL_APPDATA": "APPDATA",
-        "CSIDL_COMMON_APPDATA": "ALLUSERSPROFILE",
-        "CSIDL_LOCAL_APPDATA": "LOCALAPPDATA",
-    }[csidl_name]
-
-    return os.environ[env_var_name]
-
-if system == "win32":
-    try:
-        from ctypes import windll
-    except ImportError:
-        try:
-            import com.sun.jna
-        except ImportError:
-            try:
-                if PY3:
-                  import winreg as _winreg
-                else:
-                  import _winreg
-            except ImportError:
-                _get_win_folder = _get_win_folder_from_environ
-            else:
-                _get_win_folder = _get_win_folder_from_registry
-        else:
-            _get_win_folder = _get_win_folder_with_jna
-    else:
-        _get_win_folder = _get_win_folder_with_ctypes
-
-
-#---- self test code
-
 if __name__ == "__main__":
+    # ---- self test code
     appname = "MyApp"
     appauthor = "MyCompany"
 
