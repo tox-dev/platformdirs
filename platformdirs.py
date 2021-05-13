@@ -269,9 +269,11 @@ elif system == 'darwin':
         return _user_data_dir_impl(appname=appname, appauthor=appauthor, version=version, roaming=roaming)
 
     def _user_log_dir_impl(appname=None, appauthor=None, version=None, opinion=True):
-        path = os.path.join(os.path.expanduser('~/Library/Logs'), appname)
-        if appname and version:
-            path = os.path.join(path, version)
+        path = os.path.expanduser('~/Library/Logs')
+        if appname:
+            path = os.path.join(path, appname)
+            if version:
+                path = os.path.join(path, version)
 
         return path
 

@@ -41,7 +41,12 @@ class Test_PlatformDirs(unittest.TestCase):
         self.assertEqual(platformdirs.site_config_dir(), appdirs.site_config_dir())
         self.assertEqual(platformdirs.user_cache_dir(), appdirs.user_cache_dir())
         self.assertEqual(platformdirs.user_state_dir(), appdirs.user_state_dir())
-        self.assertEqual(platformdirs.user_log_dir(), appdirs.user_log_dir())
+
+        # Calling `appdirs.user_log_dir` without appname produces NoneType error on macOS
+        if sys.platform == 'darwin':
+            self.assertTrue(isinstance(platformdirs.user_log_dir(), str))
+        else:
+            self.assertEqual(platformdirs.user_log_dir(), appdirs.user_log_dir())
 
     def test_backward_compatibility_appname(self):
         kwargs = {'appname': 'foo'}
