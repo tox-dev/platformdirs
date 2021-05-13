@@ -34,7 +34,8 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Install dev dependencies
-        run: python -m pip install appdirs==1.4.4
+        # Forked commit
+        run: python -m pip install https://github.com/ActiveState/appdirs/archive/8eacfa312d77aba28d483fbfb6f6fc54099622be.zip
 
       - name: Run tests
         run: python -m unittest discover
