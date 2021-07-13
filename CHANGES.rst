@@ -7,7 +7,7 @@ platformdirs 2.0.0
 - **BREAKING** Name change as part of the friendly fork
 - **BREAKING** Remove support for end-of-life Pythons 2.6, 3.2, and 3.3
 - **BREAKING** Correct the config directory on OSX/macOS
-- Add Python 3.7 support
+- Add Python 3.7, 3.8, and 3.9 support
 
 appdirs 1.4.4
 -------------
