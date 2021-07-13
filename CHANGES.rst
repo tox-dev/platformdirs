@@ -1,8 +1,8 @@
 platformdirs Changelog
 ======================
 
-platformdirs 2.0.0 (UNRELEASED)
--------------------------------
+platformdirs 2.0.0
+------------------
 
 - Name change as part of the friendly fork
 - Add Python 3.7 support
