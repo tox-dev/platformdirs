@@ -137,11 +137,23 @@ dirs::
     '/Users/trentm/Library/Logs/SuperApp/1.0'
 
 
-Contributing and About
-======================
+Why the Fork?
+=============
 
 This repository is a friendly fork of the wonderful work started by
 `ActiveState <https://github.com/ActiveState/appdirs>`_ who created
 ``appdirs``, this package's ancestor.
+
+Maintaining an open source project is no easy task, particularly
+from within an organization, and the Python community is indebted
+to ``appdirs`` (and to Trent Mick and Jeff Rouse in particular) for
+creating an incredibly useful simple module, as evidenced by the wide
+number of users it has attracted over the years.
+
+Nonetheless, given the number of long-standing open issues
+and pull requests, and no clear path towards `ensuring
+that maintenance of the package would continue or grow
+<https://github.com/ActiveState/appdirs/issues/79>`_, this fork was
+created.
 
 Contributions are most welcome.
