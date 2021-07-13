@@ -24,77 +24,45 @@ if sys.platform == 'win32':
         from ctypes import windll
     except ImportError:
         try:
-            import com.sun.jna
+            import winreg
         except ImportError:
-            try:
-                import winreg
-            except ImportError:
-                def _get_win_folder(csidl_name):
-                    """Get folder from environment variables."""
-                    if csidl_name == 'CSIDL_APPDATA':
-                        env_var_name = 'APPDATA'
-                    elif csidl_name == 'CSIDL_COMMON_APPDATA':
-                        env_var_name = 'ALLUSERSPROFILE'
-                    elif csidl_name == 'CSIDL_LOCAL_APPDATA':
-                        env_var_name = 'LOCALAPPDATA'
-                    else:
-                        raise ValueError(f'Unknown CSIDL name: {csidl_name}')
+            def _get_win_folder(csidl_name):
+                """Get folder from environment variables."""
+                if csidl_name == 'CSIDL_APPDATA':
+                    env_var_name = 'APPDATA'
+                elif csidl_name == 'CSIDL_COMMON_APPDATA':
+                    env_var_name = 'ALLUSERSPROFILE'
+                elif csidl_name == 'CSIDL_LOCAL_APPDATA':
+                    env_var_name = 'LOCALAPPDATA'
+                else:
+                    raise ValueError(f'Unknown CSIDL name: {csidl_name}')
 
-                    if env_var_name in os.environ:
-                        return os.environ[env_var_name]
-                    else:
-                        raise ValueError(f'Unset environment variable: {env_var_name}')
-            else:
-                def _get_win_folder(csidl_name):
-                    """Get folder from the registry.
-
-                    This is a fallback technique at best. I'm not sure if using the
-                    registry for this guarantees us the correct answer for all CSIDL_*
-                    names.
-                    """
-                    if csidl_name == 'CSIDL_APPDATA':
-                        shell_folder_name = 'AppData'
-                    elif csidl_name == 'CSIDL_COMMON_APPDATA':
-                        shell_folder_name = 'Common AppData'
-                    elif csidl_name == 'CSIDL_LOCAL_APPDATA':
-                        shell_folder_name = 'Local AppData'
-                    else:
-                        raise ValueError(f'Unknown CSIDL name: {csidl_name}')
-
-                    key = winreg.OpenKey(
-                        winreg.HKEY_CURRENT_USER,
-                        r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
-                    )
-                    directory, _ = winreg.QueryValueEx(key, shell_folder_name)
-                    return directory
+                if env_var_name in os.environ:
+                    return os.environ[env_var_name]
+                else:
+                    raise ValueError(f'Unset environment variable: {env_var_name}')
         else:
-            def _get_win_folder_with_jna(csidl_name):
-                """Get folder with JNA."""
-                import array
-                from com.sun import jna
-                from com.sun.jna.platform import win32
+            def _get_win_folder(csidl_name):
+                """Get folder from the registry.
 
-                buf_size = win32.WinDef.MAX_PATH * 2
-                buf = array.zeros('c', buf_size)
-                shell = win32.Shell32.INSTANCE
-                shell.SHGetFolderPath(
-                    None, getattr(win32.ShlObj, csidl_name), None, win32.ShlObj.SHGFP_TYPE_CURRENT, buf
+                This is a fallback technique at best. I'm not sure if using the
+                registry for this guarantees us the correct answer for all CSIDL_*
+                names.
+                """
+                if csidl_name == 'CSIDL_APPDATA':
+                    shell_folder_name = 'AppData'
+                elif csidl_name == 'CSIDL_COMMON_APPDATA':
+                    shell_folder_name = 'Common AppData'
+                elif csidl_name == 'CSIDL_LOCAL_APPDATA':
+                    shell_folder_name = 'Local AppData'
+                else:
+                    raise ValueError(f'Unknown CSIDL name: {csidl_name}')
+
+                key = winreg.OpenKey(
+                    winreg.HKEY_CURRENT_USER,
+                    r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
                 )
-                directory = jna.Native.toString(buf.tostring()).rstrip('\0')
-
-                # Downgrade to short path name if have highbit chars. See
-                # <http://bugs.activestate.com/show_bug.cgi?id=85099>.
-                has_high_char = False
-                for c in directory:
-                    if ord(c) > 255:
-                        has_high_char = True
-                        break
-                if has_high_char:
-                    buf = array.zeros('c', buf_size)
-                    kernel = win32.Kernel32.INSTANCE
-                    if kernel.GetShortPathName(directory, buf, buf_size):
-                        directory = jna.Native.toString(buf.tostring()).rstrip('\0')
-
+                directory, _ = winreg.QueryValueEx(key, shell_folder_name)
                 return directory
     else:
         def _get_win_folder(csidl_name):
