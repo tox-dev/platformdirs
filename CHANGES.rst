@@ -4,9 +4,9 @@ platformdirs Changelog
 platformdirs 2.0.0
 ------------------
 
-- Name change as part of the friendly fork
+- **BREAKING** Name change as part of the friendly fork
+- **BREAKING** Remove support for end-of-life Pythons 2.6, 3.2, and 3.3
 - Add Python 3.7 support
-- Remove support for end-of-life Pythons 2.6, 3.2, and 3.3
 
 appdirs 1.4.4
 -------------
