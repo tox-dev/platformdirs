@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2005-2010 ActiveState Software Inc.
 # Copyright (c) 2013 Eddy Petrișor
 
@@ -18,11 +17,6 @@ __version_info__ = 2, 0, 0
 
 import sys
 import os
-
-PY2 = sys.version_info[0] == 2
-
-if not PY2:
-    unicode = str
 
 if sys.platform.startswith('java'):
     import platform
@@ -49,10 +43,7 @@ if system == 'win32':
             import com.sun.jna
         except ImportError:
             try:
-                if PY2:
-                    import _winreg as winreg
-                else:
-                    import winreg
+                import winreg
             except ImportError:
                 def _get_win_folder(csidl_name):
                     """Get folder from environment variables."""
@@ -63,12 +54,12 @@ if system == 'win32':
                     elif csidl_name == 'CSIDL_LOCAL_APPDATA':
                         env_var_name = 'LOCALAPPDATA'
                     else:
-                        raise ValueError('Unknown CSIDL name: {}'.format(csidl_name))
+                        raise ValueError(f'Unknown CSIDL name: {csidl_name}')
 
                     if env_var_name in os.environ:
                         return os.environ[env_var_name]
                     else:
-                        raise ValueError('Unset environment variable: {}'.format(env_var_name))
+                        raise ValueError(f'Unset environment variable: {env_var_name}')
             else:
                 def _get_win_folder(csidl_name):
                     """Get folder from the registry.
@@ -84,7 +75,7 @@ if system == 'win32':
                     elif csidl_name == 'CSIDL_LOCAL_APPDATA':
                         shell_folder_name = 'Local AppData'
                     else:
-                        raise ValueError('Unknown CSIDL name: {}'.format(csidl_name))
+                        raise ValueError(f'Unknown CSIDL name: {csidl_name}')
 
                     key = winreg.OpenKey(
                         winreg.HKEY_CURRENT_USER,
@@ -133,7 +124,7 @@ if system == 'win32':
             elif csidl_name == 'CSIDL_LOCAL_APPDATA':
                 csidl_const = 28
             else:
-                raise ValueError('Unknown CSIDL name: {}'.format(csidl_name))
+                raise ValueError(f'Unknown CSIDL name: {csidl_name}')
 
             buf = ctypes.create_unicode_buffer(1024)
             ctypes.windll.shell32.SHGetFolderPathW(None, csidl_const, None, 0, buf)
@@ -298,7 +289,7 @@ else:
         if 'XDG_DATA_DIRS' in os.environ:
             path = os.environ['XDG_DATA_DIRS']
         else:
-            path = '/usr/local/share{}/usr/share'.format(os.pathsep)
+            path = f'/usr/local/share{os.pathsep}/usr/share'
 
         pathlist = [os.path.expanduser(x.rstrip(os.sep)) for x in path.split(os.pathsep)]
         if appname:
@@ -620,7 +611,7 @@ def user_log_dir(appname=None, appauthor=None, version=None, opinion=True):
     return _user_log_dir_impl(appname=appname, appauthor=appauthor, version=version, opinion=opinion)
 
 
-class PlatformDirs(object):
+class PlatformDirs:
     """Convenience wrapper for getting application dirs."""
     def __init__(self, appname=None, appauthor=None, version=None,
             roaming=False, multipath=False):
@@ -688,19 +679,19 @@ if __name__ == "__main__":
     print("-- app dirs (with optional 'version')")
     dirs = PlatformDirs(appname, appauthor, version="1.0")
     for prop in props:
-        print("%s: %s" % (prop, getattr(dirs, prop)))
+        print(f"{prop}: {getattr(dirs, prop)}")
 
     print("\n-- app dirs (without optional 'version')")
     dirs = PlatformDirs(appname, appauthor)
     for prop in props:
-        print("%s: %s" % (prop, getattr(dirs, prop)))
+        print(f"{prop}: {getattr(dirs, prop)}")
 
     print("\n-- app dirs (without optional 'appauthor')")
     dirs = PlatformDirs(appname)
     for prop in props:
-        print("%s: %s" % (prop, getattr(dirs, prop)))
+        print(f"{prop}: {getattr(dirs, prop)}")
 
     print("\n-- app dirs (with disabled 'appauthor')")
     dirs = PlatformDirs(appname, appauthor=False)
     for prop in props:
-        print("%s: %s" % (prop, getattr(dirs, prop)))
+        print(f"{prop}: {getattr(dirs, prop)}")
