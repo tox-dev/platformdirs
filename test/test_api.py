@@ -3,11 +3,6 @@ import unittest
 import platformdirs
 import appdirs
 
-if sys.version_info[0] < 3:
-    STRING_TYPE = basestring
-else:
-    STRING_TYPE = str
-
 
 class Test_PlatformDirs(unittest.TestCase):
     def test_metadata(self):
@@ -16,23 +11,23 @@ class Test_PlatformDirs(unittest.TestCase):
 
     def test_helpers(self):
         self.assertIsInstance(
-            platformdirs.user_data_dir('MyApp', 'MyCompany'), STRING_TYPE)
+            platformdirs.user_data_dir('MyApp', 'MyCompany'), str)
         self.assertIsInstance(
-            platformdirs.site_data_dir('MyApp', 'MyCompany'), STRING_TYPE)
+            platformdirs.site_data_dir('MyApp', 'MyCompany'), str)
         self.assertIsInstance(
-            platformdirs.user_cache_dir('MyApp', 'MyCompany'), STRING_TYPE)
+            platformdirs.user_cache_dir('MyApp', 'MyCompany'), str)
         self.assertIsInstance(
-            platformdirs.user_state_dir('MyApp', 'MyCompany'), STRING_TYPE)
+            platformdirs.user_state_dir('MyApp', 'MyCompany'), str)
         self.assertIsInstance(
-            platformdirs.user_log_dir('MyApp', 'MyCompany'), STRING_TYPE)
+            platformdirs.user_log_dir('MyApp', 'MyCompany'), str)
 
     def test_dirs(self):
         dirs = platformdirs.PlatformDirs('MyApp', 'MyCompany', version='1.0')
-        self.assertIsInstance(dirs.user_data_dir, STRING_TYPE)
-        self.assertIsInstance(dirs.site_data_dir, STRING_TYPE)
-        self.assertIsInstance(dirs.user_cache_dir, STRING_TYPE)
-        self.assertIsInstance(dirs.user_state_dir, STRING_TYPE)
-        self.assertIsInstance(dirs.user_log_dir, STRING_TYPE)
+        self.assertIsInstance(dirs.user_data_dir, str)
+        self.assertIsInstance(dirs.site_data_dir, str)
+        self.assertIsInstance(dirs.user_cache_dir, str)
+        self.assertIsInstance(dirs.user_state_dir, str)
+        self.assertIsInstance(dirs.user_log_dir, str)
 
     def test_backward_compatibility_basic(self):
         self.assertEqual(platformdirs.user_data_dir(), appdirs.user_data_dir())
@@ -77,6 +72,7 @@ class Test_PlatformDirs(unittest.TestCase):
         self.assertEqual(platformdirs.user_cache_dir(**kwargs), appdirs.user_cache_dir(**kwargs))
         self.assertEqual(platformdirs.user_state_dir(**kwargs), appdirs.user_state_dir(**kwargs))
         self.assertEqual(platformdirs.user_log_dir(**kwargs), appdirs.user_log_dir(**kwargs))
+
 
 if __name__ == "__main__":
     unittest.main()
