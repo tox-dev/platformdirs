@@ -7,5 +7,4 @@ tmp/
 build/
 dist/
 .tox/
-MANIFEST
-*.komodoproject
+/src/platformdirs/version.py

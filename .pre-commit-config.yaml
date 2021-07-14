@@ -1,0 +1,45 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+      - id: check-builtin-literals
+      - id: check-docstring-first
+      - id: check-yaml
+      - id: check-toml
+      - id: debug-statements
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v2.21.0
+    hooks:
+      - id: pyupgrade
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.9.2
+    hooks:
+      - id: isort
+  - repo: https://github.com/psf/black
+    rev: 21.6b0
+    hooks:
+      - id: black
+        args: [--safe]
+        language_version: python3.9
+  - repo: https://github.com/asottile/setup-cfg-fmt
+    rev: v1.17.0
+    hooks:
+      - id: setup-cfg-fmt
+        args: ["--max-py-version", "3.10"]
+  - repo: https://github.com/tox-dev/tox-ini-fmt
+    rev: "0.5.1"
+    hooks:
+      - id: tox-ini-fmt
+  - repo: https://github.com/PyCQA/flake8
+    rev: "3.9.2"
+    hooks:
+      - id: flake8
+        additional_dependencies: [
+            "flake8-bugbear == 21.4.3",
+            "flake8-unused-arguments == 0.0.6",
+            "flake8-comprehensions == 3.5.0",
+            "flake8-spellcheck == 0.24.0",
+            "flake8-pytest-style == 1.5.0",
+        ]
