@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2005-2010 ActiveState Software Inc.
 # Copyright (c) 2013 Eddy Petrișor
 
@@ -19,107 +18,51 @@ __version_info__ = 2, 0, 2
 import sys
 import os
 
-PY2 = sys.version_info[0] == 2
-
-if not PY2:
-    unicode = str
-
-if sys.platform.startswith('java'):
-    import platform
-    os_name = platform.java_ver()[3][0]
-    if os_name.startswith('Windows'): # "Windows XP", "Windows 7", etc.
-        system = 'win32'
-    elif os_name.startswith('Mac'): # "Mac OS X", etc.
-        system = 'darwin'
-    else: # "Linux", "SunOS", "FreeBSD", etc.
-        # Setting this to "linux2" is not ideal, but only Windows or Mac
-        # are actually checked for and the rest of the module expects
-        # *sys.platform* style strings.
-        system = 'linux2'
-else:
-    system = sys.platform
-
-
 # https://docs.python.org/dev/library/sys.html#sys.platform
-if system == 'win32':
+if sys.platform == 'win32':
     try:
         from ctypes import windll
     except ImportError:
         try:
-            import com.sun.jna
+            import winreg
         except ImportError:
-            try:
-                if PY2:
-                    import _winreg as winreg
+            def _get_win_folder(csidl_name):
+                """Get folder from environment variables."""
+                if csidl_name == 'CSIDL_APPDATA':
+                    env_var_name = 'APPDATA'
+                elif csidl_name == 'CSIDL_COMMON_APPDATA':
+                    env_var_name = 'ALLUSERSPROFILE'
+                elif csidl_name == 'CSIDL_LOCAL_APPDATA':
+                    env_var_name = 'LOCALAPPDATA'
                 else:
-                    import winreg
-            except ImportError:
-                def _get_win_folder(csidl_name):
-                    """Get folder from environment variables."""
-                    if csidl_name == 'CSIDL_APPDATA':
-                        env_var_name = 'APPDATA'
-                    elif csidl_name == 'CSIDL_COMMON_APPDATA':
-                        env_var_name = 'ALLUSERSPROFILE'
-                    elif csidl_name == 'CSIDL_LOCAL_APPDATA':
-                        env_var_name = 'LOCALAPPDATA'
-                    else:
-                        raise ValueError('Unknown CSIDL name: {}'.format(csidl_name))
+                    raise ValueError(f'Unknown CSIDL name: {csidl_name}')
 
-                    if env_var_name in os.environ:
-                        return os.environ[env_var_name]
-                    else:
-                        raise ValueError('Unset environment variable: {}'.format(env_var_name))
-            else:
-                def _get_win_folder(csidl_name):
-                    """Get folder from the registry.
-
-                    This is a fallback technique at best. I'm not sure if using the
-                    registry for this guarantees us the correct answer for all CSIDL_*
-                    names.
-                    """
-                    if csidl_name == 'CSIDL_APPDATA':
-                        shell_folder_name = 'AppData'
-                    elif csidl_name == 'CSIDL_COMMON_APPDATA':
-                        shell_folder_name = 'Common AppData'
-                    elif csidl_name == 'CSIDL_LOCAL_APPDATA':
-                        shell_folder_name = 'Local AppData'
-                    else:
-                        raise ValueError('Unknown CSIDL name: {}'.format(csidl_name))
-
-                    key = winreg.OpenKey(
-                        winreg.HKEY_CURRENT_USER,
-                        r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
-                    )
-                    directory, _ = winreg.QueryValueEx(key, shell_folder_name)
-                    return directory
+                if env_var_name in os.environ:
+                    return os.environ[env_var_name]
+                else:
+                    raise ValueError(f'Unset environment variable: {env_var_name}')
         else:
-            def _get_win_folder_with_jna(csidl_name):
-                """Get folder with JNA."""
-                import array
-                from com.sun import jna
-                from com.sun.jna.platform import win32
+            def _get_win_folder(csidl_name):
+                """Get folder from the registry.
 
-                buf_size = win32.WinDef.MAX_PATH * 2
-                buf = array.zeros('c', buf_size)
-                shell = win32.Shell32.INSTANCE
-                shell.SHGetFolderPath(
-                    None, getattr(win32.ShlObj, csidl_name), None, win32.ShlObj.SHGFP_TYPE_CURRENT, buf
+                This is a fallback technique at best. I'm not sure if using the
+                registry for this guarantees us the correct answer for all CSIDL_*
+                names.
+                """
+                if csidl_name == 'CSIDL_APPDATA':
+                    shell_folder_name = 'AppData'
+                elif csidl_name == 'CSIDL_COMMON_APPDATA':
+                    shell_folder_name = 'Common AppData'
+                elif csidl_name == 'CSIDL_LOCAL_APPDATA':
+                    shell_folder_name = 'Local AppData'
+                else:
+                    raise ValueError(f'Unknown CSIDL name: {csidl_name}')
+
+                key = winreg.OpenKey(
+                    winreg.HKEY_CURRENT_USER,
+                    r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
                 )
-                directory = jna.Native.toString(buf.tostring()).rstrip('\0')
-
-                # Downgrade to short path name if have highbit chars. See
-                # <http://bugs.activestate.com/show_bug.cgi?id=85099>.
-                has_high_char = False
-                for c in directory:
-                    if ord(c) > 255:
-                        has_high_char = True
-                        break
-                if has_high_char:
-                    buf = array.zeros('c', buf_size)
-                    kernel = win32.Kernel32.INSTANCE
-                    if kernel.GetShortPathName(directory, buf, buf_size):
-                        directory = jna.Native.toString(buf.tostring()).rstrip('\0')
-
+                directory, _ = winreg.QueryValueEx(key, shell_folder_name)
                 return directory
     else:
         def _get_win_folder(csidl_name):
@@ -133,7 +76,7 @@ if system == 'win32':
             elif csidl_name == 'CSIDL_LOCAL_APPDATA':
                 csidl_const = 28
             else:
-                raise ValueError('Unknown CSIDL name: {}'.format(csidl_name))
+                raise ValueError(f'Unknown CSIDL name: {csidl_name}')
 
             buf = ctypes.create_unicode_buffer(1024)
             ctypes.windll.shell32.SHGetFolderPathW(None, csidl_const, None, 0, buf)
@@ -220,7 +163,7 @@ if system == 'win32':
 
         return path
 
-elif system == 'darwin':
+elif sys.platform == 'darwin':
 
     def _user_data_dir_impl(appname=None, appauthor=None, version=None, roaming=False):
         path = os.path.expanduser('~/Library/Application Support/')
@@ -298,7 +241,7 @@ else:
         if 'XDG_DATA_DIRS' in os.environ:
             path = os.environ['XDG_DATA_DIRS']
         else:
-            path = '/usr/local/share{}/usr/share'.format(os.pathsep)
+            path = f'/usr/local/share{os.pathsep}/usr/share'
 
         pathlist = [os.path.expanduser(x.rstrip(os.sep)) for x in path.split(os.pathsep)]
         if appname:
@@ -620,7 +563,7 @@ def user_log_dir(appname=None, appauthor=None, version=None, opinion=True):
     return _user_log_dir_impl(appname=appname, appauthor=appauthor, version=version, opinion=opinion)
 
 
-class PlatformDirs(object):
+class PlatformDirs:
     """Convenience wrapper for getting application dirs."""
     def __init__(self, appname=None, appauthor=None, version=None,
             roaming=False, multipath=False):
@@ -688,19 +631,19 @@ if __name__ == "__main__":
     print("-- app dirs (with optional 'version')")
     dirs = PlatformDirs(appname, appauthor, version="1.0")
     for prop in props:
-        print("%s: %s" % (prop, getattr(dirs, prop)))
+        print(f"{prop}: {getattr(dirs, prop)}")
 
     print("\n-- app dirs (without optional 'version')")
     dirs = PlatformDirs(appname, appauthor)
     for prop in props:
-        print("%s: %s" % (prop, getattr(dirs, prop)))
+        print(f"{prop}: {getattr(dirs, prop)}")
 
     print("\n-- app dirs (without optional 'appauthor')")
     dirs = PlatformDirs(appname)
     for prop in props:
-        print("%s: %s" % (prop, getattr(dirs, prop)))
+        print(f"{prop}: {getattr(dirs, prop)}")
 
     print("\n-- app dirs (with disabled 'appauthor')")
     dirs = PlatformDirs(appname, appauthor=False)
     for prop in props:
-        print("%s: %s" % (prop, getattr(dirs, prop)))
+        print(f"{prop}: {getattr(dirs, prop)}")
