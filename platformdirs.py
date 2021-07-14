@@ -11,8 +11,8 @@ See <https://github.com/platformdirs/platformdirs> for details and usage.
 # - Mac OS X: http://developer.apple.com/documentation/MacOSX/Conceptual/BPFileSystem/index.html
 # - XDG spec for Un*x: https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
-__version__ = "2.0.0"
-__version_info__ = 2, 0, 0
+__version__ = "2.0.2"
+__version_info__ = 2, 0, 2
 
 
 import sys
