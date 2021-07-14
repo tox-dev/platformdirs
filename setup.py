@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from io import open
 import os
 import ast
 from setuptools import setup
