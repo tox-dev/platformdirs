@@ -86,6 +86,7 @@ jobs:
         tox_env:
           - dev
           - pkg_check
+          - mypy
         exclude:
           - { os: windows, tox_env: pkg_check }
     steps:

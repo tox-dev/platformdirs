@@ -1,7 +1,7 @@
 from platformdirs import PlatformDirs, __version__
 
 
-def main():
+def main() -> None:
     app_name = "MyApp"
     app_author = "MyCompany"
 
