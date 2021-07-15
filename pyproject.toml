@@ -1,3 +1,19 @@
 [build-system]
-requires = ["setuptools>=40.6.0"]
+requires = ["setuptools >= 44", "wheel >= 0.30", "setuptools_scm[toml]>=5"]
 build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+known_first_party = ["platformdirs"]
+
+[tool.setuptools_scm]
+write_to = "src/platformdirs/version.py"
+write_to_template = """
+\"\"\" Version information \"\"\"
+
+__version__ = "{version}"
+__version_info__ = {version_tuple}
+"""
