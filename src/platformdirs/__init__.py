@@ -12,7 +12,6 @@ See <https://github.com/platformdirs/platformdirs> for details and usage.
 # - XDG spec for Un*x: https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
 import os
-import re
 import sys
 
 from .version import __version__, __version_info__
@@ -609,40 +608,16 @@ class PlatformDirs:
 
 # Backwards compatibility with appdirs
 AppDirs = PlatformDirs
-
-if __name__ == "__main__":
-    # ---- self test code
-    appname = "MyApp"
-    appauthor = "MyCompany"
-
-    props = (
-        "user_data_dir",
-        "user_config_dir",
-        "user_cache_dir",
-        "user_state_dir",
-        "user_log_dir",
-        "site_data_dir",
-        "site_config_dir",
-    )
-
-    print(f"-- app dirs {__version__} --")
-
-    print("-- app dirs (with optional 'version')")
-    dirs = PlatformDirs(appname, appauthor, version="1.0")
-    for prop in props:
-        print(f"{prop}: {getattr(dirs, prop)}")
-
-    print("\n-- app dirs (without optional 'version')")
-    dirs = PlatformDirs(appname, appauthor)
-    for prop in props:
-        print(f"{prop}: {getattr(dirs, prop)}")
-
-    print("\n-- app dirs (without optional 'appauthor')")
-    dirs = PlatformDirs(appname)
-    for prop in props:
-        print(f"{prop}: {getattr(dirs, prop)}")
-
-    print("\n-- app dirs (with disabled 'appauthor')")
-    dirs = PlatformDirs(appname, appauthor=False)
-    for prop in props:
-        print(f"{prop}: {getattr(dirs, prop)}")
+__all__ = [
+    "__version__",
+    "__version_info__",
+    "PlatformDirs",
+    "AppDirs",
+    "user_data_dir",
+    "user_config_dir",
+    "user_cache_dir",
+    "user_state_dir",
+    "user_log_dir",
+    "site_data_dir",
+    "site_config_dir",
+]
