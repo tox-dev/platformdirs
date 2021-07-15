@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Install tix
+      - name: Install tox
         run: python -m pip install tox
       - name: Setup python for test ${{ matrix.py }}
         uses: actions/setup-python@v2

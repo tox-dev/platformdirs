@@ -15,9 +15,7 @@ import os
 import re
 import sys
 
-from .version import __version__
-
-__version_info__ = tuple(int(i) for i in re.match(r"\d+\.\d+\.\d+", __version__).group(0).split(".")[0:3])
+from .version import __version__, __version_info__
 
 # https://docs.python.org/dev/library/sys.html#sys.platform
 if sys.platform == "win32":
@@ -627,7 +625,7 @@ if __name__ == "__main__":
         "site_config_dir",
     )
 
-    print("-- app dirs %s --" % __version__)
+    print(f"-- app dirs {__version__} --")
 
     print("-- app dirs (with optional 'version')")
     dirs = PlatformDirs(appname, appauthor, version="1.0")

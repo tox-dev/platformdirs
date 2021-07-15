@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools >= 44", "wheel >= 0.30", "setuptools_scm[toml]>=3.4"]
+requires = ["setuptools >= 44", "wheel >= 0.30", "setuptools_scm[toml]>=5"]
 build-backend = "setuptools.build_meta"
 
 [tool.black]
@@ -14,5 +14,6 @@ write_to = "src/platformdirs/version.py"
 write_to_template = """
 \"\"\" Version information \"\"\"
 
-__version__: str = "{version}"
+__version__ = "{version}"
+__version_info__ = {version_tuple}
 """
