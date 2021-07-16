@@ -1,3 +1,4 @@
+from platformdirs.version import __version__
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -18,7 +19,7 @@ copyright = "2021, The platformdirs team"
 author = "The platformdirs team"
 
 # The full version, including alpha/beta/rc tags
-release = "2.0.0"
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
