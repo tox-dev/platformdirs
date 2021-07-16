@@ -22,6 +22,9 @@ pathlist
 pathsep
 Petri
 platformdirs
+prepend
+setenv
 shell32
+syspath
 winreg
 XDG

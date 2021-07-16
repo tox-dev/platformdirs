@@ -107,6 +107,20 @@ On Linux:
     >>> site_config_dir(appname, multipath=True)
     '/etc/SuperApp:/usr/local/etc/SuperApp'
 
+On Android::
+
+    >>> from platformdirs import *
+    >>> appname = "SuperApp"
+    >>> appauthor = "Acme"
+    >>> user_data_dir(appname, appauthor)
+    '/data/data/com.termux/files/SuperApp'
+    >>> user_cache_dir(appname, appauthor)
+    '/data/data/com.termux/cache/SuperApp'
+    >>> user_log_dir(appname, appauthor)
+    '/data/data/com.termux/cache/SuperApp/log'
+    >>> user_config_dir(appname)
+    '/data/data/com.termux/shared_prefs/SuperApp'
+
 
 ``PlatformDirs`` for convenience
 ================================

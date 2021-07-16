@@ -19,7 +19,83 @@ if TYPE_CHECKING:
 from .version import __version__, __version_info__
 
 # https://docs.python.org/dev/library/sys.html#sys.platform
-if sys.platform == "win32":
+if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system":
+
+    def _get_android_folder_with_pyjnius():  # noqa: SC200
+        """Get path to android app via pyjnius"""
+        from jnius import autoclass  # noqa: SC200
+
+        Context = autoclass("android.content.Context")  # noqa: SC200
+        return Context.getFilesDir().getParentFile().getAbsolutePath()
+
+    def _get_android_folder_brute_path():
+        from re import match
+
+        pattern = r"/data/(data|user/\d+)/(.+)/files"
+
+        for path in sys.path:
+            if match(pattern, path):
+                return path.split("/files")[0]
+
+        raise OSError("Cannot find path to android app folder")
+
+    try:
+        _get_android_folder_with_pyjnius()  # noqa: SC200
+    except:  # noqa: B001, E722
+        _get_android_folder = _get_android_folder_brute_path
+    else:
+        _get_android_folder = _get_android_folder_with_pyjnius  # noqa: SC200
+    finally:
+        _android_folder = _get_android_folder()
+
+    def _user_data_dir_impl(appname=None, appauthor=None, version=None, roaming=False):  # noqa: U100
+        path = os.path.join(_android_folder, "files")
+
+        if appname:
+            path = os.path.join(path, appname)
+            if version:
+                path = os.path.join(path, version)
+
+        return path
+
+    def _site_data_dir_impl(appname=None, appauthor=None, version=None, multipath=False):  # noqa: U100
+        return _user_data_dir_impl(appname=appname, appauthor=appauthor, version=version)
+
+    def _user_config_dir_impl(appname=None, appauthor=None, version=None, roaming=False):  # noqa: U100
+        path = os.path.join(_android_folder, "shared_prefs")
+
+        if appname:
+            path = os.path.join(path, appname)
+            if version:
+                path = os.path.join(path, version)
+
+        return path
+
+    def _site_config_dir_impl(appname=None, appauthor=None, version=None, multipath=False):  # noqa: U100
+        return _user_config_dir_impl(appname=appname, appauthor=appauthor, version=version)
+
+    def _user_cache_dir_impl(appname=None, appauthor=None, version=None, opinion=True):  # noqa: U100
+        path = os.path.join(_android_folder, "cache")
+
+        if appname:
+            path = os.path.join(path, appname)
+            if version:
+                path = os.path.join(path, version)
+
+        return path
+
+    def _user_state_dir_impl(appname=None, appauthor=None, version=None, roaming=False):  # noqa: U100
+        return _user_data_dir_impl(appname=appname, appauthor=appauthor, version=version)
+
+    def _user_log_dir_impl(appname=None, appauthor=None, version=None, opinion=True):  # noqa: U100
+        path = _user_cache_dir_impl(appname=appname, appauthor=appauthor, version=version)
+        if opinion:
+            path = os.path.join(path, "log")
+
+        return path
+
+
+elif sys.platform == "win32":
     try:
         from ctypes import windll  # noqa: F401
     except ImportError:
@@ -484,8 +560,11 @@ def user_data_dir(
     |   ``%USERPROFILE%\AppData\Local\$appauthor\$appname``
     | **Win 7  (roaming)**:
     |   ``%USERPROFILE%\AppData\Roaming\$appauthor\$appname``
+    | **Android**:
+    |   ``/data/user/<userid>/<packagename>/files/<AppName>``
 
     For Unix, we follow the XDG basedir spec and support ``$XDG_DATA_HOME``.
+
     """
     return _user_data_dir_impl(appname=appname, appauthor=appauthor, version=version, roaming=roaming)
 
@@ -526,6 +605,8 @@ def site_data_dir(
     |   Fails, ``C:\ProgramData`` is a hidden *system* directory
     | **Win 7**:
     |   ``C:\ProgramData\$appauthor\$appname``
+    | **Android**:
+    |  Same as :func:`~.user_data_dir`.
 
     For Unix, this is using the ``$XDG_DATA_DIRS[0]`` default.
 
@@ -568,6 +649,8 @@ def user_config_dir(
     |   ``~/.config/$appname`` (or ``$XDG_CONFIG_HOME/$appname``)
     | **Win XP (not roaming)**:
     |   Same as :func:`~.user_data_dir`.
+    | **Android**:
+    |  ``/data/user/<userid>/<packagename>/shared_prefs/<AppName>``
 
     For Unix, we follow the XDG basedir spec and use ``$XDG_CONFIG_HOME``.
     """
@@ -608,6 +691,8 @@ def site_config_dir(
     |   Fails, ``C:\ProgramData`` is a hidden *system* directory
     | **Win 7 and above**:
     |   Same as :func:`~.site_data_dir`.
+    | **Android**:
+    |   Same as :func:`~.user_config_dir`.
 
     For Unix, the first directory in ``$XDG_CONFIG_DIRS`` is used, if
     ``multipath=False``.
@@ -649,6 +734,8 @@ def user_cache_dir(
     |   ``%USERPROFILE%\Local Settings\Application Data\$appauthor\$appname\Cache``
     | **Win XP and above**:
     |   ``%USERPROFILE%\AppData\Local\$appauthor\$appname\Cache``
+    | **Android**:
+    |   ``/data/user/<userid>/<packagename>/cache/<AppName>``
 
     On Windows the only suggestion in the MSDN docs is that local settings go in
     the ``CSIDL_LOCAL_APPDATA`` directory. This is identical to the non-roaming
@@ -697,6 +784,8 @@ def user_state_dir(
     |   ``~/.local/state/$appname`` (or ``$XDG_STATE_HOME/$appname``)
     | **Windows**:
     |   Same as :func:`~.user_data_dir`.
+    | **Android**:
+    |   Same as :func:`~.user_data_dir`.
 
     For Unix, we follow the XDG basedir spec and use ``$XDG_STATE_HOME``.
     """
@@ -736,6 +825,8 @@ def user_log_dir(
     |  ``%USERPROFILE%\Local Settings\Application Data\$appauthor\$appname\Logs``
     | **Windows Vista or later**:
     |  ``%USERPROFILE%\AppData\Local\$appauthor\$appname\Logs``
+    | **Android**:
+    |  ``/data/user/<userid>/<packagename>/cache/<AppName>/log``
 
     On Windows the only suggestion in the MSDN docs is that local settings
     go in the `CSIDL_LOCAL_APPDATA` directory. (Note: I'm interested in
