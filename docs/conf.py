@@ -5,6 +5,7 @@ project = "platformdirs"
 copyright = "2021, The platformdirs team"
 
 release = __version__
+version = release
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosectionlabel",
