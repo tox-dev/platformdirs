@@ -12,8 +12,7 @@ See <https://github.com/platformdirs/platformdirs> for details and usage.
 import os
 import sys
 
-from .version import __version__
-from .version import __version_info__
+from .version import __version__, __version_info__
 
 # https://docs.python.org/dev/library/sys.html#sys.platform
 if sys.platform == "win32":
@@ -382,7 +381,7 @@ def site_data_dir(appname: str = None, appauthor: str = None, version: str = Non
         of your app to be able to run independently. If used, this
         would typically be "<major>.<minor>".
         Only applied when appname is present.
-    :param multipath: An optional parameter only applicable to *nix
+    :param multipath: An optional parameter only applicable to \*nix
         which indicates that the entire list of data dirs should be
         returned. By default, the first item from ``XDG_DATA_DIRS`` is
         returned, or ``/usr/local/share/$appname`` if ``XDG_DATA_DIRS`` is not set
@@ -456,7 +455,7 @@ def site_config_dir(appname: str = None, appauthor: str = None, version: str = N
         of your app to be able to run independently. If used, this
         would typically be "<major>.<minor>".
         Only applied when appname is present.
-    :param multipath: is an optional parameter only applicable to *nix
+    :param multipath: is an optional parameter only applicable to \*nix
         which indicates that the entire list of config dirs should be
         returned. By default, the first item from ``XDG_CONFIG_DIRS `` is
         returned, or '/etc/xdg/$appname', if ``XDG_CONFIG_DIRS`` is not set

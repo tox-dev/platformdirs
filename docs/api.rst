@@ -15,13 +15,13 @@ User directories
 
 These are user-specific (and, generally, user-writeable) directories.
 
-Data directory
+User data directory
 -------------------
 
 .. autofunction:: platformdirs.user_data_dir
 
-Config directory
--------------------
+User config directory
+---------------------
 
 .. autofunction:: platformdirs.user_config_dir
 
@@ -45,12 +45,12 @@ Shared directories
 
 These are system-wide (and, generally, read-only) directories.
 
-Data directory
---------------
+Shared data directory
+---------------------
 
 .. autofunction:: platformdirs.site_data_dir
 
-Config directory
-----------------
+Shared config directory
+-----------------------
 
 .. autofunction:: platformdirs.site_config_dir
