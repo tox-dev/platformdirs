@@ -4,8 +4,11 @@ the problem
 .. image:: https://github.com/platformdirs/platformdirs/workflows/Test/badge.svg
    :target: https://github.com/platformdirs/platformdirs/actions?query=workflow%3ATest
 
-What directory should your app use for storing user data? If running on macOS, you
-should use::
+When writing desktop application, finding the right location to store user data
+and configuration varies per platform. Even for single-platform apps, there
+may by plenty of nuances in figuring out the right location.
+
+For example, if running on macOS, you should use::
 
     ~/Library/Application Support/<AppName>
 
@@ -19,11 +22,11 @@ or possibly::
 
 for `roaming profiles <https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-vista/cc766489(v=ws.10)>`_ but that is another story.
 
-On Linux (and other Unices) the dir, according to the `XDG
-spec <https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html>`_, is::
+On Linux (and other Unices), according to the `XDG Basedir Spec`_, it should be::
 
     ~/.local/share/<AppName>
 
+.. _XDG Basedir Spec: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
 ``platformdirs`` to the rescue
 ==============================
@@ -38,17 +41,18 @@ This kind of thing is what the ``platformdirs`` module is for.
 - site config dir (``site_config_dir``)
 - user log dir (``user_log_dir``)
 
-and also:
+And also:
 
-- is a single module so other Python packages can include their own private copy
-- is slightly opinionated on the directory names used. Look for "OPINION" in
+- Is a single module so other Python packages can vendor their own private copy.
+- Is slightly opinionated on the directory names used. Look for "OPINION" in
   documentation and code for when an opinion is being applied.
 
+Example output
+==============
 
-some example output
-===================
+On macOS:
 
-On macOS::
+.. code-block:: pycon
 
     >>> from platformdirs import *
     >>> appname = "SuperApp"
@@ -62,7 +66,9 @@ On macOS::
     >>> user_log_dir(appname, appauthor)
     '/Users/trentm/Library/Logs/SuperApp'
 
-On Windows 7::
+On Windows 7:
+
+.. code-block:: pycon
 
     >>> from platformdirs import *
     >>> appname = "SuperApp"
@@ -76,7 +82,9 @@ On Windows 7::
     >>> user_log_dir(appname, appauthor)
     'C:\\Users\\trentm\\AppData\\Local\\Acme\\SuperApp\\Logs'
 
-On Linux::
+On Linux:
+
+.. code-block:: pycon
 
     >>> from platformdirs import *
     >>> appname = "SuperApp"
@@ -103,7 +111,7 @@ On Linux::
 ``PlatformDirs`` for convenience
 ================================
 
-::
+.. code-block:: pycon
 
     >>> from platformdirs import PlatformDirs
     >>> dirs = PlatformDirs("SuperApp", "Acme")
@@ -115,8 +123,6 @@ On Linux::
     '/Users/trentm/Library/Caches/SuperApp'
     >>> dirs.user_log_dir
     '/Users/trentm/Library/Logs/SuperApp'
-
-
 
 Per-version isolation
 =====================
@@ -136,9 +142,11 @@ dirs::
     >>> dirs.user_log_dir
     '/Users/trentm/Library/Logs/SuperApp/1.0'
 
+Be wary of using this for configuration files though; you'll need to handle
+migrating configuration files manually.
 
-Why the Fork?
-=============
+Why this Fork?
+==============
 
 This repository is a friendly fork of the wonderful work started by
 `ActiveState <https://github.com/ActiveState/appdirs>`_ who created

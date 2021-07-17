@@ -87,6 +87,7 @@ jobs:
           - dev
           - pkg_check
           - mypy
+          - docs
         exclude:
           - { os: windows, tox_env: pkg_check }
     steps:
