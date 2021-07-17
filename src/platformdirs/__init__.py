@@ -21,14 +21,15 @@ from .version import __version__, __version_info__
 # https://docs.python.org/dev/library/sys.html#sys.platform
 if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system":
 
-    def _get_android_folder_with_pyjnius():  # noqa: SC200
+    def _get_android_folder_with_pyjnius() -> str:  # noqa: SC200
         """Get path to android app via pyjnius"""
         from jnius import autoclass  # noqa: SC200
 
         Context = autoclass("android.content.Context")  # noqa: SC200
-        return Context.getFilesDir().getParentFile().getAbsolutePath()
+        result: str = Context.getFilesDir().getParentFile().getAbsolutePath()
+        return result
 
-    def _get_android_folder_brute_path():
+    def _get_android_folder_brute_path() -> str:
         from re import match
 
         pattern = r"/data/(data|user/\d+)/(.+)/files"
@@ -48,7 +49,12 @@ if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/syste
     finally:
         _android_folder = _get_android_folder()
 
-    def _user_data_dir_impl(appname=None, appauthor=None, version=None, roaming=False):  # noqa: U100
+    def _user_data_dir_impl(
+        appname: Optional[str] = None,
+        appauthor: Union[str, None, "Literal[False]"] = None,  # noqa: U100
+        version: Optional[str] = None,
+        roaming: bool = False,  # noqa: U100
+    ) -> str:
         path = os.path.join(_android_folder, "files")
 
         if appname:
@@ -58,10 +64,20 @@ if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/syste
 
         return path
 
-    def _site_data_dir_impl(appname=None, appauthor=None, version=None, multipath=False):  # noqa: U100
+    def _site_data_dir_impl(
+        appname: Optional[str] = None,
+        appauthor: Union[str, None, "Literal[False]"] = None,
+        version: Optional[str] = None,
+        multipath: bool = False,  # noqa: U100
+    ) -> str:
         return _user_data_dir_impl(appname=appname, appauthor=appauthor, version=version)
 
-    def _user_config_dir_impl(appname=None, appauthor=None, version=None, roaming=False):  # noqa: U100
+    def _user_config_dir_impl(
+        appname: Optional[str] = None,
+        appauthor: Union[str, None, "Literal[False]"] = None,  # noqa: U100
+        version: Optional[str] = None,
+        roaming: bool = False,  # noqa: U100
+    ) -> str:
         path = os.path.join(_android_folder, "shared_prefs")
 
         if appname:
@@ -71,10 +87,20 @@ if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/syste
 
         return path
 
-    def _site_config_dir_impl(appname=None, appauthor=None, version=None, multipath=False):  # noqa: U100
+    def _site_config_dir_impl(
+        appname: Optional[str] = None,
+        appauthor: Union[str, None, "Literal[False]"] = None,
+        version: Optional[str] = None,
+        multipath: bool = False,  # noqa: U100
+    ) -> str:
         return _user_config_dir_impl(appname=appname, appauthor=appauthor, version=version)
 
-    def _user_cache_dir_impl(appname=None, appauthor=None, version=None, opinion=True):  # noqa: U100
+    def _user_cache_dir_impl(
+        appname: Optional[str] = None,
+        appauthor: Union[str, None, "Literal[False]"] = None,  # noqa: U100
+        version: Optional[str] = None,  # noqa: U100
+        opinion: bool = True,  # noqa: U100
+    ) -> str:
         path = os.path.join(_android_folder, "cache")
 
         if appname:
@@ -84,10 +110,20 @@ if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/syste
 
         return path
 
-    def _user_state_dir_impl(appname=None, appauthor=None, version=None, roaming=False):  # noqa: U100
+    def _user_state_dir_impl(
+        appname: Optional[str] = None,
+        appauthor: Union[str, None, "Literal[False]"] = None,
+        version: Optional[str] = None,
+        roaming: bool = False,  # noqa: U100
+    ) -> str:
         return _user_data_dir_impl(appname=appname, appauthor=appauthor, version=version)
 
-    def _user_log_dir_impl(appname=None, appauthor=None, version=None, opinion=True):  # noqa: U100
+    def _user_log_dir_impl(
+        appname: Optional[str] = None,
+        appauthor: Union[str, None, "Literal[False]"] = None,  # noqa: U100
+        version: Optional[str] = None,
+        opinion: bool = True,  # noqa: U100
+    ) -> str:
         path = _user_cache_dir_impl(appname=appname, appauthor=appauthor, version=version)
         if opinion:
             path = os.path.join(path, "log")

@@ -11,7 +11,7 @@ def android_platformdirs(monkeypatch):
 
     # on Android just return what was resolved
     if os.environ.get("ANDROID_DATA") == "/data" and os.environ.get("ANDROID_ROOT") == "/system":
-        return platformdirs
+        return platformdirs  # pragma: no cover
     # on non Android mock an Android environment
     with monkeypatch.context() as context:
         context.setenv("ANDROID_DATA", "/data")
@@ -19,7 +19,7 @@ def android_platformdirs(monkeypatch):
         context.syspath_prepend("/data/data/com.example/files")
         result = importlib.reload(platformdirs)
     if sys.platform == "win32":
-        monkeypatch.setattr(platformdirs.os, "sep", "/")
+        monkeypatch.setattr(platformdirs.os.path, "join", lambda *args: "/".join(args))  # pragma: no cover
     yield result
     importlib.reload(platformdirs)
 

@@ -7,6 +7,7 @@ platformdirs 2.1.0
 - Modernize project layout
 - Drop Python 2.7 and 3.6 support
 - Android support
+- Add type annotations
 
 platformdirs 2.0.2
 ------------------
