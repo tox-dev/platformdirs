@@ -1,6 +1,22 @@
 platformdirs Changelog
 ======================
 
+platformdirs 2.1.0
+------------------
+- Add ``readthedocs.org`` documentation via Sphinx
+- Modernize project layout
+- Drop Python 2.7 and 3.5 support
+- Android support
+- Add type annotations
+
+platformdirs 2.0.2
+------------------
+- Fix ``__version__`` and ``__version_info__``
+
+platformdirs 2.0.1
+------------------
+- Documentation fixes
+
 platformdirs 2.0.0
 ------------------
 
