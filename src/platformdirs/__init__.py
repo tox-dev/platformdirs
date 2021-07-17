@@ -21,7 +21,7 @@ from .version import __version__, __version_info__
 # https://docs.python.org/dev/library/sys.html#sys.platform
 if sys.platform == "win32":
     try:
-        from ctypes import windll  # type: ignore  # noqa: F401
+        from ctypes import windll  # noqa: F401
     except ImportError:
         try:
             import winreg
@@ -83,7 +83,7 @@ if sys.platform == "win32":
                 raise ValueError(f"Unknown CSIDL name: {csidl_name}")
 
             buf = ctypes.create_unicode_buffer(1024)
-            ctypes.windll.shell32.SHGetFolderPathW(None, csidl_const, None, 0, buf)  # type: ignore
+            ctypes.windll.shell32.SHGetFolderPathW(None, csidl_const, None, 0, buf)
 
             # Downgrade to short path name if have highbit chars. See
             # <http://bugs.activestate.com/show_bug.cgi?id=85099>.
@@ -94,7 +94,7 @@ if sys.platform == "win32":
                     break
             if has_high_char:
                 buf2 = ctypes.create_unicode_buffer(1024)
-                if ctypes.windll.kernel32.GetShortPathNameW(buf.value, buf2, 1024):  # type: ignore
+                if ctypes.windll.kernel32.GetShortPathNameW(buf.value, buf2, 1024):
                     buf = buf2
 
             return buf.value
