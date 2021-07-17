@@ -65,7 +65,7 @@ if sys.platform == "win32":
                     winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
                 )
                 directory, _ = winreg.QueryValueEx(key, shell_folder_name)
-                return directory
+                return str(directory)
 
     else:
 
