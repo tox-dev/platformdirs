@@ -6,7 +6,8 @@ buf
 buf2
 const
 csidl
-dirs
+DIRS
+func
 highbit
 HKEY
 impl
@@ -15,11 +16,12 @@ MSDN
 multipath
 normpath
 ord
+param
+params
 pathlist
 pathsep
 Petri
 platformdirs
 shell32
-unittest
 winreg
 XDG
