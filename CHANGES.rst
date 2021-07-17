@@ -5,7 +5,7 @@ platformdirs 2.1.0
 ------------------
 - Add ``readthedocs.org`` documentation via Sphinx
 - Modernize project layout
-- Drop Python 2.7 and 3.6 support
+- Drop Python 2.7 and 3.5 support
 - Android support
 - Add type annotations
 
