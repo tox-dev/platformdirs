@@ -11,7 +11,7 @@ PROPS = (
 )
 
 
-def main():
+def main() -> None:
     app_name = "MyApp"
     app_author = "MyCompany"
 
