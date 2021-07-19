@@ -5,7 +5,7 @@ platformdirs's documentation
 This includes directories where to place cache files, user data, configuration,
 etc.
 
-The source code and issue tracker are both hosted at `GitHub`_.
+The source code and issue tracker are both hosted on `GitHub`_.
 
 .. _GitHub: https://github.com/platformdirs/platformdirs
 
