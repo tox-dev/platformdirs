@@ -54,12 +54,6 @@ class PlatformDirsABC(ABC):
         """
         self.opinion = opinion  #: A flag to indicating to use opinionated values.
 
-    @classmethod
-    @abstractmethod
-    def is_active(cls) -> bool:
-        """:return: a check to detect if this platform is currently active"""
-        raise NotImplementedError
-
     @property
     @abstractmethod
     def user_data_dir(self) -> str:

@@ -1,5 +1,4 @@
 import os
-import sys
 
 from .api import PlatformDirsABC
 
@@ -11,11 +10,6 @@ class MacOS(PlatformDirsABC):
     Makes use of the `appname <platformdirs.api.PlatformDirsABC.appname>` and
     `version <platformdirs.api.PlatformDirsABC.version>`.
     """
-
-    @classmethod
-    def is_active(cls) -> bool:
-        """:return: a check to detect if macOS platform is currently active"""
-        return sys.platform == "darwin"
 
     @property
     def user_data_dir(self) -> str:

@@ -16,11 +16,6 @@ class Unix(PlatformDirsABC):
     `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
     """
 
-    @classmethod
-    def is_active(cls) -> bool:
-        """:return: a check to detect if Unix/Linux platform is currently active"""
-        return sys.platform not in ("win32", "darwin")
-
     @property
     def user_data_dir(self) -> str:
         """

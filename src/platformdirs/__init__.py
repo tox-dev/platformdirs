@@ -2,8 +2,8 @@
 Utilities for determining application-specific dirs. See <https://github.com/platformdirs/platformdirs> for details and
 usage.
 """
-
-from importlib import import_module
+import os
+import sys
 from typing import TYPE_CHECKING, Optional, Type, Union
 
 if TYPE_CHECKING:
@@ -14,16 +14,15 @@ from .version import __version__, __version_info__
 
 
 def _set_platform_dir_class() -> Type[PlatformDirsABC]:
-    for module, of_class in (  # only import as much as needed
-        ("platformdirs.android", "Android"),
-        ("platformdirs.windows", "Windows"),
-        ("platformdirs.macos", "MacOS"),
-        ("platformdirs.unix", "Unix"),
-    ):
-        impl: Type[PlatformDirsABC] = getattr(import_module(module), of_class)
-        if impl.is_active():
-            return impl
-    raise RuntimeError("Unsupported platform, please report it at https://github.com/platformdirs/platformdirs")
+    if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system":
+        from .android import Android as Result
+    elif sys.platform == "win32":
+        from .windows import Windows as Result
+    elif sys.platform == "darwin":
+        from .macos import MacOS as Result
+    else:
+        from .unix import Unix as Result
+    return Result
 
 
 PlatformDirs = _set_platform_dir_class()  #: Currently active platform

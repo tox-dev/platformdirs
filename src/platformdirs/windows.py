@@ -1,6 +1,5 @@
 import ctypes
 import os
-import sys
 from functools import lru_cache
 from typing import Callable, Optional
 
@@ -16,11 +15,6 @@ class Windows(PlatformDirsABC):
     `version <platformdirs.api.PlatformDirsABC.version>`,
     `roaming <platformdirs.api.PlatformDirsABC.roaming>`,
     `opinion <platformdirs.api.PlatformDirsABC.opinion>`."""
-
-    @classmethod
-    def is_active(cls) -> bool:
-        """:return: a check to detect if Windows platform is currently active"""
-        return sys.platform == "win32"
 
     @property
     def user_data_dir(self) -> str:

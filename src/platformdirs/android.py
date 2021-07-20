@@ -13,11 +13,6 @@ class Android(PlatformDirsABC):
     `version <platformdirs.api.PlatformDirsABC.version>`.
     """
 
-    @classmethod
-    def is_active(cls) -> bool:
-        """:return: a check to detect if Android platform is currently active"""
-        return os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system"
-
     @property
     def user_data_dir(self) -> str:
         """:return: data directory tied to the user, e.g. ``/data/user/<userid>/<packagename>/files/<AppName>``"""
