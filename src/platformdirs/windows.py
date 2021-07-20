@@ -35,7 +35,6 @@ class Windows(PlatformDirsABC):
 
     def _path_with_app_version(self, path: str, *, opinion_value: Optional[str] = None) -> str:
         if self.appname:
-            assert self.appname is not None
             if self.appauthor is not False:
                 author = self.appauthor or self.appname
                 path = os.path.join(path, author, self.appname)
