@@ -9,8 +9,8 @@ from .api import PlatformDirsABC
 class Android(PlatformDirsABC):
     """
     Follows the guidance `from here <https://android.stackexchange.com/a/216132>`_. Makes use of the
-    :meth:`appname <platformdirs.api.PlatformDirsABC.appname>` and
-    :meth:`version <platformdirs.api.PlatformDirsABC.version>`.
+    `appname <platformdirs.api.PlatformDirsABC.appname>` and
+    `version <platformdirs.api.PlatformDirsABC.version>`.
     """
 
     @classmethod
@@ -34,7 +34,7 @@ class Android(PlatformDirsABC):
 
     @property
     def site_data_dir(self) -> str:
-        """:return: data directory shared by users, same as :meth:`user_data_dir`"""
+        """:return: data directory shared by users, same as `user_data_dir`"""
         return self.user_data_dir
 
     @property
@@ -46,7 +46,7 @@ class Android(PlatformDirsABC):
 
     @property
     def site_config_dir(self) -> str:
-        """:return: config directory shared by the users, same as :func:`user_config_dir`"""
+        """:return: config directory shared by the users, same as `user_config_dir`"""
         return self.user_config_dir
 
     @property
@@ -56,13 +56,13 @@ class Android(PlatformDirsABC):
 
     @property
     def user_state_dir(self) -> str:
-        """:return: state directory tied to the user, same as :func:`user_data_dir`"""
+        """:return: state directory tied to the user, same as `user_data_dir`"""
         return self.user_data_dir
 
     @property
     def user_log_dir(self) -> str:
         """
-        :return: log directory tied to the user, same as :func:`user_cache_dir` if not opinionated else ``log`` in it,
+        :return: log directory tied to the user, same as `user_cache_dir` if not opinionated else ``log`` in it,
           e.g. ``/data/user/<userid>/<packagename>/cache/<AppName>/log``
         """
         path = self.user_cache_dir

@@ -23,18 +23,18 @@ class PlatformDirsABC(ABC):
         """
         Create a new platform directory.
 
-        :param appname: See :func:`appname`.
-        :param appauthor: See :func:`appauthor`.
-        :param version: See :func:`version`.
-        :param roaming: See :func:`roaming`.
-        :param multipath: See :func:`multipath`.
-        :param opinion: See :func:`opinion`.
+        :param appname: See `appname`.
+        :param appauthor: See `appauthor`.
+        :param version: See `version`.
+        :param roaming: See `roaming`.
+        :param multipath: See `multipath`.
+        :param opinion: See `opinion`.
         """
         self.appname = appname  #: The name of application.
         self.appauthor = appauthor
         """
         The name of the app author or distributing body for this application. Typically, it is the owning company name.
-        Defaults to :func:`appname`. You may pass ``False`` to disable it.
+        Defaults to `appname`. You may pass ``False`` to disable it.
         """
         self.version = version
         """

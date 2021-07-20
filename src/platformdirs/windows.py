@@ -11,11 +11,11 @@ class Windows(PlatformDirsABC):
     """`MSDN on where to store app data files
     <http://support.microsoft.com/default.aspx?scid=kb;en-us;310294#XSLTH3194121123120121120120>`_.
     Makes use of the
-    :meth:`appname <platformdirs.api.PlatformDirsABC.appname>`,
-    :meth:`appauthor <platformdirs.api.PlatformDirsABC.appauthor>`,
-    :meth:`version <platformdirs.api.PlatformDirsABC.version>`,
-    :meth:`roaming <platformdirs.api.PlatformDirsABC.roaming>`,
-    :meth:`opinion <platformdirs.api.PlatformDirsABC.opinion>`."""
+    `appname <platformdirs.api.PlatformDirsABC.appname>`,
+    `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`,
+    `version <platformdirs.api.PlatformDirsABC.version>`,
+    `roaming <platformdirs.api.PlatformDirsABC.roaming>`,
+    `opinion <platformdirs.api.PlatformDirsABC.opinion>`."""
 
     @classmethod
     def is_active(cls) -> bool:
@@ -55,12 +55,12 @@ class Windows(PlatformDirsABC):
 
     @property
     def user_config_dir(self) -> str:
-        """:return: config directory tied to the user, same as :func:`user_data_dir`"""
+        """:return: config directory tied to the user, same as `user_data_dir`"""
         return self.user_data_dir
 
     @property
     def site_config_dir(self) -> str:
-        """:return: config directory shared by the users, same as :func:`site_data_dir`"""
+        """:return: config directory shared by the users, same as `site_data_dir`"""
         return self.site_data_dir
 
     @property
@@ -74,13 +74,13 @@ class Windows(PlatformDirsABC):
 
     @property
     def user_state_dir(self) -> str:
-        """:return: state directory tied to the user, same as :func:`user_data_dir`"""
+        """:return: state directory tied to the user, same as `user_data_dir`"""
         return self.user_data_dir
 
     @property
     def user_log_dir(self) -> str:
         """
-        :return: log directory tied to the user, same as :func:`user_data_dir` if not opinionated else ``Logs`` in it
+        :return: log directory tied to the user, same as `user_data_dir` if not opinionated else ``Logs`` in it
         """
         path = self.user_data_dir
         if self.opinion:

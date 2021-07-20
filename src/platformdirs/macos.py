@@ -8,8 +8,8 @@ class MacOS(PlatformDirsABC):
     """
     Platform directories for the macOS operating system. Follows the guidance from `Apple documentation
     <https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/MacOSXDirectories/MacOSXDirectories.html>`_.
-    Makes use of the :meth:`appname <platformdirs.api.PlatformDirsABC.appname>` and
-    :meth:`version <platformdirs.api.PlatformDirsABC.version>`.
+    Makes use of the `appname <platformdirs.api.PlatformDirsABC.appname>` and
+    `version <platformdirs.api.PlatformDirsABC.version>`.
     """
 
     @classmethod
@@ -23,12 +23,13 @@ class MacOS(PlatformDirsABC):
         return self._path_with_app_name_version("~/Library/Application Support/", expand=True)
 
     def _path_with_app_name_version(self, of: str, *, expand: bool = False) -> str:
-        params = [os.path.expanduser(of) if expand else of]
+        params = []
         if self.appname:
             params.append(self.appname)
             if self.version:
                 params.append(self.version)
-        return os.path.join(of, *params)
+        base = os.path.expanduser(of) if expand else of
+        return os.path.join(base, *params)
 
     @property
     def site_data_dir(self) -> str:
@@ -44,7 +45,7 @@ class MacOS(PlatformDirsABC):
     def site_config_dir(self) -> str:
         """:return: config directory shared by the users, e.g. ``/Library/Preferences/$appname``"""
         """
-        :return: same as :func:`site_data_dir`.
+        :return: same as `site_data_dir`.
         """
         return self._path_with_app_name_version("/Library/Preferences")
 
@@ -55,7 +56,7 @@ class MacOS(PlatformDirsABC):
 
     @property
     def user_state_dir(self) -> str:
-        """:return: state directory tied to the user, same as :func:`user_data_dir`"""
+        """:return: state directory tied to the user, same as `user_data_dir`"""
         return self.user_data_dir
 
     @property

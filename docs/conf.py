@@ -19,5 +19,6 @@ autodoc_default_options = {
     "member-order": "bysource",
     "undoc-members": True,
 }
+default_role = "any"
 autodoc_typehints = "signature"
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}

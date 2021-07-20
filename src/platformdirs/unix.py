@@ -10,10 +10,10 @@ class Unix(PlatformDirsABC):
     `XDG Basedir Spec <https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html>`_. The spec allows
     overriding directories with environment variables. The examples show are the default values, alongside the name of
     the environment variable that overrides them. Makes use of the
-    :meth:`appname <platformdirs.api.PlatformDirsABC.appname>`,
-    :meth:`version <platformdirs.api.PlatformDirsABC.version>`,
-    :meth:`multipath <platformdirs.api.PlatformDirsABC.multipath>`,
-    :meth:`opinion <platformdirs.api.PlatformDirsABC.opinion>`.
+    `appname <platformdirs.api.PlatformDirsABC.appname>`,
+    `version <platformdirs.api.PlatformDirsABC.version>`,
+    `multipath <platformdirs.api.PlatformDirsABC.multipath>`,
+    `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
     """
 
     @classmethod
@@ -34,7 +34,7 @@ class Unix(PlatformDirsABC):
         return self._path_with_app_name_version(path)
 
     def _path_with_app_name_version(self, of: str) -> str:
-        params = [of]
+        params = []
         if self.appname:
             params.append(self.appname)
             if self.version:
@@ -44,7 +44,7 @@ class Unix(PlatformDirsABC):
     @property
     def site_data_dir(self) -> str:
         """
-        :return: data directories shared by users (if :meth:`multipath <platformdirs.api.PlatformDirsABC.multipath>` is
+        :return: data directories shared by users (if `multipath <platformdirs.api.PlatformDirsABC.multipath>` is
          enabled and ``XDG_DATA_DIR`` is set and a multi path the response is also a multi path separated by the OS
          path separator), e.g. ``/usr/local/share/$appname/$version`` or ``/usr/share/$appname/$version``
         """
@@ -77,7 +77,7 @@ class Unix(PlatformDirsABC):
     @property
     def site_config_dir(self) -> str:
         """
-        :return: config directories shared by users (if :meth:`multipath <platformdirs.api.PlatformDirsABC.multipath>`
+        :return: config directories shared by users (if `multipath <platformdirs.api.PlatformDirsABC.multipath>`
          is enabled and ``XDG_DATA_DIR`` is set and a multi path the response is also a multi path separated by the OS
          path separator), e.g. ``/etc/xdg/$appname/$version``
         :return:
@@ -116,7 +116,7 @@ class Unix(PlatformDirsABC):
     @property
     def user_log_dir(self) -> str:
         """
-        :return: log directory tied to the user, same as :func:`user_data_dir` if not opinionated else ``log`` in it
+        :return: log directory tied to the user, same as `user_data_dir` if not opinionated else ``log`` in it
         """
         path = self.user_cache_dir
         if self.opinion:

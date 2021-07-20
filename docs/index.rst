@@ -1,7 +1,7 @@
 platformdirs's documentation
 ============================
 
-`platformdirs` is a library to determine platform-specific system directories.
+``platformdirs`` is a library to determine platform-specific system directories.
 This includes directories where to place cache files, user data, configuration,
 etc.
 

@@ -39,10 +39,10 @@ def user_data_dir(
     roaming: bool = False,
 ) -> str:
     """
-    :param appname: See :meth:`appname <platformdirs.api.PlatformDirsABC.appname>`.
-    :param appauthor: See :meth:`appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
-    :param version: See :meth:`version <platformdirs.api.PlatformDirsABC.version>`.
-    :param roaming: See :meth:`roaming <platformdirs.api.PlatformDirsABC.version>`.
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param roaming: See `roaming <platformdirs.api.PlatformDirsABC.version>`.
     :returns: data directory tied to the user
     """
     return PlatformDirs(appname=appname, appauthor=appauthor, version=version, roaming=roaming).user_data_dir
@@ -55,10 +55,10 @@ def site_data_dir(
     multipath: bool = False,
 ) -> str:
     """
-    :param appname: See :meth:`appname <platformdirs.api.PlatformDirsABC.appname>`.
-    :param appauthor: See :meth:`appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
-    :param version: See :meth:`version <platformdirs.api.PlatformDirsABC.version>`.
-    :param multipath: See :meth:`roaming <platformdirs.api.PlatformDirsABC.multipath>`.
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param multipath: See `roaming <platformdirs.api.PlatformDirsABC.multipath>`.
     :returns: data directory shared by users
     """
     return PlatformDirs(appname=appname, appauthor=appauthor, version=version, multipath=multipath).site_data_dir
@@ -71,10 +71,10 @@ def user_config_dir(
     roaming: bool = False,
 ) -> str:
     """
-    :param appname: See :meth:`appname <platformdirs.api.PlatformDirsABC.appname>`.
-    :param appauthor: See :meth:`appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
-    :param version: See :meth:`version <platformdirs.api.PlatformDirsABC.version>`.
-    :param roaming: See :meth:`roaming <platformdirs.api.PlatformDirsABC.version>`.
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param roaming: See `roaming <platformdirs.api.PlatformDirsABC.version>`.
     :returns: config directory tied to the user
     """
     return PlatformDirs(appname=appname, appauthor=appauthor, version=version, roaming=roaming).user_config_dir
@@ -87,10 +87,10 @@ def site_config_dir(
     multipath: bool = False,
 ) -> str:
     """
-    :param appname: See :meth:`appname <platformdirs.api.PlatformDirsABC.appname>`.
-    :param appauthor: See :meth:`appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
-    :param version: See :meth:`version <platformdirs.api.PlatformDirsABC.version>`.
-    :param multipath: See :meth:`roaming <platformdirs.api.PlatformDirsABC.multipath>`.
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param multipath: See `roaming <platformdirs.api.PlatformDirsABC.multipath>`.
     :returns: config directory shared by the users
     """
     return PlatformDirs(appname=appname, appauthor=appauthor, version=version, multipath=multipath).site_config_dir
@@ -103,10 +103,10 @@ def user_cache_dir(
     opinion: bool = True,
 ) -> str:
     """
-    :param appname: See :meth:`appname <platformdirs.api.PlatformDirsABC.appname>`.
-    :param appauthor: See :meth:`appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
-    :param version: See :meth:`version <platformdirs.api.PlatformDirsABC.version>`.
-    :param opinion: See :meth:`roaming <platformdirs.api.PlatformDirsABC.opinion>`.
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param opinion: See `roaming <platformdirs.api.PlatformDirsABC.opinion>`.
     :returns: cache directory tied to the user
     """
     return PlatformDirs(appname=appname, appauthor=appauthor, version=version, opinion=opinion).user_cache_dir
@@ -119,10 +119,10 @@ def user_state_dir(
     roaming: bool = False,
 ) -> str:
     """
-    :param appname: See :meth:`appname <platformdirs.api.PlatformDirsABC.appname>`.
-    :param appauthor: See :meth:`appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
-    :param version: See :meth:`version <platformdirs.api.PlatformDirsABC.version>`.
-    :param roaming: See :meth:`roaming <platformdirs.api.PlatformDirsABC.version>`.
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param roaming: See `roaming <platformdirs.api.PlatformDirsABC.version>`.
     :returns: state directory tied to the user
     """
     return PlatformDirs(appname=appname, appauthor=appauthor, version=version, roaming=roaming).user_state_dir
@@ -135,10 +135,10 @@ def user_log_dir(
     opinion: bool = True,
 ) -> str:
     """
-    :param appname: See :meth:`appname <platformdirs.api.PlatformDirsABC.appname>`.
-    :param appauthor: See :meth:`appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
-    :param version: See :meth:`version <platformdirs.api.PlatformDirsABC.version>`.
-    :param opinion: See :meth:`roaming <platformdirs.api.PlatformDirsABC.opinion>`.
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param opinion: See `roaming <platformdirs.api.PlatformDirsABC.opinion>`.
     :returns: log directory tied to the user
     """
     return PlatformDirs(appname=appname, appauthor=appauthor, version=version, opinion=opinion).user_log_dir
