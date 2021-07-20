@@ -10,5 +10,14 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.viewcode",
+    "sphinx.ext.intersphinx",
+    # "sphinx_autodoc_typehints",
 ]
 html_theme = "furo"
+
+autodoc_default_options = {
+    "member-order": "bysource",
+    "undoc-members": True,
+}
+autodoc_typehints = "signature"
+intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
