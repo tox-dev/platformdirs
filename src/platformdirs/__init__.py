@@ -3,26 +3,24 @@ Utilities for determining application-specific dirs. See <https://github.com/pla
 usage.
 """
 
+from importlib import import_module
 from typing import TYPE_CHECKING, Optional, Type, Union
 
 if TYPE_CHECKING:
     from typing_extensions import Literal  # pragma: no cover
 
-from .android import Android
 from .api import PlatformDirsABC
-from .macos import MacOS
-from .unix import Unix
 from .version import __version__, __version_info__
-from .windows import Windows
 
 
 def _set_platform_dir_class() -> Type[PlatformDirsABC]:
-    for impl in (
-        Android,
-        Windows,
-        MacOS,
-        Unix,
+    for module, of_class in (  # only import as much as needed
+        ("platformdirs.android", "Android"),
+        ("platformdirs.windows", "Windows"),
+        ("platformdirs.macos", "MacOS"),
+        ("platformdirs.unix", "Unix"),
     ):
+        impl = getattr(import_module(module), of_class)
         if impl.is_active():
             return impl
     raise RuntimeError("Unsupported platform, please report it at https://github.com/platformdirs/platformdirs")
@@ -150,10 +148,6 @@ __all__ = [
     "PlatformDirs",
     "AppDirs",
     "PlatformDirsABC",
-    "Android",
-    "MacOS",
-    "Windows",
-    "Unix",
     "user_data_dir",
     "user_config_dir",
     "user_cache_dir",

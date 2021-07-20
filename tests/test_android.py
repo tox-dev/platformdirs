@@ -6,7 +6,7 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from pytest_mock import MockerFixture
 
-from platformdirs import Android
+from platformdirs.android import Android
 
 
 @pytest.mark.parametrize(
