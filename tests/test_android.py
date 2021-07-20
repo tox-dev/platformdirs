@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from unittest.mock import MagicMock
 
 import pytest
@@ -54,25 +54,13 @@ def test_android(mocker: MockerFixture, params: Dict[str, Any], func: str) -> No
     assert result == expected
 
 
-@pytest.mark.parametrize("root", ["A", "/system", None])
-@pytest.mark.parametrize("data", ["D", "/data", None])
-def test_android_active(monkeypatch: MonkeyPatch, root: Optional[str], data: Optional[str]) -> None:
-    for env_var, value in {"ANDROID_DATA": data, "ANDROID_ROOT": root}.items():
-        if value is None:
-            monkeypatch.delenv(env_var, raising=False)
-        else:
-            monkeypatch.setenv(env_var, value)
-
-    expected = root == "/system" and data == "/data"
-    assert Android.is_active() == expected
-
-
 def test_android_folder_from_jnius(mocker: MockerFixture) -> None:
+    from platformdirs import PlatformDirs
     from platformdirs.android import _android_folder  # noqa
 
     _android_folder.cache_clear()
 
-    if Android.is_active():
+    if PlatformDirs is Android:
         import jnius  # pragma: no cover
 
         autoclass = mocker.spy(jnius, "autoclass")  # pragma: no cover
