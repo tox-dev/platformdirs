@@ -20,7 +20,7 @@ def _set_platform_dir_class() -> Type[PlatformDirsABC]:
         ("platformdirs.macos", "MacOS"),
         ("platformdirs.unix", "Unix"),
     ):
-        impl = getattr(import_module(module), of_class)
+        impl: Type[PlatformDirsABC] = getattr(import_module(module), of_class)
         if impl.is_active():
             return impl
     raise RuntimeError("Unsupported platform, please report it at https://github.com/platformdirs/platformdirs")
