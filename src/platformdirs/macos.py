@@ -14,30 +14,27 @@ class MacOS(PlatformDirsABC):
     @property
     def user_data_dir(self) -> str:
         """:return: data directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version``"""
-        return self._path_with_app_name_version(os.path.expanduser("~/Library/Application Support/"))
+        return self._append_app_name_and_version(os.path.expanduser("~/Library/Application Support/"))
 
     @property
     def site_data_dir(self) -> str:
         """:return: data directory shared by users, e.g. ``/Library/Application Support/$appname/$version``"""
-        return self._path_with_app_name_version("/Library/Application Support")
+        return self._append_app_name_and_version("/Library/Application Support")
 
     @property
     def user_config_dir(self) -> str:
         """:return: config directory tied to the user, e.g. ``~/Library/Preferences/$appname/$version``"""
-        return self._path_with_app_name_version(os.path.expanduser("~/Library/Preferences/"))
+        return self._append_app_name_and_version(os.path.expanduser("~/Library/Preferences/"))
 
     @property
     def site_config_dir(self) -> str:
         """:return: config directory shared by the users, e.g. ``/Library/Preferences/$appname``"""
-        """
-        :return: same as `site_data_dir`.
-        """
-        return self._path_with_app_name_version("/Library/Preferences")
+        return self._append_app_name_and_version("/Library/Preferences")
 
     @property
     def user_cache_dir(self) -> str:
         """:return: cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version``"""
-        return self._path_with_app_name_version(os.path.expanduser("~/Library/Caches"))
+        return self._append_app_name_and_version(os.path.expanduser("~/Library/Caches"))
 
     @property
     def user_state_dir(self) -> str:
@@ -47,7 +44,7 @@ class MacOS(PlatformDirsABC):
     @property
     def user_log_dir(self) -> str:
         """:return: log directory tied to the user, e.g. ``~/Library/Logs/$appname/$version``"""
-        return self._path_with_app_name_version(os.path.expanduser("~/Library/Logs"))
+        return self._append_app_name_and_version(os.path.expanduser("~/Library/Logs"))
 
 
 __all__ = [

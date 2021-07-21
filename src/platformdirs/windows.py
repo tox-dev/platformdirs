@@ -25,9 +25,9 @@ class Windows(PlatformDirsABC):
         """
         const = "CSIDL_APPDATA" if self.roaming else "CSIDL_LOCAL_APPDATA"
         path = os.path.normpath(get_win_folder(const))
-        return self._path_with_app_version(path)
+        return self._append_parts(path)
 
-    def _path_with_app_version(self, path: str, *, opinion_value: Optional[str] = None) -> str:
+    def _append_parts(self, path: str, *, opinion_value: Optional[str] = None) -> str:
         params = []
         if self.appname:
             if self.appauthor is not False:
@@ -44,7 +44,7 @@ class Windows(PlatformDirsABC):
     def site_data_dir(self) -> str:
         """:return: data directory shared by users, e.g. ``C:\\ProgramData\\$appauthor\\$appname``"""
         path = os.path.normpath(get_win_folder("CSIDL_COMMON_APPDATA"))
-        return self._path_with_app_version(path)
+        return self._append_parts(path)
 
     @property
     def user_config_dir(self) -> str:
@@ -63,7 +63,7 @@ class Windows(PlatformDirsABC):
          ``%USERPROFILE%\\AppData\\Local\\$appauthor\\$appname\\Cache\\$version``
         """
         path = os.path.normpath(get_win_folder("CSIDL_LOCAL_APPDATA"))
-        return self._path_with_app_version(path, opinion_value="Cache")
+        return self._append_parts(path, opinion_value="Cache")
 
     @property
     def user_state_dir(self) -> str:

@@ -25,7 +25,7 @@ class Unix(PlatformDirsABC):
             path = os.environ["XDG_DATA_HOME"]
         else:
             path = os.path.expanduser("~/.local/share")
-        return self._path_with_app_name_version(path)
+        return self._append_app_name_and_version(path)
 
     @property
     def site_data_dir(self) -> str:
@@ -45,7 +45,7 @@ class Unix(PlatformDirsABC):
         path_list = path.split(os.pathsep)
         if not self.multipath:
             path_list = path_list[0:1]
-        path_list = [self._path_with_app_name_version(os.path.expanduser(p)) for p in path_list]
+        path_list = [self._append_app_name_and_version(os.path.expanduser(p)) for p in path_list]
         return os.pathsep.join(path_list)
 
     @property
@@ -58,7 +58,7 @@ class Unix(PlatformDirsABC):
             path = os.environ["XDG_CONFIG_HOME"]
         else:
             path = os.path.expanduser("~/.config")
-        return self._path_with_app_name_version(path)
+        return self._append_app_name_and_version(path)
 
     @property
     def site_config_dir(self) -> str:
@@ -85,7 +85,7 @@ class Unix(PlatformDirsABC):
             path = os.environ["XDG_CACHE_HOME"]
         else:
             path = os.path.expanduser("~/.cache")
-        return self._path_with_app_name_version(path)
+        return self._append_app_name_and_version(path)
 
     @property
     def user_state_dir(self) -> str:
@@ -97,7 +97,7 @@ class Unix(PlatformDirsABC):
             path = os.environ["XDG_STATE_HOME"]
         else:
             path = os.path.expanduser("~/.local/state")
-        return self._path_with_app_name_version(path)
+        return self._append_app_name_and_version(path)
 
     @property
     def user_log_dir(self) -> str:

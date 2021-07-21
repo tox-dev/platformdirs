@@ -55,7 +55,7 @@ class PlatformDirsABC(ABC):
         """
         self.opinion = opinion  #: A flag to indicating to use opinionated values.
 
-    def _path_with_app_name_version(self, *base: str) -> str:
+    def _append_app_name_and_version(self, *base: str) -> str:
         params = list(base[1:])
         if self.appname:
             params.append(self.appname)
@@ -67,40 +67,33 @@ class PlatformDirsABC(ABC):
     @abstractmethod
     def user_data_dir(self) -> str:
         """:return: data directory tied to the user"""
-        raise NotImplementedError
 
     @property
     @abstractmethod
     def site_data_dir(self) -> str:
         """:return: data directory shared by users"""
-        raise NotImplementedError
 
     @property
     @abstractmethod
     def user_config_dir(self) -> str:
         """:return: config directory tied to the user"""
-        raise NotImplementedError
 
     @property
     @abstractmethod
     def site_config_dir(self) -> str:
         """:return: config directory shared by the users"""
-        raise NotImplementedError
 
     @property
     @abstractmethod
     def user_cache_dir(self) -> str:
         """:return: cache directory tied to the user"""
-        raise NotImplementedError
 
     @property
     @abstractmethod
     def user_state_dir(self) -> str:
         """:return: state directory tied to the user"""
-        raise NotImplementedError
 
     @property
     @abstractmethod
     def user_log_dir(self) -> str:
         """:return: log directory tied to the user"""
-        raise NotImplementedError
