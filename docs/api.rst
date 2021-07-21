@@ -1,41 +1,6 @@
 API
 ===
 
-
-Platforms
-~~~~~~~~~
-
-Android
--------
-.. autoclass:: platformdirs.android.Android
-   :members:
-   :show-inheritance:
-
-
-macOS
------
-.. autoclass:: platformdirs.macos.MacOS
-   :members:
-   :show-inheritance:
-
-Unix (Linux)
-------------
-.. autoclass:: platformdirs.unix.Unix
-   :members:
-   :show-inheritance:
-
-Windows
--------
-.. autoclass:: platformdirs.windows.Windows
-   :members:
-   :show-inheritance:
-
-ABC
----
-.. autoclass:: platformdirs.api.PlatformDirsABC
-   :members:
-   :special-members: __init__
-
 User directories
 ~~~~~~~~~~~~~~~~
 
@@ -80,3 +45,36 @@ Shared config directory
 -----------------------
 
 .. autofunction:: platformdirs.site_config_dir
+
+Platforms
+~~~~~~~~~
+
+ABC
+---
+.. autoclass:: platformdirs.api.PlatformDirsABC
+   :members:
+   :special-members: __init__
+
+Android
+-------
+.. autoclass:: platformdirs.android.Android
+   :members:
+   :show-inheritance:
+
+macOS
+-----
+.. autoclass:: platformdirs.macos.MacOS
+   :members:
+   :show-inheritance:
+
+Unix (Linux)
+------------
+.. autoclass:: platformdirs.unix.Unix
+   :members:
+   :show-inheritance:
+
+Windows
+-------
+.. autoclass:: platformdirs.windows.Windows
+   :members:
+   :show-inheritance:

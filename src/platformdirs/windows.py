@@ -28,17 +28,17 @@ class Windows(PlatformDirsABC):
         return self._path_with_app_version(path)
 
     def _path_with_app_version(self, path: str, *, opinion_value: Optional[str] = None) -> str:
+        params = []
         if self.appname:
             if self.appauthor is not False:
                 author = self.appauthor or self.appname
-                path = os.path.join(path, author, self.appname)
-            else:
-                path = os.path.join(path, self.appname)
+                params.append(author)
+            params.append(self.appname)
             if opinion_value is not None and self.opinion:
-                path = os.path.join(path, "Cache")
+                params.append(opinion_value)
             if self.version:
-                path = os.path.join(path, self.version)
-        return path
+                params.append(self.version)
+        return os.path.join(path, *params)
 
     @property
     def site_data_dir(self) -> str:

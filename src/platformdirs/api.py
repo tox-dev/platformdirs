@@ -1,3 +1,4 @@
+import os
 import sys
 from abc import ABC, abstractmethod
 from typing import Optional, Union
@@ -53,6 +54,14 @@ class PlatformDirsABC(ABC):
         returned. By default, the first item would only be returned.
         """
         self.opinion = opinion  #: A flag to indicating to use opinionated values.
+
+    def _path_with_app_name_version(self, *base: str) -> str:
+        params = list(base[1:])
+        if self.appname:
+            params.append(self.appname)
+            if self.version:
+                params.append(self.version)
+        return os.path.join(base[0], *params)
 
     @property
     @abstractmethod

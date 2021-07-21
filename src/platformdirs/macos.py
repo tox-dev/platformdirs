@@ -14,16 +14,7 @@ class MacOS(PlatformDirsABC):
     @property
     def user_data_dir(self) -> str:
         """:return: data directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version``"""
-        return self._path_with_app_name_version("~/Library/Application Support/", expand=True)
-
-    def _path_with_app_name_version(self, of: str, *, expand: bool = False) -> str:
-        params = []
-        if self.appname:
-            params.append(self.appname)
-            if self.version:
-                params.append(self.version)
-        base = os.path.expanduser(of) if expand else of
-        return os.path.join(base, *params)
+        return self._path_with_app_name_version(os.path.expanduser("~/Library/Application Support/"))
 
     @property
     def site_data_dir(self) -> str:
@@ -33,7 +24,7 @@ class MacOS(PlatformDirsABC):
     @property
     def user_config_dir(self) -> str:
         """:return: config directory tied to the user, e.g. ``~/Library/Preferences/$appname/$version``"""
-        return self._path_with_app_name_version("~/Library/Preferences/", expand=True)
+        return self._path_with_app_name_version(os.path.expanduser("~/Library/Preferences/"))
 
     @property
     def site_config_dir(self) -> str:
@@ -46,7 +37,7 @@ class MacOS(PlatformDirsABC):
     @property
     def user_cache_dir(self) -> str:
         """:return: cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version``"""
-        return self._path_with_app_name_version("~/Library/Caches", expand=True)
+        return self._path_with_app_name_version(os.path.expanduser("~/Library/Caches"))
 
     @property
     def user_state_dir(self) -> str:
@@ -56,7 +47,7 @@ class MacOS(PlatformDirsABC):
     @property
     def user_log_dir(self) -> str:
         """:return: log directory tied to the user, e.g. ``~/Library/Logs/$appname/$version``"""
-        return self._path_with_app_name_version("~/Library/Logs", expand=True)
+        return self._path_with_app_name_version(os.path.expanduser("~/Library/Logs"))
 
 
 __all__ = [

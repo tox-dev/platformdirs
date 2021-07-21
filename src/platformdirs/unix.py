@@ -27,14 +27,6 @@ class Unix(PlatformDirsABC):
             path = os.path.expanduser("~/.local/share")
         return self._path_with_app_name_version(path)
 
-    def _path_with_app_name_version(self, of: str) -> str:
-        params = []
-        if self.appname:
-            params.append(self.appname)
-            if self.version:
-                params.append(self.version)
-        return os.path.join(of, *params)
-
     @property
     def site_data_dir(self) -> str:
         """
