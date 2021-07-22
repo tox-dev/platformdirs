@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Optional
 
 import pytest
@@ -22,6 +23,18 @@ def test_property_result_is_str(func: str) -> None:
     dirs = platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0")
     result = getattr(dirs, func)
     assert isinstance(result, str)
+
+
+def test_method_result_is_path(func_path: str) -> None:
+    method = getattr(platformdirs, func_path)
+    result = method("MyApp", "MyCompany")
+    assert isinstance(result, Path)
+
+
+def test_property_result_is_path(func_path: str) -> None:
+    dirs = platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0")
+    result = getattr(dirs, func_path)
+    assert isinstance(result, Path)
 
 
 @pytest.mark.parametrize("root", ["A", "/system", None])
