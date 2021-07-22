@@ -1,6 +1,11 @@
 platformdirs Changelog
 ======================
 
+platformdirs 2.2.0
+------------------
+- [Issue 3] Add ``*_path`` API, returning :class:`pathlib.Path <pathlib.Path>` objects instead of :class:`str`
+  - by @papr
+
 platformdirs 2.1.0
 ------------------
 - Add ``readthedocs.org`` documentation via Sphinx
