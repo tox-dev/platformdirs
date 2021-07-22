@@ -1,4 +1,7 @@
+from typing import Tuple, cast
+
 import pytest
+from _pytest.fixtures import SubRequest
 
 PROPS = (
     "user_data_dir",
@@ -12,10 +15,10 @@ PROPS = (
 
 
 @pytest.fixture(params=PROPS)
-def func(request):
-    return request.param
+def func(request: SubRequest) -> str:
+    return cast(str, request.param)
 
 
 @pytest.fixture()
-def props():
+def props() -> Tuple[str, ...]:
     return PROPS

@@ -1,15 +1,6 @@
 API
 ===
 
-.. note::
-   On Unix / Linux, we follow the `XDG Basedir Spec`_. The spec allows overriding
-   directories with environment variables. The examples show are the default
-   values, alongside the name of the environment variable that overrides them.
-
-   See the spec itself for further details on the topic.
-
-.. _XDG Basedir Spec: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
-
 User directories
 ~~~~~~~~~~~~~~~~
 
@@ -54,3 +45,36 @@ Shared config directory
 -----------------------
 
 .. autofunction:: platformdirs.site_config_dir
+
+Platforms
+~~~~~~~~~
+
+ABC
+---
+.. autoclass:: platformdirs.api.PlatformDirsABC
+   :members:
+   :special-members: __init__
+
+Android
+-------
+.. autoclass:: platformdirs.android.Android
+   :members:
+   :show-inheritance:
+
+macOS
+-----
+.. autoclass:: platformdirs.macos.MacOS
+   :members:
+   :show-inheritance:
+
+Unix (Linux)
+------------
+.. autoclass:: platformdirs.unix.Unix
+   :members:
+   :show-inheritance:
+
+Windows
+-------
+.. autoclass:: platformdirs.windows.Windows
+   :members:
+   :show-inheritance:

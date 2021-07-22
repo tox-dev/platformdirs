@@ -8,6 +8,10 @@ platformdirs 2.1.0
 - Drop Python 2.7 and 3.5 support
 - Android support
 - Add type annotations
+- Reorganize project layout to platform specific classes, see
+  :class:`PlatformDirsABC <platformdirs.api.PlatformDirsABC>` and it's implementations:
+  :class:`Android <platformdirs.android.Android>`, :class:`MacOS <platformdirs.macos.MacOS>`,
+  :class:`Unix <platformdirs.unix.Unix>` and :class:`Windows <platformdirs.windows.Windows>`
 
 platformdirs 2.0.2
 ------------------
