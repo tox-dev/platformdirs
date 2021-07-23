@@ -118,6 +118,15 @@ class Unix(PlatformDirsABC):
             site_data_dir = site_data_dir.split(os.pathsep)[0]
         return Path(site_data_dir)
 
+    @property
+    def site_config_path(self) -> Path:
+        """:return: config path shared by the users. Only return first item, even if ``multipath`` is set to ``True``"""
+        site_config_dir = self.site_config_dir
+        if self.multipath:
+            # If multipath is True, the first path is returned.
+            site_config_dir = site_config_dir.split(os.pathsep)[0]
+        return Path(site_config_dir)
+
 
 __all__ = [
     "Unix",
