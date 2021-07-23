@@ -1,3 +1,4 @@
+import inspect
 from pathlib import Path
 from typing import Optional
 
@@ -35,6 +36,16 @@ def test_property_result_is_path(func_path: str) -> None:
     dirs = platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0")
     result = getattr(dirs, func_path)
     assert isinstance(result, Path)
+
+
+def test_function_interface_is_in_sync(func: str) -> None:
+    function_dir = getattr(platformdirs, func)
+    function_path = getattr(platformdirs, func.replace("_dir", "_path"))
+    assert inspect.isfunction(function_dir)
+    assert inspect.isfunction(function_path)
+    function_dir_signature = inspect.Signature.from_callable(function_dir)
+    function_path_signature = inspect.Signature.from_callable(function_path)
+    assert function_dir_signature.parameters == function_path_signature.parameters
 
 
 @pytest.mark.parametrize("root", ["A", "/system", None])

@@ -14,6 +14,7 @@ highbit
 HKEY
 impl
 intersphinx
+isfunction
 jnius
 kernel32
 lru
