@@ -1,21 +1,6 @@
 platformdirs Changelog
 ======================
 
-platformdirs 2.2.0
-------------------
-- [Issue 3] Add ``*_path`` API, returning :class:`pathlib.Path <pathlib.Path>` objects instead of :class:`str`
-  - by `@papr <https://github.com/papr/>`_
-
-  * **NEW** :func:`user_data_path <platformdirs.user_data_path>`
-  * **NEW** :func:`user_config_path <platformdirs.user_config_path>`
-  * **NEW** :func:`user_cache_path <platformdirs.user_cache_path>`
-  * **NEW** :func:`user_state_path <platformdirs.user_state_path>`
-  * **NEW** :func:`user_log_path <platformdirs.user_log_path>`
-  * **NEW** :func:`site_data_path <platformdirs.site_data_path>` (**Note:** Always returns first item, even if the
-    ``multipath`` argument is set to ``True``)
-  * **NEW** :func:`site_config_path <platformdirs.site_config_path>`
-  * **NEW** Add the according properties to :class:`PlatformDirsABC <platformdirs.api.PlatformDirsABC>`
-
 platformdirs 2.1.0
 ------------------
 - Add ``readthedocs.org`` documentation via Sphinx
@@ -27,6 +12,9 @@ platformdirs 2.1.0
   :class:`PlatformDirsABC <platformdirs.api.PlatformDirsABC>` and it's implementations:
   :class:`Android <platformdirs.android.Android>`, :class:`MacOS <platformdirs.macos.MacOS>`,
   :class:`Unix <platformdirs.unix.Unix>` and :class:`Windows <platformdirs.windows.Windows>`
+- [Issue 3] Add ``*_path`` API, returning :class:`pathlib.Path <pathlib.Path>` objects instead of :class:`str`
+  (``user_data_path``, ``user_config_path``, ``user_cache_path``, ``user_state_path``, ``user_log_path``,
+  ``site_data_path``, ``site_config_path``) - by `@papr <https://github.com/papr/>`_
 
 platformdirs 2.0.2
 ------------------
