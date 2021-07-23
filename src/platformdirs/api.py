@@ -1,6 +1,7 @@
 import os
 import sys
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Optional, Union
 
 if sys.version_info >= (3, 8):  # pragma: no branch
@@ -97,3 +98,38 @@ class PlatformDirsABC(ABC):
     @abstractmethod
     def user_log_dir(self) -> str:
         """:return: log directory tied to the user"""
+
+    @property
+    def user_data_path(self) -> Path:
+        """:return: data path tied to the user"""
+        return Path(self.user_data_dir)
+
+    @property
+    def site_data_path(self) -> Path:
+        """:return: data path shared by users"""
+        return Path(self.site_data_dir)
+
+    @property
+    def user_config_path(self) -> Path:
+        """:return: config path tied to the user"""
+        return Path(self.user_config_dir)
+
+    @property
+    def site_config_path(self) -> Path:
+        """:return: config path shared by the users"""
+        return Path(self.site_config_dir)
+
+    @property
+    def user_cache_path(self) -> Path:
+        """:return: cache path tied to the user"""
+        return Path(self.user_cache_dir)
+
+    @property
+    def user_state_path(self) -> Path:
+        """:return: state path tied to the user"""
+        return Path(self.user_state_dir)
+
+    @property
+    def user_log_path(self) -> Path:
+        """:return: log path tied to the user"""
+        return Path(self.user_log_dir)

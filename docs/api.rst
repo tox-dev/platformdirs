@@ -10,26 +10,31 @@ User data directory
 -------------------
 
 .. autofunction:: platformdirs.user_data_dir
+.. autofunction:: platformdirs.user_data_path
 
 User config directory
 ---------------------
 
 .. autofunction:: platformdirs.user_config_dir
+.. autofunction:: platformdirs.user_config_path
 
 Cache directory
 -------------------
 
 .. autofunction:: platformdirs.user_cache_dir
+.. autofunction:: platformdirs.user_cache_path
 
 State directory
 -------------------
 
 .. autofunction:: platformdirs.user_state_dir
+.. autofunction:: platformdirs.user_state_path
 
 Logs directory
 -------------------
 
 .. autofunction:: platformdirs.user_log_dir
+.. autofunction:: platformdirs.user_log_path
 
 Shared directories
 ~~~~~~~~~~~~~~~~~~
@@ -40,11 +45,13 @@ Shared data directory
 ---------------------
 
 .. autofunction:: platformdirs.site_data_dir
+.. autofunction:: platformdirs.site_data_path
 
 Shared config directory
 -----------------------
 
 .. autofunction:: platformdirs.site_config_dir
+.. autofunction:: platformdirs.site_config_path
 
 Platforms
 ~~~~~~~~~

@@ -19,6 +19,13 @@ def func(request: SubRequest) -> str:
     return cast(str, request.param)
 
 
+@pytest.fixture(params=PROPS)
+def func_path(request: SubRequest) -> str:
+    prop = cast(str, request.param)
+    prop = prop.replace("_dir", "_path")
+    return prop
+
+
 @pytest.fixture()
 def props() -> Tuple[str, ...]:
     return PROPS

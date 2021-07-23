@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from .api import PlatformDirsABC
 
@@ -66,7 +67,6 @@ class Unix(PlatformDirsABC):
         :return: config directories shared by users (if `multipath <platformdirs.api.PlatformDirsABC.multipath>`
          is enabled and ``XDG_DATA_DIR`` is set and a multi path the response is also a multi path separated by the OS
          path separator), e.g. ``/etc/xdg/$appname/$version``
-        :return:
         """
         # XDG default for $XDG_CONFIG_DIRS only first, if multipath is False
         if "XDG_CONFIG_DIRS" in os.environ:
@@ -108,6 +108,22 @@ class Unix(PlatformDirsABC):
         if self.opinion:
             path = os.path.join(path, "log")
         return path
+
+    @property
+    def site_data_path(self) -> Path:
+        """:return: data path shared by users. Only return first item, even if ``multipath`` is set to ``True``"""
+        return self._first_item_as_path_if_multipath(self.site_data_dir)
+
+    @property
+    def site_config_path(self) -> Path:
+        """:return: config path shared by the users. Only return first item, even if ``multipath`` is set to ``True``"""
+        return self._first_item_as_path_if_multipath(self.site_config_dir)
+
+    def _first_item_as_path_if_multipath(self, directory: str) -> Path:
+        if self.multipath:
+            # If multipath is True, the first path is returned.
+            directory = directory.split(os.pathsep)[0]
+        return Path(directory)
 
 
 __all__ = [
