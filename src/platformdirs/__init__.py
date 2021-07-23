@@ -170,7 +170,7 @@ def site_data_path(
     :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
-    :param multipath: See `roaming <platformdirs.api.PlatformDirsABC.multipath>`.
+    :param multipath: See `multipath <platformdirs.api.PlatformDirsABC.multipath>`.
     :returns: data directory shared by users
     """
     return PlatformDirs(appname=appname, appauthor=appauthor, version=version, multipath=multipath).site_data_path
