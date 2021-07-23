@@ -23,6 +23,7 @@ normpath
 ord
 param
 params
+pathlib
 pathsep
 platformdirs
 pyjnius
