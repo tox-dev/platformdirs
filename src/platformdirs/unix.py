@@ -120,9 +120,6 @@ class Unix(PlatformDirsABC):
         return self._first_item_as_path_if_multipath(self.site_config_dir)
 
     def _first_item_as_path_if_multipath(self, directory: str) -> Path:
-        """
-        :return: first directory as path, even if ``multipath`` is set to ``True``
-        """
         if self.multipath:
             # If multipath is True, the first path is returned.
             directory = directory.split(os.pathsep)[0]
