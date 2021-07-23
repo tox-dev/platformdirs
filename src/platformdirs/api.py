@@ -104,12 +104,12 @@ class PlatformDirsABC(ABC):
 
     @property
     def user_data_path(self) -> Path:
-        """:return: data directory tied to the user"""
+        """:return: data path tied to the user"""
         return Path(self.user_data_dir)
 
     @property
     def site_data_path(self) -> Path:
-        """:return: data directory shared by users"""
+        """:return: data path shared by users"""
         site_data_dir = self.site_data_dir
         if self.multipath:
             # If multipath is True, the first path is returned. See
@@ -119,25 +119,25 @@ class PlatformDirsABC(ABC):
 
     @property
     def user_config_path(self) -> Path:
-        """:return: config directory tied to the user"""
+        """:return: config path tied to the user"""
         return Path(self.user_config_dir)
 
     @property
     def site_config_path(self) -> Path:
-        """:return: config directory shared by the users"""
+        """:return: config path shared by the users"""
         return Path(self.site_config_dir)
 
     @property
     def user_cache_path(self) -> Path:
-        """:return: cache directory tied to the user"""
+        """:return: cache path tied to the user"""
         return Path(self.user_cache_dir)
 
     @property
     def user_state_path(self) -> Path:
-        """:return: state directory tied to the user"""
+        """:return: state path tied to the user"""
         return Path(self.user_state_dir)
 
     @property
     def user_log_path(self) -> Path:
-        """:return: log directory tied to the user"""
+        """:return: log path tied to the user"""
         return Path(self.user_log_dir)
