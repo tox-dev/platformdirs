@@ -112,20 +112,21 @@ class Unix(PlatformDirsABC):
     @property
     def site_data_path(self) -> Path:
         """:return: data path shared by users. Only return first item, even if ``multipath`` is set to ``True``"""
-        site_data_dir = self.site_data_dir
-        if self.multipath:
-            # If multipath is True, the first path is returned.
-            site_data_dir = site_data_dir.split(os.pathsep)[0]
-        return Path(site_data_dir)
+        return self._first_item_as_path_if_multipath(self.site_data_dir)
 
     @property
     def site_config_path(self) -> Path:
         """:return: config path shared by the users. Only return first item, even if ``multipath`` is set to ``True``"""
-        site_config_dir = self.site_config_dir
+        return self._first_item_as_path_if_multipath(self.site_config_dir)
+
+    def _first_item_as_path_if_multipath(self, directory: str) -> Path:
+        """
+        :return: first directory as path, even if ``multipath`` is set to ``True``
+        """
         if self.multipath:
             # If multipath is True, the first path is returned.
-            site_config_dir = site_config_dir.split(os.pathsep)[0]
-        return Path(site_config_dir)
+            directory = directory.split(os.pathsep)[0]
+        return Path(directory)
 
 
 __all__ = [
