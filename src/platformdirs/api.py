@@ -52,10 +52,7 @@ class PlatformDirsABC(ABC):
         self.multipath = multipath
         """
         An optional parameter only applicable to Unix/Linux which indicates that the entire list of data dirs should be
-        returned. By default, the first item would only be returned. This parameter does not affect the
-        :class:`pathlib.Path <pathlib.Path>`-returning methods, e.g. :meth:`platformdirs.site_data_path`. These always
-        return the first item. See `platformdirs/platformdirs#24
-        <https://github.com/platformdirs/platformdirs/issues/24>`_ for a discussion.
+        returned. By default, the first item would only be returned.
         """
         self.opinion = opinion  #: A flag to indicating to use opinionated values.
 
@@ -110,12 +107,7 @@ class PlatformDirsABC(ABC):
     @property
     def site_data_path(self) -> Path:
         """:return: data path shared by users"""
-        site_data_dir = self.site_data_dir
-        if self.multipath:
-            # If multipath is True, the first path is returned. See
-            # https://github.com/platformdirs/platformdirs/issues/24 for a discussion.
-            site_data_dir = site_data_dir.split(os.pathsep)[0]
-        return Path(site_data_dir)
+        return Path(self.site_data_dir)
 
     @property
     def user_config_path(self) -> Path:
