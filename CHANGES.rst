@@ -12,7 +12,7 @@ platformdirs 2.1.0
   :class:`PlatformDirsABC <platformdirs.api.PlatformDirsABC>` and it's implementations:
   :class:`Android <platformdirs.android.Android>`, :class:`MacOS <platformdirs.macos.MacOS>`,
   :class:`Unix <platformdirs.unix.Unix>` and :class:`Windows <platformdirs.windows.Windows>`
-- [Issue 3] Add ``*_path`` API, returning :class:`pathlib.Path <pathlib.Path>` objects instead of :class:`str`
+- Add ``*_path`` API, returning :class:`pathlib.Path <pathlib.Path>` objects instead of :class:`str`
   (``user_data_path``, ``user_config_path``, ``user_cache_path``, ``user_state_path``, ``user_log_path``,
   ``site_data_path``, ``site_config_path``) - by `@papr <https://github.com/papr/>`_
 
