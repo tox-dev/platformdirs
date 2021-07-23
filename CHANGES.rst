@@ -4,7 +4,17 @@ platformdirs Changelog
 platformdirs 2.2.0
 ------------------
 - [Issue 3] Add ``*_path`` API, returning :class:`pathlib.Path <pathlib.Path>` objects instead of :class:`str`
-  - by @papr
+  - by `@papr <https://github.com/papr/>`_
+
+  * **NEW** :func:`user_data_path <platformdirs.user_data_path>`
+  * **NEW** :func:`user_config_path <platformdirs.user_config_path>`
+  * **NEW** :func:`user_cache_path <platformdirs.user_cache_path>`
+  * **NEW** :func:`user_state_path <platformdirs.user_state_path>`
+  * **NEW** :func:`user_log_path <platformdirs.user_log_path>`
+  * **NEW** :func:`site_data_path <platformdirs.site_data_path>` (**Note:** Always returns first item, even if the
+    ``multipath`` argument is set to ``True``)
+  * **NEW** :func:`site_config_path <platformdirs.site_config_path>`
+  * **NEW** Add the according properties to :class:`PlatformDirsABC <platformdirs.api.PlatformDirsABC>`
 
 platformdirs 2.1.0
 ------------------
