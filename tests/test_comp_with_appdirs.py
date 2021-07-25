@@ -29,10 +29,14 @@ def test_has_backward_compatible_class() -> None:
     ],
 )
 def test_compatibility(params: Dict[str, Any], func: str) -> None:
-    if sys.platform == "darwin" and func == "user_log_dir":
-        pytest.skip("`appdirs.user_log_dir` without appname produces NoneType error on macOS")  # pragma: no cover
-    if sys.platform == "darwin" and func == "site_config_dir":
-        pytest.skip("`appdirs.site_config_dir` ignores the version argument on macOS")  # pragma: no cover
+    if sys.platform == "darwin":
+        msg = {  # pragma: no cover
+            "user_log_dir": "without appname produces NoneType error",
+            "site_config_dir": "ignores the version argument",
+            "user_config_dir": "uses Library/Preferences instead Application Support",
+        }
+        if func in msg:  # pragma: no cover
+            pytest.skip(f"`appdirs.{func}` {msg[func]} on macOS")  # pragma: no cover
 
     new = getattr(platformdirs, func)(*params)
     old = getattr(appdirs, func)(*params)
