@@ -24,28 +24,30 @@ MAP_XDG_DEFAULTS_WITH_MULTIPATH = {
 }
 
 
+@pytest.fixture()
+def dirs_instance() -> platformdirs.PlatformDirs:
+    return platformdirs.PlatformDirs(multipath=True, opinion=False)
+
+
 @pytest.mark.skipif(platform.system() != "Linux", reason="requires Linux")
-def test_xdg_variable_not_set(monkeypatch, func: str) -> None:
-    dirs = platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0", multipath=True, opinion=False)
+def test_xdg_variable_not_set(monkeypatch, dirs_instance: platformdirs.PlatformDirs, func: str) -> None:
     xdg_variable = MAP_XDG_DEFAULTS_WITH_MULTIPATH[func]
     monkeypatch.delenv(xdg_variable.name, raising=False)
-    result = getattr(dirs, func)
+    result = getattr(dirs_instance, func)
     assert result == xdg_variable.default_value
 
 
 @pytest.mark.skipif(platform.system() != "Linux", reason="requires Linux")
-def test_xdg_variable_empty_value(monkeypatch, func: str) -> None:
-    dirs = platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0", multipath=True, opinion=False)
+def test_xdg_variable_empty_value(monkeypatch, dirs_instance: platformdirs.PlatformDirs, func: str) -> None:
     xdg_variable = MAP_XDG_DEFAULTS_WITH_MULTIPATH[func]
     monkeypatch.setenv(xdg_variable.name, "")
-    result = getattr(dirs, func)
+    result = getattr(dirs_instance, func)
     assert result == xdg_variable.default_value
 
 
 @pytest.mark.skipif(platform.system() != "Linux", reason="requires Linux")
-def test_xdg_variable_custom_value(monkeypatch, func: str) -> None:
-    dirs = platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0", multipath=True, opinion=False)
+def test_xdg_variable_custom_value(monkeypatch, dirs_instance: platformdirs.PlatformDirs, func: str) -> None:
     xdg_variable = MAP_XDG_DEFAULTS_WITH_MULTIPATH[func]
     monkeypatch.setenv(xdg_variable.name, DIR_CUSTOM)
-    result = getattr(dirs, func)
+    result = getattr(dirs_instance, func)
     assert result == DIR_CUSTOM
