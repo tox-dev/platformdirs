@@ -34,7 +34,7 @@ def test_xdg_variable_not_set(monkeypatch, dirs_instance: platformdirs.PlatformD
     xdg_variable = MAP_XDG_DEFAULTS_WITH_MULTIPATH[func]
     monkeypatch.delenv(xdg_variable.name, raising=False)
     result = getattr(dirs_instance, func)
-    assert result == xdg_variable.default_value
+    assert result == os.path.expanduser(xdg_variable.default_value)
 
 
 @pytest.mark.skipif(platform.system() != "Linux", reason="requires Linux")
@@ -42,7 +42,7 @@ def test_xdg_variable_empty_value(monkeypatch, dirs_instance: platformdirs.Platf
     xdg_variable = MAP_XDG_DEFAULTS_WITH_MULTIPATH[func]
     monkeypatch.setenv(xdg_variable.name, "")
     result = getattr(dirs_instance, func)
-    assert result == xdg_variable.default_value
+    assert result == os.path.expanduser(xdg_variable.default_value)
 
 
 @pytest.mark.skipif(platform.system() != "Linux", reason="requires Linux")
