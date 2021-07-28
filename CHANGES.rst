@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 2.2.0
+------------------
+- Unix: Fallback to default if XDG environment variable is empty
+
 platformdirs 2.1.0
 ------------------
 - Add ``readthedocs.org`` documentation via Sphinx
