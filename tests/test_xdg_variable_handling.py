@@ -20,7 +20,7 @@ MAP_XDG_DEFAULTS_WITH_MULTIPATH = {
     "site_config_dir": XDGVariable("XDG_CONFIG_DIRS", "/etc/xdg"),
     "user_cache_dir": XDGVariable("XDG_CACHE_HOME", "~/.cache"),
     "user_state_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
-    "user_log_dir": XDGVariable("XDG_LOG_HOME", "~/.cache"),
+    "user_log_dir": XDGVariable("XDG_CACHE_HOME", "~/.cache"),
 }
 
 
