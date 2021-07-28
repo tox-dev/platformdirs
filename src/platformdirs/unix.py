@@ -22,7 +22,9 @@ class Unix(PlatformDirsABC):
         :return: data directory tied to the user, e.g. ``~/.local/share/$appname/$version`` or
          ``$XDG_DATA_HOME/$appname/$version``
         """
-        path = self._xdg_dir_or_fallback_with_expanded_user_dir("XDG_DATA_HOME", "~/.local/share")
+        path = os.environ.get("XDG_DATA_HOME", "")
+        if not path.strip():
+            path = os.path.expanduser("~/.local/share")
         return self._append_app_name_and_version(path)
 
     @property
@@ -33,9 +35,9 @@ class Unix(PlatformDirsABC):
          path separator), e.g. ``/usr/local/share/$appname/$version`` or ``/usr/share/$appname/$version``
         """
         # XDG default for $XDG_DATA_DIRS; only first, if multipath is False
-        path = self._xdg_dir_or_fallback_with_expanded_user_dir(
-            "XDG_DATA_DIRS", f"/usr/local/share{os.pathsep}/usr/share"
-        )
+        path = os.environ.get("XDG_DATA_DIRS", "")
+        if not path.strip():
+            path = f"/usr/local/share{os.pathsep}/usr/share"
         return self._with_multi_path(path)
 
     def _with_multi_path(self, path: str) -> str:
@@ -51,7 +53,9 @@ class Unix(PlatformDirsABC):
         :return: config directory tied to the user, e.g. ``~/.config/$appname/$version`` or
          ``$XDG_CONFIG_HOME/$appname/$version``
         """
-        path = self._xdg_dir_or_fallback_with_expanded_user_dir("XDG_CONFIG_HOME", "~/.config")
+        path = os.environ.get("XDG_CONFIG_HOME", "")
+        if not path.strip():
+            path = os.path.expanduser("~/.config")
         return self._append_app_name_and_version(path)
 
     @property
@@ -62,7 +66,9 @@ class Unix(PlatformDirsABC):
          path separator), e.g. ``/etc/xdg/$appname/$version``
         """
         # XDG default for $XDG_CONFIG_DIRS only first, if multipath is False
-        path = self._xdg_dir_or_fallback_with_expanded_user_dir("XDG_CONFIG_DIRS", "/etc/xdg")
+        path = os.environ.get("XDG_CONFIG_DIRS", "")
+        if not path.strip():
+            path = "/etc/xdg"
         return self._with_multi_path(path)
 
     @property
@@ -71,7 +77,9 @@ class Unix(PlatformDirsABC):
         :return: cache directory tied to the user, e.g. ``~/.cache/$appname/$version`` or
          ``~/$XDG_CACHE_HOME/$appname/$version``
         """
-        path = self._xdg_dir_or_fallback_with_expanded_user_dir("XDG_CACHE_HOME", "~/.cache")
+        path = os.environ.get("XDG_CACHE_HOME", "")
+        if not path.strip():
+            path = os.path.expanduser("~/.cache")
         return self._append_app_name_and_version(path)
 
     @property
@@ -80,7 +88,9 @@ class Unix(PlatformDirsABC):
         :return: state directory tied to the user, e.g. ``~/.local/state/$appname/$version`` or
          ``$XDG_STATE_HOME/$appname/$version``
         """
-        path = self._xdg_dir_or_fallback_with_expanded_user_dir("XDG_STATE_HOME", "~/.local/state")
+        path = os.environ.get("XDG_STATE_HOME", "")
+        if not path.strip():
+            path = os.path.expanduser("~/.local/state")
         return self._append_app_name_and_version(path)
 
     @property
@@ -108,10 +118,6 @@ class Unix(PlatformDirsABC):
             # If multipath is True, the first path is returned.
             directory = directory.split(os.pathsep)[0]
         return Path(directory)
-
-    @staticmethod
-    def _xdg_dir_or_fallback_with_expanded_user_dir(xdg_variable: str, fallback: str) -> str:
-        return os.environ.get(xdg_variable) or os.path.expanduser(fallback)
 
 
 __all__ = [
