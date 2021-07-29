@@ -12,13 +12,11 @@ Dirs
 func
 highbit
 HKEY
-impl
 intersphinx
 isfunction
 jnius
 kernel32
 lru
-macos
 multipath
 normpath
 ord
@@ -28,10 +26,8 @@ pathlib
 pathsep
 platformdirs
 pyjnius
-Runtime
 setenv
 shell32
-skipif
 typehints
 unittest
 winreg
