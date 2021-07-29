@@ -22,9 +22,8 @@ class Unix(PlatformDirsABC):
         :return: data directory tied to the user, e.g. ``~/.local/share/$appname/$version`` or
          ``$XDG_DATA_HOME/$appname/$version``
         """
-        if "XDG_DATA_HOME" in os.environ:
-            path = os.environ["XDG_DATA_HOME"]
-        else:
+        path = os.environ.get("XDG_DATA_HOME", "")
+        if not path.strip():
             path = os.path.expanduser("~/.local/share")
         return self._append_app_name_and_version(path)
 
@@ -36,9 +35,8 @@ class Unix(PlatformDirsABC):
          path separator), e.g. ``/usr/local/share/$appname/$version`` or ``/usr/share/$appname/$version``
         """
         # XDG default for $XDG_DATA_DIRS; only first, if multipath is False
-        if "XDG_DATA_DIRS" in os.environ:
-            path = os.environ["XDG_DATA_DIRS"]
-        else:
+        path = os.environ.get("XDG_DATA_DIRS", "")
+        if not path.strip():
             path = f"/usr/local/share{os.pathsep}/usr/share"
         return self._with_multi_path(path)
 
@@ -55,9 +53,8 @@ class Unix(PlatformDirsABC):
         :return: config directory tied to the user, e.g. ``~/.config/$appname/$version`` or
          ``$XDG_CONFIG_HOME/$appname/$version``
         """
-        if "XDG_CONFIG_HOME" in os.environ:
-            path = os.environ["XDG_CONFIG_HOME"]
-        else:
+        path = os.environ.get("XDG_CONFIG_HOME", "")
+        if not path.strip():
             path = os.path.expanduser("~/.config")
         return self._append_app_name_and_version(path)
 
@@ -69,9 +66,8 @@ class Unix(PlatformDirsABC):
          path separator), e.g. ``/etc/xdg/$appname/$version``
         """
         # XDG default for $XDG_CONFIG_DIRS only first, if multipath is False
-        if "XDG_CONFIG_DIRS" in os.environ:
-            path = os.environ["XDG_CONFIG_DIRS"]
-        else:
+        path = os.environ.get("XDG_CONFIG_DIRS", "")
+        if not path.strip():
             path = "/etc/xdg"
         return self._with_multi_path(path)
 
@@ -81,9 +77,8 @@ class Unix(PlatformDirsABC):
         :return: cache directory tied to the user, e.g. ``~/.cache/$appname/$version`` or
          ``~/$XDG_CACHE_HOME/$appname/$version``
         """
-        if "XDG_CACHE_HOME" in os.environ:
-            path = os.environ["XDG_CACHE_HOME"]
-        else:
+        path = os.environ.get("XDG_CACHE_HOME", "")
+        if not path.strip():
             path = os.path.expanduser("~/.cache")
         return self._append_app_name_and_version(path)
 
@@ -93,9 +88,8 @@ class Unix(PlatformDirsABC):
         :return: state directory tied to the user, e.g. ``~/.local/state/$appname/$version`` or
          ``$XDG_STATE_HOME/$appname/$version``
         """
-        if "XDG_STATE_HOME" in os.environ:
-            path = os.environ["XDG_STATE_HOME"]
-        else:
+        path = os.environ.get("XDG_STATE_HOME", "")
+        if not path.strip():
             path = os.path.expanduser("~/.local/state")
         return self._append_app_name_and_version(path)
 
