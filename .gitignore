@@ -1,10 +1,14 @@
 /.idea/
+/.venv/
 /.vscode/
 
 *.pyc
 *.egg-info
-tmp/
+.coverage
+
+.tox/
 build/
 dist/
-.tox/
+tmp/
+
 /src/platformdirs/version.py
