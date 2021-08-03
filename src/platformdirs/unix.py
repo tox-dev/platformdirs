@@ -3,6 +3,17 @@ from pathlib import Path
 
 from .api import PlatformDirsABC
 
+# Mapping between function name and relevant XDG var
+SUPPORTS_XDG = {
+    "user_data_dir": "XDG_DATA_HOME",
+    # "site_data_dir": "",
+    "user_config_dir": "XDG_CONFIG_HOME",
+    # "site_config_dir": "",
+    "user_cache_dir": "XDG_CACHE_HOME",
+    "user_state_dir": "XDG_STATE_HOME",
+    "user_log_dir": "XDG_CACHE_HOME",
+}
+
 
 class Unix(PlatformDirsABC):
     """
@@ -93,6 +104,7 @@ class Unix(PlatformDirsABC):
             path = os.path.expanduser("~/.local/state")
         return self._append_app_name_and_version(path)
 
+    # TODO: As per XDG spec, logs should be placed under XDG_STATE_HOME
     @property
     def user_log_dir(self) -> str:
         """

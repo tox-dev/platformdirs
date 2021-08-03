@@ -8,23 +8,13 @@ from pytest_mock import MockerFixture
 
 from platformdirs.android import Android
 
+from .common import PARAMS
+
 
 @pytest.mark.parametrize(
     "params",
-    [
-        {},
-        {"appname": "foo"},
-        {"appname": "foo", "appauthor": "bar"},
-        {"appname": "foo", "appauthor": "bar", "version": "v1.0"},
-        {"appname": "foo", "appauthor": "bar", "version": "v1.0", "opinion": False},
-    ],
-    ids=[
-        "no_args",
-        "app_name",
-        "app_name_with_app_author",
-        "app_name_author_version",
-        "app_name_author_version_false_opinion",
-    ],
+    PARAMS.values(),
+    ids=PARAMS.keys(),
 )
 def test_android(mocker: MockerFixture, params: Dict[str, Any], func: str) -> None:
     mocker.patch("platformdirs.android._android_folder", return_value="/data/data/com.example", autospec=True)

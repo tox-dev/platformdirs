@@ -20,6 +20,7 @@ class PlatformDirsABC(ABC):
         version: Optional[str] = None,
         roaming: bool = False,
         multipath: bool = False,
+        force_xdg: bool = None,
         opinion: bool = True,
     ):
         """
@@ -53,6 +54,14 @@ class PlatformDirsABC(ABC):
         """
         An optional parameter only applicable to Unix/Linux which indicates that the entire list of data dirs should be
         returned. By default, the first item would only be returned.
+        """
+        self.xdg_fallback = opinion if force_xdg is None else force_xdg
+        """
+        Whether to use XDG's fallback behavior on all platforms for
+        consistency. Defaults to the value of `opinion`.
+
+        This has no effect on the interpretation of `XDG_*_HOME` environment
+        variables, which are always used if set.
         """
         self.opinion = opinion  #: A flag to indicating to use opinionated values.
 

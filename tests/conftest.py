@@ -1,7 +1,10 @@
-from typing import Tuple, cast
+import os
+from pathlib import Path
+from typing import Any, Dict, Tuple, cast
 
 import pytest
 from _pytest.fixtures import SubRequest
+from pytest_mock import MockerFixture
 
 PROPS = (
     "user_data_dir",
@@ -29,3 +32,27 @@ def func_path(request: SubRequest) -> str:
 @pytest.fixture()
 def props() -> Tuple[str, ...]:
     return PROPS
+
+
+@pytest.fixture
+def mock_environ(mocker: MockerFixture) -> Dict[str, Any]:
+    mocker.patch("os.environ", {})
+    return os.environ
+
+
+@pytest.fixture
+def mock_homedir(
+    mocker: MockerFixture,
+    mock_environ: dict,
+    tmp_path: Path,
+) -> Path:
+    def _expanduser(s: str) -> str:
+        if s == "~":
+            return str(tmp_path)
+        if s.startswith("~/"):
+            return str(tmp_path / s[2:])
+        return s
+
+    mocker.patch("os.path.expanduser", _expanduser)
+    mock_environ["HOME"] = str(tmp_path)
+    return tmp_path
