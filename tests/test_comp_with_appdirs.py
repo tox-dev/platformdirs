@@ -6,9 +6,14 @@ import pytest
 from pytest_mock import MockerFixture
 
 import platformdirs
-from platformdirs.unix import SUPPORTS_XDG
+from platformdirs.macos import XDG_SUPPORT as MAC_XDG_SUPPORT
+from platformdirs.macos import MacOS
+from platformdirs.unix import Unix
 
-from .common import OS
+COMPAT_PLATFORMS = {
+    "darwin": MacOS,
+    "unix": Unix,
+}
 
 
 def test_has_backward_compatible_class() -> None:
@@ -47,19 +52,15 @@ def test_compatibility(
             "user_config_dir": "uses Library/Preferences instead of Application Support",
         }
         if func in msg:  # pragma: no cover
-            pytest.skip(
-                f"`appdirs.{func}` {msg[func]} on macOS"
-            )  # pragma: no cover
-        if SUPPORTS_XDG.get(func) in mock_environ:
-            pytest.skip(
-                f"`appdirs.{func}` ignores the XDG specification on macOS"
-            )
+            pytest.skip(f"`appdirs.{func}` {msg[func]} on macOS")  # pragma: no cover
+        if MAC_XDG_SUPPORT.get(func) in mock_environ:
+            pytest.skip(f"`appdirs.{func}` ignores the XDG specification on macOS")
     if system == "win32" and sys.platform != "win32":
         pytest.skip("Windows tests only work on win32")  # pragma: no cover
 
     mocker.patch("sys.platform", system)
     mocker.patch("appdirs.system", system)
-    mocker.patch("platformdirs.PlatformDirs", OS[system])
+    mocker.patch("platformdirs.PlatformDirs", COMPAT_PLATFORMS[system])
     # ASSUMPTION: For checking compat, we only care about the old location if
     # it's on disk.
     mocker.patch("os.path.exists", lambda _: True)

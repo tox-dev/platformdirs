@@ -6,6 +6,11 @@ import pytest
 from _pytest.fixtures import SubRequest
 from pytest_mock import MockerFixture
 
+from platformdirs.android import Android
+from platformdirs.macos import MacOS
+from platformdirs.unix import Unix
+from platformdirs.windows import Windows
+
 PROPS = (
     "user_data_dir",
     "user_config_dir",
@@ -15,6 +20,36 @@ PROPS = (
     "site_data_dir",
     "site_config_dir",
 )
+
+PARAMS = {
+    "no_args": {},
+    "app_name": {"appname": "foo"},
+    "app_name_with_app_author": {"appname": "foo", "appauthor": "bar"},
+    "app_name_author_version": {
+        "appname": "foo",
+        "appauthor": "bar",
+        "version": "v1.0",
+    },
+    "app_name_author_version_false_opinion": {
+        "appname": "foo",
+        "appauthor": "bar",
+        "version": "v1.0",
+        "opinion": False,
+    },
+}
+
+
+PLATFORMS = {
+    "android": Android,
+    "darwin": MacOS,
+    "unix": Unix,
+    "windows": Windows,
+}
+
+
+@pytest.fixture(params=PARAMS.values(), ids=PARAMS.keys())
+def params(request: SubRequest) -> Dict[str, Any]:
+    return cast(Dict[str, str], request.param)
 
 
 @pytest.fixture(params=PROPS)
@@ -35,24 +70,21 @@ def props() -> Tuple[str, ...]:
 
 
 @pytest.fixture
-def mock_environ(mocker: MockerFixture) -> Dict[str, Any]:
-    mocker.patch("os.environ", {})
-    return os.environ
-
-
-@pytest.fixture
-def mock_homedir(
+def mock_environ(
     mocker: MockerFixture,
-    mock_environ: dict,
     tmp_path: Path,
-) -> Path:
+) -> Dict[str, Any]:
+    mocker.patch("os.environ", {})
+    home = str(tmp_path)
+
     def _expanduser(s: str) -> str:
         if s == "~":
-            return str(tmp_path)
+            return home
         if s.startswith("~/"):
             return str(tmp_path / s[2:])
         return s
 
     mocker.patch("os.path.expanduser", _expanduser)
-    mock_environ["HOME"] = str(tmp_path)
-    return tmp_path
+    os.environ["HOME"] = home
+
+    return os.environ

@@ -8,16 +8,13 @@ from pytest_mock import MockerFixture
 
 from platformdirs.android import Android
 
-from .common import PARAMS
 
-
-@pytest.mark.parametrize(
-    "params",
-    PARAMS.values(),
-    ids=PARAMS.keys(),
-)
 def test_android(mocker: MockerFixture, params: Dict[str, Any], func: str) -> None:
-    mocker.patch("platformdirs.android._android_folder", return_value="/data/data/com.example", autospec=True)
+    mocker.patch(
+        "platformdirs.android._android_folder",
+        return_value="/data/data/com.example",
+        autospec=True,
+    )
     mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
     result = getattr(Android(**params), func)
 

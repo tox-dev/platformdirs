@@ -4,14 +4,23 @@ from pathlib import Path
 from .api import PlatformDirsABC
 
 # Mapping between function name and relevant XDG var
-SUPPORTS_XDG = {
+XDG_SUPPORT = {
     "user_data_dir": "XDG_DATA_HOME",
-    # "site_data_dir": "",
+    "site_data_dir": "XDG_DATA_DIRS",
     "user_config_dir": "XDG_CONFIG_HOME",
-    # "site_config_dir": "",
+    "site_config_dir": "XDG_CONFIG_DIRS",
     "user_cache_dir": "XDG_CACHE_HOME",
     "user_state_dir": "XDG_STATE_HOME",
-    "user_log_dir": "XDG_CACHE_HOME",
+    "user_log_dir": "XDG_CACHE_HOME",  # Should be in XDG_STATE_HOME as per spec
+}
+# Mapping between function name and relevant XDG var
+XDG_DEFAULTS = {
+    "XDG_DATA_HOME": "~/.local/share",
+    "XDG_DATA_DIRS": "",
+    "XDG_CONFIG_HOME": "~/.config",
+    "XDG_CONFIG_DIRS": "",
+    "XDG_CACHE_HOME": "~/.cache",
+    "XDG_STATE_HOME": "~/.local/state",
 }
 
 
