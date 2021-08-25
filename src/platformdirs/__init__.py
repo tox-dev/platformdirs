@@ -157,7 +157,7 @@ def user_runtime_dir(
     :param opinion: See `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
     :returns: runtime directory tied to the user
     """
-    return PlatformDirs(appname=appname, appauthor=appauthor, version=version).user_runtime_dir
+    return PlatformDirs(appname=appname, appauthor=appauthor, version=version, opinion=opinion).user_runtime_dir
 
 
 def user_data_path(
@@ -285,7 +285,7 @@ def user_runtime_path(
     :param opinion: See `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
     :returns: runtime path tied to the user
     """
-    return PlatformDirs(appname=appname, appauthor=appauthor, version=version).user_runtime_path
+    return PlatformDirs(appname=appname, appauthor=appauthor, version=version, opinion=opinion).user_runtime_path
 
 
 __all__ = [
