@@ -104,6 +104,17 @@ class Unix(PlatformDirsABC):
         return path
 
     @property
+    def user_runtime_dir(self) -> str:
+        """
+        :return: runtime directory tied to the user, e.g. ``/run/user/$(id -u)/$appname/$version`` or
+         ``$XDG_RUNTIME_DIR/$appname/$version``
+        """
+        path = os.environ.get("XDG_RUNTIME_DIR", "")
+        if not path.strip():
+            path = f"/run/user/{os.getuid()}"
+        return self._append_app_name_and_version(path)
+
+    @property
     def site_data_path(self) -> Path:
         """:return: data path shared by users. Only return first item, even if ``multipath`` is set to ``True``"""
         return self._first_item_as_path_if_multipath(self.site_data_dir)
