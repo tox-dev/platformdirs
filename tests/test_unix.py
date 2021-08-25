@@ -21,6 +21,7 @@ def _func_to_path(func: str) -> XDGVariable:
         "user_cache_dir": XDGVariable("XDG_CACHE_HOME", "~/.cache"),
         "user_state_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
         "user_log_dir": XDGVariable("XDG_CACHE_HOME", "~/.cache"),
+        "user_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"),
     }
     return mapping[func]
 
