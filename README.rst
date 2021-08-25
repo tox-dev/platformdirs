@@ -128,7 +128,7 @@ On Android::
     >>> user_config_dir(appname)
     '/data/data/com.termux/shared_prefs/SuperApp'
     >>> user_runtime_dir(appname, appauthor)
-    'data/data/com.termux/tmp/SuperApp'
+    '/data/data/com.termux/cache/SuperApp/tmp'
 
 
 ``PlatformDirs`` for convenience
