@@ -9,6 +9,7 @@ PROPS = (
     "user_cache_dir",
     "user_state_dir",
     "user_log_dir",
+    "user_documents_dir",
     "site_data_dir",
     "site_config_dir",
 )
