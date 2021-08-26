@@ -26,6 +26,7 @@ pathlib
 pathsep
 platformdirs
 pyjnius
+runtime
 setenv
 shell32
 typehints
