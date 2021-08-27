@@ -49,6 +49,10 @@ def test_has_all_properties() -> None:
     ],
 )
 def test_compatibility(params: Dict[str, Any], func: str) -> None:
+    # Only test functions that are part of appdirs
+    if getattr(appdirs, func, None) is None:
+        return
+
     if sys.platform == "darwin":
         msg = {  # pragma: no cover
             "user_log_dir": "without appname produces NoneType error",
