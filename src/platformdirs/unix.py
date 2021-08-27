@@ -110,10 +110,10 @@ class Unix(PlatformDirsABC):
         """
         :return: documents directory tied to the user, e.g. ``~/Documents``
         """
-        documents_dir = get_user_dirs_folder("XDG_DOCUMENTS_DIR")
+        documents_dir = get_user_dirs_folder("XDG_DOCUMENTS_DIR") # type: ignore
         
         if documents_dir is None:
-            documents_dir = os.environ.get("XDG_DOCUMENTS_DIR", "")
+            documents_dir: str = os.environ.get("XDG_DOCUMENTS_DIR", "")
             if not documents_dir.strip():
                 documents_dir = os.path.expanduser("~/Documents")
         
