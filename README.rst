@@ -40,6 +40,7 @@ This kind of thing is what the ``platformdirs`` module is for.
 - site data dir (``site_data_dir``)
 - site config dir (``site_config_dir``)
 - user log dir (``user_log_dir``)
+- user documents dir (``user_documents_dir``)
 
 And also:
 
@@ -65,6 +66,8 @@ On macOS:
     '/Users/trentm/Library/Caches/SuperApp'
     >>> user_log_dir(appname, appauthor)
     '/Users/trentm/Library/Logs/SuperApp'
+    >>> user_documents_dir(appname, appauthor)
+    '/Users/trentm/Documents'
 
 On Windows 7:
 
@@ -81,6 +84,8 @@ On Windows 7:
     'C:\\Users\\trentm\\AppData\\Local\\Acme\\SuperApp\\Cache'
     >>> user_log_dir(appname, appauthor)
     'C:\\Users\\trentm\\AppData\\Local\\Acme\\SuperApp\\Logs'
+    >>> user_documents_dir(appname, appauthor)
+    'C:\\Users\\trentm\\Documents'
 
 On Linux:
 
@@ -101,6 +106,8 @@ On Linux:
     '/home/trentm/.cache/SuperApp/log'
     >>> user_config_dir(appname)
     '/home/trentm/.config/SuperApp'
+    >>> user_documents_dir(appname)
+    '/home/trentm/Documents'
     >>> site_config_dir(appname)
     '/etc/xdg/SuperApp'
     >>> os.environ['XDG_CONFIG_DIRS'] = '/etc:/usr/local/etc'
@@ -120,6 +127,8 @@ On Android::
     '/data/data/com.termux/cache/SuperApp/log'
     >>> user_config_dir(appname)
     '/data/data/com.termux/shared_prefs/SuperApp'
+    >>> user_documents_dir(appname)
+    '/data/media/0/Documents'
 
 
 ``PlatformDirs`` for convenience
@@ -137,6 +146,8 @@ On Android::
     '/Users/trentm/Library/Caches/SuperApp'
     >>> dirs.user_log_dir
     '/Users/trentm/Library/Logs/SuperApp'
+    >>> dirs.user_documents_dir
+    '/Users/trentm/Documents'
 
 Per-version isolation
 =====================
@@ -155,6 +166,8 @@ dirs::
     '/Users/trentm/Library/Caches/SuperApp/1.0'
     >>> dirs.user_log_dir
     '/Users/trentm/Library/Logs/SuperApp/1.0'
+    >>> dirs.user_documents_dir
+    '/Users/trentm/Documents'
 
 Be wary of using this for configuration files though; you'll need to handle
 migrating configuration files manually.
