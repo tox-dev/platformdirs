@@ -56,6 +56,24 @@ class Android(PlatformDirsABC):
             path = os.path.join(path, "log")
         return path
 
+    @property
+    def user_documents_dir(self) -> str:
+        """
+        :return: documents directory tied to the user e.g. ``/storage/emulated/0/Documents``
+        """
+        # Get directories with pyjnius
+        try:
+            from jnius import autoclass  # noqa: SC200
+
+            Environment = autoclass("android.os.Environment")
+            data_dir: str = Environment.getDataDirectory().getAbsolutePath()
+            documents_dir_name: str = Environment.DIRECTORY_DOCUMENTS
+
+            documents_dir = os.path.join(data_dir, "media/0", documents_dir_name)
+        except Exception:
+            documents_dir = "/data/media/0/Documents"
+
+        return documents_dir
 
 @lru_cache(maxsize=1)
 def _android_folder() -> str:
