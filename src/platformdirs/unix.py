@@ -136,7 +136,7 @@ class Unix(PlatformDirsABC):
         return Path(directory)
 
 def get_user_dirs_folder(key: str) -> Optional[str]:
-    """""Return """
+    """""Return directory from user-dirs.dirs config file"""
     user_dirs_config_path = os.path.join(Unix().user_config_dir, "user-dirs.dirs")
     if not os.path.exists(user_dirs_config_path):
         return
