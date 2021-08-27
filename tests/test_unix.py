@@ -38,7 +38,7 @@ class XDGVariable(typing.NamedTuple):
     default_value: str
 
 
-def _func_to_path(func: str) -> XDGVariable:
+def _func_to_path(func: str) -> typing.Optional[XDGVariable]:
     mapping = {
         "user_data_dir": XDGVariable("XDG_DATA_HOME", "~/.local/share"),
         "site_data_dir": XDGVariable("XDG_DATA_DIRS", f"/usr/local/share{os.pathsep}/usr/share"),
@@ -47,9 +47,8 @@ def _func_to_path(func: str) -> XDGVariable:
         "user_cache_dir": XDGVariable("XDG_CACHE_HOME", "~/.cache"),
         "user_state_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
         "user_log_dir": XDGVariable("XDG_CACHE_HOME", "~/.cache"),
-        "user_documents_dir": XDGVariable("XDG_DOCUMENTS_DIR", "~/Documents"),
     }
-    return mapping[func]
+    return mapping.get(func)
 
 
 @pytest.fixture()
@@ -59,6 +58,9 @@ def dirs_instance() -> Unix:
 
 def test_xdg_variable_not_set(monkeypatch: MonkeyPatch, dirs_instance: Unix, func: str) -> None:
     xdg_variable = _func_to_path(func)
+    if xdg_variable is None:
+        return
+    
     monkeypatch.delenv(xdg_variable.name, raising=False)
     result = getattr(dirs_instance, func)
     assert result == os.path.expanduser(xdg_variable.default_value)
@@ -66,6 +68,9 @@ def test_xdg_variable_not_set(monkeypatch: MonkeyPatch, dirs_instance: Unix, fun
 
 def test_xdg_variable_empty_value(monkeypatch: MonkeyPatch, dirs_instance: Unix, func: str) -> None:
     xdg_variable = _func_to_path(func)
+    if xdg_variable is None:
+        return
+    
     monkeypatch.setenv(xdg_variable.name, "")
     result = getattr(dirs_instance, func)
     assert result == os.path.expanduser(xdg_variable.default_value)
@@ -73,6 +78,9 @@ def test_xdg_variable_empty_value(monkeypatch: MonkeyPatch, dirs_instance: Unix,
 
 def test_xdg_variable_custom_value(monkeypatch: MonkeyPatch, dirs_instance: Unix, func: str) -> None:
     xdg_variable = _func_to_path(func)
+    if xdg_variable is None:
+        return
+    
     monkeypatch.setenv(xdg_variable.name, "/tmp/custom-dir")
     result = getattr(dirs_instance, func)
     assert result == "/tmp/custom-dir"
