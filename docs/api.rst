@@ -37,7 +37,7 @@ Logs directory
 .. autofunction:: platformdirs.user_log_path
 
 User documents directory
--------------------
+------------------------
 
 .. autofunction:: platformdirs.user_documents_dir
 .. autofunction:: platformdirs.user_documents_path
