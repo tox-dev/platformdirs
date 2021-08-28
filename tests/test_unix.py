@@ -32,6 +32,8 @@ def test_user_documents_dir_default(monkeypatch: MonkeyPatch) -> None:
 
     # Mock home directory
     monkeypatch.setenv("HOME", "/home/example")
+    # Mock home directory for running the test on Windows
+    monkeypatch.setenv("USERPROFILE", "/home/example")
 
     assert Unix().user_documents_dir == "/home/example/Documents"
 
