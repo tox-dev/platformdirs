@@ -25,13 +25,10 @@ class Windows(PlatformDirsABC):
         """
         const = "CSIDL_APPDATA" if self.roaming else "CSIDL_LOCAL_APPDATA"
         path = get_win_folder(const)
-        if path:
-            path = os.path.normpath(path)
-        else:
-            path = os.path.join(
-                os.path.normpath(os.environ["USERPROFILE"]), "AppData", "Roaming" if self.roaming else "Local"
-            )
+        if path is None:
+            raise ValueError(f"No path found for CSIDL: {const}")
 
+        path = os.path.normpath(path)
         return self._append_parts(path)
 
     def _append_parts(self, path: str, *, opinion_value: Optional[str] = None) -> str:
@@ -51,10 +48,10 @@ class Windows(PlatformDirsABC):
     def site_data_dir(self) -> str:
         """:return: data directory shared by users, e.g. ``C:\\ProgramData\\$appauthor\\$appname``"""
         path = get_win_folder("CSIDL_COMMON_APPDATA")
-        if path:
-            path = os.path.normpath(path)
-        else:
-            path = os.path.join(os.path.normpath(os.environ["HOMEDRIVE"]), "\\ProgramData")
+        if path is None:
+            raise ValueError("No path found for CSIDL: CSIDL_COMMON_APPDATA")
+
+        path = os.path.normpath(path)
         return self._append_parts(path)
 
     @property
@@ -74,10 +71,10 @@ class Windows(PlatformDirsABC):
          ``%USERPROFILE%\\AppData\\Local\\$appauthor\\$appname\\Cache\\$version``
         """
         path = get_win_folder("CSIDL_LOCAL_APPDATA")
-        if path:
-            path = os.path.normpath(path)
-        else:
-            path = os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "AppData", "Local")
+        if path is None:
+            raise ValueError("No path found for CSIDL: CSIDL_LOCAL_APPDATA")
+
+        path = os.path.normpath(path)
         return self._append_parts(path, opinion_value="Cache")
 
     @property
