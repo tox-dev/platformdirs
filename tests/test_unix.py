@@ -31,6 +31,11 @@ def dirs_instance() -> Unix:
     return Unix(multipath=True, opinion=False)
 
 
+@pytest.fixture(autouse=True)
+def getuid(monkeypatch: MonkeyPatch) -> None:
+    monkeypatch.setattr(os, "getuid", lambda: 1000)
+
+
 def test_xdg_variable_not_set(monkeypatch: MonkeyPatch, dirs_instance: Unix, func: str) -> None:
     xdg_variable = _func_to_path(func)
     monkeypatch.delenv(xdg_variable.name, raising=False)
