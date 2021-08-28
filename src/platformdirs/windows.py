@@ -108,17 +108,16 @@ class Windows(PlatformDirsABC):
 
 def get_win_folder_from_env_vars(csidl_name: str) -> Optional[str]:
     """Get folder from environment variables."""
-    try:
-        env_var_name = {
-            "CSIDL_APPDATA": "APPDATA",
-            "CSIDL_COMMON_APPDATA": "ALLUSERSPROFILE",
-            "CSIDL_LOCAL_APPDATA": "LOCALAPPDATA",
-        }[csidl_name]
-    except KeyError:
+    env_var_name = {
+        "CSIDL_APPDATA": "APPDATA",
+        "CSIDL_COMMON_APPDATA": "ALLUSERSPROFILE",
+        "CSIDL_LOCAL_APPDATA": "LOCALAPPDATA",
+    }.get(csidl_name)
+    if env_var_name is None:
         return None
-    try:
-        result = os.environ[env_var_name]
-    except KeyError:
+
+    result = os.environ.get(env_var_name)
+    if result is None:
         return None
     return result
 
