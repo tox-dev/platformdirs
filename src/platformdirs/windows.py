@@ -87,18 +87,20 @@ class Windows(PlatformDirsABC):
         """
         return os.path.normpath(get_win_folder("CSIDL_PERSONAL"))
 
+
 def get_win_folder_from_env_vars(csidl_name: str) -> str:
     """Get folder from environment variables."""
-    env_var_name = {
-        "CSIDL_APPDATA": "APPDATA",
-        "CSIDL_COMMON_APPDATA": "ALLUSERSPROFILE",
-        "CSIDL_LOCAL_APPDATA": "LOCALAPPDATA",
-        "CSIDL_PERSONAL": 5,
-    }.get(csidl_name)
-    if env_var_name is None:
+    try:
+        env_var_name = {
+            "CSIDL_APPDATA": "APPDATA",
+            "CSIDL_COMMON_APPDATA": "ALLUSERSPROFILE",
+            "CSIDL_LOCAL_APPDATA": "LOCALAPPDATA",
+        }[csidl_name]
+    except KeyError:
         raise ValueError(f"Unknown CSIDL name: {csidl_name}")
-    result = os.environ.get(env_var_name)
-    if result is None:
+    try:
+        result = os.environ[env_var_name]
+    except KeyError:
         raise ValueError(f"Unset environment variable: {env_var_name}")
     return result
 
@@ -110,13 +112,14 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
     registry for this guarantees us the correct answer for all CSIDL_*
     names.
     """
-    shell_folder_name = {
-        "CSIDL_APPDATA": "AppData",
-        "CSIDL_COMMON_APPDATA": "Common AppData",
-        "CSIDL_LOCAL_APPDATA": "Local AppData",
-        "CSIDL_PERSONAL": 5,
-    }.get(csidl_name)
-    if shell_folder_name is None:
+    try:
+        shell_folder_name = {
+            "CSIDL_APPDATA": "AppData",
+            "CSIDL_COMMON_APPDATA": "Common AppData",
+            "CSIDL_LOCAL_APPDATA": "Local AppData",
+            "CSIDL_PERSONAL": "Personal",
+        }[csidl_name]
+    except KeyError:
         raise ValueError(f"Unknown CSIDL name: {csidl_name}")
 
     import winreg

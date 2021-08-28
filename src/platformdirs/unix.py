@@ -1,6 +1,6 @@
 import os
-from pathlib import Path
 from configparser import ConfigParser
+from pathlib import Path
 from typing import Optional
 
 from .api import PlatformDirsABC
@@ -110,13 +110,13 @@ class Unix(PlatformDirsABC):
         """
         :return: documents directory tied to the user, e.g. ``~/Documents``
         """
-        documents_dir = get_user_dirs_folder("XDG_DOCUMENTS_DIR") # type: ignore
-        
+        documents_dir = get_user_dirs_folder("XDG_DOCUMENTS_DIR")
+
         if documents_dir is None:
-            documents_dir: str = os.environ.get("XDG_DOCUMENTS_DIR", "")
-            if not documents_dir.strip():
+            documents_dir = os.environ.get("XDG_DOCUMENTS_DIR")
+            if not documents_dir or not documents_dir.strip():
                 documents_dir = os.path.expanduser("~/Documents")
-        
+
         return documents_dir
 
     @property
@@ -135,11 +135,12 @@ class Unix(PlatformDirsABC):
             directory = directory.split(os.pathsep)[0]
         return Path(directory)
 
+
 def get_user_dirs_folder(key: str) -> Optional[str]:
-    """""Return directory from user-dirs.dirs config file"""
+    """ ""Return directory from user-dirs.dirs config file"""
     user_dirs_config_path = os.path.join(Unix().user_config_dir, "user-dirs.dirs")
     if not os.path.exists(user_dirs_config_path):
-        return
+        return None
 
     parser = ConfigParser()
 
@@ -148,12 +149,13 @@ def get_user_dirs_folder(key: str) -> Optional[str]:
         parser.read_string("[top]\n" + stream.read())
 
     if key not in parser["top"]:
-        return
-    
+        return None
+
     path = parser["top"][key].strip('"')
     # Handle relative home paths
     path = path.replace("$HOME", os.path.expanduser("~"))
     return path
+
 
 __all__ = [
     "Unix",

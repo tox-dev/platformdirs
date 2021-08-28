@@ -13,6 +13,7 @@ def test_user_documents_dir(monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setattr(platformdirs.unix, "get_user_dirs_folder", lambda key: example_path)
     assert Unix().user_documents_dir == example_path
 
+
 def test_user_documents_dir_env_var(monkeypatch: MonkeyPatch) -> None:
     # Mock documents dir not being in user-dirs.dirs file
     monkeypatch.setattr(platformdirs.unix, "get_user_dirs_folder", lambda key: None)
@@ -21,6 +22,7 @@ def test_user_documents_dir_env_var(monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setenv("XDG_DOCUMENTS_DIR", example_path)
 
     assert Unix().user_documents_dir == example_path
+
 
 def test_user_documents_dir_default(monkeypatch: MonkeyPatch) -> None:
     # Mock documents dir not being in user-dirs.dirs file
@@ -32,6 +34,7 @@ def test_user_documents_dir_default(monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setenv("HOME", "/home/example")
 
     assert Unix().user_documents_dir == "/home/example/Documents"
+
 
 class XDGVariable(typing.NamedTuple):
     name: str
@@ -60,7 +63,7 @@ def test_xdg_variable_not_set(monkeypatch: MonkeyPatch, dirs_instance: Unix, fun
     xdg_variable = _func_to_path(func)
     if xdg_variable is None:
         return
-    
+
     monkeypatch.delenv(xdg_variable.name, raising=False)
     result = getattr(dirs_instance, func)
     assert result == os.path.expanduser(xdg_variable.default_value)
@@ -70,7 +73,7 @@ def test_xdg_variable_empty_value(monkeypatch: MonkeyPatch, dirs_instance: Unix,
     xdg_variable = _func_to_path(func)
     if xdg_variable is None:
         return
-    
+
     monkeypatch.setenv(xdg_variable.name, "")
     result = getattr(dirs_instance, func)
     assert result == os.path.expanduser(xdg_variable.default_value)
@@ -80,7 +83,7 @@ def test_xdg_variable_custom_value(monkeypatch: MonkeyPatch, dirs_instance: Unix
     xdg_variable = _func_to_path(func)
     if xdg_variable is None:
         return
-    
+
     monkeypatch.setenv(xdg_variable.name, "/tmp/custom-dir")
     result = getattr(dirs_instance, func)
     assert result == "/tmp/custom-dir"

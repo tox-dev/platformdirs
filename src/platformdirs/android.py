@@ -75,6 +75,7 @@ class Android(PlatformDirsABC):
 
         return documents_dir
 
+
 @lru_cache(maxsize=1)
 def _android_folder() -> str:
     """:return: base folder for the Android OS"""

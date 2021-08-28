@@ -143,6 +143,7 @@ def user_log_dir(
     """
     return PlatformDirs(appname=appname, appauthor=appauthor, version=version, opinion=opinion).user_log_dir
 
+
 def user_documents_dir(
     appname: Optional[str] = None,
     appauthor: Union[str, None, "Literal[False]"] = None,
@@ -269,6 +270,7 @@ def user_log_path(
     :returns: log path tied to the user
     """
     return PlatformDirs(appname=appname, appauthor=appauthor, version=version, opinion=opinion).user_log_path
+
 
 def user_documents_path(
     appname: Optional[str] = None,

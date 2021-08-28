@@ -10,6 +10,7 @@ csidl
 delenv
 Dirs
 func
+getmembers
 highbit
 HKEY
 intersphinx
