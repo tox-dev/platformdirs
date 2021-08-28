@@ -113,8 +113,8 @@ class Unix(PlatformDirsABC):
         documents_dir = get_user_dirs_folder("XDG_DOCUMENTS_DIR")
 
         if documents_dir is None:
-            documents_dir = os.environ.get("XDG_DOCUMENTS_DIR")
-            if not documents_dir or not documents_dir.strip():
+            documents_dir = os.environ.get("XDG_DOCUMENTS_DIR", "").strip()
+            if not documents_dir:
                 documents_dir = os.path.expanduser("~/Documents")
 
         return documents_dir
