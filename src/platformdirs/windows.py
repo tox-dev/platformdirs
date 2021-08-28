@@ -24,7 +24,14 @@ class Windows(PlatformDirsABC):
          ``%USERPROFILE%\\AppData\\Roaming\\$appauthor\\$appname`` (roaming)
         """
         const = "CSIDL_APPDATA" if self.roaming else "CSIDL_LOCAL_APPDATA"
-        path = os.path.normpath(get_win_folder(const))
+        path = get_win_folder(const)
+        if path:
+            path = os.path.normpath(path)
+        else:
+            path = os.path.join(
+                os.path.normpath(os.environ["USERPROFILE"]), "AppData", "Roaming" if self.roaming else "Local"
+            )
+
         return self._append_parts(path)
 
     def _append_parts(self, path: str, *, opinion_value: Optional[str] = None) -> str:
@@ -43,7 +50,11 @@ class Windows(PlatformDirsABC):
     @property
     def site_data_dir(self) -> str:
         """:return: data directory shared by users, e.g. ``C:\\ProgramData\\$appauthor\\$appname``"""
-        path = os.path.normpath(get_win_folder("CSIDL_COMMON_APPDATA"))
+        path = get_win_folder("CSIDL_COMMON_APPDATA")
+        if path:
+            path = os.path.normpath(path)
+        else:
+            path = os.path.join(os.path.normpath(os.environ["HOMEDRIVE"]), "\\ProgramData")
         return self._append_parts(path)
 
     @property
@@ -62,7 +73,11 @@ class Windows(PlatformDirsABC):
         :return: cache directory tied to the user (if opinionated with ``Cache`` folder within ``$appname``) e.g.
          ``%USERPROFILE%\\AppData\\Local\\$appauthor\\$appname\\Cache\\$version``
         """
-        path = os.path.normpath(get_win_folder("CSIDL_LOCAL_APPDATA"))
+        path = get_win_folder("CSIDL_LOCAL_APPDATA")
+        if path:
+            path = os.path.normpath(path)
+        else:
+            path = os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "AppData", "Local")
         return self._append_parts(path, opinion_value="Cache")
 
     @property
@@ -85,10 +100,16 @@ class Windows(PlatformDirsABC):
         """
         :return: documents directory tied to the user e.g. ``%USERPROFILE%\\Documents``
         """
-        return os.path.normpath(get_win_folder("CSIDL_PERSONAL"))
+        path = get_win_folder("CSIDL_PERSONAL")
+        if path:
+            path = os.path.normpath(path)
+        else:
+            path = os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Documents")
+
+        return path
 
 
-def get_win_folder_from_env_vars(csidl_name: str) -> str:
+def get_win_folder_from_env_vars(csidl_name: str) -> Optional[str]:
     """Get folder from environment variables."""
     try:
         env_var_name = {
@@ -97,11 +118,11 @@ def get_win_folder_from_env_vars(csidl_name: str) -> str:
             "CSIDL_LOCAL_APPDATA": "LOCALAPPDATA",
         }[csidl_name]
     except KeyError:
-        raise ValueError(f"Unknown CSIDL name: {csidl_name}")
+        return None
     try:
         result = os.environ[env_var_name]
     except KeyError:
-        raise ValueError(f"Unset environment variable: {env_var_name}")
+        return None
     return result
 
 
@@ -153,7 +174,7 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
     return buf.value
 
 
-def _pick_get_win_folder() -> Callable[[str], str]:
+def _pick_get_win_folder() -> Callable[[str], Optional[str]]:
     if hasattr(ctypes, "windll"):
         return get_win_folder_via_ctypes
     try:
