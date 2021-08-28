@@ -133,14 +133,13 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
     registry for this guarantees us the correct answer for all CSIDL_*
     names.
     """
-    try:
-        shell_folder_name = {
-            "CSIDL_APPDATA": "AppData",
-            "CSIDL_COMMON_APPDATA": "Common AppData",
-            "CSIDL_LOCAL_APPDATA": "Local AppData",
-            "CSIDL_PERSONAL": "Personal",
-        }[csidl_name]
-    except KeyError:
+    shell_folder_name = {
+        "CSIDL_APPDATA": "AppData",
+        "CSIDL_COMMON_APPDATA": "Common AppData",
+        "CSIDL_LOCAL_APPDATA": "Local AppData",
+        "CSIDL_PERSONAL": "Personal",
+    }.get(csidl_name)
+    if shell_folder_name is None:
         raise ValueError(f"Unknown CSIDL name: {csidl_name}")
 
     import winreg
