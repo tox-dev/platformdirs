@@ -32,7 +32,7 @@ def dirs_instance() -> Unix:
 
 
 @pytest.fixture(autouse=True)
-def getuid(monkeypatch: MonkeyPatch) -> None:
+def _getuid(monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setattr(os, "getuid", lambda: 1000, raising=False)
 
 
