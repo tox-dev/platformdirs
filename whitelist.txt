@@ -8,10 +8,10 @@ buf2
 const
 csidl
 delenv
-Dirs
+dirs
 func
 highbit
-HKEY
+hkey
 intersphinx
 isfunction
 jnius
@@ -31,4 +31,4 @@ shell32
 typehints
 unittest
 winreg
-XDG
+xdg
