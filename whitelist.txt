@@ -3,6 +3,7 @@ appdirs
 appname
 autoclass
 autodoc
+autouse
 buf
 buf2
 const
@@ -10,6 +11,7 @@ csidl
 delenv
 Dirs
 func
+getuid
 highbit
 HKEY
 intersphinx
