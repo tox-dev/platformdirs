@@ -1,7 +1,10 @@
 import os
+import sys
 from pathlib import Path
 
 from .api import PlatformDirsABC
+
+assert sys.platform.startswith("linux")
 
 
 class Unix(PlatformDirsABC):
