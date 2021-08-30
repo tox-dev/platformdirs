@@ -3,17 +3,16 @@ appdirs
 appname
 autoclass
 autodoc
-autouse
 buf
 buf2
 const
 csidl
 delenv
-Dirs
+dirs
 func
 getuid
 highbit
-HKEY
+hkey
 intersphinx
 isfunction
 jnius
@@ -33,5 +32,6 @@ setenv
 shell32
 typehints
 unittest
+usefixtures
 winreg
-XDG
+xdg

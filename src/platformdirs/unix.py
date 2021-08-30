@@ -4,7 +4,12 @@ from pathlib import Path
 
 from .api import PlatformDirsABC
 
-assert sys.platform.startswith("linux")
+if sys.platform.startswith("linux"):  # pragma: no branch # no op check, only to please the type checker
+    from os import getuid
+else:
+
+    def getuid() -> int:
+        raise RuntimeError("should only be used on Linux")
 
 
 class Unix(PlatformDirsABC):
@@ -114,7 +119,7 @@ class Unix(PlatformDirsABC):
         """
         path = os.environ.get("XDG_RUNTIME_DIR", "")
         if not path.strip():
-            path = f"/run/user/{os.getuid()}"
+            path = f"/run/user/{getuid()}"
         return self._append_app_name_and_version(path)
 
     @property
