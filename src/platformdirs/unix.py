@@ -1,7 +1,14 @@
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from .api import PlatformDirsABC
+
+if TYPE_CHECKING:
+    import sys
+
+    if sys.platform == "win32":
+        os.getuid = lambda: 1000
 
 
 class Unix(PlatformDirsABC):
