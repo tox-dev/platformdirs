@@ -33,7 +33,7 @@ def dirs_instance() -> Unix:
 
 @pytest.fixture(autouse=True)
 def getuid(monkeypatch: MonkeyPatch) -> None:
-    monkeypatch.setattr(os, "getuid", lambda: 1000)
+    monkeypatch.setattr(os, "getuid", lambda: 1000, raising=False)
 
 
 def test_xdg_variable_not_set(monkeypatch: MonkeyPatch, dirs_instance: Unix, func: str) -> None:
