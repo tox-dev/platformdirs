@@ -6,6 +6,8 @@ import pytest
 
 import platformdirs
 
+NEW_IN_PLATFORMDIRS = {"user_runtime_dir"}
+
 
 def test_has_backward_compatible_class() -> None:
     from platformdirs import AppDirs
@@ -29,6 +31,8 @@ def test_has_backward_compatible_class() -> None:
     ],
 )
 def test_compatibility(params: Dict[str, Any], func: str) -> None:
+    if func in NEW_IN_PLATFORMDIRS:
+        pytest.skip(f"`{func}` does not exist in `appdirs`")
     if sys.platform == "darwin":
         msg = {  # pragma: no cover
             "user_log_dir": "without appname produces NoneType error",

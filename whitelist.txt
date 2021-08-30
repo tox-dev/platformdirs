@@ -10,6 +10,7 @@ csidl
 delenv
 dirs
 func
+getuid
 highbit
 hkey
 intersphinx
@@ -26,9 +27,11 @@ pathlib
 pathsep
 platformdirs
 pyjnius
+runtime
 setenv
 shell32
 typehints
 unittest
+usefixtures
 winreg
 xdg

@@ -36,6 +36,12 @@ Logs directory
 .. autofunction:: platformdirs.user_log_dir
 .. autofunction:: platformdirs.user_log_path
 
+Runtime directory
+-------------------
+
+.. autofunction:: platformdirs.user_runtime_dir
+.. autofunction:: platformdirs.user_runtime_path
+
 Shared directories
 ~~~~~~~~~~~~~~~~~~
 
