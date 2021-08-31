@@ -16,7 +16,7 @@ def test_package_metadata() -> None:
 
 def test_method_result_is_str(func: str) -> None:
     method = getattr(platformdirs, func)
-    result = method("MyApp", "MyCompany")
+    result = method()
     assert isinstance(result, str)
 
 
@@ -28,7 +28,7 @@ def test_property_result_is_str(func: str) -> None:
 
 def test_method_result_is_path(func_path: str) -> None:
     method = getattr(platformdirs, func_path)
-    result = method("MyApp", "MyCompany")
+    result = method()
     assert isinstance(result, Path)
 
 
