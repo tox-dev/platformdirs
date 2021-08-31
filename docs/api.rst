@@ -42,6 +42,12 @@ User documents directory
 .. autofunction:: platformdirs.user_documents_dir
 .. autofunction:: platformdirs.user_documents_path
 
+Runtime directory
+-------------------
+
+.. autofunction:: platformdirs.user_runtime_dir
+.. autofunction:: platformdirs.user_runtime_path
+
 Shared directories
 ~~~~~~~~~~~~~~~~~~
 

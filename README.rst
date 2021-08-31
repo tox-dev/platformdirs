@@ -41,6 +41,7 @@ This kind of thing is what the ``platformdirs`` module is for.
 - site config dir (``site_config_dir``)
 - user log dir (``user_log_dir``)
 - user documents dir (``user_documents_dir``)
+- user runtime dir (``user_runtime_dir``)
 
 And also:
 
@@ -68,6 +69,8 @@ On macOS:
     '/Users/trentm/Library/Logs/SuperApp'
     >>> user_documents_dir()
     '/Users/trentm/Documents'
+    >>> user_runtime_dir(appname, appauthor)
+    '/Users/trentm/Library/Caches/TemporaryItems/SuperApp'
 
 On Windows 7:
 
@@ -86,6 +89,8 @@ On Windows 7:
     'C:\\Users\\trentm\\AppData\\Local\\Acme\\SuperApp\\Logs'
     >>> user_documents_dir()
     'C:\\Users\\trentm\\Documents'
+    >>> user_runtime_dir(appname, appauthor)
+    'C:\\Users\\trentm\\AppData\\Local\\Temp\\Acme\\SuperApp'
 
 On Linux:
 
@@ -108,6 +113,8 @@ On Linux:
     '/home/trentm/.config/SuperApp'
     >>> user_documents_dir()
     '/home/trentm/Documents'
+    >>> user_runtime_dir(appname, appauthor)
+    '/run/user/{os.getuid()}/SuperApp'
     >>> site_config_dir(appname)
     '/etc/xdg/SuperApp'
     >>> os.environ['XDG_CONFIG_DIRS'] = '/etc:/usr/local/etc'
@@ -129,7 +136,8 @@ On Android::
     '/data/data/com.termux/shared_prefs/SuperApp'
     >>> user_documents_dir()
     '/storage/emulated/0/Documents'
-
+    >>> user_runtime_dir(appname, appauthor)
+    '/data/data/com.termux/cache/SuperApp/tmp'
 
 ``PlatformDirs`` for convenience
 ================================
@@ -148,6 +156,8 @@ On Android::
     '/Users/trentm/Library/Logs/SuperApp'
     >>> dirs.user_documents_dir
     '/Users/trentm/Documents'
+    >>> dirs.user_runtime_dir
+    '/Users/trentm/Library/Caches/TemporaryItems/SuperApp'
 
 Per-version isolation
 =====================
@@ -168,6 +178,8 @@ dirs::
     '/Users/trentm/Library/Logs/SuperApp/1.0'
     >>> dirs.user_documents_dir
     '/Users/trentm/Documents'
+    >>> dirs.user_runtime_dir
+    '/Users/trentm/Library/Caches/TemporaryItems/SuperApp/1.0'
 
 Be wary of using this for configuration files though; you'll need to handle
 migrating configuration files manually.

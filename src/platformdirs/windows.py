@@ -102,8 +102,20 @@ class Windows(PlatformDirsABC):
             path = os.path.normpath(path)
         else:
             path = os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Documents")
-
         return path
+
+    @property
+    def user_runtime_dir(self) -> str:
+        """
+        :return: runtime directory tied to the user, e.g.
+         ``%USERPROFILE%\\AppData\\Local\\Temp\\$appauthor\\$appname``
+        """
+        path = get_win_folder("CSIDL_LOCAL_APPDATA")
+        if path is None:
+            raise ValueError("No path found for CSIDL: CSIDL_LOCAL_APPDATA")
+
+        path = os.path.normpath(os.path.join(path, "Temp"))
+        return self._append_parts(path)       
 
 
 def get_win_folder_from_env_vars(csidl_name: str) -> Optional[str]:

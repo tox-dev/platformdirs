@@ -50,7 +50,7 @@ def test_has_all_properties() -> None:
 def test_compatibility(params: Dict[str, Any], func: str) -> None:
     # Only test functions that are part of appdirs
     if getattr(appdirs, func, None) is None:
-        return
+        pytest.skip(f"`{func}` does not exist in `appdirs`")
 
     if sys.platform == "darwin":
         msg = {  # pragma: no cover

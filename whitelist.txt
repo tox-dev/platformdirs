@@ -8,11 +8,12 @@ buf2
 const
 csidl
 delenv
-Dirs
+dirs
 func
 getmembers
+getuid
 highbit
-HKEY
+hkey
 intersphinx
 isfunction
 jnius
@@ -27,9 +28,11 @@ pathlib
 pathsep
 platformdirs
 pyjnius
+runtime
 setenv
 shell32
 typehints
 unittest
+usefixtures
 winreg
-XDG
+xdg
