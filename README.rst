@@ -128,7 +128,7 @@ On Android::
     >>> user_config_dir(appname)
     '/data/data/com.termux/shared_prefs/SuperApp'
     >>> user_documents_dir()
-    '/data/media/0/Documents'
+    '/storage/emulated/0/Documents'
 
 
 ``PlatformDirs`` for convenience

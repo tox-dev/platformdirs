@@ -59,19 +59,18 @@ class Android(PlatformDirsABC):
     @property
     def user_documents_dir(self) -> str:
         """
-        :return: documents directory tied to the user e.g. ``/data/media/0/Documents``
+        :return: documents directory tied to the user e.g. ``/storage/emulated/0/Documents``
         """
         # Get directories with pyjnius
         try:
             from jnius import autoclass  # noqa: SC200
 
             Environment = autoclass("android.os.Environment")
-            data_dir: str = Environment.getDataDirectory().getAbsolutePath()
             documents_dir_name: str = Environment.DIRECTORY_DOCUMENTS
 
-            documents_dir = os.path.join(data_dir, "media", "0", documents_dir_name)
+            documents_dir = os.path.join("/", "storage", "emulated", "0", documents_dir_name)
         except Exception:
-            documents_dir = "/data/media/0/Documents"
+            documents_dir = "/storage/emulated/0/Documents"
 
         return documents_dir
 
