@@ -144,20 +144,11 @@ def user_log_dir(
     return PlatformDirs(appname=appname, appauthor=appauthor, version=version, opinion=opinion).user_log_dir
 
 
-def user_documents_dir(
-    appname: Optional[str] = None,
-    appauthor: Union[str, None, "Literal[False]"] = None,
-    version: Optional[str] = None,
-    opinion: bool = True,
-) -> str:
+def user_documents_dir() -> str:
     """
-    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
-    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
-    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
-    :param opinion: See `roaming <platformdirs.api.PlatformDirsABC.opinion>`.
-    :returns: log directory tied to the user
+    :returns: documents directory tied to the user
     """
-    return PlatformDirs(appname=appname, appauthor=appauthor, version=version, opinion=opinion).user_documents_dir
+    return PlatformDirs().user_documents_dir
 
 
 def user_data_path(
@@ -272,20 +263,11 @@ def user_log_path(
     return PlatformDirs(appname=appname, appauthor=appauthor, version=version, opinion=opinion).user_log_path
 
 
-def user_documents_path(
-    appname: Optional[str] = None,
-    appauthor: Union[str, None, "Literal[False]"] = None,
-    version: Optional[str] = None,
-    opinion: bool = True,
-) -> Path:
+def user_documents_path() -> Path:
     """
-    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
-    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
-    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
-    :param opinion: See `roaming <platformdirs.api.PlatformDirsABC.opinion>`.
-    :returns: log path tied to the user
+    :returns: documents path tied to the user
     """
-    return PlatformDirs(appname=appname, appauthor=appauthor, version=version, opinion=opinion).user_documents_path
+    return PlatformDirs().user_documents_path
 
 
 __all__ = [

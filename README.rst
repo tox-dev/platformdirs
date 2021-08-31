@@ -66,7 +66,7 @@ On macOS:
     '/Users/trentm/Library/Caches/SuperApp'
     >>> user_log_dir(appname, appauthor)
     '/Users/trentm/Library/Logs/SuperApp'
-    >>> user_documents_dir(appname, appauthor)
+    >>> user_documents_dir()
     '/Users/trentm/Documents'
 
 On Windows 7:
@@ -84,7 +84,7 @@ On Windows 7:
     'C:\\Users\\trentm\\AppData\\Local\\Acme\\SuperApp\\Cache'
     >>> user_log_dir(appname, appauthor)
     'C:\\Users\\trentm\\AppData\\Local\\Acme\\SuperApp\\Logs'
-    >>> user_documents_dir(appname, appauthor)
+    >>> user_documents_dir()
     'C:\\Users\\trentm\\Documents'
 
 On Linux:
@@ -106,7 +106,7 @@ On Linux:
     '/home/trentm/.cache/SuperApp/log'
     >>> user_config_dir(appname)
     '/home/trentm/.config/SuperApp'
-    >>> user_documents_dir(appname)
+    >>> user_documents_dir()
     '/home/trentm/Documents'
     >>> site_config_dir(appname)
     '/etc/xdg/SuperApp'
@@ -127,7 +127,7 @@ On Android::
     '/data/data/com.termux/cache/SuperApp/log'
     >>> user_config_dir(appname)
     '/data/data/com.termux/shared_prefs/SuperApp'
-    >>> user_documents_dir(appname)
+    >>> user_documents_dir()
     '/data/media/0/Documents'
 
 
