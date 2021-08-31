@@ -18,8 +18,7 @@ def test_has_all_functions() -> None:
     # Get all public function names from appdirs
     appdirs_function_names = [f[0] for f in getmembers(appdirs, isfunction) if not f[0].startswith("_")]
 
-    # Exception will be raised if any appdirs functions
-    # aren't in platformdirs.
+    # Exception will be raised if any appdirs functions aren't in platformdirs.
     for function_name in appdirs_function_names:
         getattr(platformdirs, function_name)
 
@@ -28,8 +27,7 @@ def test_has_all_properties() -> None:
     # Get names of all the properties of appdirs.AppDirs
     appdirs_property_names = [p[0] for p in getmembers(appdirs.AppDirs, lambda member: isinstance(member, property))]
 
-    # Exception will be raised if any appdirs.AppDirs properties
-    # aren't in platformdirs.AppDirs
+    # Exception will be raised if any appdirs.AppDirs properties aren't in platformdirs.AppDirs
     for property_name in appdirs_property_names:
         getattr(platformdirs.AppDirs, property_name)
 
