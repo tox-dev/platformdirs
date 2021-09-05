@@ -118,8 +118,7 @@ class Unix(PlatformDirsABC):
         """
         :return: documents directory tied to the user, e.g. ``~/Documents``
         """
-        documents_dir = get_user_dirs_folder("XDG_DOCUMENTS_DIR")
-
+        documents_dir = _get_user_dirs_folder("XDG_DOCUMENTS_DIR")
         if documents_dir is None:
             documents_dir = os.environ.get("XDG_DOCUMENTS_DIR", "").strip()
             if not documents_dir:
@@ -155,25 +154,25 @@ class Unix(PlatformDirsABC):
         return Path(directory)
 
 
-def get_user_dirs_folder(key: str) -> Optional[str]:
+def _get_user_dirs_folder(key: str) -> Optional[str]:
     """Return directory from user-dirs.dirs config file. See https://freedesktop.org/wiki/Software/xdg-user-dirs/"""
     user_dirs_config_path = os.path.join(Unix().user_config_dir, "user-dirs.dirs")
-    if not os.path.exists(user_dirs_config_path):
-        return None
+    if os.path.exists(user_dirs_config_path):
+        parser = ConfigParser()
 
-    parser = ConfigParser()
+        with open(user_dirs_config_path) as stream:
+            # Add fake section header, so ConfigParser doesn't complain
+            parser.read_string(f"[top]\n{stream.read()}")
 
-    with open(user_dirs_config_path) as stream:
-        # Add fake section header, so ConfigParser doesn't complain
-        parser.read_string("[top]\n" + stream.read())
+        if key not in parser["top"]:
+            return None
 
-    if key not in parser["top"]:
-        return None
+        path = parser["top"][key].strip('"')
+        # Handle relative home paths
+        path = path.replace("$HOME", os.path.expanduser("~"))
+        return path
 
-    path = parser["top"][key].strip('"')
-    # Handle relative home paths
-    path = path.replace("$HOME", os.path.expanduser("~"))
-    return path
+    return None
 
 
 __all__ = [

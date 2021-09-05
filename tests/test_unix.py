@@ -13,13 +13,13 @@ from platformdirs.unix import Unix
 
 def test_user_documents_dir(monkeypatch: MonkeyPatch) -> None:
     example_path = "/home/example/ExampleDocumentsFolder"
-    monkeypatch.setattr(platformdirs.unix, "get_user_dirs_folder", lambda key: example_path)
+    monkeypatch.setattr(platformdirs.unix, "_get_user_dirs_folder", lambda key: example_path)
     assert Unix().user_documents_dir == example_path
 
 
 def test_user_documents_dir_env_var(monkeypatch: MonkeyPatch) -> None:
     # Mock documents dir not being in user-dirs.dirs file
-    monkeypatch.setattr(platformdirs.unix, "get_user_dirs_folder", lambda key: None)
+    monkeypatch.setattr(platformdirs.unix, "_get_user_dirs_folder", lambda key: None)
 
     example_path = "/home/example/ExampleDocumentsFolder"
     monkeypatch.setenv("XDG_DOCUMENTS_DIR", example_path)
@@ -29,7 +29,7 @@ def test_user_documents_dir_env_var(monkeypatch: MonkeyPatch) -> None:
 
 def test_user_documents_dir_default(monkeypatch: MonkeyPatch) -> None:
     # Mock documents dir not being in user-dirs.dirs file
-    monkeypatch.setattr(platformdirs.unix, "get_user_dirs_folder", lambda key: None)
+    monkeypatch.setattr(platformdirs.unix, "_get_user_dirs_folder", lambda key: None)
     # Mock no XDG_DOCUMENTS_DIR env variable being set
     monkeypatch.setenv("XDG_DOCUMENTS_DIR", "")
 
