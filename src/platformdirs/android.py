@@ -1,7 +1,7 @@
 import os
 import re
 import sys
-from functools import lru_cache
+from functools import cached_property, lru_cache
 
 from .api import PlatformDirsABC
 
@@ -56,7 +56,7 @@ class Android(PlatformDirsABC):
             path = os.path.join(path, "log")
         return path
 
-    @property
+    @cached_property
     def user_documents_dir(self) -> str:
         """
         :return: documents directory tied to the user e.g. ``/storage/emulated/0/Documents``
