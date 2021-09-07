@@ -11,32 +11,36 @@ import platformdirs.unix
 from platformdirs.unix import Unix
 
 
-def test_user_documents_dir(monkeypatch: MonkeyPatch) -> None:
+def test_user_documents_dir(mocker: MockerFixture) -> None:
     example_path = "/home/example/ExampleDocumentsFolder"
-    monkeypatch.setattr(platformdirs.unix, "_get_user_dirs_folder", lambda key: example_path)
+    mock = mocker.patch.object(platformdirs.unix, "_get_user_dirs_folder")
+    mock.return_value = example_path
     assert Unix().user_documents_dir == example_path
 
 
-def test_user_documents_dir_env_var(monkeypatch: MonkeyPatch) -> None:
+def test_user_documents_dir_env_var(mocker: MockerFixture) -> None:
     # Mock documents dir not being in user-dirs.dirs file
-    monkeypatch.setattr(platformdirs.unix, "_get_user_dirs_folder", lambda key: None)
+    mock = mocker.patch.object(platformdirs.unix, "_get_user_dirs_folder")
+    mock.return_value = None
 
     example_path = "/home/example/ExampleDocumentsFolder"
-    monkeypatch.setenv("XDG_DOCUMENTS_DIR", example_path)
+    mocker.patch.dict(os.environ, {"XDG_DOCUMENTS_DIR": example_path})
 
     assert Unix().user_documents_dir == example_path
 
 
-def test_user_documents_dir_default(monkeypatch: MonkeyPatch) -> None:
+def test_user_documents_dir_default(mocker: MockerFixture) -> None:
     # Mock documents dir not being in user-dirs.dirs file
-    monkeypatch.setattr(platformdirs.unix, "_get_user_dirs_folder", lambda key: None)
+    mock = mocker.patch.object(platformdirs.unix, "_get_user_dirs_folder")
+    mock.return_value = None
+
     # Mock no XDG_DOCUMENTS_DIR env variable being set
-    monkeypatch.setenv("XDG_DOCUMENTS_DIR", "")
+    mocker.patch.dict(os.environ, {"XDG_DOCUMENTS_DIR": ""})
 
     # Mock home directory
-    monkeypatch.setenv("HOME", "/home/example")
+    mocker.patch.dict(os.environ, {"HOME": "/home/example"})
     # Mock home directory for running the test on Windows
-    monkeypatch.setenv("USERPROFILE", "/home/example")
+    mocker.patch.dict(os.environ, {"USERPROFILE": "/home/example"})
 
     assert Unix().user_documents_dir == "/home/example/Documents"
 
