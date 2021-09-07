@@ -65,10 +65,9 @@ class Android(PlatformDirsABC):
         try:
             from jnius import autoclass  # noqa: SC200
 
+            Context = autoclass("android.content.Context")  # noqa: SC200
             Environment = autoclass("android.os.Environment")
-            documents_dir_name: str = Environment.DIRECTORY_DOCUMENTS
-
-            documents_dir = os.path.join("/", "storage", "emulated", "0", documents_dir_name)
+            documents_dir: str = Context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath()
         except Exception:
             documents_dir = "/storage/emulated/0/Documents"
 
