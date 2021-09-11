@@ -7,20 +7,19 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from pytest_mock import MockerFixture
 
-import platformdirs.unix
 from platformdirs.unix import Unix
 
 
 def test_user_documents_dir(mocker: MockerFixture) -> None:
     example_path = "/home/example/ExampleDocumentsFolder"
-    mock = mocker.patch.object(platformdirs.unix, "_get_user_dirs_folder")
+    mock = mocker.patch("platformdirs.unix._get_user_dirs_folder")
     mock.return_value = example_path
     assert Unix().user_documents_dir == example_path
 
 
 def test_user_documents_dir_env_var(mocker: MockerFixture) -> None:
     # Mock documents dir not being in user-dirs.dirs file
-    mock = mocker.patch.object(platformdirs.unix, "_get_user_dirs_folder")
+    mock = mocker.patch("platformdirs.unix._get_user_dirs_folder")
     mock.return_value = None
 
     example_path = "/home/example/ExampleDocumentsFolder"
@@ -31,7 +30,7 @@ def test_user_documents_dir_env_var(mocker: MockerFixture) -> None:
 
 def test_user_documents_dir_default(mocker: MockerFixture) -> None:
     # Mock documents dir not being in user-dirs.dirs file
-    mock = mocker.patch.object(platformdirs.unix, "_get_user_dirs_folder")
+    mock = mocker.patch("platformdirs.unix._get_user_dirs_folder")
     mock.return_value = None
 
     # Mock no XDG_DOCUMENTS_DIR env variable being set
