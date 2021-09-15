@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 2.3.0
+------------------
+- Add ``user_runtime_dir`` and its path-returning equivalent (#37)
+
 platformdirs 2.2.0
 ------------------
 - Unix: Fallback to default if XDG environment variable is empty
