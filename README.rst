@@ -1,4 +1,4 @@
-the problem
+The problem
 ===========
 
 .. image:: https://github.com/platformdirs/platformdirs/workflows/Test/badge.svg
