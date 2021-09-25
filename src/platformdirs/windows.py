@@ -99,6 +99,9 @@ class Windows(PlatformDirsABC):
 
 def get_win_folder_from_env_vars(csidl_name: str) -> str:
     """Get folder from environment variables."""
+    if csidl_name == "CSIDL_PERSONAL":  # does not have an environment name
+        return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Documents")
+
     env_var_name = {
         "CSIDL_APPDATA": "APPDATA",
         "CSIDL_COMMON_APPDATA": "ALLUSERSPROFILE",
@@ -108,11 +111,7 @@ def get_win_folder_from_env_vars(csidl_name: str) -> str:
         raise ValueError(f"Unknown CSIDL name: {csidl_name}")
     result = os.environ.get(env_var_name)
     if result is None:
-        # Fallback for user_documents_dir which doesn't have an environment variable
-        if csidl_name == "CSIDL_PERSONAL":
-            result = os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Documents")
-        else:
-            raise ValueError(f"Unset environment variable: {env_var_name}")
+        raise ValueError(f"Unset environment variable: {env_var_name}")
     return result
 
 
