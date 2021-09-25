@@ -24,11 +24,7 @@ class Windows(PlatformDirsABC):
          ``%USERPROFILE%\\AppData\\Roaming\\$appauthor\\$appname`` (roaming)
         """
         const = "CSIDL_APPDATA" if self.roaming else "CSIDL_LOCAL_APPDATA"
-        path = get_win_folder(const)
-        if path is None:
-            raise ValueError(f"No path found for CSIDL: {const}")
-
-        path = os.path.normpath(path)
+        path = os.path.normpath(get_win_folder(const))
         return self._append_parts(path)
 
     def _append_parts(self, path: str, *, opinion_value: Optional[str] = None) -> str:
@@ -47,11 +43,7 @@ class Windows(PlatformDirsABC):
     @property
     def site_data_dir(self) -> str:
         """:return: data directory shared by users, e.g. ``C:\\ProgramData\\$appauthor\\$appname``"""
-        path = get_win_folder("CSIDL_COMMON_APPDATA")
-        if path is None:
-            raise ValueError("No path found for CSIDL: CSIDL_COMMON_APPDATA")
-
-        path = os.path.normpath(path)
+        path = os.path.normpath(get_win_folder("CSIDL_COMMON_APPDATA"))
         return self._append_parts(path)
 
     @property
@@ -70,11 +62,7 @@ class Windows(PlatformDirsABC):
         :return: cache directory tied to the user (if opinionated with ``Cache`` folder within ``$appname``) e.g.
          ``%USERPROFILE%\\AppData\\Local\\$appauthor\\$appname\\Cache\\$version``
         """
-        path = get_win_folder("CSIDL_LOCAL_APPDATA")
-        if path is None:
-            raise ValueError("No path found for CSIDL: CSIDL_LOCAL_APPDATA")
-
-        path = os.path.normpath(path)
+        path = os.path.normpath(get_win_folder("CSIDL_LOCAL_APPDATA"))
         return self._append_parts(path, opinion_value="Cache")
 
     @property
@@ -97,12 +85,7 @@ class Windows(PlatformDirsABC):
         """
         :return: documents directory tied to the user e.g. ``%USERPROFILE%\\Documents``
         """
-        path = get_win_folder("CSIDL_PERSONAL")
-        if path:
-            path = os.path.normpath(path)
-        else:
-            path = os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Documents")
-        return path
+        return os.path.normpath(get_win_folder("CSIDL_PERSONAL"))
 
     @property
     def user_runtime_dir(self) -> str:
@@ -110,15 +93,11 @@ class Windows(PlatformDirsABC):
         :return: runtime directory tied to the user, e.g.
          ``%USERPROFILE%\\AppData\\Local\\Temp\\$appauthor\\$appname``
         """
-        path = get_win_folder("CSIDL_LOCAL_APPDATA")
-        if path is None:
-            raise ValueError("No path found for CSIDL: CSIDL_LOCAL_APPDATA")
-
-        path = os.path.normpath(os.path.join(path, "Temp"))
+        path = os.path.normpath(os.path.join(get_win_folder("CSIDL_LOCAL_APPDATA"), "Temp"))
         return self._append_parts(path)
 
 
-def get_win_folder_from_env_vars(csidl_name: str) -> Optional[str]:
+def get_win_folder_from_env_vars(csidl_name: str) -> str:
     """Get folder from environment variables."""
     env_var_name = {
         "CSIDL_APPDATA": "APPDATA",
@@ -126,11 +105,14 @@ def get_win_folder_from_env_vars(csidl_name: str) -> Optional[str]:
         "CSIDL_LOCAL_APPDATA": "LOCALAPPDATA",
     }.get(csidl_name)
     if env_var_name is None:
-        return None
-
+        raise ValueError(f"Unknown CSIDL name: {csidl_name}")
     result = os.environ.get(env_var_name)
     if result is None:
-        return None
+        # Fallback for user_documents_dir which doesn't have an environment variable
+        if csidl_name == "CSIDL_PERSONAL":
+            result = os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Documents")
+        else:
+            raise ValueError(f"Unset environment variable: {env_var_name}")
     return result
 
 
@@ -181,7 +163,7 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
     return buf.value
 
 
-def _pick_get_win_folder() -> Callable[[str], Optional[str]]:
+def _pick_get_win_folder() -> Callable[[str], str]:
     if hasattr(ctypes, "windll"):
         return get_win_folder_via_ctypes
     try:
