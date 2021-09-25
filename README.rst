@@ -40,6 +40,7 @@ This kind of thing is what the ``platformdirs`` module is for.
 - site data dir (``site_data_dir``)
 - site config dir (``site_config_dir``)
 - user log dir (``user_log_dir``)
+- user documents dir (``user_documents_dir``)
 - user runtime dir (``user_runtime_dir``)
 
 And also:
@@ -66,6 +67,8 @@ On macOS:
     '/Users/trentm/Library/Caches/SuperApp'
     >>> user_log_dir(appname, appauthor)
     '/Users/trentm/Library/Logs/SuperApp'
+    >>> user_documents_dir()
+    '/Users/trentm/Documents'
     >>> user_runtime_dir(appname, appauthor)
     '/Users/trentm/Library/Caches/TemporaryItems/SuperApp'
 
@@ -84,6 +87,8 @@ On Windows 7:
     'C:\\Users\\trentm\\AppData\\Local\\Acme\\SuperApp\\Cache'
     >>> user_log_dir(appname, appauthor)
     'C:\\Users\\trentm\\AppData\\Local\\Acme\\SuperApp\\Logs'
+    >>> user_documents_dir()
+    'C:\\Users\\trentm\\Documents'
     >>> user_runtime_dir(appname, appauthor)
     'C:\\Users\\trentm\\AppData\\Local\\Temp\\Acme\\SuperApp'
 
@@ -106,6 +111,8 @@ On Linux:
     '/home/trentm/.cache/SuperApp/log'
     >>> user_config_dir(appname)
     '/home/trentm/.config/SuperApp'
+    >>> user_documents_dir()
+    '/home/trentm/Documents'
     >>> user_runtime_dir(appname, appauthor)
     '/run/user/{os.getuid()}/SuperApp'
     >>> site_config_dir(appname)
@@ -127,9 +134,10 @@ On Android::
     '/data/data/com.termux/cache/SuperApp/log'
     >>> user_config_dir(appname)
     '/data/data/com.termux/shared_prefs/SuperApp'
+    >>> user_documents_dir()
+    '/storage/emulated/0/Documents'
     >>> user_runtime_dir(appname, appauthor)
     '/data/data/com.termux/cache/SuperApp/tmp'
-
 
 ``PlatformDirs`` for convenience
 ================================
@@ -146,6 +154,8 @@ On Android::
     '/Users/trentm/Library/Caches/SuperApp'
     >>> dirs.user_log_dir
     '/Users/trentm/Library/Logs/SuperApp'
+    >>> dirs.user_documents_dir
+    '/Users/trentm/Documents'
     >>> dirs.user_runtime_dir
     '/Users/trentm/Library/Caches/TemporaryItems/SuperApp'
 
@@ -166,6 +176,8 @@ dirs::
     '/Users/trentm/Library/Caches/SuperApp/1.0'
     >>> dirs.user_log_dir
     '/Users/trentm/Library/Logs/SuperApp/1.0'
+    >>> dirs.user_documents_dir
+    '/Users/trentm/Documents'
     >>> dirs.user_runtime_dir
     '/Users/trentm/Library/Caches/TemporaryItems/SuperApp/1.0'
 

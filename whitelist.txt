@@ -10,6 +10,7 @@ csidl
 delenv
 dirs
 func
+getmembers
 getuid
 highbit
 hkey
