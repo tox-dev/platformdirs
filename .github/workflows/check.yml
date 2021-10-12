@@ -11,6 +11,10 @@ on:
   schedule:
     - cron: "0 8 * * *"
 
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   pre_commit:
     runs-on: ubuntu-latest
