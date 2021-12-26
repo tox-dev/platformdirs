@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from platformdirs import PlatformDirs, __version__
 
 PROPS = (

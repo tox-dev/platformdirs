@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import inspect
 from pathlib import Path
-from typing import Optional
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
@@ -50,7 +51,7 @@ def test_function_interface_is_in_sync(func: str) -> None:
 
 @pytest.mark.parametrize("root", ["A", "/system", None])
 @pytest.mark.parametrize("data", ["D", "/data", None])
-def test_android_active(monkeypatch: MonkeyPatch, root: Optional[str], data: Optional[str]) -> None:
+def test_android_active(monkeypatch: MonkeyPatch, root: str | None, data: str | None) -> None:
     for env_var, value in {"ANDROID_DATA": data, "ANDROID_ROOT": root}.items():
         if value is None:
             monkeypatch.delenv(env_var, raising=False)

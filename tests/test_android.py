@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import sys
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -26,7 +28,7 @@ from platformdirs.android import Android
         "app_name_author_version_false_opinion",
     ],
 )
-def test_android(mocker: MockerFixture, params: Dict[str, Any], func: str) -> None:
+def test_android(mocker: MockerFixture, params: dict[str, Any], func: str) -> None:
     mocker.patch("platformdirs.android._android_folder", return_value="/data/data/com.example", autospec=True)
     mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
     result = getattr(Android(**params), func)
@@ -58,7 +60,7 @@ def test_android(mocker: MockerFixture, params: Dict[str, Any], func: str) -> No
 
 def test_android_folder_from_jnius(mocker: MockerFixture) -> None:
     from platformdirs import PlatformDirs
-    from platformdirs.android import _android_folder  # noqa
+    from platformdirs.android import _android_folder
 
     _android_folder.cache_clear()
 
@@ -68,8 +70,8 @@ def test_android_folder_from_jnius(mocker: MockerFixture) -> None:
         autoclass = mocker.spy(jnius, "autoclass")  # pragma: no cover
     else:
         parent = MagicMock(return_value=MagicMock(getAbsolutePath=MagicMock(return_value="/A")))  # pragma: no cover
-        Context = MagicMock(getFilesDir=MagicMock(return_value=MagicMock(getParentFile=parent)))  # pragma: no cover
-        autoclass = MagicMock(return_value=Context)  # pragma: no cover
+        context = MagicMock(getFilesDir=MagicMock(return_value=MagicMock(getParentFile=parent)))  # pragma: no cover
+        autoclass = MagicMock(return_value=context)  # pragma: no cover
         mocker.patch.dict(sys.modules, {"jnius": MagicMock(autoclass=autoclass)})  # pragma: no cover
 
     result = _android_folder()
@@ -92,7 +94,7 @@ def test_android_folder_from_jnius(mocker: MockerFixture) -> None:
 def test_android_folder_from_sys_path(mocker: MockerFixture, path: str, monkeypatch: MonkeyPatch) -> None:
     mocker.patch.dict(sys.modules, {"jnius": MagicMock(autoclass=MagicMock(side_effect=ModuleNotFoundError))})
 
-    from platformdirs.android import _android_folder  # noqa
+    from platformdirs.android import _android_folder
 
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", ["/A", "/B", path])
@@ -104,7 +106,7 @@ def test_android_folder_from_sys_path(mocker: MockerFixture, path: str, monkeypa
 def test_android_folder_not_found(mocker: MockerFixture, monkeypatch: MonkeyPatch) -> None:
     mocker.patch.dict(sys.modules, {"jnius": MagicMock(autoclass=MagicMock(side_effect=ModuleNotFoundError))})
 
-    from platformdirs.android import _android_folder  # noqa
+    from platformdirs.android import _android_folder
 
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", [])

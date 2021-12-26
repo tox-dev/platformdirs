@@ -1,44 +1,58 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.1.0
     hooks:
+      - id: check-ast
       - id: check-builtin-literals
       - id: check-docstring-first
+      - id: check-merge-conflict
       - id: check-yaml
       - id: check-toml
       - id: debug-statements
       - id: end-of-file-fixer
       - id: trailing-whitespace
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.25.0
+    rev: v2.29.1
     hooks:
       - id: pyupgrade
+        args: [ "--py36-plus" ]
   - repo: https://github.com/PyCQA/isort
-    rev: 5.9.3
+    rev: 5.10.1
     hooks:
       - id: isort
   - repo: https://github.com/psf/black
-    rev: 21.8b0
+    rev: 21.12b0
     hooks:
       - id: black
-        args: [--safe]
-  - repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v1.17.0
+        args: [ --safe ]
+  - repo: https://github.com/asottile/blacken-docs
+    rev: v1.12.0
     hooks:
-      - id: setup-cfg-fmt
-        args: ["--max-py-version", "3.10"]
+      - id: blacken-docs
+        additional_dependencies: [ black==21.12b0 ]
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.9.0
+    hooks:
+      - id: rst-backticks
   - repo: https://github.com/tox-dev/tox-ini-fmt
     rev: "0.5.1"
     hooks:
       - id: tox-ini-fmt
+        args: [ "-p", "fix" ]
+  - repo: https://github.com/asottile/setup-cfg-fmt
+    rev: v1.20.0
+    hooks:
+      - id: setup-cfg-fmt
+        args: [ --min-py3-version, "3.7", "--max-py-version", "3.10" ]
   - repo: https://github.com/PyCQA/flake8
-    rev: "3.9.2"
+    rev: 4.0.1
     hooks:
       - id: flake8
-        additional_dependencies: [
-            "flake8-bugbear == 21.4.3",
-            "flake8-unused-arguments == 0.0.6",
-            "flake8-comprehensions == 3.5.0",
-            "flake8-spellcheck == 0.24.0",
-            "flake8-pytest-style == 1.5.0",
-        ]
+        additional_dependencies:
+          - flake8-bugbear==21.11.29
+          - flake8-comprehensions==3.7
+          - flake8-pytest-style==1.6
+          - flake8-spellcheck==0.24
+          - flake8-unused-arguments==0.0.9
+          - flake8-noqa==1.2.1
+          - pep8-naming==0.12.1

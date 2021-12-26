@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import importlib
 import os
 import sys
@@ -49,7 +51,7 @@ class XDGVariable(typing.NamedTuple):
     default_value: str
 
 
-def _func_to_path(func: str) -> typing.Optional[XDGVariable]:
+def _func_to_path(func: str) -> XDGVariable | None:
     mapping = {
         "user_data_dir": XDGVariable("XDG_DATA_HOME", "~/.local/share"),
         "site_data_dir": XDGVariable("XDG_DATA_DIRS", f"/usr/local/share{os.pathsep}/usr/share"),
