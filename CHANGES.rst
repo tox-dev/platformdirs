@@ -1,9 +1,13 @@
 platformdirs Changelog
 ======================
 
-platformdirs 2.3.1
+platformdirs 2.4.1
 ------------------
 - Drop python 3.6 support
+
+platformdirs 2.4.0
+------------------
+- Add ``user_documents_dir``
 
 platformdirs 2.3.0
 ------------------
