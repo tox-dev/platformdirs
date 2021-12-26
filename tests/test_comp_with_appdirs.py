@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import sys
 from inspect import getmembers, isfunction
-from typing import Any, Dict
+from typing import Any
 
 import appdirs
 import pytest
@@ -47,7 +49,7 @@ def test_has_all_properties() -> None:
         "app_name_author_version",
     ],
 )
-def test_compatibility(params: Dict[str, Any], func: str) -> None:
+def test_compatibility(params: dict[str, Any], func: str) -> None:
     # Only test functions that are part of appdirs
     if getattr(appdirs, func, None) is None:
         pytest.skip(f"`{func}` does not exist in `appdirs`")

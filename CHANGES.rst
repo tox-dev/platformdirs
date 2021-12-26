@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 2.3.1
+------------------
+- Drop python 3.6 support
+
 platformdirs 2.3.0
 ------------------
 - Add ``user_runtime_dir`` and its path-returning equivalent (#37)

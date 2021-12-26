@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import sys
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -26,7 +28,7 @@ from platformdirs.android import Android
         "app_name_author_version_false_opinion",
     ],
 )
-def test_android(mocker: MockerFixture, params: Dict[str, Any], func: str) -> None:
+def test_android(mocker: MockerFixture, params: dict[str, Any], func: str) -> None:
     mocker.patch("platformdirs.android._android_folder", return_value="/data/data/com.example", autospec=True)
     mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
     result = getattr(Android(**params), func)

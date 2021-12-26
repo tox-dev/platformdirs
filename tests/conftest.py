@@ -1,4 +1,6 @@
-from typing import Tuple, cast
+from __future__ import annotations
+
+from typing import cast
 
 import pytest
 from _pytest.fixtures import SubRequest
@@ -29,5 +31,5 @@ def func_path(request: SubRequest) -> str:
 
 
 @pytest.fixture()
-def props() -> Tuple[str, ...]:
+def props() -> tuple[str, ...]:
     return PROPS

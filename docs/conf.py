@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from platformdirs.version import __version__
 
 author = "The platformdirs team"
