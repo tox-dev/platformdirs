@@ -117,7 +117,7 @@ On Linux:
     '/run/user/{os.getuid()}/SuperApp'
     >>> site_config_dir(appname)
     '/etc/xdg/SuperApp'
-    >>> os.environ['XDG_CONFIG_DIRS'] = '/etc:/usr/local/etc'
+    >>> os.environ["XDG_CONFIG_DIRS"] = "/etc:/usr/local/etc"
     >>> site_config_dir(appname, multipath=True)
     '/etc/SuperApp:/usr/local/etc/SuperApp'
 
