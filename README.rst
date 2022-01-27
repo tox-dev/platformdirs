@@ -100,7 +100,7 @@ On Linux:
     >>> appname = "SuperApp"
     >>> appauthor = "Acme"
     >>> user_data_dir(appname, appauthor)
-    '/home/trentm/.local/share/SuperApp
+    '/home/trentm/.local/share/SuperApp'
     >>> site_data_dir(appname, appauthor)
     '/usr/local/share/SuperApp'
     >>> site_data_dir(appname, appauthor, multipath=True)
