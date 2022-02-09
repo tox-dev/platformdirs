@@ -78,7 +78,7 @@ class Android(PlatformDirsABC):
 
 
 @lru_cache(maxsize=1)
-def _android_folder() -> str:
+def _android_folder() -> str | None:
     """:return: base folder for the Android OS"""
     try:
         # First try to get path to android app via pyjnius
@@ -94,7 +94,7 @@ def _android_folder() -> str:
                 result = path.split("/files")[0]
                 break
         else:
-            raise OSError("Cannot find path to android app folder")
+            result = None
     return result
 
 
