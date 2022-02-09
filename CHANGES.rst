@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 2.4.2
+------------------
+- Fix OSError when platformdirs is runned from subsystem in Termux
+
 platformdirs 2.4.1
 ------------------
 - Drop python 3.6 support
