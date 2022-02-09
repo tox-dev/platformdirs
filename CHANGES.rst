@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 2.5.0
+------------------
+- Add support for Termux subsystems
+
 platformdirs 2.4.1
 ------------------
 - Drop python 3.6 support
