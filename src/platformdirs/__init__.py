@@ -28,7 +28,7 @@ def _set_platform_dir_class() -> type[PlatformDirsABC]:
     if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system":
         from platformdirs.android import _android_folder
 
-        if _android_folder():
+        if _android_folder() is not None:
             module, name = "platformdirs.android", "Android"
 
     result: type[PlatformDirsABC] = getattr(importlib.import_module(module), name)

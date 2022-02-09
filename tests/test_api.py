@@ -65,7 +65,7 @@ def test_android_active(monkeypatch: MonkeyPatch, root: str | None, data: str | 
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", ["/A", "/B", path])
 
-    expected = root == "/system" and data == "/data" and _android_folder()
+    expected = root == "/system" and data == "/data" and _android_folder() is not None
     if expected:
         assert platformdirs._set_platform_dir_class() is Android
     else:
