@@ -110,4 +110,4 @@ def test_android_folder_not_found(mocker: MockerFixture, monkeypatch: MonkeyPatc
 
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", [])
-    assert _android_folder() is None
+    assert not _android_folder()

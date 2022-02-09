@@ -78,8 +78,8 @@ class Android(PlatformDirsABC):
 
 
 @lru_cache(maxsize=1)
-def _android_folder() -> str | None:
-    """:return: base folder for the Android OS"""
+def _android_folder() -> str:
+    """:return: base folder for the Android OS. If such cannot be found, an empty string is returned"""
     try:
         # First try to get path to android app via pyjnius
         from jnius import autoclass
@@ -94,7 +94,7 @@ def _android_folder() -> str | None:
                 result = path.split("/files")[0]
                 break
         else:
-            result = None
+            result = ""
     return result
 
 
