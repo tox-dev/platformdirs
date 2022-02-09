@@ -1,9 +1,9 @@
 platformdirs Changelog
 ======================
 
-platformdirs 2.4.2
+platformdirs 2.5.0
 ------------------
-- Fix OSError when platformdirs is runned from subsystem in Termux
+- Add support for Termux subsystems
 
 platformdirs 2.4.1
 ------------------

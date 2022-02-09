@@ -79,7 +79,7 @@ class Android(PlatformDirsABC):
 
 @lru_cache(maxsize=1)
 def _android_folder() -> str | None:
-    """:return: base folder for the Android OS. If such cannot be found, `None` is returned"""
+    """:return: base folder for the Android OS or None if cannot be found"""
     try:
         # First try to get path to android app via pyjnius
         from jnius import autoclass
