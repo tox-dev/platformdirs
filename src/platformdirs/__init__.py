@@ -4,7 +4,6 @@ usage.
 """
 from __future__ import annotations
 
-import importlib
 import os
 import sys
 from pathlib import Path
@@ -19,19 +18,20 @@ from .version import __version__, __version_info__
 
 def _set_platform_dir_class() -> type[PlatformDirsABC]:
     if sys.platform == "win32":
-        from platformdirs.windows import Windows as result
+        from platformdirs.windows import Windows as Result
     elif sys.platform == "darwin":
-        from platformdirs.macos import MacOS as result
+        from platformdirs.macos import MacOS as Result
     else:
-        from platformdirs.unix import Unix as result
+        from platformdirs.unix import Unix as Result
 
     if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system":
         from platformdirs.android import _android_folder
 
         if _android_folder() is not None:
-            from platformdirs.android import Android as result
+            from platformdirs.android import Android
+            return Android
 
-    return result
+    return Result
 
 
 PlatformDirs = _set_platform_dir_class()  #: Currently active platform
