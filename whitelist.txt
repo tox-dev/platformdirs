@@ -19,6 +19,7 @@ isfunction
 jnius
 kernel32
 lru
+macos
 multipath
 normpath
 ord
