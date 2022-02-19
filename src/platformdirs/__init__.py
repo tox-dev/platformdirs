@@ -30,7 +30,7 @@ def _set_platform_dir_class() -> type[PlatformDirsABC]:
         if _android_folder() is not None:
             from platformdirs.android import Android
 
-            return Android
+            return Android  # return to avoid redefinition of result
 
     return Result
 
