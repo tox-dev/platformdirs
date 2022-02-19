@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 2.5.1
+------------------
+- Add native support for nuitka
+
 platformdirs 2.5.0
 ------------------
 - Add support for Termux subsystems
