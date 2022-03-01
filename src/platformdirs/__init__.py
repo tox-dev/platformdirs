@@ -25,11 +25,14 @@ def _set_platform_dir_class() -> type[PlatformDirsABC]:
         from platformdirs.unix import Unix as Result
 
     if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system":
-        from platformdirs.android import _android_folder
 
+        # Treat prefixed environments like Termux as unix and not android
+        if os.getenv("PREFIX") is not None:
+            return Result
+        
+        from platformdirs.android import _android_folder
         if _android_folder() is not None:
             from platformdirs.android import Android
-
             return Android  # return to avoid redefinition of result
 
     return Result
