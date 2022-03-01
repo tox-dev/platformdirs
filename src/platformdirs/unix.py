@@ -48,10 +48,11 @@ class Unix(PlatformDirsABC):
         """
         # XDG default for $XDG_DATA_DIRS; only first, if multipath is False
         path = os.environ.get("XDG_DATA_DIRS", "")
-        if prefix is not None:
-            path = f"{prefix}/share"
         if not path.strip():
             path = f"/usr/local/share{os.pathsep}/usr/share"
+            if prefix is not None:
+                prefixpath = f"{prefix}/share"
+                path = f"{prefixpath}{os.pathsep}{path}"
         return self._with_multi_path(path)
 
     def _with_multi_path(self, path: str) -> str:
@@ -81,10 +82,11 @@ class Unix(PlatformDirsABC):
         """
         # XDG default for $XDG_CONFIG_DIRS only first, if multipath is False
         path = os.environ.get("XDG_CONFIG_DIRS", "")
-        if prefix is not None:
-            path = f"{prefix}/etc"
         if not path.strip():
             path = "/etc/xdg"
+            if prefix is not None:
+                prefixpath = f"{prefix}/etc/xdg"
+                path = f"{prefixpath}{os.pathsep}{path}"
         return self._with_multi_path(path)
 
     @property
@@ -139,10 +141,10 @@ class Unix(PlatformDirsABC):
          ``$XDG_RUNTIME_DIR/$appname/$version``
         """
         path = os.environ.get("XDG_RUNTIME_DIR", "")
-        if prefix is not None:
-            path = f"{prefix}/var/run"
         if not path.strip():
-            path = f"/run/user/{getuid()}"
+            path = "/run/user/{getuid()}"
+            if prefix is not None and os.getenv('TERMUX_VERSION') is not None:
+                path = f"{prefix}/var/run/"#termux-specific path
         return self._append_app_name_and_version(path)
 
     @property
