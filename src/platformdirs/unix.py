@@ -14,6 +14,7 @@ else:
     def getuid() -> int:
         raise RuntimeError("should only be used on Linux")
 
+prefix = os.getenv("PREFIX")
 
 class Unix(PlatformDirsABC):
     """
@@ -47,6 +48,8 @@ class Unix(PlatformDirsABC):
         """
         # XDG default for $XDG_DATA_DIRS; only first, if multipath is False
         path = os.environ.get("XDG_DATA_DIRS", "")
+        if prefix is not None:
+            path = f"{prefix}/share"
         if not path.strip():
             path = f"/usr/local/share{os.pathsep}/usr/share"
         return self._with_multi_path(path)
@@ -78,6 +81,8 @@ class Unix(PlatformDirsABC):
         """
         # XDG default for $XDG_CONFIG_DIRS only first, if multipath is False
         path = os.environ.get("XDG_CONFIG_DIRS", "")
+        if prefix is not None:
+            path = f"{prefix}/etc"
         if not path.strip():
             path = "/etc/xdg"
         return self._with_multi_path(path)
@@ -134,6 +139,8 @@ class Unix(PlatformDirsABC):
          ``$XDG_RUNTIME_DIR/$appname/$version``
         """
         path = os.environ.get("XDG_RUNTIME_DIR", "")
+        if prefix is not None:
+            path = f"{prefix}/var/run"
         if not path.strip():
             path = f"/run/user/{getuid()}"
         return self._append_app_name_and_version(path)
