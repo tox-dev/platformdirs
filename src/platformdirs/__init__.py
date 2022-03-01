@@ -26,7 +26,6 @@ def _set_platform_dir_class() -> type[PlatformDirsABC]:
 
     if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system":
 
-        # Treat prefixed environments like Termux as unix and not android
         if os.getenv("PREFIX") is not None:
             return Result
         
