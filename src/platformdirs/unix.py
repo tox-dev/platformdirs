@@ -144,7 +144,7 @@ class Unix(PlatformDirsABC):
         if not path.strip():
             path = "/run/user/{getuid()}"
             if prefix is not None and os.getenv('TERMUX_VERSION') is not None:
-                path = f"{prefix}/var/run/"#termux-specific path
+                path = f"{prefix}/var/run"#termux-specific path
         return self._append_app_name_and_version(path)
 
     @property
