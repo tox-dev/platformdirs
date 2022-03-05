@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 2.6.0
+------------------
+- Unix: Change ``user_log_dir`` to be under ``user_state_dir`` in line with the latest XDG specification
+
 platformdirs 2.5.1
 ------------------
 - Add native support for nuitka
