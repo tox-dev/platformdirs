@@ -1,6 +1,64 @@
 [build-system]
-requires = ["setuptools >= 44", "wheel >= 0.30", "setuptools_scm[toml]>=5"]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
+requires = ["hatchling>=0.22.0", "hatch-vcs"]
+
+[project]
+name = "platformdirs"
+description = 'A small Python module for determining appropriate platform-specific dirs, e.g. a "user data dir".'
+readme = "README.rst"
+license = "MIT"
+maintainers = [
+  { name = "Bernát Gábor", email = "gaborjbernat@gmail.com" },
+  { name = "Julian Berman", email = "Julian@GrayVines.com" },
+  { name = "Ofek Lev", email = "oss@ofek.dev" },
+  { name = "Ronny Pfannschmidt", email = "opensource@ronnypfannschmidt.de" },
+]
+urls.Documentation = "https://platformdirs.readthedocs.io"
+urls.Homepage = "https://github.com/platformdirs/platformdirs"
+urls.Source = "https://github.com/platformdirs/platformdirs"
+urls.Tracker = "https://github.com/platformdirs/platformdirs/issues"
+requires-python = ">=3.7"
+optional-dependencies.test = [
+  "appdirs==1.4.4",
+  "pytest>=6",
+  "pytest-cov>=2.7",
+  "pytest-mock>=3.6",
+]
+optional-dependencies.docs = [
+  "furo>=2021.7.5b38",
+  "proselint>=0.10.2",
+  "sphinx>=4",
+  "sphinx-autodoc-typehints>=1.12",
+]
+keywords = ["application", "cache", "directory", "log", "user"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dynamic = ["version"]
+
+[tool.hatch]
+build.hooks.vcs.template = '''
+""" Version information """
+
+__version__ = "{version}"
+__version_info__ = {version_tuple}
+'''
+build.hooks.vcs.version-file = "src/platformdirs/version.py"
+build.targets.sdist.include = ["/src", "/tests", "/tox.ini"]
+version.source = "vcs"
 
 [tool.black]
 line-length = 120
@@ -8,12 +66,3 @@ line-length = 120
 [tool.isort]
 profile = "black"
 known_first_party = ["platformdirs"]
-
-[tool.setuptools_scm]
-write_to = "src/platformdirs/version.py"
-write_to_template = """
-\"\"\" Version information \"\"\"
-
-__version__ = "{version}"
-__version_info__ = {version_tuple}
-"""
