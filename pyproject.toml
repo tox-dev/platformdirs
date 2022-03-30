@@ -51,7 +51,7 @@ dynamic = ["version"]
 
 [tool.hatch]
 build.hooks.vcs.template = '''
-""" Version information """
+"""Version information"""
 
 __version__ = "{version}"
 __version_info__ = {version_tuple}
