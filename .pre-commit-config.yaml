@@ -39,6 +39,10 @@ repos:
     hooks:
       - id: tox-ini-fmt
         args: [ "-p", "fix" ]
+  - repo: https://github.com/tox-dev/pyproject-fmt
+    rev: "0.3.3"
+    hooks:
+      - id: pyproject-fmt
   - repo: https://github.com/PyCQA/flake8
     rev: 4.0.1
     hooks:
