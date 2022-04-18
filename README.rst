@@ -127,17 +127,24 @@ On Android::
     >>> appname = "SuperApp"
     >>> appauthor = "Acme"
     >>> user_data_dir(appname, appauthor)
-    '/data/data/com.termux/files/SuperApp'
+    '/data/data/com.myApp/files/SuperApp'
     >>> user_cache_dir(appname, appauthor)
-    '/data/data/com.termux/cache/SuperApp'
+    '/data/data/com.myApp/cache/SuperApp'
     >>> user_log_dir(appname, appauthor)
-    '/data/data/com.termux/cache/SuperApp/log'
+    '/data/data/com.myApp/cache/SuperApp/log'
     >>> user_config_dir(appname)
-    '/data/data/com.termux/shared_prefs/SuperApp'
+    '/data/data/com.myApp/shared_prefs/SuperApp'
     >>> user_documents_dir()
     '/storage/emulated/0/Documents'
     >>> user_runtime_dir(appname, appauthor)
-    '/data/data/com.termux/cache/SuperApp/tmp'
+    '/data/data/com.myApp/cache/SuperApp/tmp'
+
+Note: Some android apps like Termux and Pydroid are used as shells. These
+apps are used by the end user to emulate Linux environment. Presence of
+``SHELL`` environment variable is used by Platformdirs to differentiate
+between general android apps and android apps used as shells. Shell android
+apps also support ``XDG_*`` environment variables.
+
 
 ``PlatformDirs`` for convenience
 ================================
