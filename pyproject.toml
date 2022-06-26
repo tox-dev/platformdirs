@@ -4,7 +4,7 @@ requires = ["hatchling>=0.22.0", "hatch-vcs"]
 
 [project]
 name = "platformdirs"
-description = 'A small Python module for determining appropriate platform-specific dirs, e.g. a "user data dir".'
+description = 'A small Python package for determining appropriate platform-specific dirs, e.g. a "user data dir".'
 readme = "README.rst"
 license = "MIT"
 maintainers = [

@@ -31,7 +31,7 @@ On Linux (and other Unices), according to the `XDG Basedir Spec`_, it should be:
 ``platformdirs`` to the rescue
 ==============================
 
-This kind of thing is what the ``platformdirs`` module is for.
+This kind of thing is what the ``platformdirs`` package is for.
 ``platformdirs`` will help you choose an appropriate:
 
 - user data dir (``user_data_dir``)
@@ -45,7 +45,6 @@ This kind of thing is what the ``platformdirs`` module is for.
 
 And also:
 
-- Is a single module so other Python packages can vendor their own private copy.
 - Is slightly opinionated on the directory names used. Look for "OPINION" in
   documentation and code for when an opinion is being applied.
 
