@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "hatchling.build"
-requires = ["hatchling>=1.6", "hatch-vcs>=0.2"]
+requires = ["hatchling>=1.11.1", "hatch-vcs>=0.2"]
 
 [project]
 name = "platformdirs"
@@ -20,15 +20,15 @@ urls.Tracker = "https://github.com/platformdirs/platformdirs/issues"
 requires-python = ">=3.7"
 optional-dependencies.test = [
   "appdirs==1.4.4",
-  "pytest>=7.1.2",
-  "pytest-cov>=3",
-  "pytest-mock>=3.8.2",
+  "pytest>=7.2",
+  "pytest-cov>=4",
+  "pytest-mock>=3.10",
 ]
 optional-dependencies.docs = [
-  "furo>=2022.6.21",
+  "furo>=2022.9.29",
   "proselint>=0.13",
-  "sphinx>=5.1.1",
-  "sphinx-autodoc-typehints>=1.19.1",
+  "sphinx>=5.3",
+  "sphinx-autodoc-typehints>=1.19.4",
 ]
 keywords = ["application", "cache", "directory", "log", "user"]
 classifiers = [
