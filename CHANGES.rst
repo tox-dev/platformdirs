@@ -1,6 +1,20 @@
 platformdirs Changelog
 ======================
 
+platformdirs 2.5.4 (2022-11-12)
+-------------------------------
+- Fix licesing metadata
+
+platformdirs 2.5.3 (2022-11-06)
+-------------------------------
+- Support 3.11
+- Bump dependencies
+
+platformdirs 2.5.2 (2022-04-18)
+-------------------------------
+- Move packaging to hatcling from setuptools
+- Treat android shells as unix
+
 platformdirs 2.5.2 (2022-04-18)
 -------------------------------
 - Move packaging to hatcling from setuptools
