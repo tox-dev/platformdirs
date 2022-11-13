@@ -19,7 +19,7 @@ jobs:
         py:
           - "3.11"
           - "3.10"
-          - "pypy39"  # ahead to start it earlier because takes longer
+          - "pypy3.9"  # ahead to start it earlier because takes longer
           - "3.9"
           - "3.8"
           - "3.7"
