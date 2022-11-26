@@ -59,7 +59,7 @@ def _func_to_path(func: str) -> XDGVariable | None:
         "site_config_dir": XDGVariable("XDG_CONFIG_DIRS", "/etc/xdg"),
         "user_cache_dir": XDGVariable("XDG_CACHE_HOME", "~/.cache"),
         "user_state_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
-        "user_log_dir": XDGVariable("XDG_CACHE_HOME", "~/.cache"),
+        "user_log_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
         "user_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", "/run/user/1234"),
     }
     return mapping.get(func)
