@@ -62,6 +62,12 @@ def test_compatibility(params: dict[str, Any], func: str) -> None:
         }
         if func in msg:  # pragma: no cover
             pytest.skip(f"`appdirs.{func}` {msg[func]} on macOS")  # pragma: no cover
+    if sys.platform == "linux":
+        msg = {  # pragma: no cover
+            "user_log_dir": "Uses XDG_STATE_DIR instead of appdirs.user_data_dir per the XDG spec",
+        }
+        if func in msg:  # pragma: no cover
+            pytest.skip(f"`appdirs.{func}` {msg[func]} on Linux")  # pragma: no cover
 
     new = getattr(platformdirs, func)(*params)
     old = getattr(appdirs, func)(*params)
