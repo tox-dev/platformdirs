@@ -1,6 +1,8 @@
 platformdirs Changelog
 ======================
 
+- **BREAKING** Correct the log directory on Linux/Unix
+
 platformdirs 2.5.4 (2022-11-12)
 -------------------------------
 - Fix licesing metadata
