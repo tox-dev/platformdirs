@@ -1,7 +1,10 @@
 platformdirs Changelog
 ======================
 
-- **BREAKING** Correct the log directory on Linux/Unix
+platformdirs 2.6.0 (2022-12-06)
+-------------------------------
+- **BREAKING** Correct the log directory on Linux/Unix from
+  XDG_CACHE_HOME to XDG_STATE_HOME per the XDG spec
 
 platformdirs 2.5.4 (2022-11-12)
 -------------------------------
