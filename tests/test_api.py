@@ -54,14 +54,16 @@ def test_function_interface_is_in_sync(func: str) -> None:
 @pytest.mark.parametrize("data", ["D", "/data", None])
 @pytest.mark.parametrize("path", ["/data/data/a/files", "/C"])
 @pytest.mark.parametrize("shell", ["/data/data/com.app/files/usr/bin/sh", "/usr/bin/sh", None])
+@pytest.mark.parametrize("prefix", ["/data/data/com.termux/files/usr", None])
 def test_android_active(
     monkeypatch: MonkeyPatch,
     root: str | None,
     data: str | None,
     path: str,
     shell: str | None,
+    prefix: str | None,
 ) -> None:
-    for env_var, value in {"ANDROID_DATA": data, "ANDROID_ROOT": root, "SHELL": shell}.items():
+    for env_var, value in {"ANDROID_DATA": data, "ANDROID_ROOT": root, "SHELL": shell, "PREFIX": prefix}.items():
         if value is None:
             monkeypatch.delenv(env_var, raising=False)
         else:
@@ -72,7 +74,9 @@ def test_android_active(
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", ["/A", "/B", path])
 
-    expected = root == "/system" and data == "/data" and shell is None and _android_folder() is not None
+    expected = (
+        root == "/system" and data == "/data" and shell is None and prefix is None and _android_folder() is not None
+    )
     if expected:
         assert platformdirs._set_platform_dir_class() is Android
     else:
