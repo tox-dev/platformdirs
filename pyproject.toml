@@ -6,7 +6,7 @@ requires = ["hatchling>=1.11.1", "hatch-vcs>=0.2"]
 name = "platformdirs"
 description = 'A small Python package for determining appropriate platform-specific dirs, e.g. a "user data dir".'
 readme = "README.rst"
-license = "MIT"
+license = {text="MIT"}
 maintainers = [
   { name = "Bernát Gábor", email = "gaborjbernat@gmail.com" },
   { name = "Julian Berman", email = "Julian@GrayVines.com" },
