@@ -55,7 +55,11 @@ def test_function_interface_is_in_sync(func: str) -> None:
 @pytest.mark.parametrize("path", ["/data/data/a/files", "/C"])
 @pytest.mark.parametrize("shell", ["/data/data/com.app/files/usr/bin/sh", "/usr/bin/sh", None])
 def test_android_active(
-    monkeypatch: MonkeyPatch, root: str | None, data: str | None, path: str, shell: str | None
+    monkeypatch: MonkeyPatch,
+    root: str | None,
+    data: str | None,
+    path: str,
+    shell: str | None,
 ) -> None:
     for env_var, value in {"ANDROID_DATA": data, "ANDROID_ROOT": root, "SHELL": shell}.items():
         if value is None:

@@ -20,11 +20,6 @@ platformdirs 2.5.2 (2022-04-18)
 - Move packaging to hatcling from setuptools
 - Treat android shells as unix
 
-platformdirs 2.5.2 (2022-04-18)
--------------------------------
-- Move packaging to hatcling from setuptools
-- Treat android shells as unix
-
 platformdirs 2.5.1 (2022-02-19)
 -------------------------------
 - Add native support for nuitka

@@ -19,7 +19,7 @@ jobs:
         py:
           - "3.11"
           - "3.10"
-          - "pypy3.9"  # ahead to start it earlier because takes longer
+          - "pypy3.9" # ahead to start it earlier because takes longer
           - "3.9"
           - "3.8"
           - "3.7"
@@ -63,7 +63,9 @@ jobs:
           PYTEST_ADDOPTS: "-vv --durations=20"
           CI_RUN: "yes"
       - name: Rename coverage report file
-        run: import os; import sys; os.rename(f".tox/.coverage.{os.environ['TOXENV']}", f".tox/.coverage.{os.environ['TOXENV']}-{sys.platform}")
+        run: |
+          import os; import sys;
+          os.rename(f".tox/.coverage.{os.environ['TOXENV']}", f".tox/.coverage.{os.environ['TOXENV']}-{sys.platform}")
         shell: python
       - name: Upload coverage data
         uses: actions/upload-artifact@v3
@@ -136,7 +138,7 @@ jobs:
 
   publish:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    needs: [ check, coverage ]
+    needs: [check, coverage]
     runs-on: ubuntu-latest
     steps:
       - name: Setup python to build package

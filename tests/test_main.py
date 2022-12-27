@@ -12,7 +12,7 @@ def test_props_same_as_test(props: tuple[str, ...]) -> None:
 
 
 def test_run_as_module() -> None:
-    out = check_output([sys.executable, "-m", "platformdirs"], universal_newlines=True)
+    out = check_output([sys.executable, "-m", "platformdirs"], text=True)
 
     assert out.startswith(f"-- platformdirs {__version__} --")
     for prop in PROPS:

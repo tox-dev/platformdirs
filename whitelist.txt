@@ -3,6 +3,7 @@ appdirs
 appname
 autoclass
 autodoc
+autosectionlabel
 buf
 buf2
 csidl
@@ -16,6 +17,8 @@ jnius
 macos
 multipath
 platformdirs
+py38
+pygments
 pyjnius
 setenv
 shell32
