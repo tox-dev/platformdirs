@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 2.6.2 (2022-12-28)
+-------------------------------
+- Fix missing ``typing-extensions`` dependency.
+
 platformdirs 2.6.1 (2022-12-28)
 -------------------------------
 - Add detection of ``$PREFIX`` for android.
