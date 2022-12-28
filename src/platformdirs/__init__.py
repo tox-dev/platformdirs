@@ -7,11 +7,13 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-if sys.version_info >= (3, 8):  # pragma: no cover (py38+)
-    from typing import Literal
-else:  # pragma: no cover (py38+)
-    from typing_extensions import Literal
+if TYPE_CHECKING:
+    if sys.version_info >= (3, 8):  # pragma: no cover (py38+)
+        from typing import Literal
+    else:  # pragma: no cover (py38+)
+        from typing_extensions import Literal
 
 from .api import PlatformDirsABC
 from .version import __version__
