@@ -55,6 +55,7 @@ version.source = "vcs"
 html.show_contexts = true
 html.skip_covered = false
 paths.source = ["src", ".tox/*/lib/*/site-packages", ".tox\\*\\Lib\\site-packages", "**/src", "**\\src"]
+paths.other = [".", "*/platformdirs", "*\\platformdirs"]
 report.fail_under = 76
 run.parallel = true
 run.plugins = ["covdefaults"]
