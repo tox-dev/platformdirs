@@ -28,7 +28,7 @@ def _set_platform_dir_class() -> type[PlatformDirsABC]:
 
     if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system":
 
-        if os.getenv("SHELL") is not None:
+        if os.getenv("SHELL") or os.getenv("PREFIX"):
             return Result
 
         from platformdirs.android import _android_folder
