@@ -18,6 +18,9 @@ urls.Homepage = "https://github.com/platformdirs/platformdirs"
 urls.Source = "https://github.com/platformdirs/platformdirs"
 urls.Tracker = "https://github.com/platformdirs/platformdirs/issues"
 requires-python = ">=3.7"
+dependencies = [
+  "typing-extensions; python_version < '3.8'"
+]
 optional-dependencies.test = [
   "appdirs==1.4.4",
   "covdefaults>=2.2.2",
