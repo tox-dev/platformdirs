@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "hatchling.build"
-requires = ["hatchling>=1.11.1", "hatch-vcs>=0.3"]
+requires = ["hatchling>=1.12.1", "hatch-vcs>=0.3"]
 
 [project]
 name = "platformdirs"
@@ -26,7 +26,7 @@ optional-dependencies.test = [
   "pytest-cov>=4",
   "pytest-mock>=3.10",
 ]
-optional-dependencies.docs = ["furo>=2022.12.7", "proselint>=0.13", "sphinx>=5.3", "sphinx-autodoc-typehints>=1.19.5"]
+optional-dependencies.docs = ["furo>=2022.12.7", "proselint>=0.13", "sphinx>=6", "sphinx-autodoc-typehints>=1.19.5"]
 keywords = ["application", "cache", "directory", "log", "user"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
@@ -55,8 +55,8 @@ version.source = "vcs"
 [tool.coverage]
 html.show_contexts = true
 html.skip_covered = false
-paths.source = ["src", ".tox/*/lib/*/site-packages", ".tox\\*\\Lib\\site-packages", "**/src", "**\\src"]
-paths.other = [".", "*/platformdirs", "*\\platformdirs"]
+run.relative_files = true
+paths.source = ["src", "**/site-packages"]
 report.fail_under = 76
 run.parallel = true
 run.plugins = ["covdefaults"]
