@@ -18,7 +18,7 @@ extensions = [
     "sphinx_autodoc_typehints",
 ]
 html_theme = "furo"
-html_title, html_last_updated_fmt = "tox", datetime.now().isoformat()
+html_title, html_last_updated_fmt = "platformdirs", datetime.now().isoformat()
 pygments_style, pygments_dark_style = "sphinx", "monokai"
 autoclass_content, autodoc_member_order, autodoc_typehints = "class", "bysource", "none"
 autodoc_default_options = {
