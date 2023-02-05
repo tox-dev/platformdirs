@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 3.0.0 (2023-02-05)
+-------------------------------
+- **BREAKING** Correct the config directory on OSX/macOS, again: "*/Library/Application Support" (#98)
+
 platformdirs 2.6.2 (2022-12-28)
 -------------------------------
 - Fix missing ``typing-extensions`` dependency.
