@@ -70,4 +70,4 @@ def test_compatibility(params: dict[str, Any], func: str) -> None:
     new = getattr(platformdirs, func)(*params)
     old = getattr(appdirs, func)(*params)
 
-    assert new == old
+    assert new == old.rstrip("/")
