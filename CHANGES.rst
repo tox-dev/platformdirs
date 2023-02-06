@@ -3,8 +3,8 @@ platformdirs Changelog
 
 platformdirs 3.0.0 (2023-02-06)
 -------------------------------
-- **BREAKING** Correct the config directory on OSX/macOS, again: "*/Library/Application Support" (#98)
-- macOS: remove erroneous trailing slash from user_config_dir and user_data_dir (#134)
+- **BREAKING** Changed the config directory on macOS to point to ``*/Library/Application Support``
+- macOS: remove erroneous trailing slash from ``user_config_dir`` and ``user_data_dir``
 
 platformdirs 2.6.2 (2022-12-28)
 -------------------------------
