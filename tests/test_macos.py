@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import sys
 from typing import Any
 
 import pytest
@@ -9,38 +8,24 @@ import pytest
 from platformdirs.macos import MacOS
 
 
-@pytest.mark.skipif(not sys.platform.startswith("darwin"), reason="tests are platform-specific to macOS")
 @pytest.mark.parametrize(
     "params",
     [
-        {},
-        {"appname": "foo"},
-        {"appname": "foo", "version": "v1.0"},
-    ],
-    ids=[
-        "no_args",
-        "app_name",
-        "app_name_version",
+        pytest.param({}, id="no_args"),
+        pytest.param({"appname": "foo"}, id="app_name"),
+        pytest.param({"appname": "foo", "version": "v1.0"}, id="app_name_version"),
     ],
 )
 def test_macos(params: dict[str, Any], func: str) -> None:
     result = getattr(MacOS(**params), func)
 
     home = os.path.expanduser("~")
-    suffix_elements = []
-    if "appname" in params:
-        suffix_elements.append(params["appname"])
-    if "version" in params:
-        suffix_elements.append(params["version"])
-    if suffix_elements:
-        suffix_elements.insert(0, "")
-    suffix = "/".join(suffix_elements)
+    suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
+    suffix = os.sep.join(("",) + suffix_elements) if suffix_elements else ""
 
     expected_map = {
         "user_data_dir": f"{home}/Library/Application Support{suffix}",
         "site_data_dir": f"/Library/Application Support{suffix}",
-        # Please note that the config dirs are NOT */Library/Preferences!
-        # For details see: https://github.com/platformdirs/platformdirs/issues/98
         "user_config_dir": f"{home}/Library/Application Support{suffix}",
         "site_config_dir": f"/Library/Application Support{suffix}",
         "user_cache_dir": f"{home}/Library/Caches{suffix}",
