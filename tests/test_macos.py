@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from typing import Any
 
 import pytest
@@ -8,6 +9,7 @@ import pytest
 from platformdirs.macos import MacOS
 
 
+@pytest.mark.skipif(not sys.platform.startswith("darwin"), reason="tests are platform-specific to macOS")
 @pytest.mark.parametrize(
     "params",
     [
