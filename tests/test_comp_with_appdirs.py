@@ -57,8 +57,6 @@ def test_compatibility(params: dict[str, Any], func: str) -> None:
     if sys.platform == "darwin":
         msg = {  # pragma: no cover
             "user_log_dir": "without appname produces NoneType error",
-            "site_config_dir": "ignores the version argument",
-            "user_config_dir": "uses Library/Preferences instead Application Support",
         }
         if func in msg:  # pragma: no cover
             pytest.skip(f"`appdirs.{func}` {msg[func]} on macOS")  # pragma: no cover
@@ -72,4 +70,4 @@ def test_compatibility(params: dict[str, Any], func: str) -> None:
     new = getattr(platformdirs, func)(*params)
     old = getattr(appdirs, func)(*params)
 
-    assert new == old
+    assert new == old.rstrip("/")

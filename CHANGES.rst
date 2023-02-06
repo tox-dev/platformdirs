@@ -1,6 +1,11 @@
 platformdirs Changelog
 ======================
 
+platformdirs 3.0.0 (2023-02-06)
+-------------------------------
+- **BREAKING** Changed the config directory on macOS to point to ``*/Library/Application Support``
+- macOS: remove erroneous trailing slash from ``user_config_dir`` and ``user_data_dir``
+
 platformdirs 2.6.2 (2022-12-28)
 -------------------------------
 - Fix missing ``typing-extensions`` dependency.
