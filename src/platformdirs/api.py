@@ -92,6 +92,11 @@ class PlatformDirsABC(ABC):
 
     @property
     @abstractmethod
+    def site_cache_dir(self) -> str:
+        """:return: cache directory shared by users"""
+
+    @property
+    @abstractmethod
     def user_state_dir(self) -> str:
         """:return: state directory tied to the user"""
 
@@ -134,6 +139,11 @@ class PlatformDirsABC(ABC):
     def user_cache_path(self) -> Path:
         """:return: cache path tied to the user"""
         return Path(self.user_cache_dir)
+
+    @property
+    def site_cache_path(self) -> Path:
+        """:return: cache path shared by users"""
+        return Path(self.site_cache_dir)
 
     @property
     def user_state_path(self) -> Path:

@@ -39,6 +39,11 @@ class MacOS(PlatformDirsABC):
         return self._append_app_name_and_version(os.path.expanduser("~/Library/Caches"))
 
     @property
+    def site_cache_dir(self) -> str:
+        """:return: cache directory shared by users, e.g. ``/Library/Caches/$appname/$version``"""
+        return self._append_app_name_and_version("/Library/Caches")
+
+    @property
     def user_state_dir(self) -> str:
         """:return: state directory tied to the user, same as `user_data_dir`"""
         return self.user_data_dir
