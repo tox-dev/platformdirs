@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 3.0.1 (2023-03-02)
+-------------------------------
+- Add `appdirs` keyword to package
+
 platformdirs 3.0.0 (2023-02-06)
 -------------------------------
 - **BREAKING** Changed the config directory on macOS to point to ``*/Library/Application Support``
