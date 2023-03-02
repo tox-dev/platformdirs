@@ -15,6 +15,7 @@ keywords = [
   "directory",
   "log",
   "user",
+  "appdirs",
 ]
 license = "MIT"
 maintainers = [
