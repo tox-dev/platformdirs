@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 3.1.0 (2023-03-03)
+-------------------------------
+- Introduce ``site_cache_dir``
+
 platformdirs 3.0.1 (2023-03-02)
 -------------------------------
 - Add ``appdirs`` keyword to package
