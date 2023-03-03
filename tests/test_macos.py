@@ -29,6 +29,7 @@ def test_macos(params: dict[str, Any], func: str) -> None:
         "user_config_dir": f"{home}/Library/Application Support{suffix}",
         "site_config_dir": f"/Library/Application Support{suffix}",
         "user_cache_dir": f"{home}/Library/Caches{suffix}",
+        "site_cache_dir": f"/Library/Caches{suffix}",
         "user_state_dir": f"{home}/Library/Application Support{suffix}",
         "user_log_dir": f"{home}/Library/Logs{suffix}",
         "user_documents_dir": f"{home}/Documents",

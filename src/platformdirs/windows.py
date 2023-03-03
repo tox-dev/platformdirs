@@ -69,6 +69,12 @@ class Windows(PlatformDirsABC):
         return self._append_parts(path, opinion_value="Cache")
 
     @property
+    def site_cache_dir(self) -> str:
+        """:return: cache directory shared by users, e.g. ``C:\\ProgramData\\$appauthor\\$appname\\Cache\\$version``"""
+        path = os.path.normpath(get_win_folder("CSIDL_COMMON_APPDATA"))
+        return self._append_parts(path, opinion_value="Cache")
+
+    @property
     def user_state_dir(self) -> str:
         """:return: state directory tied to the user, same as `user_data_dir`"""
         return self.user_data_dir

@@ -65,6 +65,12 @@ Shared config directory
 .. autofunction:: platformdirs.site_config_dir
 .. autofunction:: platformdirs.site_config_path
 
+Shared cache directory
+----------------------
+
+.. autofunction:: platformdirs.site_cache_dir
+.. autofunction:: platformdirs.site_cache_path
+
 Platforms
 ~~~~~~~~~
 

@@ -94,6 +94,13 @@ class Unix(PlatformDirsABC):
         return self._append_app_name_and_version(path)
 
     @property
+    def site_cache_dir(self) -> str:
+        """
+        :return: cache directory shared by users, e.g. ``/var/cache/$appname/$version``
+        """
+        return self._append_app_name_and_version("/var/cache")
+
+    @property
     def user_state_dir(self) -> str:
         """
         :return: state directory tied to the user, e.g. ``~/.local/state/$appname/$version`` or
@@ -147,6 +154,11 @@ class Unix(PlatformDirsABC):
     def site_config_path(self) -> Path:
         """:return: config path shared by the users. Only return first item, even if ``multipath`` is set to ``True``"""
         return self._first_item_as_path_if_multipath(self.site_config_dir)
+
+    @property
+    def site_cache_path(self) -> Path:
+        """:return: cache path shared by users. Only return first item, even if ``multipath`` is set to ``True``"""
+        return self._first_item_as_path_if_multipath(self.site_cache_dir)
 
     def _first_item_as_path_if_multipath(self, directory: str) -> Path:
         if self.multipath:

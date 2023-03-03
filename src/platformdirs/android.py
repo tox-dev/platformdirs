@@ -44,6 +44,11 @@ class Android(PlatformDirsABC):
         return self._append_app_name_and_version(cast(str, _android_folder()), "cache")
 
     @property
+    def site_cache_dir(self) -> str:
+        """:return: cache directory shared by users, same as `user_cache_dir`"""
+        return self.user_cache_dir
+
+    @property
     def user_state_dir(self) -> str:
         """:return: state directory tied to the user, same as `user_data_dir`"""
         return self.user_data_dir

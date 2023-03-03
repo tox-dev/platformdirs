@@ -124,6 +124,22 @@ def user_cache_dir(
     return PlatformDirs(appname=appname, appauthor=appauthor, version=version, opinion=opinion).user_cache_dir
 
 
+def site_cache_dir(
+    appname: str | None = None,
+    appauthor: str | None | Literal[False] = None,
+    version: str | None = None,
+    opinion: bool = True,
+) -> str:
+    """
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param opinion: See `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
+    :returns: cache directory tied to the user
+    """
+    return PlatformDirs(appname=appname, appauthor=appauthor, version=version, opinion=opinion).site_cache_dir
+
+
 def user_state_dir(
     appname: str | None = None,
     appauthor: str | None | Literal[False] = None,
@@ -243,6 +259,22 @@ def site_config_path(
     return PlatformDirs(appname=appname, appauthor=appauthor, version=version, multipath=multipath).site_config_path
 
 
+def site_cache_path(
+    appname: str | None = None,
+    appauthor: str | None | Literal[False] = None,
+    version: str | None = None,
+    opinion: bool = True,
+) -> Path:
+    """
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param opinion: See `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
+    :returns: cache directory tied to the user
+    """
+    return PlatformDirs(appname=appname, appauthor=appauthor, version=version, opinion=opinion).site_cache_path
+
+
 def user_cache_path(
     appname: str | None = None,
     appauthor: str | None | Literal[False] = None,
@@ -329,6 +361,7 @@ __all__ = [
     "user_runtime_dir",
     "site_data_dir",
     "site_config_dir",
+    "site_cache_dir",
     "user_data_path",
     "user_config_path",
     "user_cache_path",
@@ -338,4 +371,5 @@ __all__ = [
     "user_runtime_path",
     "site_data_path",
     "site_config_path",
+    "site_cache_path",
 ]
