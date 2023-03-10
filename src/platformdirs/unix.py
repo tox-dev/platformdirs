@@ -96,9 +96,9 @@ class Unix(PlatformDirsABC):
     @property
     def site_cache_dir(self) -> str:
         """
-        :return: cache directory shared by users, e.g. ``/var/cache/$appname/$version``
+        :return: cache directory shared by users, e.g. ``/var/tmp/$appname/$version``
         """
-        return self._append_app_name_and_version("/var/cache")
+        return self._append_app_name_and_version("/var/tmp")
 
     @property
     def user_state_dir(self) -> str:
