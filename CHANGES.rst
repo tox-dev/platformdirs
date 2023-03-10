@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 3.1.1 (2023-03-10)
+-------------------------------
+- site_cache_dir use ``/var/tmp`` instead of ``/var/cache`` on unix, as the later may be write protected
+
 platformdirs 3.1.0 (2023-03-03)
 -------------------------------
 - Introduce ``site_cache_dir``
