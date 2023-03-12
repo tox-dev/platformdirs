@@ -10,12 +10,12 @@ name = "platformdirs"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 readme = "README.rst"
 keywords = [
+  "appdirs",
   "application",
   "cache",
   "directory",
   "log",
   "user",
-  "appdirs",
 ]
 license = "MIT"
 maintainers = [
@@ -71,6 +71,20 @@ build.hooks.vcs.version-file = "src/platformdirs/version.py"
 build.targets.sdist.include = ["/src", "/tests"]
 version.source = "vcs"
 
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+known_first_party = ["platformdirs"]
+
+[tool.flake8]
+max-complexity = 22
+max-line-length = 120
+unused-arguments-ignore-abstract-functions = true
+noqa-require-code = true
+dictionaries = ["en_US", "python", "technical", "django"]
+
 [tool.coverage]
 html.show_contexts = true
 html.skip_covered = false
@@ -80,13 +94,6 @@ report.fail_under = 76
 run.parallel = true
 run.plugins = ["covdefaults"]
 
-[tool.black]
-line-length = 120
-
-[tool.isort]
-profile = "black"
-known_first_party = ["platformdirs"]
-
 [tool.mypy]
 python_version = "3.11"
 show_error_codes = true
@@ -95,10 +102,3 @@ overrides = [{ module = ["appdirs.*", "jnius.*"], ignore_missing_imports = true 
 
 [tool.pep8]
 max-line-length = "120"
-
-[tool.flake8]
-max-complexity = 22
-max-line-length = 120
-unused-arguments-ignore-abstract-functions = true
-noqa-require-code = true
-dictionaries = ["en_US", "python", "technical", "django"]
