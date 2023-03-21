@@ -24,7 +24,8 @@ class Unix(PlatformDirsABC):
     `appname <platformdirs.api.PlatformDirsABC.appname>`,
     `version <platformdirs.api.PlatformDirsABC.version>`,
     `multipath <platformdirs.api.PlatformDirsABC.multipath>`,
-    `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
+    `opinion <platformdirs.api.PlatformDirsABC.opinion>`,
+    `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
     """
 
     @property
