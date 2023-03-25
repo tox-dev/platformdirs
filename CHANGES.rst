@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 3.2.0 (2023-03-25)
+-------------------------------
+- add auto create directories option
+
 platformdirs 3.1.1 (2023-03-10)
 -------------------------------
 - site_cache_dir use ``/var/tmp`` instead of ``/var/cache`` on unix, as the later may be write protected
