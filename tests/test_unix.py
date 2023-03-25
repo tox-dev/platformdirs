@@ -4,6 +4,7 @@ import importlib
 import os
 import sys
 import typing
+from pathlib import Path
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
@@ -120,3 +121,15 @@ def test_platform_non_linux(monkeypatch: MonkeyPatch) -> None:
             unix.Unix().user_runtime_dir
     finally:
         importlib.reload(unix)
+
+
+def test_ensure_exists_creates_folder(mocker: MockerFixture, tmp_path: Path) -> None:
+    mocker.patch.dict(os.environ, {"XDG_DATA_HOME": str(tmp_path)})
+    data_path = Unix(appname="acme", ensure_exists=True).user_data_path
+    assert data_path.exists()
+
+
+def test_folder_not_created_without_ensure_exists(mocker: MockerFixture, tmp_path: Path) -> None:
+    mocker.patch.dict(os.environ, {"XDG_DATA_HOME": str(tmp_path)})
+    data_path = Unix(appname="acme", ensure_exists=False).user_data_path
+    assert not data_path.exists()

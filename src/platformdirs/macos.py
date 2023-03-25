@@ -9,8 +9,9 @@ class MacOS(PlatformDirsABC):
     """
     Platform directories for the macOS operating system. Follows the guidance from `Apple documentation
     <https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/MacOSXDirectories/MacOSXDirectories.html>`_.
-    Makes use of the `appname <platformdirs.api.PlatformDirsABC.appname>` and
-    `version <platformdirs.api.PlatformDirsABC.version>`.
+    Makes use of the `appname <platformdirs.api.PlatformDirsABC.appname>`,
+    `version <platformdirs.api.PlatformDirsABC.version>`,
+    `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
     """
 
     @property
