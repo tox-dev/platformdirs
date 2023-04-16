@@ -17,7 +17,7 @@ keywords = [
   "log",
   "user",
 ]
-license = "MIT"
+license = { file = "LICENSE" }
 maintainers = [
   { name = "Bernát Gábor", email = "gaborjbernat@gmail.com" },
   { name = "Julian Berman", email = "Julian@GrayVines.com" },
