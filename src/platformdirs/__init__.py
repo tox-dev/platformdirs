@@ -243,6 +243,13 @@ def user_documents_dir() -> str:
     return PlatformDirs().user_documents_dir
 
 
+def user_pictures_dir() -> str:
+    """
+    :returns: pictures directory tied to the user
+    """
+    return PlatformDirs().user_pictures_dir
+
+
 def user_runtime_dir(
     appname: str | None = None,
     appauthor: str | None | Literal[False] = None,
@@ -466,6 +473,13 @@ def user_documents_path() -> Path:
     return PlatformDirs().user_documents_path
 
 
+def user_pictures_path() -> Path:
+    """
+    :returns: pictures path tied to the user
+    """
+    return PlatformDirs().user_pictures_path
+
+
 def user_runtime_path(
     appname: str | None = None,
     appauthor: str | None | Literal[False] = None,
@@ -502,6 +516,7 @@ __all__ = [
     "user_state_dir",
     "user_log_dir",
     "user_documents_dir",
+    "user_pictures_dir",
     "user_runtime_dir",
     "site_data_dir",
     "site_config_dir",
@@ -512,6 +527,7 @@ __all__ = [
     "user_state_path",
     "user_log_path",
     "user_documents_path",
+    "user_pictures_path",
     "user_runtime_path",
     "site_data_path",
     "site_config_path",

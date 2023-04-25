@@ -125,6 +125,11 @@ class PlatformDirsABC(ABC):
 
     @property
     @abstractmethod
+    def user_pictures_dir(self) -> str:
+        """:return: pictures directory tied to the user"""
+
+    @property
+    @abstractmethod
     def user_runtime_dir(self) -> str:
         """:return: runtime directory tied to the user"""
 
@@ -172,6 +177,11 @@ class PlatformDirsABC(ABC):
     def user_documents_path(self) -> Path:
         """:return: documents path tied to the user"""
         return Path(self.user_documents_dir)
+
+    @property
+    def user_pictures_path(self) -> Path:
+        """:return: pictures path tied to the user"""
+        return Path(self.user_pictures_dir)
 
     @property
     def user_runtime_path(self) -> Path:

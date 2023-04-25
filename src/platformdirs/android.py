@@ -73,6 +73,13 @@ class Android(PlatformDirsABC):
         return _android_documents_folder()
 
     @property
+    def user_pictures_dir(self) -> str:
+        """
+        :return: pictures directory tied to the user e.g. ``/storage/emulated/0/Pictures``
+        """
+        return _android_pictures_folder()
+
+    @property
     def user_runtime_dir(self) -> str:
         """
         :return: runtime directory tied to the user, same as `user_cache_dir` if not opinionated else ``tmp`` in it,
@@ -119,6 +126,22 @@ def _android_documents_folder() -> str:
         documents_dir = "/storage/emulated/0/Documents"
 
     return documents_dir
+
+
+@lru_cache(maxsize=1)
+def _android_pictures_folder() -> str:
+    """:return: pictures folder for the Android OS"""
+    # Get directories with pyjnius
+    try:
+        from jnius import autoclass
+
+        Context = autoclass("android.content.Context")  # noqa: N806
+        Environment = autoclass("android.os.Environment")  # noqa: N806
+        pictures_dir: str = Context.getExternalFilesDir(Environment.DIRECTORY_PICTURES).getAbsolutePath()
+    except Exception:
+        pictures_dir = "/storage/emulated/0/Pictures"
+
+    return pictures_dir
 
 
 __all__ = [
