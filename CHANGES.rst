@@ -1,9 +1,13 @@
 platformdirs Changelog
 ======================
 
+platformdirs 3.3.0 (2023-04-25)
+-------------------------------
+- introduce user_pictures_dir()
+
 platformdirs 3.2.0 (2023-03-25)
 -------------------------------
-- add auto create directories option
+- add auto create directories optional
 
 platformdirs 3.1.1 (2023-03-10)
 -------------------------------
