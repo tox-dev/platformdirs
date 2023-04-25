@@ -47,6 +47,40 @@ def test_user_documents_dir_default(mocker: MockerFixture) -> None:
     assert Unix().user_documents_dir == "/home/example/Documents"
 
 
+def test_user_pictures_dir(mocker: MockerFixture) -> None:
+    example_path = "/home/example/ExamplePicturesFolder"
+    mock = mocker.patch("platformdirs.unix._get_user_dirs_folder")
+    mock.return_value = example_path
+    assert Unix().user_pictures_dir == example_path
+
+
+def test_user_pictures_dir_env_var(mocker: MockerFixture) -> None:
+    # Mock pictures dir not being in user-dirs.dirs file
+    mock = mocker.patch("platformdirs.unix._get_user_dirs_folder")
+    mock.return_value = None
+
+    example_path = "/home/example/ExamplePicturesFolder"
+    mocker.patch.dict(os.environ, {"XDG_PICTURES_DIR": example_path})
+
+    assert Unix().user_pictures_dir == example_path
+
+
+def test_user_pictures_dir_default(mocker: MockerFixture) -> None:
+    # Mock pictures dir not being in user-dirs.dirs file
+    mock = mocker.patch("platformdirs.unix._get_user_dirs_folder")
+    mock.return_value = None
+
+    # Mock no XDG_PICTURES_DIR env variable being set
+    mocker.patch.dict(os.environ, {"XDG_PICTURES_DIR": ""})
+
+    # Mock home directory
+    mocker.patch.dict(os.environ, {"HOME": "/home/example"})
+    # Mock home directory for running the test on Windows
+    mocker.patch.dict(os.environ, {"USERPROFILE": "/home/example"})
+
+    assert Unix().user_pictures_dir == "/home/example/Pictures"
+
+
 class XDGVariable(typing.NamedTuple):
     name: str
     default_value: str

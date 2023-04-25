@@ -127,13 +127,14 @@ class Unix(PlatformDirsABC):
         """
         :return: documents directory tied to the user, e.g. ``~/Documents``
         """
-        documents_dir = _get_user_dirs_folder("XDG_DOCUMENTS_DIR")
-        if documents_dir is None:
-            documents_dir = os.environ.get("XDG_DOCUMENTS_DIR", "").strip()
-            if not documents_dir:
-                documents_dir = os.path.expanduser("~/Documents")
+        return _get_user_media_dir("XDG_DOCUMENTS_DIR", "~/Documents")
 
-        return documents_dir
+    @property
+    def user_pictures_dir(self) -> str:
+        """
+        :return: pictures directory tied to the user, e.g. ``~/Pictures``
+        """
+        return _get_user_media_dir("XDG_PICTURES_DIR", "~/Pictures")
 
     @property
     def user_runtime_dir(self) -> str:
@@ -166,6 +167,16 @@ class Unix(PlatformDirsABC):
             # If multipath is True, the first path is returned.
             directory = directory.split(os.pathsep)[0]
         return Path(directory)
+
+
+def _get_user_media_dir(env_var: str, fallback_tilde_path: str) -> str:
+    media_dir = _get_user_dirs_folder(env_var)
+    if media_dir is None:
+        media_dir = os.environ.get(env_var, "").strip()
+        if not media_dir:
+            media_dir = os.path.expanduser(fallback_tilde_path)
+
+    return media_dir
 
 
 def _get_user_dirs_folder(key: str) -> str | None:
