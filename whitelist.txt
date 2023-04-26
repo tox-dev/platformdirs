@@ -7,6 +7,7 @@ autosectionlabel
 buf
 buf2
 csidl
+dcim
 delenv
 getuid
 highbit

@@ -1,9 +1,13 @@
 platformdirs Changelog
 ======================
 
+platformdirs 3.4.0 (2023-04-26)
+-------------------------------
+- introduce ``user_videos_dir``
+
 platformdirs 3.3.0 (2023-04-25)
 -------------------------------
-- introduce user_pictures_dir()
+- introduce ``user_pictures_dir``
 
 platformdirs 3.2.0 (2023-03-25)
 -------------------------------
