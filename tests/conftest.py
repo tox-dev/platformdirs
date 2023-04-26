@@ -13,6 +13,7 @@ PROPS = (
     "user_log_dir",
     "user_documents_dir",
     "user_pictures_dir",
+    "user_videos_dir",
     "user_runtime_dir",
     "site_data_dir",
     "site_config_dir",

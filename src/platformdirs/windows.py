@@ -109,6 +109,13 @@ class Windows(PlatformDirsABC):
         return os.path.normpath(get_win_folder("CSIDL_MYPICTURES"))
 
     @property
+    def user_videos_dir(self) -> str:
+        """
+        :return: videos directory tied to the user e.g. ``%USERPROFILE%\\Videos``
+        """
+        return os.path.normpath(get_win_folder("CSIDL_MYVIDEO"))
+
+    @property
     def user_runtime_dir(self) -> str:
         """
         :return: runtime directory tied to the user, e.g.
@@ -125,6 +132,9 @@ def get_win_folder_from_env_vars(csidl_name: str) -> str:
 
     if csidl_name == "CSIDL_MYPICTURES":  # does not have an environment name
         return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Pictures")
+
+    if csidl_name == "CSIDL_MYVIDEO":  # does not have an environment name
+        return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Videos")
 
     env_var_name = {
         "CSIDL_APPDATA": "APPDATA",
@@ -152,6 +162,7 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
         "CSIDL_LOCAL_APPDATA": "Local AppData",
         "CSIDL_PERSONAL": "Personal",
         "CSIDL_MYPICTURES": "My Pictures",
+        "CSIDL_MYVIDEO": "My Video",
     }.get(csidl_name)
     if shell_folder_name is None:
         raise ValueError(f"Unknown CSIDL name: {csidl_name}")
@@ -172,6 +183,7 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
         "CSIDL_LOCAL_APPDATA": 28,
         "CSIDL_PERSONAL": 5,
         "CSIDL_MYPICTURES": 39,
+        "CSIDL_MYVIDEO": 14,
     }.get(csidl_name)
     if csidl_const is None:
         raise ValueError(f"Unknown CSIDL name: {csidl_name}")
