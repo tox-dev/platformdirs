@@ -22,7 +22,7 @@ def test_user_media_dir(mocker: MockerFixture, prop: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "env_var,prop",
+    ("env_var", "prop"),
     [
         pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", id="user_documents_dir"),
         pytest.param("XDG_PICTURES_DIR", "user_pictures_dir", id="user_pictures_dir"),
@@ -41,7 +41,7 @@ def test_user_media_dir_env_var(mocker: MockerFixture, env_var: str, prop: str) 
 
 
 @pytest.mark.parametrize(
-    "env_var,prop,default_abs_path",
+    ("env_var", "prop", "default_abs_path"),
     [
         pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", "/home/example/Documents", id="user_documents_dir"),
         pytest.param("XDG_PICTURES_DIR", "user_pictures_dir", "/home/example/Pictures", id="user_pictures_dir"),
