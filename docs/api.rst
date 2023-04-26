@@ -74,34 +74,18 @@ Shared cache directory
 Platforms
 ~~~~~~~~~
 
-PlatformDirs
-------------
-
-Convenience shortcut that returns the appropriate Platform class for the current operating system.
-See ``platformdirs.api.PlatformDirsABC`` for available members.
-
-To get all directories tied to an app::
-
-    >>> from platformdirs import PlatformDirs
-    >>> dirs = PlatformDirs(appname="SuperApp", appauthor="Acme")
-    >>> dirs.user_data_dir
-    '/Users/trentm/Library/Application Support/SuperApp'
-    >>> dirs.site_data_dir
-    '/Library/Application Support/SuperApp'
-    >>> dirs.user_cache_dir
-    '/Users/trentm/Library/Caches/SuperApp'
-    >>> dirs.user_log_dir
-    '/Users/trentm/Library/Logs/SuperApp'
-    >>> dirs.user_documents_dir
-    '/Users/trentm/Documents'
-    >>> dirs.user_runtime_dir
-    '/Users/trentm/Library/Caches/TemporaryItems/SuperApp'
-
 ABC
 ---
 .. autoclass:: platformdirs.api.PlatformDirsABC
    :members:
    :special-members: __init__
+
+PlatformDirs
+------------
+
+.. autoclass:: platformdirs.PlatformDirs
+   :members:
+   :show-inheritance:
 
 Android
 -------
