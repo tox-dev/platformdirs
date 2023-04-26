@@ -65,6 +65,11 @@ class MacOS(PlatformDirsABC):
         return os.path.expanduser("~/Pictures")
 
     @property
+    def user_videos_dir(self) -> str:
+        """:return: videos directory tied to the user, e.g. ``~/Movies``"""
+        return os.path.expanduser("~/Movies")
+
+    @property
     def user_runtime_dir(self) -> str:
         """:return: runtime directory tied to the user, e.g. ``~/Library/Caches/TemporaryItems/$appname/$version``"""
         return self._append_app_name_and_version(os.path.expanduser("~/Library/Caches/TemporaryItems"))
