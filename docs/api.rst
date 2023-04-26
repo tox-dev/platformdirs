@@ -80,6 +80,13 @@ ABC
    :members:
    :special-members: __init__
 
+PlatformDirs
+------------
+
+.. autoclass:: platformdirs.PlatformDirs
+   :members:
+   :show-inheritance:
+
 Android
 -------
 .. autoclass:: platformdirs.android.Android
