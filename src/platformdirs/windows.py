@@ -116,6 +116,13 @@ class Windows(PlatformDirsABC):
         return os.path.normpath(get_win_folder("CSIDL_MYVIDEO"))
 
     @property
+    def user_music_dir(self) -> str:
+        """
+        :return: music directory tied to the user e.g. ``%USERPROFILE%\\Music``
+        """
+        return os.path.normpath(get_win_folder("CSIDL_MYMUSIC"))
+
+    @property
     def user_runtime_dir(self) -> str:
         """
         :return: runtime directory tied to the user, e.g.
@@ -127,14 +134,9 @@ class Windows(PlatformDirsABC):
 
 def get_win_folder_from_env_vars(csidl_name: str) -> str:
     """Get folder from environment variables."""
-    if csidl_name == "CSIDL_PERSONAL":  # does not have an environment name
-        return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Documents")
-
-    if csidl_name == "CSIDL_MYPICTURES":  # does not have an environment name
-        return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Pictures")
-
-    if csidl_name == "CSIDL_MYVIDEO":  # does not have an environment name
-        return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Videos")
+    result = get_win_folder_if_csidl_name_not_env_var(csidl_name)
+    if result is not None:
+        return result
 
     env_var_name = {
         "CSIDL_APPDATA": "APPDATA",
@@ -147,6 +149,22 @@ def get_win_folder_from_env_vars(csidl_name: str) -> str:
     if result is None:
         raise ValueError(f"Unset environment variable: {env_var_name}")
     return result
+
+
+def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
+    """Get folder for a CSIDL name that does not exist as an environment variable."""
+    if csidl_name == "CSIDL_PERSONAL":
+        return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Documents")
+
+    if csidl_name == "CSIDL_MYPICTURES":
+        return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Pictures")
+
+    if csidl_name == "CSIDL_MYVIDEO":
+        return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Videos")
+
+    if csidl_name == "CSIDL_MYMUSIC":
+        return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Music")
+    return None
 
 
 def get_win_folder_from_registry(csidl_name: str) -> str:
@@ -163,6 +181,7 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
         "CSIDL_PERSONAL": "Personal",
         "CSIDL_MYPICTURES": "My Pictures",
         "CSIDL_MYVIDEO": "My Video",
+        "CSIDL_MYMUSIC": "My Music",
     }.get(csidl_name)
     if shell_folder_name is None:
         raise ValueError(f"Unknown CSIDL name: {csidl_name}")
@@ -184,6 +203,7 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
         "CSIDL_PERSONAL": 5,
         "CSIDL_MYPICTURES": 39,
         "CSIDL_MYVIDEO": 14,
+        "CSIDL_MYMUSIC": 13,
     }.get(csidl_name)
     if csidl_const is None:
         raise ValueError(f"Unknown CSIDL name: {csidl_name}")

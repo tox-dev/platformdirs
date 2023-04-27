@@ -135,6 +135,11 @@ class PlatformDirsABC(ABC):
 
     @property
     @abstractmethod
+    def user_music_dir(self) -> str:
+        """:return: music directory tied to the user"""
+
+    @property
+    @abstractmethod
     def user_runtime_dir(self) -> str:
         """:return: runtime directory tied to the user"""
 
@@ -192,6 +197,11 @@ class PlatformDirsABC(ABC):
     def user_videos_path(self) -> Path:
         """:return: videos path tied to the user"""
         return Path(self.user_videos_dir)
+
+    @property
+    def user_music_path(self) -> Path:
+        """:return: music path tied to the user"""
+        return Path(self.user_music_dir)
 
     @property
     def user_runtime_path(self) -> Path:

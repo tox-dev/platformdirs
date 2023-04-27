@@ -257,6 +257,13 @@ def user_videos_dir() -> str:
     return PlatformDirs().user_videos_dir
 
 
+def user_music_dir() -> str:
+    """
+    :returns: music directory tied to the user
+    """
+    return PlatformDirs().user_music_dir
+
+
 def user_runtime_dir(
     appname: str | None = None,
     appauthor: str | None | Literal[False] = None,
@@ -494,6 +501,13 @@ def user_videos_path() -> Path:
     return PlatformDirs().user_videos_path
 
 
+def user_music_path() -> Path:
+    """
+    :returns: music path tied to the user
+    """
+    return PlatformDirs().user_music_path
+
+
 def user_runtime_path(
     appname: str | None = None,
     appauthor: str | None | Literal[False] = None,
@@ -532,6 +546,7 @@ __all__ = [
     "user_documents_dir",
     "user_pictures_dir",
     "user_videos_dir",
+    "user_music_dir",
     "user_runtime_dir",
     "site_data_dir",
     "site_config_dir",
@@ -544,6 +559,7 @@ __all__ = [
     "user_documents_path",
     "user_pictures_path",
     "user_videos_path",
+    "user_music_path",
     "user_runtime_path",
     "site_data_path",
     "site_config_path",
