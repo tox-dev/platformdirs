@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 3.5.0 (2023-04-27)
+-------------------------------
+- introduce ``user_music_dir``
+
 platformdirs 3.4.0 (2023-04-26)
 -------------------------------
 - introduce ``user_videos_dir``
