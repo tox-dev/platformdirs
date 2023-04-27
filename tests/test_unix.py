@@ -13,7 +13,7 @@ from pytest_mock import MockerFixture
 from platformdirs.unix import Unix
 
 
-@pytest.mark.parametrize("prop", ["user_documents_dir", "user_pictures_dir", "user_videos_dir"])
+@pytest.mark.parametrize("prop", ["user_documents_dir", "user_pictures_dir", "user_videos_dir", "user_music_dir"])
 def test_user_media_dir(mocker: MockerFixture, prop: str) -> None:
     example_path = "/home/example/ExampleMediaFolder"
     mock = mocker.patch("platformdirs.unix._get_user_dirs_folder")
@@ -27,6 +27,7 @@ def test_user_media_dir(mocker: MockerFixture, prop: str) -> None:
         pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", id="user_documents_dir"),
         pytest.param("XDG_PICTURES_DIR", "user_pictures_dir", id="user_pictures_dir"),
         pytest.param("XDG_VIDEOS_DIR", "user_videos_dir", id="user_videos_dir"),
+        pytest.param("XDG_MUSIC_DIR", "user_music_dir", id="user_music_dir"),
     ],
 )
 def test_user_media_dir_env_var(mocker: MockerFixture, env_var: str, prop: str) -> None:
@@ -46,6 +47,7 @@ def test_user_media_dir_env_var(mocker: MockerFixture, env_var: str, prop: str) 
         pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", "/home/example/Documents", id="user_documents_dir"),
         pytest.param("XDG_PICTURES_DIR", "user_pictures_dir", "/home/example/Pictures", id="user_pictures_dir"),
         pytest.param("XDG_VIDEOS_DIR", "user_videos_dir", "/home/example/Videos", id="user_videos_dir"),
+        pytest.param("XDG_MUSIC_DIR", "user_music_dir", "/home/example/Music", id="user_music_dir"),
     ],
 )
 def test_user_media_dir_default(mocker: MockerFixture, env_var: str, prop: str, default_abs_path: str) -> None:

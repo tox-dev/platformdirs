@@ -144,6 +144,13 @@ class Unix(PlatformDirsABC):
         return _get_user_media_dir("XDG_VIDEOS_DIR", "~/Videos")
 
     @property
+    def user_music_dir(self) -> str:
+        """
+        :return: music directory tied to the user, e.g. ``~/Music``
+        """
+        return _get_user_media_dir("XDG_MUSIC_DIR", "~/Music")
+
+    @property
     def user_runtime_dir(self) -> str:
         """
         :return: runtime directory tied to the user, e.g. ``/run/user/$(id -u)/$appname/$version`` or
