@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .api import PlatformDirsABC
 
-if sys.platform.startswith("linux"):  # pragma: no branch # no op check, only to please the type checker
+if sys.platform.startswith("linux") or sys.platform == "sunos5":  # pragma: no branch # no op check, only to please the type checker
     from os import getuid
 else:
 
