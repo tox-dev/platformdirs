@@ -14,7 +14,7 @@ if (
 else:
 
     def getuid() -> int:
-        raise RuntimeError("should only be used on Linux/Unix")
+        raise RuntimeError("should only be used on Unix")
 
 
 class Unix(PlatformDirsABC):
