@@ -68,7 +68,7 @@ urls.Tracker = "https://github.com/platformdirs/platformdirs/issues"
 
 [tool.hatch]
 build.hooks.vcs.version-file = "src/platformdirs/version.py"
-build.targets.sdist.include = ["/src", "/tests"]
+build.targets.sdist.include = ["/src", "/tests", "/tox.ini"]
 version.source = "vcs"
 
 [tool.black]
