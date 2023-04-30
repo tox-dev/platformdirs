@@ -128,7 +128,7 @@ def test_xdg_variable_custom_value(monkeypatch: MonkeyPatch, dirs_instance: Unix
     assert result == "/tmp/custom-dir"
 
 
-def test_platform_non_linux_unix(monkeypatch: MonkeyPatch) -> None:
+def test_platform_non_unix(monkeypatch: MonkeyPatch) -> None:
     from platformdirs import unix
 
     try:
@@ -136,7 +136,7 @@ def test_platform_non_linux_unix(monkeypatch: MonkeyPatch) -> None:
             context.setattr(sys, "platform", "magic")
             monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
             importlib.reload(unix)
-        with pytest.raises(RuntimeError, match="should only be used on Linux/Unix"):
+        with pytest.raises(RuntimeError, match="should only be used on Unix"):
             unix.Unix().user_runtime_dir
     finally:
         importlib.reload(unix)
