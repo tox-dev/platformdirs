@@ -12,7 +12,7 @@ For example, if running on macOS, you should use::
 
     ~/Library/Application Support/<AppName>
 
-If on Windows (at least English Win XP) that should be::
+If on Windows (at least English Win) that should be::
 
     C:\Documents and Settings\<User>\Application Data\Local Settings\<AppAuthor>\<AppName>
 
@@ -71,7 +71,7 @@ On macOS:
     >>> user_runtime_dir(appname, appauthor)
     '/Users/trentm/Library/Caches/TemporaryItems/SuperApp'
 
-On Windows 7:
+On Windows:
 
 .. code-block:: pycon
 
