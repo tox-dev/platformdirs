@@ -1,20 +1,18 @@
 from __future__ import annotations
 
 import os
-import sys
 from configparser import ConfigParser
 from pathlib import Path
 
 from .api import PlatformDirsABC
 
-if (
-    sys.platform.startswith("linux") or sys.platform == "sunos5"
-):  # pragma: no branch # no op check, only to please the type checker
-    from os import getuid
-else:
 
-    def getuid() -> int:
+def getuid() -> int:
+    try:
+        from os import getuid
+    except ImportError:
         raise RuntimeError("should only be used on Unix")
+    return getuid()
 
 
 class Unix(PlatformDirsABC):

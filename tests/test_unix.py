@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import importlib
 import os
 import sys
 import typing
@@ -10,6 +9,7 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from pytest_mock import MockerFixture
 
+from platformdirs import unix
 from platformdirs.unix import Unix
 
 
@@ -92,7 +92,7 @@ def dirs_instance() -> Unix:
 
 @pytest.fixture()
 def _getuid(mocker: MockerFixture) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=1234)
+    mocker.patch("os.getuid", return_value=1234)
 
 
 @pytest.mark.usefixtures("_getuid")
@@ -128,18 +128,11 @@ def test_xdg_variable_custom_value(monkeypatch: MonkeyPatch, dirs_instance: Unix
     assert result == "/tmp/custom-dir"
 
 
-def test_platform_non_unix(monkeypatch: MonkeyPatch) -> None:
-    from platformdirs import unix
-
-    try:
-        with monkeypatch.context() as context:
-            context.setattr(sys, "platform", "magic")
-            monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
-            importlib.reload(unix)
-        with pytest.raises(RuntimeError, match="should only be used on Unix"):
-            unix.Unix().user_runtime_dir
-    finally:
-        importlib.reload(unix)
+def test_platform_non_unix(monkeypatch: MonkeyPatch, mocker: MockerFixture) -> None:
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    mocker.patch.dict(sys.modules, {"os": None})
+    with pytest.raises(RuntimeError, match="should only be used on Unix"):
+        unix.Unix().user_runtime_dir
 
 
 def test_ensure_exists_creates_folder(mocker: MockerFixture, tmp_path: Path) -> None:

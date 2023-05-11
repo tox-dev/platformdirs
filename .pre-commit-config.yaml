@@ -17,7 +17,7 @@ repos:
       - id: add-trailing-comma
         args: [--py36-plus]
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.2
+    rev: v3.4.0
     hooks:
       - id: pyupgrade
         args: ["--py37-plus"]
@@ -44,6 +44,11 @@ repos:
     hooks:
       - id: tox-ini-fmt
         args: ["-p", "fix"]
+  - repo: https://github.com/tox-dev/pyproject-fmt
+    rev: "0.11.2"
+    hooks:
+      - id: pyproject-fmt
+        additional_dependencies: [tox>=4.5.1]
   - repo: https://github.com/PyCQA/flake8
     rev: 6.0.0
     hooks:
@@ -66,14 +71,10 @@ repos:
           - "@prettier/plugin-xml@2.2"
         args: ["--print-width=120", "--prose-wrap=always"]
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.33.0
+    rev: v0.34.0
     hooks:
       - id: markdownlint
   - repo: meta
     hooks:
       - id: check-hooks-apply
       - id: check-useless-excludes
-  - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "0.10.0"
-    hooks:
-      - id: pyproject-fmt
