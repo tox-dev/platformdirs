@@ -7,14 +7,13 @@ from pathlib import Path
 
 from .api import PlatformDirsABC
 
-if (
-    sys.platform.startswith("linux") or sys.platform == "sunos5"
-):  # pragma: no branch # no op check, only to please the type checker
-    from os import getuid
-else:
+if sys.platform == "win32":
 
     def getuid() -> int:
         raise RuntimeError("should only be used on Unix")
+
+else:
+    from os import getuid
 
 
 class Unix(PlatformDirsABC):

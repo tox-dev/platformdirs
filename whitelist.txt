@@ -25,5 +25,6 @@ setenv
 shell32
 typehints
 usefixtures
+win32
 winreg
 xdg
