@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import pytest
-from _pytest.fixtures import SubRequest
+
+if TYPE_CHECKING:
+    from _pytest.fixtures import SubRequest
 
 PROPS = (
     "user_data_dir",

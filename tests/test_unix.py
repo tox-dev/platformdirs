@@ -4,14 +4,16 @@ import importlib
 import os
 import sys
 import typing
-from pathlib import Path
 
 import pytest
-from _pytest.monkeypatch import MonkeyPatch
-from pytest_mock import MockerFixture
 
 from platformdirs import unix
 from platformdirs.unix import Unix
+
+if typing.TYPE_CHECKING:
+    from pathlib import Path
+
+    from pytest_mock import MockerFixture
 
 
 @pytest.mark.parametrize("prop", ["user_documents_dir", "user_pictures_dir", "user_videos_dir", "user_music_dir"])
@@ -97,46 +99,46 @@ def _getuid(mocker: MockerFixture) -> None:
 
 
 @pytest.mark.usefixtures("_getuid")
-def test_xdg_variable_not_set(monkeypatch: MonkeyPatch, dirs_instance: Unix, func: str) -> None:
+def test_xdg_variable_not_set(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
     xdg_variable = _func_to_path(func)
     if xdg_variable is None:
         return
 
     monkeypatch.delenv(xdg_variable.name, raising=False)
     result = getattr(dirs_instance, func)
-    assert result == os.path.expanduser(xdg_variable.default_value)
+    assert result == os.path.expanduser(xdg_variable.default_value)  # noqa: PTH111
 
 
 @pytest.mark.usefixtures("_getuid")
-def test_xdg_variable_empty_value(monkeypatch: MonkeyPatch, dirs_instance: Unix, func: str) -> None:
+def test_xdg_variable_empty_value(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
     xdg_variable = _func_to_path(func)
     if xdg_variable is None:
         return
 
     monkeypatch.setenv(xdg_variable.name, "")
     result = getattr(dirs_instance, func)
-    assert result == os.path.expanduser(xdg_variable.default_value)
+    assert result == os.path.expanduser(xdg_variable.default_value)  # noqa: PTH111
 
 
 @pytest.mark.usefixtures("_getuid")
-def test_xdg_variable_custom_value(monkeypatch: MonkeyPatch, dirs_instance: Unix, func: str) -> None:
+def test_xdg_variable_custom_value(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
     xdg_variable = _func_to_path(func)
     if xdg_variable is None:
         return
 
-    monkeypatch.setenv(xdg_variable.name, "/tmp/custom-dir")
+    monkeypatch.setenv(xdg_variable.name, "/custom-dir")
     result = getattr(dirs_instance, func)
-    assert result == "/tmp/custom-dir"
+    assert result == "/custom-dir"
 
 
-def test_platform_on_win32(monkeypatch: MonkeyPatch, mocker: MockerFixture) -> None:
+def test_platform_on_win32(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> None:
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     mocker.patch("sys.platform", "win32")
     prev_unix = unix
     importlib.reload(unix)
     try:
         with pytest.raises(RuntimeError, match="should only be used on Unix"):
-            unix.Unix().user_runtime_dir
+            unix.Unix().user_runtime_dir  # noqa: B018
     finally:
         sys.modules["platformdirs.unix"] = prev_unix
 

@@ -1,3 +1,4 @@
+"""Android."""
 from __future__ import annotations
 
 import os
@@ -30,7 +31,8 @@ class Android(PlatformDirsABC):
     @property
     def user_config_dir(self) -> str:
         """
-        :return: config directory tied to the user, e.g. ``/data/user/<userid>/<packagename>/shared_prefs/<AppName>``
+        :return: config directory tied to the user, e.g. \
+        ``/data/user/<userid>/<packagename>/shared_prefs/<AppName>``
         """
         return self._append_app_name_and_version(cast(str, _android_folder()), "shared_prefs")
 
@@ -62,35 +64,27 @@ class Android(PlatformDirsABC):
         """
         path = self.user_cache_dir
         if self.opinion:
-            path = os.path.join(path, "log")
+            path = os.path.join(path, "log")  # noqa: PTH118
         return path
 
     @property
     def user_documents_dir(self) -> str:
-        """
-        :return: documents directory tied to the user e.g. ``/storage/emulated/0/Documents``
-        """
+        """:return: documents directory tied to the user e.g. ``/storage/emulated/0/Documents``"""
         return _android_documents_folder()
 
     @property
     def user_pictures_dir(self) -> str:
-        """
-        :return: pictures directory tied to the user e.g. ``/storage/emulated/0/Pictures``
-        """
+        """:return: pictures directory tied to the user e.g. ``/storage/emulated/0/Pictures``"""
         return _android_pictures_folder()
 
     @property
     def user_videos_dir(self) -> str:
-        """
-        :return: videos directory tied to the user e.g. ``/storage/emulated/0/DCIM/Camera``
-        """
+        """:return: videos directory tied to the user e.g. ``/storage/emulated/0/DCIM/Camera``"""
         return _android_videos_folder()
 
     @property
     def user_music_dir(self) -> str:
-        """
-        :return: music directory tied to the user e.g. ``/storage/emulated/0/Music``
-        """
+        """:return: music directory tied to the user e.g. ``/storage/emulated/0/Music``"""
         return _android_music_folder()
 
     @property
@@ -101,20 +95,20 @@ class Android(PlatformDirsABC):
         """
         path = self.user_cache_dir
         if self.opinion:
-            path = os.path.join(path, "tmp")
+            path = os.path.join(path, "tmp")  # noqa: PTH118
         return path
 
 
 @lru_cache(maxsize=1)
 def _android_folder() -> str | None:
-    """:return: base folder for the Android OS or None if cannot be found"""
+    """:return: base folder for the Android OS or None if it cannot be found"""
     try:
         # First try to get path to android app via pyjnius
         from jnius import autoclass
 
-        Context = autoclass("android.content.Context")  # noqa: N806
-        result: str | None = Context.getFilesDir().getParentFile().getAbsolutePath()
-    except Exception:
+        context = autoclass("android.content.Context")
+        result: str | None = context.getFilesDir().getParentFile().getAbsolutePath()
+    except Exception:  # noqa: BLE001
         # if fails find an android folder looking path on the sys.path
         pattern = re.compile(r"/data/(data|user/\d+)/(.+)/files")
         for path in sys.path:
@@ -133,10 +127,10 @@ def _android_documents_folder() -> str:
     try:
         from jnius import autoclass
 
-        Context = autoclass("android.content.Context")  # noqa: N806
-        Environment = autoclass("android.os.Environment")  # noqa: N806
-        documents_dir: str = Context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath()
-    except Exception:
+        context = autoclass("android.content.Context")
+        environment = autoclass("android.os.Environment")
+        documents_dir: str = context.getExternalFilesDir(environment.DIRECTORY_DOCUMENTS).getAbsolutePath()
+    except Exception:  # noqa: BLE001
         documents_dir = "/storage/emulated/0/Documents"
 
     return documents_dir
@@ -149,10 +143,10 @@ def _android_pictures_folder() -> str:
     try:
         from jnius import autoclass
 
-        Context = autoclass("android.content.Context")  # noqa: N806
-        Environment = autoclass("android.os.Environment")  # noqa: N806
-        pictures_dir: str = Context.getExternalFilesDir(Environment.DIRECTORY_PICTURES).getAbsolutePath()
-    except Exception:
+        context = autoclass("android.content.Context")
+        environment = autoclass("android.os.Environment")
+        pictures_dir: str = context.getExternalFilesDir(environment.DIRECTORY_PICTURES).getAbsolutePath()
+    except Exception:  # noqa: BLE001
         pictures_dir = "/storage/emulated/0/Pictures"
 
     return pictures_dir
@@ -165,10 +159,10 @@ def _android_videos_folder() -> str:
     try:
         from jnius import autoclass
 
-        Context = autoclass("android.content.Context")  # noqa: N806
-        Environment = autoclass("android.os.Environment")  # noqa: N806
-        videos_dir: str = Context.getExternalFilesDir(Environment.DIRECTORY_DCIM).getAbsolutePath()
-    except Exception:
+        context = autoclass("android.content.Context")
+        environment = autoclass("android.os.Environment")
+        videos_dir: str = context.getExternalFilesDir(environment.DIRECTORY_DCIM).getAbsolutePath()
+    except Exception:  # noqa: BLE001
         videos_dir = "/storage/emulated/0/DCIM/Camera"
 
     return videos_dir
@@ -181,10 +175,10 @@ def _android_music_folder() -> str:
     try:
         from jnius import autoclass
 
-        Context = autoclass("android.content.Context")  # noqa: N806
-        Environment = autoclass("android.os.Environment")  # noqa: N806
-        music_dir: str = Context.getExternalFilesDir(Environment.DIRECTORY_MUSIC).getAbsolutePath()
-    except Exception:
+        context = autoclass("android.content.Context")
+        environment = autoclass("android.os.Environment")
+        music_dir: str = context.getExternalFilesDir(environment.DIRECTORY_MUSIC).getAbsolutePath()
+    except Exception:  # noqa: BLE001
         music_dir = "/storage/emulated/0/Music"
 
     return music_dir

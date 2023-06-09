@@ -19,9 +19,9 @@ from platformdirs.macos import MacOS
 def test_macos(params: dict[str, Any], func: str) -> None:
     result = getattr(MacOS(**params), func)
 
-    home = os.path.expanduser("~")
+    home = os.path.expanduser("~")  # noqa: PTH111
     suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-    suffix = os.sep.join(("",) + suffix_elements) if suffix_elements else ""
+    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""
 
     expected_map = {
         "user_data_dir": f"{home}/Library/Application Support{suffix}",

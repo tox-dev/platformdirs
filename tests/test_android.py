@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import sys
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
 
 import pytest
-from _pytest.monkeypatch import MonkeyPatch
-from pytest_mock import MockerFixture
 
 from platformdirs.android import Android
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 @pytest.mark.parametrize(
@@ -42,6 +43,7 @@ def test_android(mocker: MockerFixture, params: dict[str, Any], func: str) -> No
         suffix_elements.insert(0, "")
     suffix = "/".join(suffix_elements)
 
+    val = "/tmp"  # noqa: S108
     expected_map = {
         "user_data_dir": f"/data/data/com.example/files{suffix}",
         "site_data_dir": f"/data/data/com.example/files{suffix}",
@@ -55,7 +57,7 @@ def test_android(mocker: MockerFixture, params: dict[str, Any], func: str) -> No
         "user_pictures_dir": "/storage/emulated/0/Pictures",
         "user_videos_dir": "/storage/emulated/0/DCIM/Camera",
         "user_music_dir": "/storage/emulated/0/Music",
-        "user_runtime_dir": f"/data/data/com.example/cache{suffix}{'' if not params.get('opinion', True) else '/tmp'}",
+        "user_runtime_dir": f"/data/data/com.example/cache{suffix}{'' if not params.get('opinion', True) else val}",
     }
     expected = expected_map[func]
 
@@ -95,7 +97,7 @@ def test_android_folder_from_jnius(mocker: MockerFixture) -> None:
         "/data/data/a/files",
     ],
 )
-def test_android_folder_from_sys_path(mocker: MockerFixture, path: str, monkeypatch: MonkeyPatch) -> None:
+def test_android_folder_from_sys_path(mocker: MockerFixture, path: str, monkeypatch: pytest.MonkeyPatch) -> None:
     mocker.patch.dict(sys.modules, {"jnius": MagicMock(autoclass=MagicMock(side_effect=ModuleNotFoundError))})
 
     from platformdirs.android import _android_folder
@@ -107,7 +109,7 @@ def test_android_folder_from_sys_path(mocker: MockerFixture, path: str, monkeypa
     assert result == path[: -len("/files")]
 
 
-def test_android_folder_not_found(mocker: MockerFixture, monkeypatch: MonkeyPatch) -> None:
+def test_android_folder_not_found(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch) -> None:
     mocker.patch.dict(sys.modules, {"jnius": MagicMock(autoclass=MagicMock(side_effect=ModuleNotFoundError))})
 
     from platformdirs.android import _android_folder
