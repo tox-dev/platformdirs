@@ -1,29 +1,33 @@
+"""Base API."""
 from __future__ import annotations
 
 import os
-import sys
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-if sys.version_info >= (3, 8):  # pragma: no branch
-    from typing import Literal  # pragma: no cover
+if TYPE_CHECKING:
+    import sys
+
+    if sys.version_info >= (3, 8):  # pragma: no cover (py38+)
+        from typing import Literal
+    else:  # pragma: no cover (py38+)
+        from typing_extensions import Literal
 
 
 class PlatformDirsABC(ABC):
-    """
-    Abstract base class for platform directories.
-    """
+    """Abstract base class for platform directories."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         appname: str | None = None,
         appauthor: str | None | Literal[False] = None,
         version: str | None = None,
-        roaming: bool = False,
-        multipath: bool = False,
-        opinion: bool = True,
-        ensure_exists: bool = False,
-    ):
+        roaming: bool = False,  # noqa: FBT001, FBT002
+        multipath: bool = False,  # noqa: FBT001, FBT002
+        opinion: bool = True,  # noqa: FBT001, FBT002
+        ensure_exists: bool = False,  # noqa: FBT001, FBT002
+    ) -> None:
         """
         Create a new platform directory.
 
@@ -70,7 +74,7 @@ class PlatformDirsABC(ABC):
             params.append(self.appname)
             if self.version:
                 params.append(self.version)
-        path = os.path.join(base[0], *params)
+        path = os.path.join(base[0], *params)  # noqa: PTH118
         self._optionally_create_directory(path)
         return path
 

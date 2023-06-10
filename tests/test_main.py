@@ -8,7 +8,7 @@ from platformdirs.__main__ import PROPS
 
 
 def test_props_same_as_test(props: tuple[str, ...]) -> None:
-    assert PROPS == props
+    assert props == PROPS
 
 
 def test_run_as_module() -> None:
