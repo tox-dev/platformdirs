@@ -127,6 +127,11 @@ class Unix(PlatformDirsABC):
         return _get_user_media_dir("XDG_DOCUMENTS_DIR", "~/Documents")
 
     @property
+    def user_downloads_dir(self) -> str:
+        """:return: downloads directory tied to the user, e.g. ``~/Downloads``"""
+        return _get_user_media_dir("XDG_DOWNLOAD_DIR", "~/Downloads")
+
+    @property
     def user_pictures_dir(self) -> str:
         """:return: pictures directory tied to the user, e.g. ``~/Pictures``"""
         return _get_user_media_dir("XDG_PICTURES_DIR", "~/Pictures")

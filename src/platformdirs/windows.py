@@ -103,6 +103,11 @@ class Windows(PlatformDirsABC):
         return os.path.normpath(get_win_folder("CSIDL_PERSONAL"))
 
     @property
+    def user_downloads_dir(self) -> str:
+        """:return: downloads directory tied to the user e.g. ``%USERPROFILE%\\Downloads``"""
+        return os.path.normpath(get_win_folder("CSIDL_DOWNLOADS"))
+
+    @property
     def user_pictures_dir(self) -> str:
         """:return: pictures directory tied to the user e.g. ``%USERPROFILE%\\Pictures``"""
         return os.path.normpath(get_win_folder("CSIDL_MYPICTURES"))
@@ -153,6 +158,9 @@ def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
     if csidl_name == "CSIDL_PERSONAL":
         return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Documents")  # noqa: PTH118
 
+    if csidl_name == "CSIDL_DOWNLOADS":
+        return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Downloads")  # noqa: PTH118
+
     if csidl_name == "CSIDL_MYPICTURES":
         return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Pictures")  # noqa: PTH118
 
@@ -176,6 +184,7 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
         "CSIDL_COMMON_APPDATA": "Common AppData",
         "CSIDL_LOCAL_APPDATA": "Local AppData",
         "CSIDL_PERSONAL": "Personal",
+        "CSIDL_DOWNLOADS": "{374DE290-123F-4565-9164-39C4925E467B}",
         "CSIDL_MYPICTURES": "My Pictures",
         "CSIDL_MYVIDEO": "My Video",
         "CSIDL_MYMUSIC": "My Music",
@@ -194,6 +203,10 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
 
 def get_win_folder_via_ctypes(csidl_name: str) -> str:
     """Get folder with ctypes."""
+    # There is no 'CSIDL_DOWNLOADS'.
+    # Use 'CSIDL_PROFILE' (40) and append the default folder 'Downloads' instead.
+    # https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid
+
     csidl_const = {
         "CSIDL_APPDATA": 26,
         "CSIDL_COMMON_APPDATA": 35,
@@ -202,6 +215,7 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
         "CSIDL_MYPICTURES": 39,
         "CSIDL_MYVIDEO": 14,
         "CSIDL_MYMUSIC": 13,
+        "CSIDL_DOWNLOADS": 40,
     }.get(csidl_name)
     if csidl_const is None:
         msg = f"Unknown CSIDL name: {csidl_name}"
@@ -216,6 +230,9 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
         buf2 = ctypes.create_unicode_buffer(1024)
         if windll.kernel32.GetShortPathNameW(buf.value, buf2, 1024):
             buf = buf2
+
+    if csidl_name == "CSIDL_DOWNLOADS":
+        return os.path.join(buf.value, "Downloads")  # noqa: PTH118
 
     return buf.value
 

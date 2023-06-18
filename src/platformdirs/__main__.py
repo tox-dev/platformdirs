@@ -10,6 +10,7 @@ PROPS = (
     "user_state_dir",
     "user_log_dir",
     "user_documents_dir",
+    "user_downloads_dir",
     "user_pictures_dir",
     "user_videos_dir",
     "user_music_dir",

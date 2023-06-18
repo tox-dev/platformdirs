@@ -73,6 +73,11 @@ class Android(PlatformDirsABC):
         return _android_documents_folder()
 
     @property
+    def user_downloads_dir(self) -> str:
+        """:return: downloads directory tied to the user e.g. ``/storage/emulated/0/Downloads``"""
+        return _android_downloads_folder()
+
+    @property
     def user_pictures_dir(self) -> str:
         """:return: pictures directory tied to the user e.g. ``/storage/emulated/0/Pictures``"""
         return _android_pictures_folder()
@@ -134,6 +139,22 @@ def _android_documents_folder() -> str:
         documents_dir = "/storage/emulated/0/Documents"
 
     return documents_dir
+
+
+@lru_cache(maxsize=1)
+def _android_downloads_folder() -> str:
+    """:return: downloads folder for the Android OS"""
+    # Get directories with pyjnius
+    try:
+        from jnius import autoclass
+
+        context = autoclass("android.content.Context")
+        environment = autoclass("android.os.Environment")
+        downloads_dir: str = context.getExternalFilesDir(environment.DIRECTORY_DOWNLOADS).getAbsolutePath()
+    except Exception:  # noqa: BLE001
+        downloads_dir = "/storage/emulated/0/Downloads"
+
+    return downloads_dir
 
 
 @lru_cache(maxsize=1)

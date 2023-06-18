@@ -41,6 +41,7 @@ This kind of thing is what the ``platformdirs`` package is for.
 - site config dir (``site_config_dir``)
 - user log dir (``user_log_dir``)
 - user documents dir (``user_documents_dir``)
+- user downloads dir (``user_downloads_dir``)
 - user runtime dir (``user_runtime_dir``)
 
 And also:
@@ -68,6 +69,8 @@ On macOS:
     '/Users/trentm/Library/Logs/SuperApp'
     >>> user_documents_dir()
     '/Users/trentm/Documents'
+    >>> user_downloads_dir()
+    '/Users/trentm/Downloads'
     >>> user_runtime_dir(appname, appauthor)
     '/Users/trentm/Library/Caches/TemporaryItems/SuperApp'
 
@@ -88,6 +91,8 @@ On Windows:
     'C:\\Users\\trentm\\AppData\\Local\\Acme\\SuperApp\\Logs'
     >>> user_documents_dir()
     'C:\\Users\\trentm\\Documents'
+    >>> user_downloads_dir()
+    'C:\\Users\\trentm\\Downloads'
     >>> user_runtime_dir(appname, appauthor)
     'C:\\Users\\trentm\\AppData\\Local\\Temp\\Acme\\SuperApp'
 
@@ -112,6 +117,8 @@ On Linux:
     '/home/trentm/.config/SuperApp'
     >>> user_documents_dir()
     '/home/trentm/Documents'
+    >>> user_downloads_dir()
+    '/home/trentm/Downloads'
     >>> user_runtime_dir(appname, appauthor)
     '/run/user/{os.getuid()}/SuperApp'
     >>> site_config_dir(appname)
@@ -135,6 +142,8 @@ On Android::
     '/data/data/com.myApp/shared_prefs/SuperApp'
     >>> user_documents_dir()
     '/storage/emulated/0/Documents'
+    >>> user_downloads_dir()
+    '/storage/emulated/0/Downloads'
     >>> user_runtime_dir(appname, appauthor)
     '/data/data/com.myApp/cache/SuperApp/tmp'
 
@@ -162,6 +171,8 @@ apps also support ``XDG_*`` environment variables.
     '/Users/trentm/Library/Logs/SuperApp'
     >>> dirs.user_documents_dir
     '/Users/trentm/Documents'
+    >>> dirs.user_downloads_dir
+    '/Users/trentm/Downloads'
     >>> dirs.user_runtime_dir
     '/Users/trentm/Library/Caches/TemporaryItems/SuperApp'
 
@@ -184,6 +195,8 @@ dirs::
     '/Users/trentm/Library/Logs/SuperApp/1.0'
     >>> dirs.user_documents_dir
     '/Users/trentm/Documents'
+    >>> dirs.user_downloads_dir
+    '/Users/trentm/Downloads'
     >>> dirs.user_runtime_dir
     '/Users/trentm/Library/Caches/TemporaryItems/SuperApp/1.0'
 
