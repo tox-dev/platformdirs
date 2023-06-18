@@ -33,6 +33,7 @@ def test_macos(params: dict[str, Any], func: str) -> None:
         "user_state_dir": f"{home}/Library/Application Support{suffix}",
         "user_log_dir": f"{home}/Library/Logs{suffix}",
         "user_documents_dir": f"{home}/Documents",
+        "user_downloads_dir": f"{home}/Downloads",
         "user_pictures_dir": f"{home}/Pictures",
         "user_videos_dir": f"{home}/Movies",
         "user_music_dir": f"{home}/Music",

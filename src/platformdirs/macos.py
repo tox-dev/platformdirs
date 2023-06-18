@@ -61,6 +61,11 @@ class MacOS(PlatformDirsABC):
         return os.path.expanduser("~/Documents")  # noqa: PTH111
 
     @property
+    def user_downloads_dir(self) -> str:
+        """:return: downloads directory tied to the user, e.g. ``~/Downloads``"""
+        return os.path.expanduser("~/Downloads")  # noqa: PTH111
+
+    @property
     def user_pictures_dir(self) -> str:
         """:return: pictures directory tied to the user, e.g. ``~/Pictures``"""
         return os.path.expanduser("~/Pictures")  # noqa: PTH111

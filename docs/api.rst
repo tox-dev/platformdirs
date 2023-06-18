@@ -42,6 +42,12 @@ User documents directory
 .. autofunction:: platformdirs.user_documents_dir
 .. autofunction:: platformdirs.user_documents_path
 
+User downloads directory
+------------------------
+
+.. autofunction:: platformdirs.user_downloads_dir
+.. autofunction:: platformdirs.user_downloads_path
+
 Runtime directory
 -------------------
 

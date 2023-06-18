@@ -244,6 +244,11 @@ def user_documents_dir() -> str:
     return PlatformDirs().user_documents_dir
 
 
+def user_downloads_dir() -> str:
+    """:returns: downloads directory tied to the user"""
+    return PlatformDirs().user_downloads_dir
+
+
 def user_pictures_dir() -> str:
     """:returns: pictures directory tied to the user"""
     return PlatformDirs().user_pictures_dir
@@ -480,6 +485,11 @@ def user_documents_path() -> Path:
     return PlatformDirs().user_documents_path
 
 
+def user_downloads_path() -> Path:
+    """:returns: downloads path tied to the user"""
+    return PlatformDirs().user_downloads_path
+
+
 def user_pictures_path() -> Path:
     """:returns: pictures path tied to the user"""
     return PlatformDirs().user_pictures_path
@@ -531,6 +541,7 @@ __all__ = [
     "user_state_dir",
     "user_log_dir",
     "user_documents_dir",
+    "user_downloads_dir",
     "user_pictures_dir",
     "user_videos_dir",
     "user_music_dir",
@@ -544,6 +555,7 @@ __all__ = [
     "user_state_path",
     "user_log_path",
     "user_documents_path",
+    "user_downloads_path",
     "user_pictures_path",
     "user_videos_path",
     "user_music_path",
