@@ -232,9 +232,9 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
             buf = buf2
 
     if csidl_name == "CSIDL_DOWNLOADS":
-        return os.path.join(buf.value, "Downloads")
-    else:
-        return buf.value
+        return os.path.join(buf.value, "Downloads")  # noqa: PTH118
+
+    return buf.value
 
 
 def _pick_get_win_folder() -> Callable[[str], str]:
