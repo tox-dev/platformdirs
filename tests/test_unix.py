@@ -142,6 +142,20 @@ def test_xdg_variable_custom_value(monkeypatch: pytest.MonkeyPatch, dirs_instanc
     assert result == "/custom-dir"
 
 
+@pytest.mark.usefixtures("_getuid")
+def test_platform_on_bsd(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> None:
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    mocker.patch("sys.platform", "freebsd")
+    expected_path = "/var/run/user/1234"
+    assert Unix().user_runtime_dir == expected_path
+
+    mocker.patch("sys.platform", "openbsd")
+    assert Unix().user_runtime_dir == expected_path
+
+    mocker.patch("sys.platform", "netbsd")
+    assert Unix().user_runtime_dir == expected_path
+
+
 def test_platform_on_win32(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> None:
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     mocker.patch("sys.platform", "win32")
