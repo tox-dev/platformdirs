@@ -42,6 +42,9 @@ This kind of thing is what the ``platformdirs`` package is for.
 - user log dir (``user_log_dir``)
 - user documents dir (``user_documents_dir``)
 - user downloads dir (``user_downloads_dir``)
+- user pictures dir (``user_pictures_dir``)
+- user videos dir (``user_videos_dir``)
+- user music dir (``user_music_dir``)
 - user runtime dir (``user_runtime_dir``)
 
 And also:
@@ -71,6 +74,12 @@ On macOS:
     '/Users/trentm/Documents'
     >>> user_downloads_dir()
     '/Users/trentm/Downloads'
+    >>> user_pictures_dir()
+    '/Users/trentm/Pictures'
+    >>> user_videos_dir()
+    '/Users/trentm/Movies'
+    >>> user_music_dir()
+    '/Users/trentm/Music'
     >>> user_runtime_dir(appname, appauthor)
     '/Users/trentm/Library/Caches/TemporaryItems/SuperApp'
 
@@ -93,6 +102,12 @@ On Windows:
     'C:\\Users\\trentm\\Documents'
     >>> user_downloads_dir()
     'C:\\Users\\trentm\\Downloads'
+    >>> user_pictures_dir()
+    'C:\\Users\\trentm\\Pictures'
+    >>> user_videos_dir()
+    'C:\\Users\\trentm\\Videos'
+    >>> user_music_dir()
+    'C:\\Users\\trentm\\Music'
     >>> user_runtime_dir(appname, appauthor)
     'C:\\Users\\trentm\\AppData\\Local\\Temp\\Acme\\SuperApp'
 
@@ -119,6 +134,12 @@ On Linux:
     '/home/trentm/Documents'
     >>> user_downloads_dir()
     '/home/trentm/Downloads'
+    >>> user_pictures_dir()
+    '/home/trentm/Pictures'
+    >>> user_videos_dir()
+    '/home/trentm/Videos'
+    >>> user_music_dir()
+    '/home/trentm/Music'
     >>> user_runtime_dir(appname, appauthor)
     '/run/user/{os.getuid()}/SuperApp'
     >>> site_config_dir(appname)
@@ -144,6 +165,12 @@ On Android::
     '/storage/emulated/0/Documents'
     >>> user_downloads_dir()
     '/storage/emulated/0/Downloads'
+    >>> user_pictures_dir()
+    '/storage/emulated/0/Pictures'
+    >>> user_videos_dir()
+    '/storage/emulated/0/DCIM/Camera'
+    >>> user_music_dir()
+    '/storage/emulated/0/Music'
     >>> user_runtime_dir(appname, appauthor)
     '/data/data/com.myApp/cache/SuperApp/tmp'
 
@@ -173,6 +200,12 @@ apps also support ``XDG_*`` environment variables.
     '/Users/trentm/Documents'
     >>> dirs.user_downloads_dir
     '/Users/trentm/Downloads'
+    >>> dirs.user_pictures_dir
+    '/Users/trentm/Pictures'
+    >>> dirs.user_videos_dir
+    '/Users/trentm/Movies'
+    >>> dirs.user_music_dir
+    '/Users/trentm/Music'
     >>> dirs.user_runtime_dir
     '/Users/trentm/Library/Caches/TemporaryItems/SuperApp'
 
@@ -197,6 +230,12 @@ dirs::
     '/Users/trentm/Documents'
     >>> dirs.user_downloads_dir
     '/Users/trentm/Downloads'
+    >>> dirs.user_pictures_dir
+    '/Users/trentm/Pictures'
+    >>> dirs.user_videos_dir
+    '/Users/trentm/Movies'
+    >>> dirs.user_music_dir
+    '/Users/trentm/Music'
     >>> dirs.user_runtime_dir
     '/Users/trentm/Library/Caches/TemporaryItems/SuperApp/1.0'
 

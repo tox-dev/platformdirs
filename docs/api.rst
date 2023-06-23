@@ -48,6 +48,24 @@ User downloads directory
 .. autofunction:: platformdirs.user_downloads_dir
 .. autofunction:: platformdirs.user_downloads_path
 
+User pictures directory
+------------------------
+
+.. autofunction:: platformdirs.user_pictures_dir
+.. autofunction:: platformdirs.user_pictures_path
+
+User videos directory
+------------------------
+
+.. autofunction:: platformdirs.user_videos_dir
+.. autofunction:: platformdirs.user_videos_path
+
+User music directory
+------------------------
+
+.. autofunction:: platformdirs.user_music_dir
+.. autofunction:: platformdirs.user_music_path
+
 Runtime directory
 -------------------
 
