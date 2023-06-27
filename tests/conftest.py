@@ -33,8 +33,7 @@ def func(request: SubRequest) -> str:
 @pytest.fixture(params=PROPS)
 def func_path(request: SubRequest) -> str:
     prop = cast(str, request.param)
-    prop = prop.replace("_dir", "_path")
-    return prop
+    return prop.replace("_dir", "_path")
 
 
 @pytest.fixture()
