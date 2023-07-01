@@ -9,7 +9,6 @@ import sys
 from typing import TYPE_CHECKING
 
 from .api import PlatformDirsABC
-from .version import version
 from .version import version_tuple as __version_info__
 
 if TYPE_CHECKING:
