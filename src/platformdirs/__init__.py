@@ -265,7 +265,7 @@ def user_music_dir() -> str:
 
 
 def user_desktop_dir() -> str:
-    """:returns: music directory tied to the user"""
+    """:returns: desktop directory tied to the user"""
     return PlatformDirs().user_desktop_dir
 
 
@@ -510,6 +510,11 @@ def user_music_path() -> Path:
     return PlatformDirs().user_music_path
 
 
+def user_desktop_path() -> Path:
+    """:returns: desktop path tied to the user"""
+    return PlatformDirs().user_desktop_path
+
+
 def user_runtime_path(
     appname: str | None = None,
     appauthor: str | None | Literal[False] = None,
@@ -565,6 +570,7 @@ __all__ = [
     "user_pictures_path",
     "user_videos_path",
     "user_music_path",
+    "user_desktop_path",
     "user_runtime_path",
     "site_data_path",
     "site_config_path",
