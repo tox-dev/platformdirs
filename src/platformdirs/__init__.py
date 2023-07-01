@@ -9,12 +9,8 @@ import sys
 from typing import TYPE_CHECKING
 
 from .api import PlatformDirsABC
-
-try:
-    from .version import __version__
-    from .version import __version_tuple__ as __version_info__
-except:
-    from .version import version_tuple as __version_info__
+from .version import version
+from .version import version_tuple as __version_info__
 
 if TYPE_CHECKING:
     from pathlib import Path
