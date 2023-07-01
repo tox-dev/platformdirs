@@ -45,6 +45,7 @@ This kind of thing is what the ``platformdirs`` package is for.
 - user pictures dir (``user_pictures_dir``)
 - user videos dir (``user_videos_dir``)
 - user music dir (``user_music_dir``)
+- user desktop dir (``user_desktop_dir``)
 - user runtime dir (``user_runtime_dir``)
 
 And also:
@@ -80,6 +81,8 @@ On macOS:
     '/Users/trentm/Movies'
     >>> user_music_dir()
     '/Users/trentm/Music'
+    >>> user_desktop_dir()
+    '/Users/trentm/Desktop'
     >>> user_runtime_dir(appname, appauthor)
     '/Users/trentm/Library/Caches/TemporaryItems/SuperApp'
 
@@ -108,6 +111,8 @@ On Windows:
     'C:\\Users\\trentm\\Videos'
     >>> user_music_dir()
     'C:\\Users\\trentm\\Music'
+    >>> user_desktop_dir()
+    'C:\\Users\\trentm\\Desktop'
     >>> user_runtime_dir(appname, appauthor)
     'C:\\Users\\trentm\\AppData\\Local\\Temp\\Acme\\SuperApp'
 
@@ -140,6 +145,8 @@ On Linux:
     '/home/trentm/Videos'
     >>> user_music_dir()
     '/home/trentm/Music'
+    >>> user_desktop_dir()
+    '/home/trentm/Desktop'
     >>> user_runtime_dir(appname, appauthor)
     '/run/user/{os.getuid()}/SuperApp'
     >>> site_config_dir(appname)
@@ -206,6 +213,8 @@ apps also support ``XDG_*`` environment variables.
     '/Users/trentm/Movies'
     >>> dirs.user_music_dir
     '/Users/trentm/Music'
+    >>> dirs.user_desktop_dir
+    '/Users/trentm/Desktop'
     >>> dirs.user_runtime_dir
     '/Users/trentm/Library/Caches/TemporaryItems/SuperApp'
 
@@ -236,6 +245,8 @@ dirs::
     '/Users/trentm/Movies'
     >>> dirs.user_music_dir
     '/Users/trentm/Music'
+    >>> dirs.user_desktop_dir
+    '/Users/trentm/Desktop'
     >>> dirs.user_runtime_dir
     '/Users/trentm/Library/Caches/TemporaryItems/SuperApp/1.0'
 

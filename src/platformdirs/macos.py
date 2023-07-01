@@ -81,6 +81,11 @@ class MacOS(PlatformDirsABC):
         return os.path.expanduser("~/Music")  # noqa: PTH111
 
     @property
+    def user_desktop_dir(self) -> str:
+        """:return: desktop directory tied to the user, e.g. ``~/Desktop``"""
+        return os.path.expanduser("~/Desktop")  # noqa: PTH111
+
+    @property
     def user_runtime_dir(self) -> str:
         """:return: runtime directory tied to the user, e.g. ``~/Library/Caches/TemporaryItems/$appname/$version``"""
         return self._append_app_name_and_version(os.path.expanduser("~/Library/Caches/TemporaryItems"))  # noqa: PTH111
