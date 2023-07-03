@@ -153,12 +153,15 @@ class Unix(PlatformDirsABC):
          ``$XDG_RUNTIME_DIR/$appname/$version``.
 
          For FreeBSD/OpenBSD/NetBSD, it would return ``/var/run/user/$(id -u)/$appname/$version`` if
-         ``$XDG_RUNTIME_DIR`` is not set.
+         exists, otherwise ``/tmp/runtime-$(id -u)/$appname/$version``, if``$XDG_RUNTIME_DIR``
+         is not set.
         """
         path = os.environ.get("XDG_RUNTIME_DIR", "")
         if not path.strip():
             if sys.platform.startswith(("freebsd", "openbsd", "netbsd")):
                 path = f"/var/run/user/{getuid()}"
+                if not Path(path).exists():
+                    path = f"/tmp/runtime-{getuid()}"  # noqa: S108
             else:
                 path = f"/run/user/{getuid()}"
         return self._append_app_name_and_version(path)
