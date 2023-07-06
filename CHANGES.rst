@@ -1,6 +1,37 @@
 platformdirs Changelog
 ======================
 
+platformdirs 3.8.1 (2023-07-06)
+-------------------------------
+- BSD: provide a fallback for user_runtime_di
+
+platformdirs 3.8.0 (2023-06-22)
+-------------------------------
+- Add missing user media directory docs
+
+platformdirs 3.7.0 (2023-06-20)
+-------------------------------
+- Have user_runtime_dir return /var/run/user/uid for *BSD
+
+platformdirs 3.6.0 (2023-06-19)
+-------------------------------
+- introduce ``user_downloads_dir``
+
+platformdirs 3.5.3 (2023-06-09)
+-------------------------------
+- Use ruff
+
+platformdirs 3.5.2 (2023-05-30)
+-------------------------------
+- test with 3.12.0.b1
+
+platformdirs 3.5.1 (2023-05-11)
+-------------------------------
+- Add 3.12 support
+- Add tox.ini to sdist
+- removing Windows versions 
+- Better handling for UNIX support
+
 platformdirs 3.5.0 (2023-04-27)
 -------------------------------
 - introduce ``user_music_dir``
