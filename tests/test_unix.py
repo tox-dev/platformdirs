@@ -143,17 +143,16 @@ def test_xdg_variable_custom_value(monkeypatch: pytest.MonkeyPatch, dirs_instanc
 
 
 @pytest.mark.usefixtures("_getuid")
-def test_platform_on_bsd(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> None:
+@pytest.mark.parametrize("platform", ["freebsd", "openbsd", "netbsd"])
+def test_platform_on_bsd(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, platform: str) -> None:
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
-    mocker.patch("sys.platform", "freebsd")
-    expected_path = "/var/run/user/1234"
-    assert Unix().user_runtime_dir == expected_path
+    mocker.patch("sys.platform", platform)
 
-    mocker.patch("sys.platform", "openbsd")
-    assert Unix().user_runtime_dir == expected_path
+    mocker.patch("pathlib.Path.exists", return_value=True)
+    assert Unix().user_runtime_dir == "/var/run/user/1234"
 
-    mocker.patch("sys.platform", "netbsd")
-    assert Unix().user_runtime_dir == expected_path
+    mocker.patch("pathlib.Path.exists", return_value=False)
+    assert Unix().user_runtime_dir == "/tmp/runtime-1234"  # noqa: S108
 
 
 def test_platform_on_win32(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> None:
