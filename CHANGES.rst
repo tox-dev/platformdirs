@@ -29,7 +29,7 @@ platformdirs 3.5.1 (2023-05-11)
 -------------------------------
 - Add 3.12 support
 - Add tox.ini to sdist
-- removing Windows versions 
+- removing Windows versions
 - Better handling for UNIX support
 
 platformdirs 3.5.0 (2023-04-27)
