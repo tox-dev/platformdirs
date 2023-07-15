@@ -123,6 +123,11 @@ class Windows(PlatformDirsABC):
         return os.path.normpath(get_win_folder("CSIDL_MYMUSIC"))
 
     @property
+    def user_desktop_dir(self) -> str:
+        """:return: desktop directory tied to the user, e.g. ``%USERPROFILE%\\Desktop``"""
+        return os.path.normpath(get_win_folder("CSIDL_DESKTOPDIRECTORY"))
+
+    @property
     def user_runtime_dir(self) -> str:
         """
         :return: runtime directory tied to the user, e.g.
@@ -216,6 +221,7 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
         "CSIDL_MYVIDEO": 14,
         "CSIDL_MYMUSIC": 13,
         "CSIDL_DOWNLOADS": 40,
+        "CSIDL_DESKTOPDIRECTORY": 16,
     }.get(csidl_name)
     if csidl_const is None:
         msg = f"Unknown CSIDL name: {csidl_name}"
