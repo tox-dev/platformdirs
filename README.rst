@@ -178,6 +178,8 @@ On Android::
     '/storage/emulated/0/DCIM/Camera'
     >>> user_music_dir()
     '/storage/emulated/0/Music'
+    >>> user_desktop_dir()
+    '/storage/emulated/0/Desktop'
     >>> user_runtime_dir(appname, appauthor)
     '/data/data/com.myApp/cache/SuperApp/tmp'
 
