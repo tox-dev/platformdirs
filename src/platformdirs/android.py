@@ -93,6 +93,11 @@ class Android(PlatformDirsABC):
         return _android_music_folder()
 
     @property
+    def user_desktop_dir(self) -> str:
+        """:return: desktop directory tied to the user e.g. ``/storage/emulated/0/Desktop``"""
+        return "/storage/emulated/0/Desktop"
+
+    @property
     def user_runtime_dir(self) -> str:
         """
         :return: runtime directory tied to the user, same as `user_cache_dir` if not opinionated else ``tmp`` in it,
