@@ -119,6 +119,7 @@ class Unix(PlatformDirsABC):
         path = self.user_state_dir
         if self.opinion:
             path = os.path.join(path, "log")  # noqa: PTH118
+            self._optionally_create_directory(path)
         return path
 
     @property
