@@ -3,7 +3,7 @@ platformdirs Changelog
 
 platformdirs 3.8.1 (2023-07-06)
 -------------------------------
-- BSD: provide a fallback for user_runtime_di
+- BSD: provide a fallback for ``user_runtime_dir``
 
 platformdirs 3.8.0 (2023-06-22)
 -------------------------------
@@ -11,7 +11,7 @@ platformdirs 3.8.0 (2023-06-22)
 
 platformdirs 3.7.0 (2023-06-20)
 -------------------------------
-- Have user_runtime_dir return /var/run/user/uid for *BSD
+- Have user_runtime_dir return /var/run/user/uid for \*BSD
 
 platformdirs 3.6.0 (2023-06-19)
 -------------------------------
