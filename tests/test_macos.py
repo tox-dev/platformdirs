@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -19,9 +20,9 @@ from platformdirs.macos import MacOS
 def test_macos(params: dict[str, Any], func: str) -> None:
     result = getattr(MacOS(**params), func)
 
-    home = os.path.expanduser("~")  # noqa: PTH111
+    home = str(Path("~").expanduser())
     suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""
+    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # noqa: PTH118
 
     expected_map = {
         "user_data_dir": f"{home}/Library/Application Support{suffix}",
