@@ -138,9 +138,7 @@ class Windows(PlatformDirsABC):
 
     @property
     def site_runtime_dir(self) -> str:
-        """
-        :return: runtime directory shared by users, same as `user_runtime_dir`
-        """
+        """:return: runtime directory shared by users, same as `user_runtime_dir`"""
         return self.user_runtime_dir
 
 
