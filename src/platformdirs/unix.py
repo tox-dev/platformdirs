@@ -173,6 +173,28 @@ class Unix(PlatformDirsABC):
         return self._append_app_name_and_version(path)
 
     @property
+    def site_runtime_dir(self) -> str:
+        """
+        :return: runtime directory shared by users, e.g. ``/run/$appname/$version`` or
+        ``$XDG_RUNTIME_DIR/$appname/$version``.
+
+        Note that this behaves almost exactly like `user_runtime_dir` if ``$XDG_RUNTIME_DIR`` is set, but will
+        fallback to paths associated to the root user instead of a regular logged-in user if it's not set.
+
+        If you wish to ensure that a logged-in root user path is returned e.g. ``/run/user/0``, use `user_runtime_dir`
+        instead.
+
+        For FreeBSD/OpenBSD/NetBSD, it would return ``/var/run/$appname/$version`` if ``$XDG_RUNTIME_DIR`` is not set.
+        """
+        path = os.environ.get("XDG_RUNTIME_DIR", "")
+        if not path.strip():
+            if sys.platform.startswith(("freebsd", "openbsd", "netbsd")):
+                path = "/var/run"
+            else:
+                path = "/run"
+        return self._append_app_name_and_version(path)
+
+    @property
     def site_data_path(self) -> Path:
         """:return: data path shared by users. Only return first item, even if ``multipath`` is set to ``True``"""
         return self._first_item_as_path_if_multipath(self.site_data_dir)

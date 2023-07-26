@@ -60,6 +60,7 @@ def test_android(mocker: MockerFixture, params: dict[str, Any], func: str) -> No
         "user_music_dir": "/storage/emulated/0/Music",
         "user_desktop_dir": "/storage/emulated/0/Desktop",
         "user_runtime_dir": f"/data/data/com.example/cache{suffix}{'' if not params.get('opinion', True) else val}",
+        "site_runtime_dir": f"/data/data/com.example/cache{suffix}{'' if not params.get('opinion', True) else val}",
     }
     expected = expected_map[func]
 

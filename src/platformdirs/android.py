@@ -108,6 +108,11 @@ class Android(PlatformDirsABC):
             path = os.path.join(path, "tmp")  # noqa: PTH118
         return path
 
+    @property
+    def site_runtime_dir(self) -> str:
+        """:return: runtime directory shared by users, same as `user_runtime_dir`"""
+        return self.user_runtime_dir
+
 
 @lru_cache(maxsize=1)
 def _android_folder() -> str | None:
