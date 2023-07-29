@@ -40,6 +40,7 @@ def test_macos(params: dict[str, Any], func: str) -> None:
         "user_music_dir": f"{home}/Music",
         "user_desktop_dir": f"{home}/Desktop",
         "user_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
+        "site_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
     }
     expected = expected_map[func]
 

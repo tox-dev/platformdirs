@@ -90,6 +90,11 @@ class MacOS(PlatformDirsABC):
         """:return: runtime directory tied to the user, e.g. ``~/Library/Caches/TemporaryItems/$appname/$version``"""
         return self._append_app_name_and_version(os.path.expanduser("~/Library/Caches/TemporaryItems"))  # noqa: PTH111
 
+    @property
+    def site_runtime_dir(self) -> str:
+        """:return: runtime directory shared by users, same as `user_runtime_dir`"""
+        return self.user_runtime_dir
+
 
 __all__ = [
     "MacOS",

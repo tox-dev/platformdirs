@@ -98,6 +98,7 @@ def _func_to_path(func: str) -> XDGVariable | None:
         "user_state_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
         "user_log_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
         "user_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", "/run/user/1234"),
+        "site_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", "/run"),
     }
     return mapping.get(func)
 
@@ -150,6 +151,8 @@ def test_xdg_variable_custom_value(monkeypatch: pytest.MonkeyPatch, dirs_instanc
 def test_platform_on_bsd(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, platform: str) -> None:
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     mocker.patch("sys.platform", platform)
+
+    assert Unix().site_runtime_dir == "/var/run"
 
     mocker.patch("pathlib.Path.exists", return_value=True)
     assert Unix().user_runtime_dir == "/var/run/user/1234"

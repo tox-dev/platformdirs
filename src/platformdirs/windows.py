@@ -136,6 +136,11 @@ class Windows(PlatformDirsABC):
         path = os.path.normpath(os.path.join(get_win_folder("CSIDL_LOCAL_APPDATA"), "Temp"))  # noqa: PTH118
         return self._append_parts(path)
 
+    @property
+    def site_runtime_dir(self) -> str:
+        """:return: runtime directory shared by users, same as `user_runtime_dir`"""
+        return self.user_runtime_dir
+
 
 def get_win_folder_from_env_vars(csidl_name: str) -> str:
     """Get folder from environment variables."""
