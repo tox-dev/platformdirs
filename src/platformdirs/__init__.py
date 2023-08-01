@@ -8,12 +8,12 @@ import os
 import sys
 from typing import TYPE_CHECKING
 
-from .api import PlatformDirsABC
-from .version import __version__
-from .version import __version_tuple__ as __version_info__
-
 if TYPE_CHECKING:
     from pathlib import Path
+
+    from .api import PlatformDirsABC
+    from .version import __version__
+    from .version import __version_tuple__ as __version_info__
 
     if sys.version_info >= (3, 8):  # pragma: no cover (py38+)
         from typing import Literal
