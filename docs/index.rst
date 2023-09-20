@@ -10,10 +10,11 @@ The source code and issue tracker are both hosted on `GitHub`_.
 .. _GitHub: https://github.com/platformdirs/platformdirs
 
 .. toctree::
-   :maxdepth: 3
+    :maxdepth: 3
 
-   api
-   changelog
+    README
+    api
+    changelog
 
 Indices and tables
 ==================
