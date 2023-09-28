@@ -71,6 +71,26 @@ build.hooks.vcs.version-file = "src/platformdirs/version.py"
 build.targets.sdist.include = ["/src", "/tests", "/tox.ini"]
 version.source = "vcs"
 
+[tool.hatch.envs.default]
+features = ["docs", "test"]
+
+[tool.hatch.envs.default.scripts]
+test = """\
+  pytest --cov platformdirs --cov tests \
+  --cov-config=pyproject.toml --no-cov-on-fail \
+  --cov-report term-missing:skip-covered --cov-context=test \
+  --cov-report html:htmlcov \
+  tests
+  """
+check-types = [
+  "mypy --strict src",
+  "mypy --strict tests",
+]
+build-docs = [
+  "proselint docs/*.rst",
+  "sphinx-build -b html docs build",
+]
+
 [tool.black]
 line-length = 120
 

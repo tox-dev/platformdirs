@@ -7,4 +7,5 @@ tmp/
 build/
 dist/
 .tox/
+.coverage
 /src/platformdirs/version.py
