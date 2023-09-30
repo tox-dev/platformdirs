@@ -77,6 +77,15 @@ def test_macos(mocker: MockerFixture, params: dict[str, Any], func: str) -> None
         pytest.param({"appname": "foo", "version": "v1.0"}, id="app_name_version"),
     ],
 )
+@pytest.mark.parametrize(
+    "site_func",
+    [
+        "site_data_dir",
+        "site_config_dir",
+        "site_cache_dir",
+        "site_runtime_dir",
+    ],
+)
 @pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="singlepath")])
 def test_macos_homebrew(mocker: MockerFixture, params: dict[str, Any], multipath: bool, site_func: str) -> None:
     mocker.patch("sys.prefix", "/opt/homebrew/opt/python")
