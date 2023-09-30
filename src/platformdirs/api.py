@@ -59,8 +59,7 @@ class PlatformDirsABC(ABC):
         self.multipath = multipath
         """
         An optional parameter which indicates that the entire list of data dirs should be returned.
-        By default, the first item would only be returned. This is only applicable for Linux/Unix systems,
-        as well as macOS systems where `Homebrew <https://brew.sh>`_ is installed.
+        By default, the first item would only be returned.
         """
         self.opinion = opinion  #: A flag to indicating to use opinionated values.
         self.ensure_exists = ensure_exists

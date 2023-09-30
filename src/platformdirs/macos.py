@@ -31,10 +31,9 @@ class MacOS(PlatformDirsABC):
           the response is a multi-path string separated by ":", e.g.
           ``/opt/homebrew/share/$appname/$version:/Library/Application Support/$appname/$version``
         """
-        path_list = [self._append_app_name_and_version("/Library/Application Support")]
         is_homebrew = sys.prefix.startswith("/opt/homebrew")
-        if is_homebrew:
-            path_list.insert(0, self._append_app_name_and_version("/opt/homebrew/share"))
+        path_list = [self._append_app_name_and_version("/opt/homebrew/share")] if is_homebrew else []
+        path_list.append(self._append_app_name_and_version("/Library/Application Support"))
         if self.multipath:
             return os.pathsep.join(path_list)
         return path_list[0]
@@ -64,10 +63,9 @@ class MacOS(PlatformDirsABC):
           the response is a multi-path string separated by ":", e.g.
           ``/opt/homebrew/var/cache/$appname/$version:/Library/Caches/$appname/$version``
         """
-        path_list = [self._append_app_name_and_version("/Library/Caches")]
         is_homebrew = sys.prefix.startswith("/opt/homebrew")
-        if is_homebrew:
-            path_list.insert(0, self._append_app_name_and_version("/opt/homebrew/var/cache"))
+        path_list = [self._append_app_name_and_version("/opt/homebrew/var/cache")] if is_homebrew else []
+        path_list.append(self._append_app_name_and_version("/Library/Caches"))
         if self.multipath:
             return os.pathsep.join(path_list)
         return path_list[0]

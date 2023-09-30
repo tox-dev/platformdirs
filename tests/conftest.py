@@ -7,7 +7,7 @@ import pytest
 if TYPE_CHECKING:
     from _pytest.fixtures import SubRequest
 
-PROPS = (
+USER_PROPS = (
     "user_data_dir",
     "user_config_dir",
     "user_cache_dir",
@@ -19,15 +19,25 @@ PROPS = (
     "user_videos_dir",
     "user_music_dir",
     "user_runtime_dir",
+)
+
+SITE_PROPS = (
     "site_data_dir",
     "site_config_dir",
     "site_cache_dir",
     "site_runtime_dir",
 )
 
+PROPS = USER_PROPS + SITE_PROPS
+
 
 @pytest.fixture(params=PROPS)
 def func(request: SubRequest) -> str:
+    return cast(str, request.param)
+
+
+@pytest.fixture(params=SITE_PROPS)
+def site_func(request: SubRequest) -> str:
     return cast(str, request.param)
 
 
