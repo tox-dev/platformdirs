@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 4.0.0 (2023-11-10)
+-------------------------------
+- UNIX: revert site_cache_dir to use ``/var/cache`` instead of ``/var/tmp``
+
 platformdirs 3.8.1 (2023-07-06)
 -------------------------------
 - BSD: provide a fallback for ``user_runtime_dir``
