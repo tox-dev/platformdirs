@@ -24,7 +24,7 @@ maintainers = [
   { name = "Ofek Lev", email = "oss@ofek.dev" },
   { name = "Ronny Pfannschmidt", email = "opensource@ronnypfannschmidt.de" },
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
@@ -32,7 +32,6 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
@@ -44,9 +43,6 @@ classifiers = [
 ]
 dynamic = [
   "version",
-]
-dependencies = [
-  'typing-extensions>=4.7.1; python_version < "3.8"',
 ]
 optional-dependencies.docs = [
   "furo>=2023.7.26",
@@ -77,7 +73,7 @@ line-length = 120
 [tool.ruff]
 select = ["ALL"]
 line-length = 120
-target-version = "py37"
+target-version = "py38"
 isort = {known-first-party = ["platformdirs", "tests"], required-imports = ["from __future__ import annotations"]}
 ignore = [
     "ANN101",  # Missing type annotation for `self` in method
