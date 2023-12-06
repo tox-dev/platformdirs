@@ -1,8 +1,8 @@
 [build-system]
 build-backend = "hatchling.build"
 requires = [
-  "hatch-vcs>=0.3",
-  "hatchling>=1.17.1",
+  "hatch-vcs>=0.4",
+  "hatchling>=1.18",
 ]
 
 [project]
@@ -45,17 +45,17 @@ dynamic = [
   "version",
 ]
 optional-dependencies.docs = [
-  "furo>=2023.7.26",
+  "furo>=2023.9.10",
   "proselint>=0.13",
-  "sphinx>=7.1.1",
-  "sphinx-autodoc-typehints>=1.24",
+  "sphinx>=7.2.6",
+  "sphinx-autodoc-typehints>=1.25.2",
 ]
 optional-dependencies.test = [
   "appdirs==1.4.4",
   "covdefaults>=2.3",
-  "pytest>=7.4",
+  "pytest>=7.4.3",
   "pytest-cov>=4.1",
-  "pytest-mock>=3.11.1",
+  "pytest-mock>=3.12",
 ]
 urls.Documentation = "https://platformdirs.readthedocs.io"
 urls.Homepage = "https://github.com/platformdirs/platformdirs"
