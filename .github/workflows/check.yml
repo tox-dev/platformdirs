@@ -71,7 +71,7 @@ jobs:
           os.rename(f".tox/.coverage.{os.environ['TOXENV']}", f".tox/.coverage.{os.environ['TOXENV']}-{sys.platform}")
         shell: python
       - name: Upload coverage data
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-data
           path: ".tox/.coverage.*"
@@ -103,7 +103,7 @@ jobs:
       - name: Combine and report coverage
         run: tox -e coverage
       - name: Upload HTML report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: html-report
           path: .tox/htmlcov
