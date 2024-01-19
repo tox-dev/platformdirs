@@ -46,8 +46,8 @@ class Unix(PlatformDirsABC):
     def site_data_dir(self) -> str:
         """
         :return: data directories shared by users (if `multipath <platformdirs.api.PlatformDirsABC.multipath>` is
-         enabled and ``XDG_DATA_DIR`` is set and a multi path the response is also a multi path separated by the OS
-         path separator), e.g. ``/usr/local/share/$appname/$version`` or ``/usr/share/$appname/$version``
+         enabled and ``XDG_DATA_DIRS`` is set and a multi path the response is also a multi path separated by the
+         OS path separator), e.g. ``/usr/local/share/$appname/$version`` or ``/usr/share/$appname/$version``
         """
         # XDG default for $XDG_DATA_DIRS; only first, if multipath is False
         path = os.environ.get("XDG_DATA_DIRS", "")
@@ -77,8 +77,8 @@ class Unix(PlatformDirsABC):
     def site_config_dir(self) -> str:
         """
         :return: config directories shared by users (if `multipath <platformdirs.api.PlatformDirsABC.multipath>`
-         is enabled and ``XDG_DATA_DIR`` is set and a multi path the response is also a multi path separated by the OS
-         path separator), e.g. ``/etc/xdg/$appname/$version``
+         is enabled and ``XDG_CONFIG_DIRS`` is set and a multi path the response is also a multi path separated by
+         the OS path separator), e.g. ``/etc/xdg/$appname/$version``
         """
         # XDG default for $XDG_CONFIG_DIRS only first, if multipath is False
         path = os.environ.get("XDG_CONFIG_DIRS", "")
