@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Literal
+    from typing import Literal, Iterator
 
 
 class PlatformDirsABC(ABC):
@@ -236,3 +236,35 @@ class PlatformDirsABC(ABC):
     def site_runtime_path(self) -> Path:
         """:return: runtime path shared by users"""
         return Path(self.site_runtime_dir)
+
+    def iter_config_dirs(self) -> Iterator[str]:
+        yield self.user_config_dir
+        yield self.site_config_dir
+
+    def iter_data_dirs(self) -> Iterator[str]:
+        yield self.user_data_dir
+        yield self.site_data_dir
+
+    def iter_cache_dirs(self) -> Iterator[str]:
+        yield self.user_cache_dir
+        yield self.site_cache_dir
+
+    def iter_runtime_dirs(self) -> Iterator[str]:
+        yield self.user_runtime_dir
+        yield self.site_runtime_dir
+
+    def iter_config_paths(self) -> Iterator[Path]:
+        yield self.user_config_path
+        yield self.site_config_path
+
+    def iter_data_paths(self) -> Iterator[Path]:
+        yield self.user_data_path
+        yield self.site_data_path
+
+    def iter_cache_paths(self) -> Iterator[Path]:
+        yield self.user_cache_path
+        yield self.site_cache_path
+
+    def iter_runtime_paths(self) -> Iterator[Path]:
+        yield self.user_runtime_path
+        yield self.site_runtime_path
