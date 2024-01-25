@@ -224,12 +224,12 @@ class Unix(PlatformDirsABC):
         return Path(directory)
 
     def iter_config_dirs(self) -> Iterator[str]:
-        """:yield: all user and site configuration directories"""
+        """:yield: all user and site configuration directories."""
         yield self.user_config_dir
         yield from self._site_config_dirs
 
     def iter_data_dirs(self) -> Iterator[str]:
-        """:yield: all user and site data directories"""
+        """:yield: all user and site data directories."""
         yield self.user_data_dir
         yield from self._site_data_dirs
 
