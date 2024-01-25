@@ -4,8 +4,8 @@ from __future__ import annotations
 import os
 import sys
 from configparser import ConfigParser
-from typing import Iterator
 from pathlib import Path
+from typing import Iterator
 
 from .api import PlatformDirsABC
 
