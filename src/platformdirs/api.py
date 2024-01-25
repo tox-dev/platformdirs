@@ -259,20 +259,20 @@ class PlatformDirsABC(ABC):
 
     def iter_config_paths(self) -> Iterator[Path]:
         """:yield: all user and site configuration paths"""
-        yield self.user_config_path
-        yield self.site_config_path
+        for path in self.iter_config_dirs():
+            yield Path(path)
 
     def iter_data_paths(self) -> Iterator[Path]:
         """:yield: all user and site data paths"""
-        yield self.user_data_path
-        yield self.site_data_path
+        for path in self.iter_data_dirs():
+            yield Path(path)
 
     def iter_cache_paths(self) -> Iterator[Path]:
         """:yield: all user and site cache paths"""
-        yield self.user_cache_path
-        yield self.site_cache_path
+        for path in self.iter_cache_dirs():
+            yield Path(path)
 
     def iter_runtime_paths(self) -> Iterator[Path]:
         """:yield: all user and site runtime paths"""
-        yield self.user_runtime_path
-        yield self.site_runtime_path
+        for path in self.iter_runtime_dirs():
+            yield Path(path)
