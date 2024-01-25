@@ -48,8 +48,7 @@ class Unix(PlatformDirsABC):
         path = os.environ.get("XDG_DATA_DIRS", "")
         if not path.strip():
             path = f"/usr/local/share{os.pathsep}/usr/share"
-        return [self._append_app_name_and_version(p)
-                for p in path.split(os.pathsep)]
+        return [self._append_app_name_and_version(p) for p in path.split(os.pathsep)]
 
     @property
     def site_data_dir(self) -> str:
@@ -80,8 +79,7 @@ class Unix(PlatformDirsABC):
         path = os.environ.get("XDG_CONFIG_DIRS", "")
         if not path.strip():
             path = "/etc/xdg"
-        return [self._append_app_name_and_version(p)
-                for p in path.split(os.pathsep)]
+        return [self._append_app_name_and_version(p) for p in path.split(os.pathsep)]
 
     @property
     def site_config_dir(self) -> str:
