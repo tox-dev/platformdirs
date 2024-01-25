@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Literal, Iterator
+    from typing import Iterator, Literal
 
 
 class PlatformDirsABC(ABC):
