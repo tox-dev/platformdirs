@@ -6,6 +6,7 @@ import os
 import sys
 from configparser import ConfigParser
 from pathlib import Path
+from typing import Iterator
 
 from .api import PlatformDirsABC
 
@@ -44,6 +45,13 @@ class Unix(PlatformDirsABC):
         return self._append_app_name_and_version(path)
 
     @property
+    def _site_data_dirs(self) -> list[str]:
+        path = os.environ.get("XDG_DATA_DIRS", "")
+        if not path.strip():
+            path = f"/usr/local/share{os.pathsep}/usr/share"
+        return [self._append_app_name_and_version(p) for p in path.split(os.pathsep)]
+
+    @property
     def site_data_dir(self) -> str:
         """
         :return: data directories shared by users (if `multipath <platformdirs.api.PlatformDirsABC.multipath>` is
@@ -51,17 +59,10 @@ class Unix(PlatformDirsABC):
          OS path separator), e.g. ``/usr/local/share/$appname/$version`` or ``/usr/share/$appname/$version``
         """
         # XDG default for $XDG_DATA_DIRS; only first, if multipath is False
-        path = os.environ.get("XDG_DATA_DIRS", "")
-        if not path.strip():
-            path = f"/usr/local/share{os.pathsep}/usr/share"
-        return self._with_multi_path(path)
-
-    def _with_multi_path(self, path: str) -> str:
-        path_list = path.split(os.pathsep)
+        dirs = self._site_data_dirs
         if not self.multipath:
-            path_list = path_list[0:1]
-        path_list = [self._append_app_name_and_version(os.path.expanduser(p)) for p in path_list]  # noqa: PTH111
-        return os.pathsep.join(path_list)
+            return dirs[0]
+        return os.pathsep.join(dirs)
 
     @property
     def user_config_dir(self) -> str:
@@ -75,6 +76,13 @@ class Unix(PlatformDirsABC):
         return self._append_app_name_and_version(path)
 
     @property
+    def _site_config_dirs(self) -> list[str]:
+        path = os.environ.get("XDG_CONFIG_DIRS", "")
+        if not path.strip():
+            path = "/etc/xdg"
+        return [self._append_app_name_and_version(p) for p in path.split(os.pathsep)]
+
+    @property
     def site_config_dir(self) -> str:
         """
         :return: config directories shared by users (if `multipath <platformdirs.api.PlatformDirsABC.multipath>`
@@ -82,10 +90,10 @@ class Unix(PlatformDirsABC):
          the OS path separator), e.g. ``/etc/xdg/$appname/$version``
         """
         # XDG default for $XDG_CONFIG_DIRS only first, if multipath is False
-        path = os.environ.get("XDG_CONFIG_DIRS", "")
-        if not path.strip():
-            path = "/etc/xdg"
-        return self._with_multi_path(path)
+        dirs = self._site_config_dirs
+        if not self.multipath:
+            return dirs[0]
+        return os.pathsep.join(dirs)
 
     @property
     def user_cache_dir(self) -> str:
@@ -215,6 +223,16 @@ class Unix(PlatformDirsABC):
             # If multipath is True, the first path is returned.
             directory = directory.split(os.pathsep)[0]
         return Path(directory)
+
+    def iter_config_dirs(self) -> Iterator[str]:
+        """:yield: all user and site configuration directories."""
+        yield self.user_config_dir
+        yield from self._site_config_dirs
+
+    def iter_data_dirs(self) -> Iterator[str]:
+        """:yield: all user and site data directories."""
+        yield self.user_data_dir
+        yield from self._site_data_dirs
 
 
 def _get_user_media_dir(env_var: str, fallback_tilde_path: str) -> str:

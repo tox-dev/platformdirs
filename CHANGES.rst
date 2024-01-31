@@ -1,6 +1,10 @@
 platformdirs Changelog
 ======================
 
+platformdirs 4.1.0 (2024-01-XX)
+-------------------------------
+- Add convenience methods ``iter_{config,cache,data,runtime}_{dirs,paths}``.
+
 platformdirs 4.0.0 (2023-11-10)
 -------------------------------
 - UNIX: revert site_cache_dir to use ``/var/cache`` instead of ``/var/tmp``
