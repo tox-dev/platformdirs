@@ -67,32 +67,43 @@ build.hooks.vcs.version-file = "src/platformdirs/version.py"
 build.targets.sdist.include = ["/src", "/tests", "/tox.ini"]
 version.source = "vcs"
 
-[tool.black]
-line-length = 120
-
 [tool.ruff]
 select = ["ALL"]
 line-length = 120
 target-version = "py38"
-isort = {known-first-party = ["platformdirs", "tests"], required-imports = ["from __future__ import annotations"]}
+isort = { known-first-party = ["platformdirs", "tests"], required-imports = ["from __future__ import annotations"] }
 ignore = [
-    "ANN101",  # Missing type annotation for `self` in method
-    "D301",  #  Use `r"""` if any backslashes in a docstring
-    "D205",  # 1 blank line required between summary line and description
-    "D401",  # First line of docstring should be in imperative mood
-    "D203",  # `one-blank-line-before-class` (D203) and `no-blank-line-before-class` (D211) are incompatible
-    "D212",  # `multi-line-summary-first-line` (D212) and `multi-line-summary-second-line` (D213) are incompatible
-    "S104",  # Possible binding to all interface
+  "ANN101", # Missing type annotation for `self` in method
+  "D301",   #  Use `r"""` if any backslashes in a docstring
+  "D205",   # 1 blank line required between summary line and description
+  "D401",   # The first line of docstring should be in imperative mood
+  "D203",   # `one-blank-line-before-class` (D203) and `no-blank-line-before-class` (D211) are incompatible
+  "D212",   # `multi-line-summary-first-line` (D212) and `multi-line-summary-second-line` (D213) are incompatible
+  "S104",   # Possible binding to all interfaces
+  "CPY",    # no copyright notices
 ]
+format.preview = true
+lint.preview = true
 [tool.ruff.per-file-ignores]
 "tests/**/*.py" = [
-    "S101",  # asserts allowed in tests...
-    "FBT",  # don"t care about booleans as positional arguments in tests
-    "INP001", # no implicit namespace
-    "D",  # don"t care about documentation in tests
-    "S603",  # `subprocess` call: check for execution of untrusted input
-    "PLR2004",  # Magic value used in comparison, consider replacing with a constant variable
+  "S101",    # asserts allowed in tests...
+  "FBT",     # don"t care about booleans as positional arguments in tests
+  "INP001",  # no implicit namespace
+  "D",       # don"t care about documentation in tests
+  "S603",    # `subprocess` call: check for execution of untrusted input
+  "PLR2004", # Magic value used in comparison, consider replacing with a constant variable
 ]
+
+[tool.codespell]
+builtin = "clear,usage,en-GB_to_en-US"
+count = true
+quiet-level = 3
+
+[tool.docformatter]
+blank = true
+recursive = true
+wrap-descriptions = 120
+wrap-summaries = 120
 
 [tool.coverage]
 html.show_contexts = true
