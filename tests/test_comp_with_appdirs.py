@@ -11,7 +11,7 @@ import platformdirs
 
 
 def test_has_backward_compatible_class() -> None:
-    from platformdirs import AppDirs
+    from platformdirs import AppDirs  # noqa: PLC0415
 
     assert AppDirs is platformdirs.PlatformDirs
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sys
-from subprocess import check_output
+from subprocess import check_output  # noqa: S404
 
 from platformdirs import __version__
 from platformdirs.__main__ import PROPS
