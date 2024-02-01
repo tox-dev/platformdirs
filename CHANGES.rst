@@ -182,7 +182,7 @@ appdirs 1.4.0 (2017-08-17)
 - [PR #42] AppAuthor is now optional on Windows
 - [issue 41] Support Jython on Windows, Mac, and Unix-like platforms. Windows
   support requires `JNA <https://github.com/twall/jna>`_.
-- [PR #44] Fix incorrect behaviour of the site_config_dir method
+- [PR #44] Fix incorrect behavior of the site_config_dir method
 
 appdirs 1.3.0 (2014-04-22)
 --------------------------
@@ -190,7 +190,7 @@ appdirs 1.3.0 (2014-04-22)
   everybody
 - [Unix] Removes gratuitous case mangling of the case, since \*nix-es are
   usually case sensitive, so mangling is not wise
-- [Unix] Fixes the utterly wrong behaviour in ``site_data_dir``, return result
+- [Unix] Fixes the utterly wrong behavior in ``site_data_dir``, return result
   based on XDG_DATA_DIRS and make room for respecting the standard which
   specifies XDG_DATA_DIRS is a multiple-value variable
 - [Issue 6] Add ``*_config_dir`` which are distinct on nix-es, according to
@@ -210,7 +210,7 @@ appdirs 1.1.0 (2010-09-02)
 - [Unix, issue 2, issue 7] appdirs now conforms to `XDG base directory spec
   <https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html>`_.
 - [Mac, issue 5] Fix ``site_data_dir()`` on Mac.
-- [Mac] Drop use of 'Carbon' module in favour of hardcoded paths; supports
+- [Mac] Drop use of 'Carbon' module in favor of hardcoded paths; supports
   Python3 now.
 - [Windows] Append "Cache" to ``user_cache_dir`` on Windows by default. Use
   ``opinion=False`` option to disable this.
@@ -225,10 +225,10 @@ appdirs 1.1.0 (2010-09-02)
 - [Linux] Change default ``user_cache_dir()`` on Linux to be singular, e.g.
   "~/.superapp/cache".
 - [Windows] Add ``roaming`` option to ``user_data_dir()`` (for use on Windows only)
-  and change the default ``user_data_dir`` behaviour to use a *non*-roaming
+  and change the default ``user_data_dir`` behavior to use a *non*-roaming
   profile dir (``CSIDL_LOCAL_APPDATA`` instead of ``CSIDL_APPDATA``). Why? Because
   a large roaming profile can cause login speed issues. The "only syncs on
-  logout" behaviour can cause surprises in appdata info.
+  logout" behavior can cause surprises in appdata info.
 
 
 appdirs 1.0.1 (never released)
@@ -236,8 +236,5 @@ appdirs 1.0.1 (never released)
 
 Started this changelog 27 July 2010. Before that this module originated in the
 `Komodo <https://www.activestate.com/komodo-ide>`_ product as ``applib.py`` and then
-as `applib/location.py
-<https://github.com/ActiveState/applib/blob/master/applib/location.py>`_ (used by
-`PyPM <https://code.activestate.com/pypm/>`_ in `ActivePython
-<https://www.activestate.com/activepython>`_). This is basically a fork of
-applib.py 1.0.1 and applib/location.py 1.0.1.
+as ``applib/location.py`` (used by `PyPM <https://code.activestate.com/pypm/>`_ in `ActivePython
+<https://www.activestate.com/activepython>`_). This is basically a fork of applib.py 1.0.1 and applib/location.py 1.0.1.

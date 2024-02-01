@@ -1,5 +1,6 @@
 # noqa: INP001
 """Configuration for Sphinx."""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone

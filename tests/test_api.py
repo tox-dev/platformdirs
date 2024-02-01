@@ -68,7 +68,7 @@ def test_android_active(  # noqa: PLR0913
         else:
             monkeypatch.setenv(env_var, value)
 
-    from platformdirs.android import _android_folder
+    from platformdirs.android import _android_folder  # noqa: PLC0415
 
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", ["/A", "/B", path])

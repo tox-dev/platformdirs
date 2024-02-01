@@ -16,15 +16,14 @@ if TYPE_CHECKING:
 
 class Windows(PlatformDirsABC):
     """
-    `MSDN on where to store app data files
-    <http://support.microsoft.com/default.aspx?scid=kb;en-us;310294#XSLTH3194121123120121120120>`_.
-    Makes use of the
-    `appname <platformdirs.api.PlatformDirsABC.appname>`,
-    `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`,
-    `version <platformdirs.api.PlatformDirsABC.version>`,
-    `roaming <platformdirs.api.PlatformDirsABC.roaming>`,
-    `opinion <platformdirs.api.PlatformDirsABC.opinion>`,
-    `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    `MSDN on where to store app data files <http://support.microsoft.com/default.aspx?scid=kb;en-
+    us;310294#XSLTH3194121123120121120120>`_.
+
+    Makes use of the `appname <platformdirs.api.PlatformDirsABC.appname>`, `appauthor
+    <platformdirs.api.PlatformDirsABC.appauthor>`, `version <platformdirs.api.PlatformDirsABC.version>`, `roaming
+    <platformdirs.api.PlatformDirsABC.roaming>`, `opinion <platformdirs.api.PlatformDirsABC.opinion>`, `ensure_exists
+    <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+
     """
 
     @property
@@ -165,7 +164,7 @@ def get_win_folder_from_env_vars(csidl_name: str) -> str:
 
 
 def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
-    """Get folder for a CSIDL name that does not exist as an environment variable."""
+    """Get a folder for a CSIDL name that does not exist as an environment variable."""
     if csidl_name == "CSIDL_PERSONAL":
         return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Documents")  # noqa: PTH118
 
@@ -189,6 +188,7 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
 
     This is a fallback technique at best. I'm not sure if using the registry for these guarantees us the correct answer
     for all CSIDL_* names.
+
     """
     shell_folder_name = {
         "CSIDL_APPDATA": "AppData",
@@ -205,7 +205,7 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
         raise ValueError(msg)
     if sys.platform != "win32":  # only needed for mypy type checker to know that this code runs only on Windows
         raise NotImplementedError
-    import winreg
+    import winreg  # noqa: PLC0415
 
     key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders")
     directory, _ = winreg.QueryValueEx(key, shell_folder_name)
@@ -253,7 +253,7 @@ def _pick_get_win_folder() -> Callable[[str], str]:
     if hasattr(ctypes, "windll"):
         return get_win_folder_via_ctypes
     try:
-        import winreg  # noqa: F401
+        import winreg  # noqa: PLC0415, F401
     except ImportError:
         return get_win_folder_from_env_vars
     else:
