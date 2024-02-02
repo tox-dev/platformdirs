@@ -2,7 +2,7 @@ name: check
 on:
   workflow_dispatch:
   push:
-    branches: "main"
+    branches: ["main"]
     tags-ignore: ["**"]
   pull_request:
   schedule:
@@ -36,8 +36,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install tox
-        run: python -m pip install tox
+      - name: Pick environment to run
+        run: |
+          import codecs; import os
+          py = "${{ matrix.py }}"
+          py = "test.{}".format(py if py.startswith("pypy") else f"py{py}")
+          print(f"Picked {py}")
+          with codecs.open(os.environ["GITHUB_ENV"], mode="a", encoding="utf-8") as file_handler:
+              file_handler.write("FORCE_COLOR=1\n")
+              file_handler.write(f"ENV={py}\n")
+        shell: python
+      - name: Install hatch
+        run: python -m pip install hatch
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -45,36 +55,28 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.py }}
-      - name: Pick environment to run
+      - name: Setup test environment
         run: |
-          import codecs
-          import os
-          import platform
-          import sys
-          cpy = platform.python_implementation() == "CPython"
-          base =("{}{}{}" if cpy else "{}{}").format("py" if cpy else "pypy", *sys.version_info[0:2])
-          env = "TOXENV={}\n".format(base)
-          print("Picked:\n{}for{}".format(env, sys.version))
-          with codecs.open(os.environ["GITHUB_ENV"], "a", "utf-8") as file_handler:
-               file_handler.write(env)
-        shell: python
-      - name: Setup test suite
-        run: tox -vv --notest
+          hatch -v env create ${ENV}
+          hatch run ${ENV}:pip freeze
+        shell: bash
       - name: Run test suite
-        run: tox --skip-pkg-install
+        run: hatch -v run ${ENV}:run
         env:
           PYTEST_ADDOPTS: "-vv --durations=20"
           CI_RUN: "yes"
+        shell: bash
       - name: Rename coverage report file
         run: |
           import os; import sys;
-          os.rename(f".tox/.coverage.{os.environ['TOXENV']}", f".tox/.coverage.{os.environ['TOXENV']}-{sys.platform}")
+          os.rename(f"report{os.sep}.coverage.${{ matrix.py }}", f"report{os.sep}.coverage.${{ matrix.py }}-{sys.platform}")
         shell: python
       - name: Upload coverage data
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: coverage-data
-          path: ".tox/.coverage.*"
+          name: coverage-${{ matrix.os }}-${{ matrix.py }}
+          path: "report/.coverage.*"
+          retention-days: 3
 
   coverage:
     name: Combine coverage
@@ -87,29 +89,30 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install tox
-        run: python -m pip install tox
+      - name: Let us have colors
+        run: echo "FORCE_COLOR=true" >> "$GITHUB_ENV"
+      - name: Install hatch
+        run: python -m pip install hatch
       - name: Setup coverage tool
-        run: tox -e coverage --notest
-      - name: Install package builder
-        run: python -m pip install build
-      - name: Build package
-        run: pyproject-build --wheel .
+        run: |
+          hatch -v env create coverage
+          hatch run coverage:pip freeze
       - name: Download coverage data
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: coverage-data
-          path: .tox
+          path: report
+          pattern: coverage-*
+          merge-multiple: true
       - name: Combine and report coverage
-        run: tox -e coverage
+        run: hatch run coverage:run
       - name: Upload HTML report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: html-report
-          path: .tox/htmlcov
+          path: report/html
 
   check:
-    name: ${{ matrix.tox_env }} - ${{ matrix.os }}
+    name: ${{ matrix.env.name }} - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -117,13 +120,11 @@ jobs:
         os:
           - ubuntu-22.04
           - windows-2022
-        tox_env:
-          - dev
-          - type
-          - docs
-          - readme
-        exclude:
-          - { os: windows-latest, tox_env: readme }
+        env:
+          - {"name": "default", "target": "show"}
+          - {"name": "type", "target": "run"}
+          - {"name": "docs", "target": "build"}
+          - {"name": "readme", "target": "run"}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -132,9 +133,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install tox
-        run: python -m pip install tox
-      - name: Setup test suite
-        run: tox -vv --notest -e ${{ matrix.tox_env }}
-      - name: Run test suite
-        run: tox --skip-pkg-install -e ${{ matrix.tox_env }}
+      - name: Install hatch
+        run: python -m pip install hatch
+      - name: Setup ${{ matrix.env.name }}
+        run: |
+          hatch -v env create ${{ matrix.env.name }}
+          hatch run ${{ matrix.env.name }}:pip freeze
+      - name: Run ${{ matrix.env.name }}
+        run: hatch -v run ${{ matrix.env.name }}:${{ matrix.env.target }}

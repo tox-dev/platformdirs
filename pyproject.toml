@@ -57,6 +57,9 @@ optional-dependencies.test = [
   "pytest-cov>=4.1",
   "pytest-mock>=3.12",
 ]
+optional-dependencies.type = [
+  "mypy>=1.8",
+]
 urls.Documentation = "https://platformdirs.readthedocs.io"
 urls.Homepage = "https://github.com/platformdirs/platformdirs"
 urls.Source = "https://github.com/platformdirs/platformdirs"
@@ -66,6 +69,77 @@ urls.Tracker = "https://github.com/platformdirs/platformdirs/issues"
 build.hooks.vcs.version-file = "src/platformdirs/version.py"
 build.targets.sdist.include = ["/src", "/tests", "/tox.ini"]
 version.source = "vcs"
+
+[tool.hatch.envs.default]
+description = "Development environment"
+features = ["test", "docs", "type"]
+scripts = { show = ["python -m pip list --format=columns", 'python -c "import sys; print(sys.executable)"'] }
+
+[tool.hatch.envs.test]
+template = "test"
+# dev-mode = false # cannot enable this until https://github.com/pypa/hatch/issues/1237
+description = "Run the test suite"
+matrix = [{ python = ["3.12", "3.11", "3.10", "3.9", "3.8", "pypy3.9"] }]
+features = ["test"]
+env-vars = { COVERAGE_FILE = "report/.coverage.{matrix:python}", COVERAGE_PROCESS_START = "pyproject.toml", _COVERAGE_SRC = "src/platformdirs" }
+[tool.hatch.envs.test.scripts]
+run = ["""
+    pytest --junitxml report/junit.{matrix:python}.xml --cov src/platformdirs --cov tests \
+      --cov-config=pyproject.toml --no-cov-on-fail --cov-report term-missing:skip-covered --cov-context=test \
+      --cov-report html:report/html{matrix:python} --cov-report xml:report/coverage{matrix:python}.xml \
+      tests
+"""]
+
+[tool.hatch.envs.coverage]
+template = "coverage"
+description = "combine coverage files and generate diff"
+dependencies = ["covdefaults>=2.3", "coverage[toml]>=7.3.2", "diff-cover>=8.0.1"]
+env-vars = { COVERAGE_FILE = "report/.coverage" }
+[tool.hatch.envs.coverage.scripts]
+run = [
+  "coverage combine report",
+  "coverage report --skip-covered --show-missing",
+  "coverage xml -o report/coverage.xml",
+  "coverage html -d report/html",
+  "diff-cover --compare-branch {env:DIFF_AGAINST:origin/main} report/coverage.xml",
+]
+
+[tool.hatch.envs.type]
+template = "type"
+description = "Run the type checker"
+python = "3.12"
+dev-mode = false
+features = ["type", "test"]
+scripts = { run = ["mypy --strict src", "mypy --strict tests"] }
+
+[tool.hatch.envs.fix]
+template = "fix"
+description = "Run the pre-commit tool to lint and autofix issues"
+python = "3.12"
+detached = true
+dependencies = ["pre-commit>=3.6"]
+scripts = { "run" = ["pre-commit run --all-files --show-diff-on-failure"] }
+
+[tool.hatch.envs.docs]
+template = "docs"
+description = "Build documentation using Sphinx"
+python = "3.12"
+dev-mode = false
+features = ["docs"]
+[tool.hatch.envs.docs.scripts]
+build = [
+  """python -c "import glob; import subprocess; subprocess.call(['proselint'] + glob.glob('docs/*.rst'))" """,
+  """python -c "from shutil import rmtree; rmtree('docs/build', ignore_errors=True)" """,
+  "sphinx-build -d docs/build/tree docs docs/build --color -b html",
+  """python -c "from pathlib import Path; p=(Path('docs')/'build'/'index.html').absolute().as_uri(); print('Documentation built under '+p)" """,
+]
+
+[tool.hatch.envs.readme]
+template = "readme"
+description = "check that the long description is valid"
+python = "3.12"
+dependencies = ["build[virtualenv]>=1.0.3", "twine>=4.0.2", "check-wheel-contents>=0.6.0"]
+scripts = { "run" = ["python -m build -o dist", "twine check dist/*.whl dist/*.tar.gz", "check-wheel-contents dist"] }
 
 [tool.ruff]
 select = ["ALL"]

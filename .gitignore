@@ -1,10 +1,7 @@
-/.idea/
-/.vscode/
-
 *.pyc
 *.egg-info
-tmp/
-build/
-dist/
-.tox/
+/dist
+/.tox
 /src/platformdirs/version.py
+/report
+/docs/build
