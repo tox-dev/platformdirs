@@ -16,7 +16,7 @@ repos:
         additional_dependencies: [ "tomli>=2.0.1" ]
         args: [ "--in-place", "--config", "./pyproject.toml" ]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.1.15"
+    rev: "v0.2.0"
     hooks:
       - id: ruff-format
       - id: ruff
