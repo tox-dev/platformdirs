@@ -58,7 +58,7 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
 
         That means that for users on a Windows network setup for roaming profiles, this user data will be synced on
         login (see
-        `here <http://technet.microsoft.com/en-us/library/cc766489(WS.10).aspx>`_).
+        `here <https://technet.microsoft.com/en-us/library/cc766489(WS.10).aspx>`_).
 
         """
         self.multipath = multipath

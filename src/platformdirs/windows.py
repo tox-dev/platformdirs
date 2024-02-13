@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 class Windows(PlatformDirsABC):
     """
-    `MSDN on where to store app data files <http://support.microsoft.com/default.aspx?scid=kb;en-
+    `MSDN on where to store app data files <https://support.microsoft.com/default.aspx?scid=kb;en-
     us;310294#XSLTH3194121123120121120120>`_.
 
     Makes use of the `appname <platformdirs.api.PlatformDirsABC.appname>`, `appauthor

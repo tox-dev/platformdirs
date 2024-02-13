@@ -6,13 +6,13 @@ import os
 import sys
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Iterator
+from typing import Iterator, NoReturn
 
 from .api import PlatformDirsABC
 
 if sys.platform == "win32":
 
-    def getuid() -> int:
+    def getuid() -> NoReturn:
         msg = "should only be used on Unix"
         raise RuntimeError(msg)
 
@@ -25,7 +25,7 @@ class Unix(PlatformDirsABC):  # noqa: PLR0904
     On Unix/Linux, we follow the `XDG Basedir Spec <https://specifications.freedesktop.org/basedir-spec/basedir-spec-
     latest.html>`_.
 
-    The spec allows overriding directories with environment variables. The examples show are the default values,
+    The spec allows overriding directories with environment variables. The examples shown are the default values,
     alongside the name of the environment variable that overrides them. Makes use of the `appname
     <platformdirs.api.PlatformDirsABC.appname>`, `version <platformdirs.api.PlatformDirsABC.version>`, `multipath
     <platformdirs.api.PlatformDirsABC.multipath>`, `opinion <platformdirs.api.PlatformDirsABC.opinion>`, `ensure_exists
