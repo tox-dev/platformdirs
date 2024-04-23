@@ -7,7 +7,7 @@ requires = [
 
 [project]
 name = "platformdirs"
-description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
+description = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
 readme = "README.rst"
 keywords = [
   "appdirs",
