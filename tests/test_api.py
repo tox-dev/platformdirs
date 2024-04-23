@@ -1,13 +1,22 @@
 from __future__ import annotations
 
+import builtins
+import functools
 import inspect
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Callable
 
 import pytest
 
 import platformdirs
 from platformdirs.android import Android
+
+builtin_import = builtins.__import__
+
+
+if TYPE_CHECKING:
+    from types import ModuleType
 
 
 def test_package_metadata() -> None:
@@ -80,3 +89,34 @@ def test_android_active(  # noqa: PLR0913
         assert platformdirs._set_platform_dir_class() is Android  # noqa: SLF001
     else:
         assert platformdirs._set_platform_dir_class() is not Android  # noqa: SLF001
+
+
+def _fake_import(name: str, *args: Any, **kwargs: Any) -> ModuleType:  # noqa: ANN401
+    if name == "ctypes":
+        raise ModuleNotFoundError("No module named %s" % name)
+    return builtin_import(name, *args, **kwargs)
+
+
+def mock_import(func: Callable[[], None]) -> Callable[[], None]:
+    @functools.wraps(func)
+    def wrap() -> None:
+        platformdirs_module_items = [item for item in sys.modules.items() if item[0].startswith("platformdirs")]
+        try:
+            builtins.__import__ = _fake_import
+            for name, _ in platformdirs_module_items:
+                del sys.modules[name]
+            return func()
+        finally:
+            # restore original modules
+            builtins.__import__ = builtin_import
+            for name, module in platformdirs_module_items:
+                sys.modules[name] = module
+
+    return wrap
+
+
+@mock_import
+def test_no_ctypes() -> None:
+    import platformdirs  # noqa: PLC0415
+
+    assert platformdirs
