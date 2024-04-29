@@ -93,7 +93,8 @@ def test_android_active(  # noqa: PLR0913
 
 def _fake_import(name: str, *args: Any, **kwargs: Any) -> ModuleType:  # noqa: ANN401
     if name == "ctypes":
-        raise ModuleNotFoundError("No module named %s" % name)
+        msg = f"No module named {name}"
+        raise ModuleNotFoundError(msg)
     return builtin_import(name, *args, **kwargs)
 
 
