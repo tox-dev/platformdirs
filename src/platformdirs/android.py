@@ -117,7 +117,7 @@ class Android(PlatformDirsABC):
 
 
 @lru_cache(maxsize=1)
-def _android_folder() -> str | None:
+def _android_folder() -> str | None:  # noqa: C901, PLR0912
     """:return: base folder for the Android OS or None if it cannot be found"""
     result: str | None = None
     # type checker isn't happy with our "import android", just don't do this when type checking
@@ -153,7 +153,7 @@ def _android_folder() -> str | None:
             result = None
     if result is None:
         # one last try: find an android folder looking at path on the sys.path
-        # taking adopted storage paths into acount
+        # taking adopted storage paths into account
         pattern = re.compile(r"/mnt/expand/[a-fA-F0-9-]{36}/(data|user/\d+)/(.+)/files")
         for path in sys.path:
             if pattern.match(path):
