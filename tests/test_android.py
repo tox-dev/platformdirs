@@ -104,19 +104,19 @@ def test_android_folder_from_p4a(mocker: MockerFixture, monkeypatch: pytest.Monk
 
     _android_folder.cache_clear()
 
-    abspath = MagicMock(return_value="/A")  # pragma: no cover
-    pfile = MagicMock(getAbsolutePath=abspath)  # pragma: no cover
-    fdir = MagicMock(getParentFile=MagicMock(return_value=pfile))  # pragma: no cover
-    appc = MagicMock(getFilesDir=MagicMock(return_value=fdir))  # pragma: no cover
-    act = MagicMock(getApplicationContext=MagicMock(return_value=appc))  # pragma: no cover
-    mocker.patch.dict(sys.modules, {"android": MagicMock(mActivity=act)})  # pragma: no cover
+    get_absolute_path = MagicMock(return_value="/A")
+    get_parent_file = MagicMock(getAbsolutePath=get_absolute_path)
+    get_files_dir = MagicMock(getParentFile=MagicMock(return_value=get_parent_file))
+    get_application_context = MagicMock(getFilesDir=MagicMock(return_value=get_files_dir))
+    m_activity = MagicMock(getApplicationContext=MagicMock(return_value=get_application_context))
+    mocker.patch.dict(sys.modules, {"android": MagicMock(mActivity=m_activity)})
 
     result = _android_folder()
     assert result == "/A"
-    assert abspath.call_count == 1
+    assert get_absolute_path.call_count == 1
 
     assert _android_folder() is result
-    assert abspath.call_count == 1
+    assert get_absolute_path.call_count == 1
 
 
 @pytest.mark.parametrize(
