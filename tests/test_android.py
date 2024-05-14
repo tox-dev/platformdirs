@@ -67,9 +67,12 @@ def test_android(mocker: MockerFixture, params: dict[str, Any], func: str) -> No
     assert result == expected
 
 
-def test_android_folder_from_jnius(mocker: MockerFixture) -> None:
+def test_android_folder_from_jnius(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch) -> None:
     from platformdirs import PlatformDirs  # noqa: PLC0415
     from platformdirs.android import _android_folder  # noqa: PLC0415
+
+    mocker.patch.dict(sys.modules, {"android": MagicMock(side_effect=ModuleNotFoundError)})
+    monkeypatch.delitem(__import__('sys').modules, 'android')
 
     _android_folder.cache_clear()
 
@@ -92,16 +95,42 @@ def test_android_folder_from_jnius(mocker: MockerFixture) -> None:
     assert _android_folder() is result
     assert autoclass.call_count == 1
 
+def test_android_folder_from_p4a(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch) -> None:
+    from platformdirs import PlatformDirs  # noqa: PLC0415
+    from platformdirs.android import _android_folder  # noqa: PLC0415
+
+    mocker.patch.dict(sys.modules, {"jnius": MagicMock(side_effect=ModuleNotFoundError)})
+    monkeypatch.delitem(__import__('sys').modules, 'jnius')
+
+    _android_folder.cache_clear()
+
+    getAbsolutePath = MagicMock(return_value="/A")  # pragma: no cover
+    getParentFile = MagicMock(getAbsolutePath=getAbsolutePath)  # pragma: no cover
+    getFilesDir = MagicMock(getParentFile=MagicMock(return_value=getParentFile))  # pragma: no cover
+    getApplicationContext = MagicMock(getFilesDir = MagicMock(return_value=getFilesDir))  # pragma: no cover
+    mActivity = MagicMock(getApplicationContext=MagicMock(return_value=getApplicationContext))  # pragma: no cover
+    mocker.patch.dict(sys.modules, {"android": MagicMock(mActivity=mActivity)})  # pragma: no cover
+
+    result = _android_folder()
+    assert result == "/A"
+    assert getAbsolutePath.call_count == 1
+
+    assert _android_folder() is result
+    assert getAbsolutePath.call_count == 1
 
 @pytest.mark.parametrize(
     "path",
     [
         "/data/user/1/a/files",
         "/data/data/a/files",
+        "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user/1/a/files",
     ],
 )
 def test_android_folder_from_sys_path(mocker: MockerFixture, path: str, monkeypatch: pytest.MonkeyPatch) -> None:
-    mocker.patch.dict(sys.modules, {"jnius": MagicMock(autoclass=MagicMock(side_effect=ModuleNotFoundError))})
+    mocker.patch.dict(sys.modules, {"jnius": MagicMock(side_effect=ModuleNotFoundError)})
+    monkeypatch.delitem(__import__('sys').modules, 'jnius')
+    mocker.patch.dict(sys.modules, {"android": MagicMock(side_effect=ModuleNotFoundError)})
+    monkeypatch.delitem(__import__('sys').modules, 'android')
 
     from platformdirs.android import _android_folder  # noqa: PLC0415
 
