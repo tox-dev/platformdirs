@@ -151,6 +151,16 @@ def _android_folder() -> str | None:
                 break
         else:
             result = None
+    if result is None:
+        # one last try: find an android folder looking at path on the sys.path
+        # taking adopted storage paths into acount
+        pattern = re.compile(r"/mnt/expand/[a-fA-F0-9-]{36}/(data|user/\d+)/(.+)/files")
+        for path in sys.path:
+            if pattern.match(path):
+                result = path.split("/files")[0]
+                break
+        else:
+            result = None
     return result
 
 
