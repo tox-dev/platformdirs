@@ -133,8 +133,8 @@ def _android_folder() -> str | None:  # noqa: C901, PLR0912
             result = None
     if result is None:
         try:
-            # ...and fall back to using plain pyjnius, if python4android isn't
-            # available or doesn't deliver any useful result...
+            # ...and fall back to using plain pyjnius, if python4android isn't available or doesn't deliver any useful
+            # result...
             from jnius import autoclass  # noqa: PLC0415
 
             context = autoclass("android.content.Context")
