@@ -120,8 +120,8 @@ class Android(PlatformDirsABC):
 def _android_folder() -> str | None:  # noqa: C901, PLR0912
     """:return: base folder for the Android OS or None if it cannot be found"""
     result: str | None = None
-    # type checker isn't happy with our "import android", just don't do this when type checking
-    # see https://stackoverflow.com/a/61394121
+    # type checker isn't happy with our "import android", just don't do this when type checking see
+    # https://stackoverflow.com/a/61394121
     if not TYPE_CHECKING:
         try:
             # First try to get a path to android app using python4android (if available)...
@@ -152,8 +152,8 @@ def _android_folder() -> str | None:  # noqa: C901, PLR0912
         else:
             result = None
     if result is None:
-        # one last try: find an android folder looking at path on the sys.path
-        # taking adopted storage paths into account
+        # one last try: find an android folder looking at path on the sys.path taking adopted storage paths into
+        # account
         pattern = re.compile(r"/mnt/expand/[a-fA-F0-9-]{36}/(data|user/\d+)/(.+)/files")
         for path in sys.path:
             if pattern.match(path):
