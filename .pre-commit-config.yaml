@@ -22,7 +22,7 @@ repos:
       - id: ruff
         args: [ "--fix", "--unsafe-fixes", "--exit-non-zero-on-fix" ]
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "2.0.4"
+    rev: "2.1.2"
     hooks:
       - id: pyproject-fmt
         additional_dependencies: ["tox>=4.14.2"]
