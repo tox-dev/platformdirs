@@ -103,12 +103,12 @@ def _func_to_path(func: str) -> XDGVariable | None:
     return mapping.get(func)
 
 
-@pytest.fixture()
+@pytest.fixture
 def dirs_instance() -> Unix:
     return Unix(multipath=True, opinion=False)
 
 
-@pytest.fixture()
+@pytest.fixture
 def _getuid(mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.unix.getuid", return_value=1234)
 
