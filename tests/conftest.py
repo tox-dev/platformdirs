@@ -37,6 +37,6 @@ def func_path(request: SubRequest) -> str:
     return prop.replace("_dir", "_path")
 
 
-@pytest.fixture()
+@pytest.fixture
 def props() -> tuple[str, ...]:
     return PROPS
