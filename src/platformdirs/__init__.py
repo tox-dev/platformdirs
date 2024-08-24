@@ -19,8 +19,6 @@ if TYPE_CHECKING:
     from pathlib import Path
     from typing import Literal
 
-    from typing_extensions import TypeAlias
-
 if sys.platform == "win32":
     from platformdirs.windows import Windows as _Result
 elif sys.platform == "darwin":
@@ -46,7 +44,7 @@ def _set_platform_dir_class() -> type[PlatformDirsABC]:
 
 if TYPE_CHECKING:
     # Work around mypy issue: https://github.com/python/mypy/issues/10962
-    PlatformDirs: TypeAlias = _Result
+    PlatformDirs = _Result
 else:
     PlatformDirs = _set_platform_dir_class()  #: Currently active platform
 AppDirs = PlatformDirs  #: Backwards compatibility with appdirs
