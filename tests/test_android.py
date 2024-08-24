@@ -76,7 +76,7 @@ def test_android_folder_from_jnius(mocker: MockerFixture, monkeypatch: pytest.Mo
 
     _android_folder.cache_clear()
 
-    if PlatformDirs is Android:
+    if PlatformDirs is Android:  # type: ignore[comparison-overlap] # See https://github.com/platformdirs/platformdirs/pull/295
         import jnius  # pragma: no cover # noqa: PLC0415
 
         autoclass = mocker.spy(jnius, "autoclass")  # pragma: no cover
