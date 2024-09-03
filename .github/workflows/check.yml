@@ -76,6 +76,7 @@ jobs:
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
         with:
+          include-hidden-files: true
           name: coverage-${{ matrix.os }}-${{ matrix.py }}
           path: "report/.coverage.*"
           retention-days: 3
