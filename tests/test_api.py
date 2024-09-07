@@ -121,3 +121,12 @@ def test_no_ctypes() -> None:
     import platformdirs  # noqa: PLC0415
 
     assert platformdirs
+
+
+def test_mypy_subclassing() -> None:
+    # Ensure that PlatformDirs / AppDirs is seen as a valid superclass by mypy
+    # This is a static type-checking test to ensure we work around
+    # the following mypy issue: https://github.com/python/mypy/issues/10962
+    class PlatformDirsSubclass(platformdirs.PlatformDirs): ...
+
+    class AppDirsSubclass(platformdirs.AppDirs): ...
