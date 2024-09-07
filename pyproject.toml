@@ -214,10 +214,11 @@ ignore = [
   "D212",   # `multi-line-summary-first-line` (D212) and `multi-line-summary-second-line` (D213) are incompatible
   "S104",   # Possible binding to all interfaces
   "CPY",    # no copyright notices
+  "DOC",    # no support for restructuredtext
 ]
 per-file-ignores."tests/**/*.py" = [
-  "S101",    # asserts allowed in tests...
-  "FBT",     # don"t care about booleans as positional arguments in tests
+  "S101",    # asserts allowed in tests
+  "FBT",     # don't care about booleans as positional arguments in tests
   "INP001",  # no implicit namespace
   "D",       # don't care about documentation in tests
   "S603",    # `subprocess` call: check for execution of untrusted input
