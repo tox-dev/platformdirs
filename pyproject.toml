@@ -2,7 +2,7 @@
 build-backend = "hatchling.build"
 requires = [
   "hatch-vcs>=0.4",
-  "hatchling>=1.18",
+  "hatchling>=1.25",
 ]
 
 [project]
@@ -46,20 +46,20 @@ dynamic = [
   "version",
 ]
 optional-dependencies.docs = [
-  "furo>=2023.9.10",
-  "proselint>=0.13",
-  "sphinx>=7.2.6",
-  "sphinx-autodoc-typehints>=1.25.2",
+  "furo>=2024.8.6",
+  "proselint>=0.14",
+  "sphinx>=8.0.2",
+  "sphinx-autodoc-typehints>=2.4",
 ]
 optional-dependencies.test = [
   "appdirs==1.4.4",
   "covdefaults>=2.3",
-  "pytest>=7.4.3",
-  "pytest-cov>=4.1",
-  "pytest-mock>=3.12",
+  "pytest>=8.3.2",
+  "pytest-cov>=5",
+  "pytest-mock>=3.14",
 ]
 optional-dependencies.type = [
-  "mypy>=1.8",
+  "mypy>=1.11.2",
 ]
 urls.Documentation = "https://platformdirs.readthedocs.io"
 urls.Homepage = "https://github.com/platformdirs/platformdirs"
@@ -76,6 +76,7 @@ build.targets.sdist.include = [
 version.source = "vcs"
 
 [tool.hatch.envs.default]
+installer = "uv"
 description = "Development environment"
 features = [
   "test",
@@ -83,12 +84,13 @@ features = [
   "type",
 ]
 scripts = { show = [
-  "python -m pip list --format=columns",
+  "uv pip tree",
   'python -c "import sys; print(sys.executable)"',
 ] }
 
 [tool.hatch.envs.test]
 template = "test"
+installer = "uv"
 # dev-mode = false # cannot enable this until https://github.com/pypa/hatch/issues/1237
 description = "Run the test suite"
 matrix = [
@@ -105,7 +107,9 @@ matrix = [
 features = [
   "test",
 ]
-env-vars = { COVERAGE_FILE = "report/.coverage.{matrix:python}", COVERAGE_PROCESS_START = "pyproject.toml", _COVERAGE_SRC = "src/platformdirs" }
+env-vars.COVERAGE_FILE = "report/.coverage.{matrix:python}"
+env-vars.COVERAGE_PROCESS_START = "pyproject.toml"
+env-vars._COVERAGE_SRC = "src/platformdirs"
 [tool.hatch.envs.test.scripts]
 run = [
   """
@@ -118,11 +122,12 @@ run = [
 
 [tool.hatch.envs.coverage]
 template = "coverage"
+installer = "uv"
 description = "combine coverage files and generate diff"
 dependencies = [
   "covdefaults>=2.3",
-  "coverage[toml]>=7.3.2",
-  "diff-cover>=8.0.1",
+  "coverage[toml]>=7.6.1",
+  "diff-cover>=9.2",
 ]
 env-vars = { COVERAGE_FILE = "report/.coverage" }
 [tool.hatch.envs.coverage.scripts]
@@ -136,6 +141,7 @@ run = [
 
 [tool.hatch.envs.type]
 template = "type"
+installer = "uv"
 description = "Run the type checker"
 python = "3.12"
 dev-mode = false
@@ -150,11 +156,12 @@ scripts = { run = [
 
 [tool.hatch.envs.fix]
 template = "fix"
+installer = "uv"
 description = "Run the pre-commit tool to lint and autofix issues"
 python = "3.12"
 detached = true
 dependencies = [
-  "pre-commit>=3.6",
+  "pre-commit-uv>=4.1",
 ]
 scripts = { "run" = [
   "pre-commit run --all-files --show-diff-on-failure",
@@ -162,6 +169,7 @@ scripts = { "run" = [
 
 [tool.hatch.envs.docs]
 template = "docs"
+installer = "uv"
 description = "Build documentation using Sphinx"
 python = "3.12"
 dev-mode = false
@@ -178,15 +186,16 @@ build = [
 
 [tool.hatch.envs.readme]
 template = "readme"
+installer = "uv"
 description = "check that the long description is valid"
 python = "3.12"
 dependencies = [
-  "build[virtualenv]>=1.0.3",
-  "twine>=4.0.2",
-  "check-wheel-contents>=0.6.0",
+  "build[uv]>=1.2.2",
+  "twine>=5.1.1",
+  "check-wheel-contents>=0.6",
 ]
 scripts = { "run" = [
-  "python -m build -o dist",
+  "pyproject-build --installer uv -o dist",
   "twine check dist/*.whl dist/*.tar.gz",
   "check-wheel-contents dist",
 ] }
@@ -231,13 +240,6 @@ per-file-ignores."tests/**/*.py" = [
 builtin = "clear,usage,en-GB_to_en-US"
 count = true
 quiet-level = 3
-
-[tool.docformatter]
-blank = true
-recursive = true
-pre-summary-newline = true
-wrap-descriptions = 120
-wrap-summaries = 120
 
 [tool.pyproject-fmt]
 max_supported_python = "3.13"
