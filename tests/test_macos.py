@@ -82,6 +82,8 @@ def test_macos(mocker: MockerFixture, params: dict[str, Any], func: str) -> None
         "site_config_dir",
         "site_cache_dir",
         "site_runtime_dir",
+        "site_cache_path",
+        "site_data_path",
     ],
 )
 @pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="singlepath")])
@@ -94,6 +96,10 @@ def test_macos_homebrew(mocker: MockerFixture, params: dict[str, Any], multipath
     suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
     suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # noqa: PTH118
 
+    expected_path_map = {
+        "site_cache_path": Path(f"/opt/homebrew/var/cache{suffix}"),
+        "site_data_path": Path(f"/opt/homebrew/share{suffix}"),
+    }
     expected_map = {
         "site_data_dir": f"/opt/homebrew/share{suffix}",
         "site_config_dir": f"/opt/homebrew/share{suffix}",
@@ -104,6 +110,6 @@ def test_macos_homebrew(mocker: MockerFixture, params: dict[str, Any], multipath
         expected_map["site_data_dir"] += f":/Library/Application Support{suffix}"
         expected_map["site_config_dir"] += f":/Library/Application Support{suffix}"
         expected_map["site_cache_dir"] += f":/Library/Caches{suffix}"
-    expected = expected_map[site_func]
+    expected = expected_path_map[site_func] if site_func.endswith("_path") else expected_map[site_func]
 
     assert result == expected
