@@ -28,15 +28,26 @@ jobs:
           - "3.9"
           - "3.8"
         os:
-          - ubuntu-22.04
-          - windows-2022
-          - macos-12
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
 
     steps:
-      - name: Setup python for tox
+      - name: Setup python for test ${{ matrix.py }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.py }}
+          allow-prereleases: true
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          enable-cache: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: install hatch
+        run: uv pip install hatch --system
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Pick environment to run
         run: |
           import codecs; import os
@@ -44,23 +55,12 @@ jobs:
           py = "test.{}".format(py if py.startswith("pypy") else f"py{py}")
           print(f"Picked {py}")
           with codecs.open(os.environ["GITHUB_ENV"], mode="a", encoding="utf-8") as file_handler:
-              file_handler.write("FORCE_COLOR=1\n")
-              file_handler.write(f"ENV={py}\n")
+              file_handler.write(f"FORCE_COLOR=1\nENV={py}\n")
         shell: python
-      - name: Install Hatch
-        uses: pypa/hatch@install
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Setup python for test ${{ matrix.py }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.py }}
-          allow-prereleases: true
       - name: Setup test environment
         run: |
           hatch -v env create ${ENV}
-          hatch run ${ENV}:pip freeze
+          hatch run ${ENV}:uv pip tree
         shell: bash
       - name: Run test suite
         run: hatch -v run ${ENV}:run
@@ -83,19 +83,24 @@ jobs:
 
   coverage:
     name: Combine coverage
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs: test
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Let us have colors
+        run: echo "FORCE_COLOR=true" >> "$GITHUB_ENV"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Let us have colors
-        run: echo "FORCE_COLOR=true" >> "$GITHUB_ENV"
-      - name: Install Hatch
-        uses: pypa/hatch@install
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          enable-cache: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: install hatch
+        run: uv pip install hatch --system
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Setup coverage tool
         run: |
           hatch -v env create coverage
@@ -121,23 +126,28 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-22.04
-          - windows-2022
+          - ubuntu-latest
+          - windows-latest
         env:
-          - {"name": "default", "target": "show"}
-          - {"name": "type", "target": "run"}
-          - {"name": "docs", "target": "build"}
-          - {"name": "readme", "target": "run"}
+          - { "name": "default", "target": "show" }
+          - { "name": "type", "target": "run" }
+          - { "name": "docs", "target": "build" }
+          - { "name": "readme", "target": "run" }
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Setup Python "3.12"
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install Hatch
-        uses: pypa/hatch@install
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          enable-cache: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: install hatch
+        run: uv pip install hatch --system
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Setup ${{ matrix.env.name }}
         run: |
           hatch -v env create ${{ matrix.env.name }}

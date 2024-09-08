@@ -4,28 +4,31 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.29.2
+    hooks:
+      - id: check-github-workflows
+        args: ["--verbose"]
   - repo: https://github.com/codespell-project/codespell
     rev: v2.3.0
     hooks:
       - id: codespell
-        additional_dependencies: [ "tomli>=2.0.1" ]
-  - repo: https://github.com/PyCQA/docformatter
-    rev: v1.7.5
+        additional_dependencies: ["tomli>=2.0.1"]
+  - repo: https://github.com/tox-dev/pyproject-fmt
+    rev: "2.2.3"
     hooks:
-      - id: docformatter
-        additional_dependencies: [ "tomli>=2.0.1" ]
-        args: [ "--in-place", "--config", "./pyproject.toml" ]
+      - id: pyproject-fmt
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.6.3"
+    rev: "v0.6.4"
     hooks:
       - id: ruff-format
       - id: ruff
-        args: [ "--fix", "--unsafe-fixes", "--exit-non-zero-on-fix" ]
-  - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "2.2.1"
+        args: ["--fix", "--unsafe-fixes", "--exit-non-zero-on-fix"]
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: "v3.3.3"
     hooks:
-      - id: pyproject-fmt
-        additional_dependencies: ["tox>=4.14.2"]
+      - id: prettier
+        args: ["--print-width=120", "--prose-wrap=always"]
   - repo: meta
     hooks:
       - id: check-hooks-apply
