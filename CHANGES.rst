@@ -1,7 +1,7 @@
 platformdirs Changelog
 ======================
 
-The changes of more recent versions are tracked at https://github.com/tox-dev/platformdirs/releases
+The changes of more recent versions are `tracked here <https://github.com/tox-dev/platformdirs/releases>`_.
 
 platformdirs 4.0.0 (2023-11-10)
 -------------------------------
