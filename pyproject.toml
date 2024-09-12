@@ -65,6 +65,7 @@ urls.Documentation = "https://platformdirs.readthedocs.io"
 urls.Homepage = "https://github.com/platformdirs/platformdirs"
 urls.Source = "https://github.com/platformdirs/platformdirs"
 urls.Tracker = "https://github.com/platformdirs/platformdirs/issues"
+urls.Changelog = "https://github.com/platformdirs/platformdirs/releases"
 
 [tool.hatch]
 build.hooks.vcs.version-file = "src/platformdirs/version.py"
