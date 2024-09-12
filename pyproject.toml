@@ -61,8 +61,8 @@ optional-dependencies.test = [
 optional-dependencies.type = [
   "mypy>=1.11.2",
 ]
-urls.Changelog = "https://github.com/platformdirs/platformdirs/releases"
 
+urls.Changelog = "https://github.com/platformdirs/platformdirs/releases"
 urls.Documentation = "https://platformdirs.readthedocs.io"
 urls.Homepage = "https://github.com/platformdirs/platformdirs"
 urls.Source = "https://github.com/platformdirs/platformdirs"
