@@ -33,18 +33,22 @@ jobs:
           - macos-latest
 
     steps:
-      - name: Setup python for test ${{ matrix.py }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.py }}
-          allow-prereleases: true
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v2
         with:
           enable-cache: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup python hatch
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: install hatch
-        run: uv pip install hatch --system
+        run: uv pip install --system --python 3.12 hatch
+      - name: Setup python for test ${{ matrix.py }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.py }}
+          allow-prereleases: true
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -88,16 +92,17 @@ jobs:
     steps:
       - name: Let us have colors
         run: echo "FORCE_COLOR=true" >> "$GITHUB_ENV"
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v2
         with:
           enable-cache: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup python hatch
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: install hatch
-        run: uv pip install hatch --system
+        run: uv pip install --system --python 3.12 hatch
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -134,17 +139,17 @@ jobs:
           - { "name": "docs", "target": "build" }
           - { "name": "readme", "target": "run" }
     steps:
-      - name: Setup Python "3.12"
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v2
         with:
           enable-cache: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup python hatch
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: install hatch
-        run: uv pip install hatch --system
+        run: uv pip install --system --python 3.12 hatch
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
