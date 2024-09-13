@@ -61,10 +61,12 @@ optional-dependencies.test = [
 optional-dependencies.type = [
   "mypy>=1.11.2",
 ]
+
+urls.Changelog = "https://github.com/tox-dev/platformdirs/releases"
 urls.Documentation = "https://platformdirs.readthedocs.io"
-urls.Homepage = "https://github.com/platformdirs/platformdirs"
-urls.Source = "https://github.com/platformdirs/platformdirs"
-urls.Tracker = "https://github.com/platformdirs/platformdirs/issues"
+urls.Homepage = "https://github.com/tox-dev/platformdirs"
+urls.Source = "https://github.com/tox-dev/platformdirs"
+urls.Tracker = "https://github.com/tox-dev/platformdirs/issues"
 
 [tool.hatch]
 build.hooks.vcs.version-file = "src/platformdirs/version.py"

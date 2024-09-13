@@ -13,7 +13,6 @@ The source code and issue tracker are both hosted on `GitHub`_.
    :maxdepth: 3
 
    api
-   changelog
 
 Indices and tables
 ==================
