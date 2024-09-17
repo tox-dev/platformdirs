@@ -12,18 +12,18 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - name: Setup python to build package
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: setup uv for tox
-        uses: yezz123/setup-uv@v4
-      - name: Install build
-        run: uv pip install build[uv] --system
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build package
-        run: pyproject-build --installer uv --sdist --wheel . --outdir dist
+        run: uv build --python 3.13 --python-preference only-managed --sdist --wheel . --out-dir dist
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@v1.10.1
+        with:
+          attestations: true
