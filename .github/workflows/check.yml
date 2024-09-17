@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v2
+        uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -93,7 +93,7 @@ jobs:
       - name: Let us have colors
         run: echo "FORCE_COLOR=true" >> "$GITHUB_ENV"
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v2
+        uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -140,7 +140,7 @@ jobs:
           - { "name": "readme", "target": "run" }
     steps:
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v2
+        uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
