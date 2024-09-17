@@ -33,25 +33,23 @@ jobs:
           - macos-latest
 
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Setup python hatch
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      - name: Add .local/bin to Windows PATH
+        if: runner.os == 'Windows'
+        shell: bash
+        run: echo "$USERPROFILE/.local/bin" >> $GITHUB_PATH
       - name: install hatch
-        run: uv pip install --system --python 3.12 hatch
-      - name: Setup python for test ${{ matrix.py }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.py }}
-          allow-prereleases: true
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        run: uv tool install --python-preference only-managed --python 3.13 hatch
+      - name: install Python
+        run: uv python install --python-preference only-managed ${{ matrix.py }}
       - name: Pick environment to run
         run: |
           import codecs; import os
@@ -92,20 +90,17 @@ jobs:
     steps:
       - name: Let us have colors
         run: echo "FORCE_COLOR=true" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Setup python hatch
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
       - name: install hatch
-        run: uv pip install --system --python 3.12 hatch
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        run: uv tool install --python-preference only-managed --python 3.13 hatch
       - name: Setup coverage tool
         run: |
           hatch -v env create coverage
@@ -139,20 +134,21 @@ jobs:
           - { "name": "docs", "target": "build" }
           - { "name": "readme", "target": "run" }
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Setup python hatch
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      - name: Add .local/bin to Windows PATH
+        if: runner.os == 'Windows'
+        shell: bash
+        run: echo "$USERPROFILE/.local/bin" >> $GITHUB_PATH
       - name: install hatch
-        run: uv pip install --system --python 3.12 hatch
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        run: uv tool install --python-preference only-managed --python 3.13 hatch
       - name: Setup ${{ matrix.env.name }}
         run: |
           hatch -v env create ${{ matrix.env.name }}
