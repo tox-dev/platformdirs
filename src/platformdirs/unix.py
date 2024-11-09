@@ -259,7 +259,7 @@ def _get_user_dirs_folder(key: str) -> str | None:
 
         path = parser["top"][key].strip('"')
         # Handle relative home paths
-        return path.replace("$HOME", os.path.expanduser("~"))  # noqa: PTH111
+        return path.replace("$HOME", "${HOME}").replace("${HOME}", os.path.expanduser("~"))  # noqa: PTH111
 
     return None
 
