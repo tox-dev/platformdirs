@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pytest
 
+TYPE_CHECKING = False  #: :data:`typing.TYPE_CHECKING` without importing :mod:`typing` at runtime
 if TYPE_CHECKING:
     from collections.abc import Iterator
     from pathlib import Path

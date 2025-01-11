@@ -6,7 +6,10 @@ import re
 import sys
 from contextlib import suppress
 from functools import lru_cache
-from typing import Final
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Final
 
 
 @lru_cache(maxsize=1)

@@ -6,8 +6,8 @@ import os
 from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
-from typing import TYPE_CHECKING
 
+TYPE_CHECKING = False  #: :data:`typing.TYPE_CHECKING` without importing :mod:`typing` at runtime
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
     from typing import Literal

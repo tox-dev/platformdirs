@@ -7,9 +7,12 @@ import stat
 import sys
 import warnings
 from pathlib import Path
-from typing import Final, NoReturn
 
 from .api import RuntimeDirWarning
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Final, NoReturn
 
 if sys.platform == "win32":
 

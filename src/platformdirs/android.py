@@ -6,10 +6,13 @@ import os
 import re
 from contextlib import suppress
 from functools import cache
-from typing import Final
 
 from ._android import android_folder as _android_folder
 from .api import PlatformDirsABC
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Final
 
 
 class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # full directory API

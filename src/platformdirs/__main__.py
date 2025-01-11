@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from platformdirs import PlatformDirs, __version__
 
+TYPE_CHECKING = False
 if TYPE_CHECKING:
     from typing import Final
 
