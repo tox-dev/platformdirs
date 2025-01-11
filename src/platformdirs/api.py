@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Iterator, Literal
+    from collections.abc import Iterator
+    from typing import Literal
 
 
 class PlatformDirsABC(ABC):  # noqa: PLR0904
