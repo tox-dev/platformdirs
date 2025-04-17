@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
 import sys
 from functools import lru_cache
@@ -11,6 +12,11 @@ from .api import PlatformDirsABC
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+with contextlib.suppress(ImportError):
+    import ctypes
+with contextlib.suppress(ImportError):
+    import winreg
 
 
 class Windows(PlatformDirsABC):
@@ -180,89 +186,83 @@ def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
     return None
 
 
-def get_win_folder_from_registry(csidl_name: str) -> str:
-    """
-    Get folder from the registry.
+if "winreg" in globals():
 
-    This is a fallback technique at best. I'm not sure if using the registry for these guarantees us the correct answer
-    for all CSIDL_* names.
+    def get_win_folder_from_registry(csidl_name: str) -> str:
+        """
+        Get folder from the registry.
 
-    """
-    shell_folder_name = {
-        "CSIDL_APPDATA": "AppData",
-        "CSIDL_COMMON_APPDATA": "Common AppData",
-        "CSIDL_LOCAL_APPDATA": "Local AppData",
-        "CSIDL_PERSONAL": "Personal",
-        "CSIDL_DOWNLOADS": "{374DE290-123F-4565-9164-39C4925E467B}",
-        "CSIDL_MYPICTURES": "My Pictures",
-        "CSIDL_MYVIDEO": "My Video",
-        "CSIDL_MYMUSIC": "My Music",
-    }.get(csidl_name)
-    if shell_folder_name is None:
-        msg = f"Unknown CSIDL name: {csidl_name}"
-        raise ValueError(msg)
-    if sys.platform != "win32":  # only needed for mypy type checker to know that this code runs only on Windows
-        raise NotImplementedError
-    import winreg  # noqa: PLC0415
+        This is a fallback technique at best. I'm not sure if using the registry for these guarantees us the correct
+        answer for all CSIDL_* names.
 
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders")
-    directory, _ = winreg.QueryValueEx(key, shell_folder_name)
-    return str(directory)
+        """
+        shell_folder_name = {
+            "CSIDL_APPDATA": "AppData",
+            "CSIDL_COMMON_APPDATA": "Common AppData",
+            "CSIDL_LOCAL_APPDATA": "Local AppData",
+            "CSIDL_PERSONAL": "Personal",
+            "CSIDL_DOWNLOADS": "{374DE290-123F-4565-9164-39C4925E467B}",
+            "CSIDL_MYPICTURES": "My Pictures",
+            "CSIDL_MYVIDEO": "My Video",
+            "CSIDL_MYMUSIC": "My Music",
+        }.get(csidl_name)
+        if shell_folder_name is None:
+            msg = f"Unknown CSIDL name: {csidl_name}"
+            raise ValueError(msg)
+        if sys.platform != "win32":  # only needed for mypy type checker to know that this code runs only on Windows
+            raise NotImplementedError
+
+        key = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
+        )
+        directory, _ = winreg.QueryValueEx(key, shell_folder_name)
+        return str(directory)
 
 
-def get_win_folder_via_ctypes(csidl_name: str) -> str:
-    """Get folder with ctypes."""
-    # There is no 'CSIDL_DOWNLOADS'.
-    # Use 'CSIDL_PROFILE' (40) and append the default folder 'Downloads' instead.
-    # https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid
+if "ctypes" in globals() and hasattr(ctypes, "windll"):
 
-    import ctypes  # noqa: PLC0415
+    def get_win_folder_via_ctypes(csidl_name: str) -> str:
+        """Get folder with ctypes."""
+        # There is no 'CSIDL_DOWNLOADS'.
+        # Use 'CSIDL_PROFILE' (40) and append the default folder 'Downloads' instead.
+        # https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid
+        csidl_const = {
+            "CSIDL_APPDATA": 26,
+            "CSIDL_COMMON_APPDATA": 35,
+            "CSIDL_LOCAL_APPDATA": 28,
+            "CSIDL_PERSONAL": 5,
+            "CSIDL_MYPICTURES": 39,
+            "CSIDL_MYVIDEO": 14,
+            "CSIDL_MYMUSIC": 13,
+            "CSIDL_DOWNLOADS": 40,
+            "CSIDL_DESKTOPDIRECTORY": 16,
+        }.get(csidl_name)
+        if csidl_const is None:
+            msg = f"Unknown CSIDL name: {csidl_name}"
+            raise ValueError(msg)
 
-    csidl_const = {
-        "CSIDL_APPDATA": 26,
-        "CSIDL_COMMON_APPDATA": 35,
-        "CSIDL_LOCAL_APPDATA": 28,
-        "CSIDL_PERSONAL": 5,
-        "CSIDL_MYPICTURES": 39,
-        "CSIDL_MYVIDEO": 14,
-        "CSIDL_MYMUSIC": 13,
-        "CSIDL_DOWNLOADS": 40,
-        "CSIDL_DESKTOPDIRECTORY": 16,
-    }.get(csidl_name)
-    if csidl_const is None:
-        msg = f"Unknown CSIDL name: {csidl_name}"
-        raise ValueError(msg)
+        buf = ctypes.create_unicode_buffer(1024)
+        windll = getattr(ctypes, "windll")  # noqa: B009 # using getattr to avoid false positive with mypy type checker
+        windll.shell32.SHGetFolderPathW(None, csidl_const, None, 0, buf)
 
-    buf = ctypes.create_unicode_buffer(1024)
-    windll = getattr(ctypes, "windll")  # noqa: B009 # using getattr to avoid false positive with mypy type checker
-    windll.shell32.SHGetFolderPathW(None, csidl_const, None, 0, buf)
+        # Downgrade to short path name if it has high-bit chars.
+        if any(ord(c) > 255 for c in buf):  # noqa: PLR2004
+            buf2 = ctypes.create_unicode_buffer(1024)
+            if windll.kernel32.GetShortPathNameW(buf.value, buf2, 1024):
+                buf = buf2
 
-    # Downgrade to short path name if it has high-bit chars.
-    if any(ord(c) > 255 for c in buf):  # noqa: PLR2004
-        buf2 = ctypes.create_unicode_buffer(1024)
-        if windll.kernel32.GetShortPathNameW(buf.value, buf2, 1024):
-            buf = buf2
+        if csidl_name == "CSIDL_DOWNLOADS":
+            return os.path.join(buf.value, "Downloads")  # noqa: PTH118
 
-    if csidl_name == "CSIDL_DOWNLOADS":
-        return os.path.join(buf.value, "Downloads")  # noqa: PTH118
-
-    return buf.value
+        return buf.value
 
 
 def _pick_get_win_folder() -> Callable[[str], str]:
-    try:
-        import ctypes  # noqa: PLC0415
-    except ImportError:
-        pass
-    else:
-        if hasattr(ctypes, "windll"):
-            return get_win_folder_via_ctypes
-    try:
-        import winreg  # noqa: PLC0415, F401
-    except ImportError:
-        return get_win_folder_from_env_vars
-    else:
+    if "get_win_folder_via_ctypes" in globals():
+        return get_win_folder_via_ctypes
+    if "get_win_folder_from_registry" in globals():
         return get_win_folder_from_registry
+    return get_win_folder_from_env_vars
 
 
 get_win_folder = lru_cache(maxsize=None)(_pick_get_win_folder())
