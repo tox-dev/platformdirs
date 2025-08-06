@@ -105,7 +105,7 @@ jobs:
           hatch -v env create coverage
           hatch run coverage:pip freeze
       - name: Download coverage data
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: report
           pattern: coverage-*
