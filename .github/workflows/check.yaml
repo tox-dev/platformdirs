@@ -32,7 +32,7 @@ jobs:
           - macos-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Install the latest version of uv
@@ -89,7 +89,7 @@ jobs:
     steps:
       - name: Let us have colors
         run: echo "FORCE_COLOR=true" >> "$GITHUB_ENV"
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Install the latest version of uv
@@ -133,7 +133,7 @@ jobs:
           - { "name": "docs", "target": "build" }
           - { "name": "readme", "target": "run" }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Install the latest version of uv
