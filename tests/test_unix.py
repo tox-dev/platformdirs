@@ -153,6 +153,7 @@ def test_xdg_variable_custom_value(monkeypatch: pytest.MonkeyPatch, dirs_instanc
 def test_platform_on_bsd(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, platform: str) -> None:
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     mocker.patch("sys.platform", platform)
+    mocker.patch("tempfile.tempdir", "/tmp")  # noqa: S108
 
     assert Unix().site_runtime_dir == "/var/run"
 
