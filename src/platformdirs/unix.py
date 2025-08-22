@@ -168,12 +168,11 @@ class Unix(PlatformDirsABC):  # noqa: PLR0904
     @property
     def user_runtime_dir(self) -> str:
         """
-        :return: runtime directory tied to the user, e.g. ``/run/user/$(id -u)/$appname/$version`` or
-         ``$XDG_RUNTIME_DIR/$appname/$version``.
+        :return: runtime directory tied to the user, e.g. ``$XDG_RUNTIME_DIR/$appname/$version``.
 
-         For FreeBSD/OpenBSD/NetBSD, it would return ``/var/run/user/$(id -u)/$appname/$version`` if
-         exists, otherwise ``/tmp/runtime-$(id -u)/$appname/$version``, if``$XDG_RUNTIME_DIR``
-         is not set.
+        If ``$XDG_RUNTIME_DIR`` is unset, it tries the platform default location of that runtime directory
+        (``/var/run/user/$(id -u)`` on FreeBSD/OpenBSD/NetBSD, ``/run/user/$(id -u)`` otherwise).
+        If the default location is not writable, it uses a temporary directory instead.
         """
         path = os.environ.get("XDG_RUNTIME_DIR", "")
         if path.strip():
