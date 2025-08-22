@@ -18,6 +18,14 @@ if typing.TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
+@pytest.fixture
+def _reload_after_test() -> typing.Iterator[None]:
+    global Unix  # noqa: PLW0603  - we need to rewrite this full import.
+    yield
+    importlib.reload(unix)
+    Unix = unix.Unix
+
+
 @pytest.mark.parametrize(
     "prop",
     [
@@ -175,7 +183,7 @@ def test_platform_on_win32(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixtur
         sys.modules["platformdirs.unix"] = prev_unix
 
 
-@pytest.mark.usefixtures("_getuid")
+@pytest.mark.usefixtures("_getuid", "_reload_after_test")
 @pytest.mark.parametrize(
     ("platform", "default_dir"),
     [
