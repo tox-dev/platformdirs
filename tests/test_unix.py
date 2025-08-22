@@ -18,6 +18,12 @@ if typing.TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
+@pytest.fixture(autouse=True)
+def _reload_after_test() -> typing.Iterator[None]:
+    yield
+    importlib.reload(unix)
+
+
 @pytest.mark.parametrize(
     "prop",
     [
@@ -176,10 +182,6 @@ def test_platform_on_win32(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixtur
         sys.modules["platformdirs.unix"] = prev_unix
 
 
-@pytest.mark.skipif(
-    sys.platform == "win32",
-    reason="Running on Windows would require multiple reloads and make this test excessively complex.",
-)
 @pytest.mark.usefixtures("_getuid")
 @pytest.mark.parametrize(
     ("platform", "default_dir"),
