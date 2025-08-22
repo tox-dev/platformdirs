@@ -4,6 +4,7 @@ import importlib
 import os
 import sys
 import typing
+from tempfile import gettempdir
 
 import pytest
 
@@ -13,6 +14,7 @@ from platformdirs.unix import Unix
 if typing.TYPE_CHECKING:
     from pathlib import Path
 
+    from pyfakefs.fake_filesystem import FakeFilesystem
     from pytest_mock import MockerFixture
 
 
@@ -97,7 +99,7 @@ def _func_to_path(func: str) -> XDGVariable | None:
         "user_cache_dir": XDGVariable("XDG_CACHE_HOME", "~/.cache"),
         "user_state_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
         "user_log_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
-        "user_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", "/run/user/1234"),
+        "user_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", "/tmp/runtime-1234"),  # noqa: S108
         "site_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", "/run"),
     }
     return mapping.get(func)
@@ -154,10 +156,10 @@ def test_platform_on_bsd(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture,
 
     assert Unix().site_runtime_dir == "/var/run"
 
-    mocker.patch("pathlib.Path.exists", return_value=True)
+    mocker.patch("os.access", return_value=True)
     assert Unix().user_runtime_dir == "/var/run/user/1234"
 
-    mocker.patch("pathlib.Path.exists", return_value=False)
+    mocker.patch("os.access", return_value=False)
     assert Unix().user_runtime_dir == "/tmp/runtime-1234"  # noqa: S108
 
 
@@ -171,6 +173,35 @@ def test_platform_on_win32(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixtur
             unix.Unix().user_runtime_dir  # noqa: B018
     finally:
         sys.modules["platformdirs.unix"] = prev_unix
+
+
+@pytest.mark.usefixtures("_getuid")
+@pytest.mark.parametrize(
+    ("platform", "default_dir"),
+    [
+        ("freebsd", "/var/run/user/1234"),
+        ("linux", "/run/user/1234"),
+    ],
+)
+def test_xdg_runtime_dir_unset(
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, fs: FakeFilesystem, platform: str, default_dir: str
+) -> None:
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    mocker.patch("sys.platform", platform)
+
+    fs.create_dir(default_dir)
+
+    assert Unix().user_runtime_dir.startswith(default_dir)
+
+    # If the default directory isn't writable, we shouldn't use it.
+    fs.chmod(default_dir, 0o000)
+    assert not Unix().user_runtime_dir.startswith(default_dir)
+    assert Unix().user_runtime_dir.startswith(gettempdir())
+
+    # If the runtime directory doesn't exist, we shouldn't use it.
+    fs.rmdir(default_dir)
+    assert not Unix().user_runtime_dir.startswith(default_dir)
+    assert Unix().user_runtime_dir.startswith(gettempdir())
 
 
 def test_ensure_exists_creates_folder(mocker: MockerFixture, tmp_path: Path) -> None:

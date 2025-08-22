@@ -6,6 +6,7 @@ import os
 import sys
 from configparser import ConfigParser
 from pathlib import Path
+from tempfile import gettempdir
 from typing import TYPE_CHECKING, NoReturn
 
 from .api import PlatformDirsABC
@@ -175,13 +176,17 @@ class Unix(PlatformDirsABC):  # noqa: PLR0904
          is not set.
         """
         path = os.environ.get("XDG_RUNTIME_DIR", "")
-        if not path.strip():
-            if sys.platform.startswith(("freebsd", "openbsd", "netbsd")):
-                path = f"/var/run/user/{getuid()}"
-                if not Path(path).exists():
-                    path = f"/tmp/runtime-{getuid()}"  # noqa: S108
-            else:
-                path = f"/run/user/{getuid()}"
+        if path.strip():
+            return self._append_app_name_and_version(path)
+
+        if sys.platform.startswith(("freebsd", "openbsd", "netbsd")):
+            path = f"/var/run/user/{getuid()}"
+        else:
+            path = f"/run/user/{getuid()}"
+
+        if not os.access(path, os.W_OK):
+            path = f"{gettempdir()}/runtime-{getuid()}"
+
         return self._append_app_name_and_version(path)
 
     @property
