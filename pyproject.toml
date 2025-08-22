@@ -53,6 +53,7 @@ optional-dependencies.docs = [
 optional-dependencies.test = [
   "appdirs==1.4.4",
   "covdefaults>=2.3",
+  "pyfakefs>=5.9.2",
   "pytest>=8.3.4",
   "pytest-cov>=6",
   "pytest-mock>=3.14",
