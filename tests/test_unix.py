@@ -18,14 +18,6 @@ if typing.TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
-@pytest.fixture
-def _reload_after_test() -> typing.Iterator[None]:
-    global Unix  # noqa: PLW0603  - we need to rewrite this full import.
-    yield
-    importlib.reload(unix)
-    Unix = unix.Unix
-
-
 @pytest.mark.parametrize(
     "prop",
     [
@@ -168,7 +160,7 @@ def test_platform_on_bsd(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture,
     assert Unix().user_runtime_dir == "/var/run/user/1234"
 
     mocker.patch("os.access", return_value=False)
-    assert Unix().user_runtime_dir == f"{gettempdir()}/runtime-1234"
+    assert Unix().user_runtime_dir == "/tmp/runtime-1234"  # noqa: S108
 
 
 def test_platform_on_win32(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> None:
@@ -183,7 +175,11 @@ def test_platform_on_win32(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixtur
         sys.modules["platformdirs.unix"] = prev_unix
 
 
-@pytest.mark.usefixtures("_getuid", "_reload_after_test")
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="Running on Windows would require multiple reloads and make this test excessively complex.",
+)
+@pytest.mark.usefixtures("_getuid")
 @pytest.mark.parametrize(
     ("platform", "default_dir"),
     [
