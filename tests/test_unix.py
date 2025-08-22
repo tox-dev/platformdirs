@@ -99,7 +99,7 @@ def _func_to_path(func: str) -> XDGVariable | None:
         "user_cache_dir": XDGVariable("XDG_CACHE_HOME", "~/.cache"),
         "user_state_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
         "user_log_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
-        "user_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", "/tmp/runtime-1234"),  # noqa: S108
+        "user_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", f"{gettempdir()}/runtime-1234"),
         "site_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", "/run"),
     }
     return mapping.get(func)
@@ -160,7 +160,7 @@ def test_platform_on_bsd(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture,
     assert Unix().user_runtime_dir == "/var/run/user/1234"
 
     mocker.patch("os.access", return_value=False)
-    assert Unix().user_runtime_dir == "/tmp/runtime-1234"  # noqa: S108
+    assert Unix().user_runtime_dir == f"{gettempdir()}/runtime-1234"
 
 
 def test_platform_on_win32(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> None:
