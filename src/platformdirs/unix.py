@@ -102,10 +102,13 @@ class Unix(PlatformDirsABC):  # noqa: PLR0904
     def user_cache_dir(self) -> str:
         """
         :return: cache directory tied to the user, e.g. ``~/.cache/$appname/$version`` or
-         ``~/$XDG_CACHE_HOME/$appname/$version``
+         ``~/$XDG_CACHE_HOME/$appname/$version``. It is also possible to override this via the
+         ``TMPDIR``, ``TEMPDIR``, ``TEMP``, and ``TMP`` environment variables.
         """
-        path = os.environ.get("XDG_CACHE_HOME", "")
-        if not path.strip():
+        path = os.environ.get("XDG_CACHE_HOME", "").strip()
+        if not path:
+            path = self._get_temp_dir()
+        if not path:
             path = os.path.expanduser("~/.cache")  # noqa: PTH111
         return self._append_app_name_and_version(path)
 

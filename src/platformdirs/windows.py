@@ -70,9 +70,12 @@ class Windows(PlatformDirsABC):
     def user_cache_dir(self) -> str:
         """
         :return: cache directory tied to the user (if opinionated with ``Cache`` folder within ``$appname``) e.g.
-         ``%USERPROFILE%\\AppData\\Local\\$appauthor\\$appname\\Cache\\$version``
+         ``%USERPROFILE%\\AppData\\Local\\$appauthor\\$appname\\Cache\\$version``. It is also possible to override
+         this via the ``TMPDIR``, ``TEMPDIR``, ``TEMP``, and ``TMP`` environment variables.
         """
-        path = os.path.normpath(get_win_folder("CSIDL_LOCAL_APPDATA"))
+        path = self._get_temp_dir()
+        if path is None:
+            path = os.path.normpath(get_win_folder("CSIDL_LOCAL_APPDATA"))
         return self._append_parts(path, opinion_value="Cache")
 
     @property

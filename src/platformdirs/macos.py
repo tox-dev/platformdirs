@@ -64,8 +64,14 @@ class MacOS(PlatformDirsABC):
 
     @property
     def user_cache_dir(self) -> str:
-        """:return: cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version``"""
-        return self._append_app_name_and_version(os.path.expanduser("~/Library/Caches"))  # noqa: PTH111
+        """
+        :return: cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version``. It is also
+          possible to override this via the ``TMPDIR``, ``TEMPDIR``, ``TEMP``, and ``TMP`` environment variables.
+        """
+        path = self._get_temp_dir()
+        if path is None:
+            path = os.path.expanduser("~/Library/Caches")  # noqa: PTH111
+        return self._append_app_name_and_version(path)
 
     @property
     def site_cache_dir(self) -> str:

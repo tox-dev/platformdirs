@@ -5,11 +5,14 @@ from __future__ import annotations
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, final
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
     from typing import Literal
+
+TEMP_ENV_VARS = "TMPDIR", "TEMPDIR", "TEMP", "TMP"
+"""A tuple of environment variables that can be used to override the cache directory."""
 
 
 class PlatformDirsABC(ABC):  # noqa: PLR0904
@@ -97,6 +100,15 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
             # If multipath is True, the first path is returned.
             directory = directory.partition(os.pathsep)[0]
         return Path(directory)
+
+    @staticmethod
+    @final
+    def _get_temp_dir() -> str | None:
+        """Get the temporary directory from environment variables."""
+        for var in TEMP_ENV_VARS:
+            if value := os.environ.get(var, "").strip():
+                return value
+        return None
 
     @property
     @abstractmethod
