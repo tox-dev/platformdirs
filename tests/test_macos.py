@@ -91,16 +91,16 @@ def test_macos_homebrew(mocker: MockerFixture, params: dict[str, Any], multipath
     test_data = [
         {
             "sys_prefix": "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13",
-            "homebrew_prefix": "/opt/homebrew"
+            "homebrew_prefix": "/opt/homebrew",
         },
         {
             "sys_prefix": "/usr/local/opt/python@3.13/Frameworks/Python.framework/Versions/3.13",
-            "homebrew_prefix": "/usr/local"
+            "homebrew_prefix": "/usr/local",
         },
         {
             "sys_prefix": "/myown/arbitrary/prefix/opt/python@3.13/Frameworks/Python.framework/Versions/3.13",
-            "homebrew_prefix": "/myown/arbitrary/prefix"
-        }
+            "homebrew_prefix": "/myown/arbitrary/prefix",
+        },
     ]
     for prefix in test_data:
         mocker.patch("sys.prefix", prefix["sys_prefix"])
