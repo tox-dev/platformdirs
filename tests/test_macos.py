@@ -88,28 +88,43 @@ def test_macos(mocker: MockerFixture, params: dict[str, Any], func: str) -> None
 )
 @pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="singlepath")])
 def test_macos_homebrew(mocker: MockerFixture, params: dict[str, Any], multipath: bool, site_func: str) -> None:
-    mocker.patch("sys.prefix", "/opt/homebrew/opt/python")
+    test_data = [
+        {
+            "sys_prefix": "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13",
+            "homebrew_prefix": "/opt/homebrew",
+        },
+        {
+            "sys_prefix": "/usr/local/opt/python@3.13/Frameworks/Python.framework/Versions/3.13",
+            "homebrew_prefix": "/usr/local",
+        },
+        {
+            "sys_prefix": "/myown/arbitrary/prefix/opt/python@3.13/Frameworks/Python.framework/Versions/3.13",
+            "homebrew_prefix": "/myown/arbitrary/prefix",
+        },
+    ]
+    for prefix in test_data:
+        mocker.patch("sys.prefix", prefix["sys_prefix"])
 
-    result = getattr(MacOS(multipath=multipath, **params), site_func)
+        result = getattr(MacOS(multipath=multipath, **params), site_func)
 
-    home = str(Path("~").expanduser())
-    suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # noqa: PTH118
+        home = str(Path("~").expanduser())
+        suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
+        suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # noqa: PTH118
 
-    expected_path_map = {
-        "site_cache_path": Path(f"/opt/homebrew/var/cache{suffix}"),
-        "site_data_path": Path(f"/opt/homebrew/share{suffix}"),
-    }
-    expected_map = {
-        "site_data_dir": f"/opt/homebrew/share{suffix}",
-        "site_config_dir": f"/opt/homebrew/share{suffix}",
-        "site_cache_dir": f"/opt/homebrew/var/cache{suffix}",
-        "site_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
-    }
-    if multipath:
-        expected_map["site_data_dir"] += f":/Library/Application Support{suffix}"
-        expected_map["site_config_dir"] += f":/Library/Application Support{suffix}"
-        expected_map["site_cache_dir"] += f":/Library/Caches{suffix}"
-    expected = expected_path_map[site_func] if site_func.endswith("_path") else expected_map[site_func]
+        expected_path_map = {
+            "site_cache_path": Path(f"{prefix['homebrew_prefix']}/var/cache{suffix}"),
+            "site_data_path": Path(f"{prefix['homebrew_prefix']}/share{suffix}"),
+        }
+        expected_map = {
+            "site_data_dir": f"{prefix['homebrew_prefix']}/share{suffix}",
+            "site_config_dir": f"{prefix['homebrew_prefix']}/share{suffix}",
+            "site_cache_dir": f"{prefix['homebrew_prefix']}/var/cache{suffix}",
+            "site_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
+        }
+        if multipath:
+            expected_map["site_data_dir"] += f":/Library/Application Support{suffix}"
+            expected_map["site_config_dir"] += f":/Library/Application Support{suffix}"
+            expected_map["site_cache_dir"] += f":/Library/Caches{suffix}"
+        expected = expected_path_map[site_func] if site_func.endswith("_path") else expected_map[site_func]
 
-    assert result == expected
+        assert result == expected
