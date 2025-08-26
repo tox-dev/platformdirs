@@ -12,6 +12,10 @@ if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
 
 
+def test_temp_env_vars_defined_and_ordered() -> None:
+    """Ensure the canonical set of temp env vars stays intact"""
+    assert TEMP_ENV_VARS == ("TMPDIR", "TEMPDIR", "TEMP", "TMP")
+
 @pytest.mark.parametrize("prop", ["user_cache_dir", "user_cache_path"])
 def test_user_cache_dir_linux_xdg_home_set(monkeypatch: MonkeyPatch, prop: str) -> None:
     """Test the user cache directory on Linux when XDG_CACHE_HOME is set."""

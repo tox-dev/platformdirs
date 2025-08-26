@@ -73,9 +73,7 @@ class Windows(PlatformDirsABC):
          ``%USERPROFILE%\\AppData\\Local\\$appauthor\\$appname\\Cache\\$version``. It is also possible to override
          this via the ``TMPDIR``, ``TEMPDIR``, ``TEMP``, and ``TMP`` environment variables.
         """
-        path = self._get_temp_dir()
-        if path is None:
-            path = os.path.normpath(get_win_folder("CSIDL_LOCAL_APPDATA"))
+        path = self._get_temp_dir() or os.path.normpath(get_win_folder("CSIDL_LOCAL_APPDATA"))
         return self._append_parts(path, opinion_value="Cache")
 
     @property

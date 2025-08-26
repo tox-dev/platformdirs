@@ -54,16 +54,13 @@ def test_compatibility(params: dict[str, Any], func: str) -> None:
     if getattr(appdirs, func, None) is None:
         pytest.skip(f"`{func}` does not exist in `appdirs`")
 
+    msg = { "user_cache_dir": "appdirs does not support temp dir overriding by env vars"}
     if sys.platform == "darwin":
-        msg = {  # pragma: no cover
-            "user_log_dir": "without appname produces NoneType error",
-        }
+        msg["user_log_dir"] = "without appname produces NoneType error"
         if func in msg:  # pragma: no cover
             pytest.skip(f"`appdirs.{func}` {msg[func]} on macOS")  # pragma: no cover
     elif sys.platform != "win32":
-        msg = {  # pragma: no cover
-            "user_log_dir": "Uses XDG_STATE_DIR instead of appdirs.user_data_dir per the XDG spec",
-        }
+        msg["user_log_dir"] = "Uses XDG_STATE_DIR instead of appdirs.user_data_dir per the XDG spec"
         if func in msg:  # pragma: no cover
             pytest.skip(f"`appdirs.{func}` {msg[func]} on Unix")  # pragma: no cover
 

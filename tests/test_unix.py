@@ -8,6 +8,7 @@ import typing
 import pytest
 
 from platformdirs import unix
+from platformdirs.api import TEMP_ENV_VARS
 from platformdirs.unix import Unix
 
 if typing.TYPE_CHECKING:
@@ -120,6 +121,9 @@ def test_xdg_variable_not_set(monkeypatch: pytest.MonkeyPatch, dirs_instance: Un
         return
 
     monkeypatch.delenv(xdg_variable.name, raising=False)
+    for name in TEMP_ENV_VARS:
+        monkeypatch.delenv(name, raising=False)
+
     result = getattr(dirs_instance, func)
     assert result == os.path.expanduser(xdg_variable.default_value)  # noqa: PTH111
 
@@ -131,6 +135,8 @@ def test_xdg_variable_empty_value(monkeypatch: pytest.MonkeyPatch, dirs_instance
         return
 
     monkeypatch.setenv(xdg_variable.name, "")
+    for name in TEMP_ENV_VARS:
+        monkeypatch.delenv(name, raising=False)
     result = getattr(dirs_instance, func)
     assert result == os.path.expanduser(xdg_variable.default_value)  # noqa: PTH111
 

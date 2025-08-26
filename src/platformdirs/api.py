@@ -11,8 +11,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from typing import Literal
 
-TEMP_ENV_VARS = "TMPDIR", "TEMPDIR", "TEMP", "TMP"
-"""A tuple of environment variables that can be used to override the cache directory."""
+TEMP_ENV_VARS = "TMPDIR", "TEMPDIR", "TEMP", "TMP"  #: Environment variables that can be used to override the cache directory.
 
 
 class PlatformDirsABC(ABC):  # noqa: PLR0904
@@ -105,10 +104,7 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
     @final
     def _get_temp_dir() -> str | None:
         """Get the temporary directory from environment variables."""
-        for var in TEMP_ENV_VARS:
-            if value := os.environ.get(var, "").strip():
-                return value
-        return None
+        return next((os.environ.get(var) for var in TEMP_ENV_VARS if os.environ.get(var, "").strip()), None)
 
     @property
     @abstractmethod
