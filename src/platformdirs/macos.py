@@ -4,12 +4,9 @@ from __future__ import annotations
 
 import os.path
 import sys
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from .api import PlatformDirsABC
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 class MacOS(PlatformDirsABC):
