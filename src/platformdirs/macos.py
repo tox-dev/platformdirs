@@ -68,7 +68,7 @@ class MacOS(PlatformDirsABC):
         :return: cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version``. It is also
           possible to override this via the ``TMPDIR``, ``TEMPDIR``, ``TEMP``, and ``TMP`` environment variables.
         """
-        path = self._get_temp_dir() or os.path.expanduser("~/Library/Caches")
+        path = self._get_temp_dir() or str(Path("~/Library/Caches").expanduser())
         return self._append_app_name_and_version(path)
 
     @property
