@@ -105,11 +105,7 @@ class Unix(PlatformDirsABC):  # noqa: PLR0904
          ``~/$XDG_CACHE_HOME/$appname/$version``. It is also possible to override this via the
          ``TMPDIR``, ``TEMPDIR``, ``TEMP``, and ``TMP`` environment variables.
         """
-        path = (
-            os.environ.get("XDG_CACHE_HOME", "").strip()
-            or self._get_temp_dir()
-            or os.path.expanduser("~/.cache")
-        )
+        path = os.environ.get("XDG_CACHE_HOME", "").strip() or self._get_temp_dir() or Path("~/.cache").expanduser()
         return self._append_app_name_and_version(path)
 
     @property

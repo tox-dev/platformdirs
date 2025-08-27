@@ -54,7 +54,7 @@ def test_compatibility(params: dict[str, Any], func: str) -> None:
     if getattr(appdirs, func, None) is None:
         pytest.skip(f"`{func}` does not exist in `appdirs`")
 
-    msg = { "user_cache_dir": "appdirs does not support temp dir overriding by env vars"}
+    msg = {"user_cache_dir": "appdirs does not support temp dir overriding by env vars"}
     if sys.platform == "darwin":
         msg["user_log_dir"] = "without appname produces NoneType error"
         if func in msg:  # pragma: no cover

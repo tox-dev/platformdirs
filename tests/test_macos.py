@@ -22,7 +22,7 @@ def _fix_os_pathsep(mocker: MockerFixture) -> None:
 
 
 @pytest.fixture(autouse=True)
-def _unset_temp_env_vars(monkeypatch: "pytest.MonkeyPatch") -> None:
+def _unset_temp_env_vars(monkeypatch: pytest.MonkeyPatch) -> None:
     """Ensure canonical temp env vars are unset for tests that rely on macOS defaults."""
     for name in ("TMPDIR", "TEMPDIR", "TEMP", "TMP"):
         monkeypatch.delenv(name, raising=False)

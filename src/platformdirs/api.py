@@ -11,7 +11,12 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from typing import Literal
 
-TEMP_ENV_VARS = "TMPDIR", "TEMPDIR", "TEMP", "TMP"  #: Environment variables that can be used to override the cache directory.
+TEMP_ENV_VARS = (
+    "TMPDIR",
+    "TEMPDIR",
+    "TEMP",
+    "TMP",
+)  #: Environment variables that can be used to override the cache directory.
 
 
 class PlatformDirsABC(ABC):  # noqa: PLR0904
