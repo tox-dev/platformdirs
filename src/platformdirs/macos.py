@@ -29,8 +29,9 @@ class MacOS(PlatformDirsABC):
 
     @property
     def user_data_dir(self) -> str:
-        """:return: data directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version`` or
-         ``$XDG_DATA_HOME/$appname/$version`` if set
+        """
+        :return: data directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version`` or
+        ``$XDG_DATA_HOME/$appname/$version`` if set
         """
         path = os.environ.get("XDG_DATA_HOME", "")
         if not path.strip():
@@ -66,8 +67,9 @@ class MacOS(PlatformDirsABC):
 
     @property
     def user_config_dir(self) -> str:
-        """:return: config directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version`` or
-         ``$XDG_CONFIG_HOME/$appname/$version`` if set. If ``XDG_CONFIG_HOME`` is not set, returns ``user_data_dir``.
+        """
+        :return: config directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version`` or
+        ``$XDG_CONFIG_HOME/$appname/$version`` if set. If ``XDG_CONFIG_HOME`` is not set, returns ``user_data_dir``.
         """
         path = os.environ.get("XDG_CONFIG_HOME", "").strip()
         if not path:
@@ -76,8 +78,9 @@ class MacOS(PlatformDirsABC):
 
     @property
     def site_config_dir(self) -> str:
-        """:return: config directory shared by the users.
-         Honors ``XDG_CONFIG_DIRS`` if set (supports multipath), otherwise same as `site_data_dir`.
+        """
+        :return: config directory shared by the users.
+        Honors ``XDG_CONFIG_DIRS`` if set (supports multipath), otherwise same as `site_data_dir`.
         """
         xdg_dirs = os.environ.get("XDG_CONFIG_DIRS", "").strip()
         if xdg_dirs:
@@ -87,8 +90,9 @@ class MacOS(PlatformDirsABC):
 
     @property
     def user_cache_dir(self) -> str:
-        """:return: cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version`` or
-         ``$XDG_CACHE_HOME/$appname/$version`` if set
+        """
+        :return: cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version`` or
+        ``$XDG_CACHE_HOME/$appname/$version`` if set
         """
         path = os.environ.get("XDG_CACHE_HOME", "")
         if not path.strip():
@@ -120,8 +124,9 @@ class MacOS(PlatformDirsABC):
 
     @property
     def user_state_dir(self) -> str:
-        """:return: state directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version`` or
-         ``$XDG_STATE_HOME/$appname/$version`` if set. If ``XDG_STATE_HOME`` is not set, returns ``user_data_dir``.
+        """
+        :return: state directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version`` or
+        ``$XDG_STATE_HOME/$appname/$version`` if set. If ``XDG_STATE_HOME`` is not set, returns ``user_data_dir``.
         """
         path = os.environ.get("XDG_STATE_HOME", "").strip()
         if not path:
@@ -171,8 +176,9 @@ class MacOS(PlatformDirsABC):
 
     @property
     def user_runtime_dir(self) -> str:
-        """:return: runtime directory tied to the user, e.g. ``~/Library/Caches/TemporaryItems/$appname/$version`` or
-         ``$XDG_RUNTIME_DIR/$appname/$version`` if set
+        """
+        :return: runtime directory tied to the user, e.g. ``~/Library/Caches/TemporaryItems/$appname/$version`` or
+        ``$XDG_RUNTIME_DIR/$appname/$version`` if set
         """
         path = os.environ.get("XDG_RUNTIME_DIR", "").strip()
         if not path:
@@ -181,7 +187,8 @@ class MacOS(PlatformDirsABC):
 
     @property
     def site_runtime_dir(self) -> str:
-        """:return: runtime directory shared by users. Honors ``$XDG_RUNTIME_DIR`` if set, otherwise same as
+        """
+        :return: runtime directory shared by users. Honors ``$XDG_RUNTIME_DIR`` if set, otherwise same as
         `user_runtime_dir`.
         """
         path = os.environ.get("XDG_RUNTIME_DIR", "").strip()

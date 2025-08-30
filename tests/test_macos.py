@@ -130,7 +130,7 @@ def test_macos_homebrew(mocker: MockerFixture, params: dict[str, Any], multipath
         assert result == expected
 
 
-@pytest.fixture()
+@pytest.fixture
 def not_homebrew(mocker: MockerFixture) -> None:
     """Patch sys.prefix to something that is not Homebrew so defaults are macOS standard."""
     py_version = sys.version_info
@@ -175,7 +175,7 @@ def test_user_state_dir_uses_xdg_state_home_else_user_data(mocker: MockerFixture
 
 
 @pytest.mark.parametrize(
-    "env_var,func,default",
+    ("env_var", "func", "default"),
     [
         ("XDG_DOCUMENTS_DIR", "user_documents_dir", "~/Documents"),
         ("XDG_DOWNLOAD_DIR", "user_downloads_dir", "~/Downloads"),
@@ -185,9 +185,7 @@ def test_user_state_dir_uses_xdg_state_home_else_user_data(mocker: MockerFixture
         ("XDG_DESKTOP_DIR", "user_desktop_dir", "~/Desktop"),
     ],
 )
-def test_media_dirs_use_xdg_and_strip_whitespace(
-    mocker: MockerFixture, env_var: str, func: str, default: str
-) -> None:
+def test_media_dirs_use_xdg_and_strip_whitespace(mocker: MockerFixture, env_var: str, func: str, default: str) -> None:
     # Uses provided value
     mocker.patch.dict(os.environ, {env_var: "/XDG/MEDIA"}, clear=False)
     assert getattr(MacOS(), func) == "/XDG/MEDIA"
