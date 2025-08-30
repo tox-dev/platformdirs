@@ -141,16 +141,18 @@ def not_homebrew(mocker: MockerFixture) -> None:
     mocker.patch("sys.prefix", builtin_py_prefix)
 
 
-def test_user_data_dir_uses_xdg_data_home(mocker: MockerFixture) -> None:
-    mocker.patch.dict(os.environ, {"XDG_DATA_HOME": "/tmp/xdg-data"}, clear=False)
+def test_user_data_dir_uses_xdg_data_home(mocker: MockerFixture, tmp_path: Path) -> None:
+    xdg = tmp_path / "xdg-data"
+    mocker.patch.dict(os.environ, {"XDG_DATA_HOME": str(xdg)}, clear=False)
     got = MacOS(appname="app", version="1").user_data_dir
-    assert got == "/tmp/xdg-data/app/1"
+    assert got == str(xdg / "app" / "1")
 
 
-def test_user_cache_dir_uses_xdg_cache_home(mocker: MockerFixture) -> None:
-    mocker.patch.dict(os.environ, {"XDG_CACHE_HOME": "/tmp/xdg-cache"}, clear=False)
+def test_user_cache_dir_uses_xdg_cache_home(mocker: MockerFixture, tmp_path: Path) -> None:
+    xdg = tmp_path / "xdg-cache"
+    mocker.patch.dict(os.environ, {"XDG_CACHE_HOME": str(xdg)}, clear=False)
     got = MacOS(appname="app", version="1").user_cache_dir
-    assert got == "/tmp/xdg-cache/app/1"
+    assert got == str(xdg / "app" / "1")
 
 
 def test_user_config_dir_uses_xdg_config_home_else_user_data(mocker: MockerFixture) -> None:
@@ -195,17 +197,19 @@ def test_media_dirs_use_xdg_and_strip_whitespace(mocker: MockerFixture, env_var:
     assert getattr(MacOS(), func) == str(Path(default).expanduser())
 
 
-def test_user_runtime_dir_uses_xdg_runtime_when_set(mocker: MockerFixture) -> None:
-    mocker.patch.dict(os.environ, {"XDG_RUNTIME_DIR": "/tmp/run"}, clear=False)
+def test_user_runtime_dir_uses_xdg_runtime_when_set(mocker: MockerFixture, tmp_path: Path) -> None:
+    run = tmp_path / "run"
+    mocker.patch.dict(os.environ, {"XDG_RUNTIME_DIR": str(run)}, clear=False)
     got = MacOS(appname="app", version="1").user_runtime_dir
-    assert got == "/tmp/run/app/1"
+    assert got == str(run / "app" / "1")
 
 
 @pytest.mark.usefixtures("not_homebrew")
-def test_site_runtime_dir_uses_xdg_runtime_when_set(mocker: MockerFixture) -> None:
-    mocker.patch.dict(os.environ, {"XDG_RUNTIME_DIR": "/tmp/run"}, clear=False)
+def test_site_runtime_dir_uses_xdg_runtime_when_set(mocker: MockerFixture, tmp_path: Path) -> None:
+    run = tmp_path / "run"
+    mocker.patch.dict(os.environ, {"XDG_RUNTIME_DIR": str(run)}, clear=False)
     got = MacOS(appname="app", version="1").site_runtime_dir
-    assert got == "/tmp/run/app/1"
+    assert got == str(run / "app" / "1")
 
 
 @pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="single")])
