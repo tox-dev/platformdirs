@@ -12,6 +12,7 @@ from .api import PlatformDirsABC
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+assert sys.platform == "win32"
 
 class Windows(PlatformDirsABC):
     """
