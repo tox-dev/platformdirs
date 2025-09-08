@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
 assert sys.platform == "win32"
 
+
 class Windows(PlatformDirsABC):
     """
     `MSDN on where to store app data files <https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid>`_.
