@@ -20,7 +20,8 @@ jobs:
       fail-fast: false
       matrix:
         py:
-          - "pypy3.10" # ahead to start it earlier because takes longer
+          - "pypy3.11" # ahead to start it earlier because takes longer
+          - "3.14"
           - "3.13"
           - "3.12"
           - "3.11"
