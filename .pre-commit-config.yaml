@@ -5,7 +5,7 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.34.0
+    rev: 0.34.1
     hooks:
       - id: check-github-workflows
         args: ["--verbose"]
@@ -15,7 +15,7 @@ repos:
       - id: codespell
         additional_dependencies: ["tomli>=2.2.1"]
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "v2.8.0"
+    rev: "v2.10.0"
     hooks:
       - id: pyproject-fmt
   - repo: https://github.com/astral-sh/ruff-pre-commit
