@@ -5,7 +5,7 @@ import functools
 import inspect
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -16,6 +16,7 @@ builtin_import = builtins.__import__
 
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from types import ModuleType
 
 
