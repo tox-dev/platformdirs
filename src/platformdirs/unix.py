@@ -6,6 +6,7 @@ import os
 import sys
 from configparser import ConfigParser
 from pathlib import Path
+from tempfile import gettempdir
 from typing import TYPE_CHECKING, NoReturn
 
 from .api import PlatformDirsABC
@@ -167,21 +168,24 @@ class Unix(PlatformDirsABC):  # noqa: PLR0904
     @property
     def user_runtime_dir(self) -> str:
         """
-        :return: runtime directory tied to the user, e.g. ``/run/user/$(id -u)/$appname/$version`` or
-         ``$XDG_RUNTIME_DIR/$appname/$version``.
+        :return: runtime directory tied to the user, e.g. ``$XDG_RUNTIME_DIR/$appname/$version``.
 
-         For FreeBSD/OpenBSD/NetBSD, it would return ``/var/run/user/$(id -u)/$appname/$version`` if
-         exists, otherwise ``/tmp/runtime-$(id -u)/$appname/$version``, if``$XDG_RUNTIME_DIR``
-         is not set.
+        If ``$XDG_RUNTIME_DIR`` is unset, it tries the platform default location of that runtime directory
+        (``/var/run/user/$(id -u)`` on FreeBSD/OpenBSD/NetBSD, ``/run/user/$(id -u)`` otherwise).
+        If the default location is not writable, it uses a temporary directory instead.
         """
         path = os.environ.get("XDG_RUNTIME_DIR", "")
-        if not path.strip():
-            if sys.platform.startswith(("freebsd", "openbsd", "netbsd")):
-                path = f"/var/run/user/{getuid()}"
-                if not Path(path).exists():
-                    path = f"/tmp/runtime-{getuid()}"  # noqa: S108
-            else:
-                path = f"/run/user/{getuid()}"
+        if path.strip():
+            return self._append_app_name_and_version(path)
+
+        if sys.platform.startswith(("freebsd", "openbsd", "netbsd")):
+            path = f"/var/run/user/{getuid()}"
+        else:
+            path = f"/run/user/{getuid()}"
+
+        if not os.access(path, os.W_OK):
+            path = f"{gettempdir()}/runtime-{getuid()}"
+
         return self._append_app_name_and_version(path)
 
     @property
