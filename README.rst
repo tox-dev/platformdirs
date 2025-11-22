@@ -32,7 +32,7 @@ On Linux (and other Unices), according to the `XDG Basedir Spec`_, it should be:
 
     ~/.local/share/<AppName>
 
-.. _XDG Basedir Spec: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+.. _XDG Basedir Spec: https://specifications.freedesktop.org/basedir/latest/
 
 ``platformdirs`` to the rescue
 ==============================
