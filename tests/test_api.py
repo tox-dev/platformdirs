@@ -99,15 +99,15 @@ def _fake_import(name: str, *args: Any, **kwargs: Any) -> ModuleType:  # noqa: A
     return builtin_import(name, *args, **kwargs)
 
 
-def mock_import(func: Callable[[], None]) -> Callable[[], None]:
+def mock_import(func: Callable[..., None]) -> Callable[..., None]:
     @functools.wraps(func)
-    def wrap() -> None:
+    def wrap(*args: Any, **kwargs: Any) -> None:  # noqa: ANN401
         platformdirs_module_items = [item for item in sys.modules.items() if item[0].startswith("platformdirs")]
         try:
             builtins.__import__ = _fake_import
             for name, _ in platformdirs_module_items:
                 del sys.modules[name]
-            return func()
+            return func(*args, **kwargs)
         finally:
             # restore original modules
             builtins.__import__ = builtin_import
@@ -118,10 +118,14 @@ def mock_import(func: Callable[[], None]) -> Callable[[], None]:
 
 
 @mock_import
-def test_no_ctypes() -> None:
+def test_no_ctypes(func: str) -> None:
     import platformdirs  # noqa: PLC0415
 
     assert platformdirs
+
+    dirs = platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0")
+    result = getattr(dirs, func)
+    assert isinstance(result, str)
 
 
 def test_mypy_subclassing() -> None:
