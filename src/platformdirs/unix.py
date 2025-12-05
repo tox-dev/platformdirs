@@ -213,7 +213,7 @@ class Unix(PlatformDirsABC):  # noqa: PLR0904
 
     @property
     def site_config_path(self) -> Path:
-        """:return: config path shared by the users, returns the first item, even if ``multipath`` is set to ``True``"""
+        """:return: config path shared by users, returns the first item, even if ``multipath`` is set to ``True``"""
         return self._first_item_as_path_if_multipath(self.site_config_dir)
 
     @property

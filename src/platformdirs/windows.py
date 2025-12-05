@@ -63,7 +63,7 @@ class Windows(PlatformDirsABC):
 
     @property
     def site_config_dir(self) -> str:
-        """:return: config directory shared by the users, same as `site_data_dir`"""
+        """:return: config directory shared by users, same as `site_data_dir`"""
         return self.site_data_dir
 
     @property

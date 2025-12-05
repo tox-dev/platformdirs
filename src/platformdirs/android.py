@@ -40,7 +40,7 @@ class Android(PlatformDirsABC):
 
     @property
     def site_config_dir(self) -> str:
-        """:return: config directory shared by the users, same as `user_config_dir`"""
+        """:return: config directory shared by users, same as `user_config_dir`"""
         return self.user_config_dir
 
     @property
