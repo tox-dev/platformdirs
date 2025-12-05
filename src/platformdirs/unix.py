@@ -25,15 +25,13 @@ else:
 
 class Unix(PlatformDirsABC):  # noqa: PLR0904
     """
-    On Unix/Linux, we follow the `XDG Basedir Spec <https://specifications.freedesktop.org/basedir-spec/basedir-spec-
-    latest.html>`_.
+    On Unix/Linux, we follow the `XDG Basedir Spec <https://specifications.freedesktop.org/basedir/latest/>`_.
 
     The spec allows overriding directories with environment variables. The examples shown are the default values,
     alongside the name of the environment variable that overrides them. Makes use of the `appname
     <platformdirs.api.PlatformDirsABC.appname>`, `version <platformdirs.api.PlatformDirsABC.version>`, `multipath
     <platformdirs.api.PlatformDirsABC.multipath>`, `opinion <platformdirs.api.PlatformDirsABC.opinion>`, `ensure_exists
     <platformdirs.api.PlatformDirsABC.ensure_exists>`.
-
     """
 
     @property
