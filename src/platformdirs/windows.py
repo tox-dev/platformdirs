@@ -209,10 +209,7 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
     import winreg  # noqa: PLC0415
 
     # Use HKEY_LOCAL_MACHINE for system-wide folders, HKEY_CURRENT_USER for user-specific folders
-    if csidl_name in machine_names:
-        hkey = winreg.HKEY_LOCAL_MACHINE
-    else:
-        hkey = winreg.HKEY_CURRENT_USER
+    hkey = winreg.HKEY_LOCAL_MACHINE if csidl_name in machine_names else winreg.HKEY_CURRENT_USER
 
     key = winreg.OpenKey(hkey, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders")
     directory, _ = winreg.QueryValueEx(key, shell_folder_name)
