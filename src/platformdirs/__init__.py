@@ -135,7 +135,7 @@ def site_config_dir(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param multipath: See `roaming <platformdirs.api.PlatformDirsABC.multipath>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
-    :returns: config directory shared by the users
+    :returns: config directory shared by users
     """
     return PlatformDirs(
         appname=appname,
@@ -405,7 +405,7 @@ def site_config_path(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param multipath: See `roaming <platformdirs.api.PlatformDirsABC.multipath>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
-    :returns: config path shared by the users
+    :returns: config path shared by users
     """
     return PlatformDirs(
         appname=appname,
@@ -429,7 +429,7 @@ def site_cache_path(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param opinion: See `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
-    :returns: cache directory tied to the user
+    :returns: cache directory shared by users
     """
     return PlatformDirs(
         appname=appname,

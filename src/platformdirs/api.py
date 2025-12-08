@@ -116,7 +116,7 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
     @property
     @abstractmethod
     def site_config_dir(self) -> str:
-        """:return: config directory shared by the users"""
+        """:return: config directory shared by users"""
 
     @property
     @abstractmethod
@@ -195,7 +195,7 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
 
     @property
     def site_config_path(self) -> Path:
-        """:return: config path shared by the users"""
+        """:return: config path shared by users"""
         return Path(self.site_config_dir)
 
     @property
