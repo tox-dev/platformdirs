@@ -214,7 +214,9 @@ lint.ignore = [
   "D212",   # `multi-line-summary-first-line` (D212) and `multi-line-summary-second-line` (D213) are incompatible
   "D301",   # Use `r"""` if any backslashes in a docstring
   "D401",   # The first line of docstring should be in imperative mood
+
   "DOC",    # no support for restructuredtext
+  "RUF067", # `__init__` module should only contain docstrings and re-exports
   "S104",   # Possible binding to all interfaces
 ]
 lint.per-file-ignores."tests/**/*.py" = [
