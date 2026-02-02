@@ -76,6 +76,25 @@ build.targets.sdist.include = [
 ]
 version.source = "vcs"
 
+[tool.hatch.envs.coverage]
+template = "coverage"
+installer = "uv"
+description = "combine coverage files and generate diff"
+dependencies = [
+  "covdefaults>=2.3",
+  "coverage[toml]>=7.6.1",
+  "diff-cover>=9.2",
+]
+env-vars = { COVERAGE_FILE = "report/.coverage" }
+[tool.hatch.envs.coverage.scripts]
+run = [
+  "coverage combine report",
+  "coverage report --skip-covered --show-missing",
+  "coverage xml -o report/coverage.xml",
+  "coverage html -d report/html",
+  "diff-cover --compare-branch {env:DIFF_AGAINST:origin/main} report/coverage.xml",
+]
+
 [tool.hatch.envs.default]
 installer = "uv"
 description = "Development environment"
@@ -87,6 +106,52 @@ features = [
 scripts = { show = [
   "uv pip tree",
   'python -c "import sys; print(sys.executable)"',
+] }
+
+[tool.hatch.envs.docs]
+template = "docs"
+installer = "uv"
+description = "Build documentation using Sphinx"
+python = "3.12"
+dev-mode = false
+features = [
+  "docs",
+]
+[tool.hatch.envs.docs.scripts]
+build = [
+  """python -c "import glob; import subprocess; subprocess.call(['proselint'] + glob.glob('docs/*.rst'))" """,
+  """python -c "from shutil import rmtree; rmtree('docs/build', ignore_errors=True)" """,
+  "sphinx-build -d docs/build/tree docs docs/build --color -b html",
+  """python -c "from pathlib import Path; p=(Path('docs')/'build'/'index.html').absolute().as_uri(); print('Documentation built under '+p)" """,
+]
+
+[tool.hatch.envs.fix]
+template = "fix"
+installer = "uv"
+description = "Run the pre-commit tool to lint and autofix issues"
+python = "3.12"
+detached = true
+dependencies = [
+  "pre-commit-uv>=4.1",
+]
+scripts = { "run" = [
+  "pre-commit run --all-files --show-diff-on-failure",
+] }
+
+[tool.hatch.envs.readme]
+template = "readme"
+installer = "uv"
+description = "check that the long description is valid"
+python = "3.12"
+dependencies = [
+  "build[uv]>=1.2.2",
+  "twine>=5.1.1",
+  "check-wheel-contents>=0.6",
+]
+scripts = { "run" = [
+  "pyproject-build --installer uv -o dist",
+  "twine check dist/*.whl dist/*.tar.gz",
+  "check-wheel-contents dist",
 ] }
 
 [tool.hatch.envs.test]
@@ -120,25 +185,6 @@ run = [
 """,
 ]
 
-[tool.hatch.envs.coverage]
-template = "coverage"
-installer = "uv"
-description = "combine coverage files and generate diff"
-dependencies = [
-  "covdefaults>=2.3",
-  "coverage[toml]>=7.6.1",
-  "diff-cover>=9.2",
-]
-env-vars = { COVERAGE_FILE = "report/.coverage" }
-[tool.hatch.envs.coverage.scripts]
-run = [
-  "coverage combine report",
-  "coverage report --skip-covered --show-missing",
-  "coverage xml -o report/coverage.xml",
-  "coverage html -d report/html",
-  "diff-cover --compare-branch {env:DIFF_AGAINST:origin/main} report/coverage.xml",
-]
-
 [tool.hatch.envs.type]
 template = "type"
 installer = "uv"
@@ -152,52 +198,6 @@ features = [
 scripts = { run = [
   "mypy --strict src",
   "mypy --strict tests",
-] }
-
-[tool.hatch.envs.fix]
-template = "fix"
-installer = "uv"
-description = "Run the pre-commit tool to lint and autofix issues"
-python = "3.12"
-detached = true
-dependencies = [
-  "pre-commit-uv>=4.1",
-]
-scripts = { "run" = [
-  "pre-commit run --all-files --show-diff-on-failure",
-] }
-
-[tool.hatch.envs.docs]
-template = "docs"
-installer = "uv"
-description = "Build documentation using Sphinx"
-python = "3.12"
-dev-mode = false
-features = [
-  "docs",
-]
-[tool.hatch.envs.docs.scripts]
-build = [
-  """python -c "import glob; import subprocess; subprocess.call(['proselint'] + glob.glob('docs/*.rst'))" """,
-  """python -c "from shutil import rmtree; rmtree('docs/build', ignore_errors=True)" """,
-  "sphinx-build -d docs/build/tree docs docs/build --color -b html",
-  """python -c "from pathlib import Path; p=(Path('docs')/'build'/'index.html').absolute().as_uri(); print('Documentation built under '+p)" """,
-]
-
-[tool.hatch.envs.readme]
-template = "readme"
-installer = "uv"
-description = "check that the long description is valid"
-python = "3.12"
-dependencies = [
-  "build[uv]>=1.2.2",
-  "twine>=5.1.1",
-  "check-wheel-contents>=0.6",
-]
-scripts = { "run" = [
-  "pyproject-build --installer uv -o dist",
-  "twine check dist/*.whl dist/*.tar.gz",
-  "check-wheel-contents dist",
 ] }
 
 [tool.ruff]
