@@ -60,7 +60,6 @@ optional-dependencies.test = [
 optional-dependencies.type = [
   "mypy>=1.18.2",
 ]
-
 urls.Changelog = "https://github.com/tox-dev/platformdirs/releases"
 urls.Documentation = "https://platformdirs.readthedocs.io"
 urls.Homepage = "https://github.com/tox-dev/platformdirs"
@@ -75,91 +74,80 @@ build.targets.sdist.include = [
   "/tox.ini",
 ]
 version.source = "vcs"
-
-[tool.hatch.envs.coverage]
-template = "coverage"
-installer = "uv"
-description = "combine coverage files and generate diff"
-dependencies = [
+envs.coverage.template = "coverage"
+envs.coverage.installer = "uv"
+envs.coverage.description = "combine coverage files and generate diff"
+envs.coverage.dependencies = [
   "covdefaults>=2.3",
   "coverage[toml]>=7.6.1",
   "diff-cover>=9.2",
 ]
-env-vars = { COVERAGE_FILE = "report/.coverage" }
-[tool.hatch.envs.coverage.scripts]
-run = [
+envs.coverage.env-vars = { COVERAGE_FILE = "report/.coverage" }
+envs.coverage.scripts.run = [
   "coverage combine report",
   "coverage report --skip-covered --show-missing",
   "coverage xml -o report/coverage.xml",
   "coverage html -d report/html",
   "diff-cover --compare-branch {env:DIFF_AGAINST:origin/main} report/coverage.xml",
 ]
-
-[tool.hatch.envs.default]
-installer = "uv"
-description = "Development environment"
-features = [
+envs.default.installer = "uv"
+envs.default.description = "Development environment"
+envs.default.features = [
   "test",
   "docs",
   "type",
 ]
-scripts = { show = [
+envs.default.scripts = { show = [
   "uv pip tree",
   'python -c "import sys; print(sys.executable)"',
 ] }
-
-[tool.hatch.envs.docs]
-template = "docs"
-installer = "uv"
-description = "Build documentation using Sphinx"
-python = "3.12"
-dev-mode = false
-features = [
+envs.docs.template = "docs"
+envs.docs.installer = "uv"
+envs.docs.description = "Build documentation using Sphinx"
+envs.docs.python = "3.12"
+envs.docs.dev-mode = false
+envs.docs.features = [
   "docs",
 ]
-[tool.hatch.envs.docs.scripts]
-build = [
-  """python -c "import glob; import subprocess; subprocess.call(['proselint'] + glob.glob('docs/*.rst'))" """,
-  """python -c "from shutil import rmtree; rmtree('docs/build', ignore_errors=True)" """,
+envs.docs.scripts.build = [
+  "python -c \"import glob; import subprocess; subprocess.call(['proselint'] + glob.glob('docs/*.rst'))\" ",
+  "python -c \"from shutil import rmtree; rmtree('docs/build', ignore_errors=True)\" ",
   "sphinx-build -d docs/build/tree docs docs/build --color -b html",
-  """python -c "from pathlib import Path; p=(Path('docs')/'build'/'index.html').absolute().as_uri(); print('Documentation built under '+p)" """,
+  """\
+  python -c \"from pathlib import Path; p=(Path('docs')/'build'/'index.html').absolute().as_uri(); \
+  print('Documentation built under '+p)\" \
+  """,
 ]
-
-[tool.hatch.envs.fix]
-template = "fix"
-installer = "uv"
-description = "Run the pre-commit tool to lint and autofix issues"
-python = "3.12"
-detached = true
-dependencies = [
+envs.fix.template = "fix"
+envs.fix.installer = "uv"
+envs.fix.description = "Run the pre-commit tool to lint and autofix issues"
+envs.fix.python = "3.12"
+envs.fix.detached = true
+envs.fix.dependencies = [
   "pre-commit-uv>=4.1",
 ]
-scripts = { "run" = [
+envs.fix.scripts = { "run" = [
   "pre-commit run --all-files --show-diff-on-failure",
 ] }
-
-[tool.hatch.envs.readme]
-template = "readme"
-installer = "uv"
-description = "check that the long description is valid"
-python = "3.12"
-dependencies = [
+envs.readme.template = "readme"
+envs.readme.installer = "uv"
+envs.readme.description = "check that the long description is valid"
+envs.readme.python = "3.12"
+envs.readme.dependencies = [
   "build[uv]>=1.2.2",
   "twine>=5.1.1",
   "check-wheel-contents>=0.6",
 ]
-scripts = { "run" = [
+envs.readme.scripts = { "run" = [
   "pyproject-build --installer uv -o dist",
   "twine check dist/*.whl dist/*.tar.gz",
   "check-wheel-contents dist",
 ] }
-
-[tool.hatch.envs.test]
-template = "test"
-installer = "uv"
+envs.test.template = "test"
+envs.test.installer = "uv"
 # dev-mode = false # cannot enable this until https://github.com/pypa/hatch/issues/1237
-description = "Run the test suite"
-matrix = [
+envs.test.description = "Run the test suite"
+envs.test.matrix = [
   { python = [
     "3.14",
     "3.13",
@@ -169,33 +157,29 @@ matrix = [
     "pypy3.11",
   ] },
 ]
-features = [
+envs.test.features = [
   "test",
 ]
-env-vars.COVERAGE_FILE = "report/.coverage.{matrix:python}"
-env-vars.COVERAGE_PROCESS_START = "pyproject.toml"
-env-vars._COVERAGE_SRC = "src/platformdirs"
-[tool.hatch.envs.test.scripts]
-run = [
-  """
-    pytest --junitxml report/junit.{matrix:python}.xml --cov src/platformdirs --cov tests \
-      --cov-config=pyproject.toml --no-cov-on-fail --cov-report term-missing:skip-covered --cov-context=test \
-      --cov-report html:report/html{matrix:python} --cov-report xml:report/coverage{matrix:python}.xml \
-      tests
-""",
+envs.test.env-vars.COVERAGE_FILE = "report/.coverage.{matrix:python}"
+envs.test.env-vars.COVERAGE_PROCESS_START = "pyproject.toml"
+envs.test.env-vars._COVERAGE_SRC = "src/platformdirs"
+envs.test.scripts.run = [
+  """\
+      pytest --junitxml report/junit.{matrix:python}.xml --cov src/platformdirs --cov tests \\\n      \
+  --cov-config=pyproject.toml --no-cov-on-fail --cov-report term-missing:skip-covered --cov-context=test \\\n      \
+  --cov-report html:report/html{matrix:python} --cov-report xml:report/coverage{matrix:python}.xml \\\n      tests\n\
+  """,
 ]
-
-[tool.hatch.envs.type]
-template = "type"
-installer = "uv"
-description = "Run the type checker"
-python = "3.12"
-dev-mode = false
-features = [
+envs.type.template = "type"
+envs.type.installer = "uv"
+envs.type.description = "Run the type checker"
+envs.type.python = "3.12"
+envs.type.dev-mode = false
+envs.type.features = [
   "type",
   "test",
 ]
-scripts = { run = [
+envs.type.scripts = { run = [
   "mypy --strict src",
   "mypy --strict tests",
 ] }
@@ -214,7 +198,6 @@ lint.ignore = [
   "D212",   # `multi-line-summary-first-line` (D212) and `multi-line-summary-second-line` (D213) are incompatible
   "D301",   # Use `r"""` if any backslashes in a docstring
   "D401",   # The first line of docstring should be in imperative mood
-
   "DOC",    # no support for restructuredtext
   "RUF067", # `__init__` module should only contain docstrings and re-exports
   "S104",   # Possible binding to all interfaces
@@ -229,7 +212,6 @@ lint.per-file-ignores."tests/**/*.py" = [
   "S101",    # asserts allowed in tests
   "S603",    # `subprocess` call: check for execution of untrusted input
 ]
-
 lint.isort = { known-first-party = [
   "platformdirs",
   "tests",
@@ -250,15 +232,15 @@ max_supported_python = "3.14"
 html.show_contexts = true
 html.skip_covered = false
 run.relative_files = true
+run.parallel = true
+run.plugins = [
+  "covdefaults",
+]
 paths.source = [
   "src",
   "**/site-packages",
 ]
 report.fail_under = 76
-run.parallel = true
-run.plugins = [
-  "covdefaults",
-]
 
 [tool.mypy]
 python_version = "3.11"
