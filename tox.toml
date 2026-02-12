@@ -1,0 +1,152 @@
+requires = [ "tox>=4.34.1" ]
+env_list = [ "fix", "3.14", "3.13", "3.12", "3.11", "3.10", "pypy3.11", "coverage", "type", "docs", "pkg_meta" ]
+skip_missing_interpreters = true
+
+[env_run_base]
+description = "run the tests with pytest under {env_name}"
+package = "wheel"
+wheel_build_env = ".pkg"
+dependency_groups = [ "test" ]
+pass_env = [ "PYTEST_*", "SSL_CERT_FILE" ]
+set_env.COVERAGE_FILE = { replace = "env", name = "COVERAGE_FILE", default = "{work_dir}{/}.coverage.{env_name}" }
+commands = [
+  [
+    "pytest",
+    "--durations",
+    "10",
+    "--junitxml",
+    "{env_tmp_dir}{/}junit.xml",
+    { replace = "posargs", extend = true, default = [
+      "--no-cov-on-fail",
+      "--cov",
+      "{env_site_packages_dir}{/}platformdirs",
+      "--cov",
+      "{tox_root}{/}tests",
+      "--cov-config",
+      "{tox_root}{/}pyproject.toml",
+      "--cov-context",
+      "test",
+      "--cov-report",
+      "term-missing:skip-covered",
+      "--cov-report",
+      "html:{env_tmp_dir}{/}htmlcov",
+      "--cov-report",
+      "xml:{env_tmp_dir}{/}coverage.xml",
+    ] },
+    "tests",
+  ],
+  { replace = "posargs", extend = true, default = [
+    [
+      "diff-cover",
+      "--compare-branch",
+      { replace = "env", name = "DIFF_AGAINST", default = "origin/main" },
+      "{env_tmp_dir}{/}coverage.xml",
+    ],
+  ] },
+]
+
+[env.fix]
+description = "format the code base to adhere to our styles, and complain about what we cannot do automatically"
+skip_install = true
+dependency_groups = [ "fix" ]
+pass_env = [
+  { replace = "ref", of = [
+    "env_run_base",
+    "pass_env",
+  ], extend = true },
+  "PROGRAMDATA",
+  "DISABLE_PRE_COMMIT_UV_PATCH",
+]
+commands = [ [ "pre-commit", "run", "--all-files", "--show-diff-on-failure", { replace = "posargs", extend = true } ] ]
+
+[env.coverage]
+description = "combine coverage files and generate diff (against DIFF_AGAINST defaulting to origin/main)"
+skip_install = true
+dependency_groups = [ "coverage" ]
+pass_env = [
+  { replace = "ref", of = [
+    "env_run_base",
+    "pass_env",
+  ], extend = true },
+  "DIFF_AGAINST",
+]
+set_env.COVERAGE_FILE = { replace = "env", name = "COVERAGE_FILE", default = "{work_dir}{/}.coverage" }
+commands = [
+  [ "coverage", "combine" ],
+  [ "coverage", "report", "--skip-covered", "--show-missing" ],
+  [ "coverage", "xml", "-o", "{env_tmp_dir}{/}coverage.xml" ],
+  [ "coverage", "html", "-d", "{work_dir}{/}htmlcov" ],
+  [
+    "diff-cover",
+    "--compare-branch",
+    { replace = "env", name = "DIFF_AGAINST", default = "origin/main" },
+    "{env_tmp_dir}{/}coverage.xml",
+  ],
+]
+parallel_show_output = true
+depends = [ "3.14", "3.13", "3.12", "3.11", "3.10", "pypy3.11" ]
+
+[env.type]
+description = "run type check on code base"
+dependency_groups = [ "type" ]
+commands = [ [ "ty", "check", "--output-format", "concise", "--error-on-warning", "." ] ]
+
+[env.docs]
+description = "build documentation"
+dependency_groups = [ "docs" ]
+commands = [
+  [
+    "python",
+    "-c",
+    "import glob; import subprocess; subprocess.call(['proselint'] + glob.glob('docs/*.rst'))",
+  ],
+  [
+    "sphinx-build",
+    "-d",
+    "{env_tmp_dir}{/}docs_tree",
+    "docs",
+    "{env:READTHEDOCS_OUTPUT:{work_dir}{/}docs_out}/html",
+    "--color",
+    "-b",
+    "html",
+    { replace = "posargs", default = [], extend = true },
+    "-W",
+  ],
+  [
+    "python",
+    "-c",
+    'print(r"documentation available under file://{work_dir}{/}docs_out{/}html{/}index.html")',
+  ],
+]
+
+[env.pkg_meta]
+description = "check that the long description is valid"
+skip_install = true
+dependency_groups = [ "pkg-meta" ]
+commands = [
+  [
+    "uv",
+    "build",
+    "--sdist",
+    "--wheel",
+    "--out-dir",
+    "{env_tmp_dir}",
+    ".",
+  ],
+  [
+    "twine",
+    "check",
+    "{env_tmp_dir}{/}*",
+  ],
+  [
+    "check-wheel-contents",
+    "--no-config",
+    "{env_tmp_dir}",
+  ],
+]
+
+[env.dev]
+description = "dev environment with all deps at {envdir}"
+package = "editable"
+dependency_groups = [ "dev" ]
+commands = [ [ "uv", "pip", "list", "--format=columns" ], [ "python", "-c", 'print(r"{env_python}")' ] ]
