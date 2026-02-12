@@ -69,6 +69,7 @@ test = [
 ]
 type = [
   "ty>=0.0.16",
+  { include-group = "release" },
   { include-group = "test" },
 ]
 docs = [
