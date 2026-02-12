@@ -96,6 +96,17 @@ On macOS:
     >>> user_runtime_dir(appname, appauthor)
     '/Users/trentm/Library/Caches/TemporaryItems/SuperApp'
 
+Note: On macOS, XDG environment variables (e.g. ``XDG_DATA_HOME``,
+``XDG_CONFIG_HOME``, ``XDG_CACHE_HOME``) are also supported and take
+precedence over the default macOS directories when set:
+
+.. code-block:: pycon
+
+    >>> import os
+    >>> os.environ["XDG_CONFIG_HOME"] = "/Users/trentm/.config"
+    >>> user_config_dir(appname, appauthor)
+    '/Users/trentm/.config/SuperApp'
+
 On Windows:
 
 .. code-block:: pycon
