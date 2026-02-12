@@ -15,11 +15,11 @@ if TYPE_CHECKING:
 
 class _MacOSDefaults(PlatformDirsABC):
     """
-    Default platform directories for macOS.
+    Default platform directories for macOS without XDG environment variable overrides.
 
     Follows the guidance from
-    `Apple documentation <https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/MacOSXDirectories/MacOSXDirectories.html>`_.
-    The XDG env var handling is in :class:`~platformdirs.xdg.XDGMixin`.
+    `Apple's File System Programming Guide <https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/MacOSXDirectories/MacOSXDirectories.html>`_.
+    The XDG env var handling is in :class:`~platformdirs._xdg.XDGMixin`.
     """
 
     @property

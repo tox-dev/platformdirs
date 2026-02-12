@@ -28,7 +28,7 @@ class _UnixDefaults(PlatformDirsABC):
     """
     Default directories for Unix/Linux without XDG environment variable overrides.
 
-    The XDG env var handling is in :class:`~platformdirs.xdg.XDGMixin`.
+    The XDG env var handling is in :class:`~platformdirs._xdg.XDGMixin`.
     """
 
     @property
@@ -59,7 +59,7 @@ class _UnixDefaults(PlatformDirsABC):
     def user_cache_dir(self) -> str:
         """
         :return: cache directory tied to the user, e.g. ``~/.cache/$appname/$version`` or
-         ``~/$XDG_CACHE_HOME/$appname/$version``
+         ``$XDG_CACHE_HOME/$appname/$version``
         """
         return self._append_app_name_and_version(os.path.expanduser("~/.cache"))  # noqa: PTH111
 

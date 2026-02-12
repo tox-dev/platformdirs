@@ -1,21 +1,30 @@
-platformdirs's documentation
-============================
+platformdirs
+============
 
-``platformdirs`` is a library to determine platform-specific system directories.
-This includes directories where to place cache files, user data, configuration,
-etc.
+``platformdirs`` is a Python library for determining platform-specific system directories.
+Whether you need user data, configuration, cache, or log directories, ``platformdirs`` resolves the
+correct location for macOS, Windows, Linux/Unix, and Android.
 
-The source code and issue tracker are both hosted on `GitHub`_.
+Features
+--------
 
-.. _GitHub: https://github.com/platformdirs/platformdirs
+- **Auto-detects the current platform** -- works on macOS, Windows, Linux, FreeBSD, OpenBSD, and Android
+- **Follows platform conventions** -- XDG Base Directory Spec on Linux, ``~/Library`` on macOS, ``AppData`` on Windows
+- **XDG environment variable support** -- on both Linux and macOS
+- **Returns** :class:`str` **or** :class:`~pathlib.Path` -- every directory has a ``_dir`` (str) and ``_path`` (Path) variant
+- **Optional directory creation** -- set ``ensure_exists=True`` to create directories on access
+- **Version isolation** -- keep multiple app versions side by side
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
+   :caption: Contents
 
+   usage
    api
+   platforms
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`

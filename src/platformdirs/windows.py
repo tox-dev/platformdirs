@@ -256,6 +256,7 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
 
 
 def _pick_get_win_folder() -> Callable[[str], str]:
+    """Select the best method to resolve Windows folder paths: ctypes, then registry, then environment variables."""
     try:
         import ctypes  # noqa: PLC0415
     except ImportError:
