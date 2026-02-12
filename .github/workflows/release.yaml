@@ -1,24 +1,61 @@
-name: Release to PyPI
+name: Release
 on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Release (semver bump)?"
+        required: true
+        default: "no"
+        type: choice
+        options: ["no", patch, minor, major]
   push:
-    tags: ["*"]
+    branches: ["main"]
+  pull_request:
+
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{ github.ref }}${{
+      github.event.inputs.release && github.event.inputs.release != 'no' && '-release' || ''
+    }}
+  cancel-in-progress: ${{ github.event.inputs.release == 'no' || github.event.inputs.release == null }}
+
+permissions:
+  contents: read
 
 env:
   dists-artifact-name: python-package-distributions
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      changelog: ${{ steps.v.outputs.changelog }}
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Install the latest version of uv
+      - name: Setup uv
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
-          cache-dependency-glob: "pyproject.toml"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache-dependency-glob: "tasks/changelog.py"
+      - name: Generate changelog
+        id: v
+        run: >-
+          uv run tasks/changelog.py '${{ github.event.inputs.release == 'no' || github.event.inputs.release == null &&
+          'patch' || github.event.inputs.release }}' '${{ github.event.number }}' '${{
+          github.event.pull_request.base.sha }}'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create temporary tag for hatch-vcs
+        if: github.event.inputs.release != 'no' && github.event.inputs.release != null
+        run: git tag '${{ steps.v.outputs.version }}'
       - name: Build package
         run: uv build --python 3.14 --python-preference only-managed --sdist --wheel . --out-dir dist
       - name: Store the distribution packages
@@ -28,15 +65,45 @@ jobs:
           path: dist/*
 
   release:
-    needs:
-      - build
-    runs-on: ubuntu-latest
+    name: release
+    needs: [build]
+    if: github.event.inputs.release != 'no' && github.event.inputs.release != null && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
     environment:
       name: release
-      url: https://pypi.org/project/platformdirs/${{ github.ref_name }}
+      url: https://pypi.org/project/platformdirs/${{ needs.build.outputs.version }}
     permissions:
       id-token: write
+      contents: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+      - name: Commit changelog and tag
+        env:
+          CHANGELOG: ${{ needs.build.outputs.changelog }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          if git ls-remote --tags origin "refs/tags/$VERSION" | grep -q .; then
+            echo "Tag $VERSION already exists, skipping changelog commit"
+            exit 0
+          fi
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+          header="$VERSION ($(date -u +%Y-%m-%d))"
+          separator=$(printf '%0.s-' $(seq 1 ${#header}))
+          {
+            head -2 docs/changelog.rst
+            printf '%s\n%s\n%s\n\n' "$header" "$separator" "$CHANGELOG"
+            tail -n +3 docs/changelog.rst
+          } > docs/changelog.tmp
+          mv docs/changelog.tmp docs/changelog.rst
+          git add docs/changelog.rst
+          git commit -m "Release $VERSION"
+          git tag "$VERSION"
+          git push origin "$VERSION"
+          git push origin main
       - name: Download all the dists
         uses: actions/download-artifact@v7
         with:
@@ -45,4 +112,14 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@v1.13.0
         with:
-          attestations: true
+          skip-existing: true
+      - name: Create GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          if gh release view "$VERSION" > /dev/null 2>&1; then
+            echo "Release $VERSION already exists, skipping"
+          else
+            gh release create "$VERSION" --title="$VERSION" --verify-tag --generate-notes
+          fi
