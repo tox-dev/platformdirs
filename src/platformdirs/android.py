@@ -13,10 +13,14 @@ from .api import PlatformDirsABC
 
 class Android(PlatformDirsABC):
     """
-    Follows the guidance `from here <https://android.stackexchange.com/a/216132>`_.
+    Platform directories for Android.
+
+    Follows the guidance `from here <https://android.stackexchange.com/a/216132>`_. Directories are typically located
+    under the app's private storage (``/data/user/<userid>/<packagename>/``).
 
     Makes use of the `appname <platformdirs.api.PlatformDirsABC.appname>`, `version
-    <platformdirs.api.PlatformDirsABC.version>`, `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    <platformdirs.api.PlatformDirsABC.version>`, `opinion <platformdirs.api.PlatformDirsABC.opinion>`,
+    `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
 
     """
 
