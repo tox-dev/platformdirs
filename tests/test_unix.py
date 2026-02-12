@@ -183,3 +183,55 @@ def test_folder_not_created_without_ensure_exists(mocker: MockerFixture, tmp_pat
     mocker.patch.dict(os.environ, {"XDG_DATA_HOME": str(tmp_path)})
     data_path = Unix(appname="acme", ensure_exists=False).user_data_path
     assert not data_path.exists()
+
+
+def test_iter_data_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("XDG_DATA_HOME", "/xdg/data")
+    monkeypatch.setenv("XDG_DATA_DIRS", f"/xdg/share1{os.pathsep}/xdg/share2")
+    dirs = list(Unix().iter_data_dirs())
+    assert dirs == ["/xdg/data", "/xdg/share1", "/xdg/share2"]
+
+
+def test_iter_config_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", "/xdg/config")
+    monkeypatch.setenv("XDG_CONFIG_DIRS", f"/xdg/etc1{os.pathsep}/xdg/etc2")
+    dirs = list(Unix().iter_config_dirs())
+    assert dirs == ["/xdg/config", "/xdg/etc1", "/xdg/etc2"]
+
+
+def test_user_media_dir_from_user_dirs_file(
+    mocker: MockerFixture, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    config_dir = tmp_path / ".config"
+    config_dir.mkdir()
+    user_dirs_file = config_dir / "user-dirs.dirs"
+    user_dirs_file.write_text('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n')
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    mocker.patch.dict(os.environ, {"XDG_CONFIG_HOME": ""})
+    assert Unix().user_documents_dir == f"{tmp_path}/MyDocs"
+
+
+def test_user_media_dir_missing_key_in_user_dirs_file(
+    mocker: MockerFixture, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    config_dir = tmp_path / ".config"
+    config_dir.mkdir()
+    user_dirs_file = config_dir / "user-dirs.dirs"
+    user_dirs_file.write_text('XDG_DESKTOP_DIR="$HOME/Desktop"\n')
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    mocker.patch.dict(os.environ, {"XDG_CONFIG_HOME": ""})
+    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
+
+
+def test_user_media_dir_no_user_dirs_file(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    monkeypatch.setenv("HOME", "/nonexistent/path")
+    monkeypatch.setenv("USERPROFILE", "/nonexistent/path")
+    monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+    assert Unix().user_documents_dir == "/nonexistent/path/Documents"
