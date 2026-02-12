@@ -16,6 +16,7 @@ version = release
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosectionlabel",
+    "sphinx.ext.extlinks",
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
     "sphinx_autodoc_typehints",
@@ -32,3 +33,8 @@ autodoc_default_options = {
 default_role = "any"
 autosectionlabel_prefix_document = True
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
+extlinks = {
+    "issue": ("https://github.com/tox-dev/platformdirs/issues/%s", "issue #%s"),
+    "pr": ("https://github.com/tox-dev/platformdirs/issues/%s", "PR #%s"),
+    "user": ("https://github.com/%s", "@%s"),
+}

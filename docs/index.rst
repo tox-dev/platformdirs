@@ -22,6 +22,7 @@ Features
    usage
    api
    platforms
+   changelog
 
 Indices and tables
 ------------------

@@ -44,7 +44,7 @@ classifiers = [
 dynamic = [
   "version",
 ]
-urls.Changelog = "https://github.com/tox-dev/platformdirs/releases"
+urls.Changelog = "https://platformdirs.readthedocs.io/en/latest/changelog.html"
 urls.Documentation = "https://platformdirs.readthedocs.io"
 urls.Homepage = "https://github.com/tox-dev/platformdirs"
 urls.Source = "https://github.com/tox-dev/platformdirs"
@@ -90,6 +90,11 @@ pkg-meta = [
   "twine>=6.2",
   "uv>=0.10.2",
 ]
+release = [
+  "gitpython>=3.1.46",
+  "pygithub>=2.8.1",
+  "pyyaml>=6.0.3",
+]
 
 [tool.hatch]
 build.hooks.vcs.version-file = "src/platformdirs/version.py"
@@ -117,6 +122,12 @@ lint.ignore = [
   "DOC",    # no support for restructuredtext
   "RUF067", # `__init__` module should only contain docstrings and re-exports
   "S104",   # Possible binding to all interfaces
+]
+lint.per-file-ignores."tasks/**/*.py" = [
+  "D",      # don't care about documentation in tasks scripts
+  "INP001", # no implicit namespace
+  "S603",   # `subprocess` call: check for execution of untrusted input
+  "T201",   # print allowed in scripts
 ]
 lint.per-file-ignores."tests/**/*.py" = [
   "D",       # don't care about documentation in tests
