@@ -1,5 +1,12 @@
 Changelog
 =========
+4.7.0 (2026-02-12)
+------------------
+- 🔧 build(release): adopt filelock-style automated workflow :pr:`420`
+- 🐛 fix(unix): fall back to tempdir when runtime dir is not writable :pr:`369` - by :user:`lengau`
+- Replace SHGetFolderPathW with SHGetKnownFolderPath :pr:`380` - by :user:`moi15moi`
+- 📝 docs: restructure and fix cross-references :pr:`419`
+
 4.6.0 (2026-02-12)
 -------------------
 - feat(macos): add XDG env var support via shared mixin :pr:`375` - by :user:`Czaki`
