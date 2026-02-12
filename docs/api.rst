@@ -66,6 +66,12 @@ User music directory
 .. autofunction:: platformdirs.user_music_dir
 .. autofunction:: platformdirs.user_music_path
 
+User desktop directory
+------------------------
+
+.. autofunction:: platformdirs.user_desktop_dir
+.. autofunction:: platformdirs.user_desktop_path
+
 Runtime directory
 -------------------
 
@@ -94,6 +100,12 @@ Shared cache directory
 
 .. autofunction:: platformdirs.site_cache_dir
 .. autofunction:: platformdirs.site_cache_path
+
+Shared runtime directory
+------------------------
+
+.. autofunction:: platformdirs.site_runtime_dir
+.. autofunction:: platformdirs.site_runtime_path
 
 Platforms
 ~~~~~~~~~
