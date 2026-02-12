@@ -135,7 +135,7 @@ def _android_folder() -> str | None:  # noqa: C901
         try:
             # ...and fall back to using plain pyjnius, if python4android isn't available or doesn't deliver any useful
             # result...
-            from jnius import autoclass  # noqa: PLC0415
+            from jnius import autoclass  # noqa: PLC0415  # ty: ignore[unresolved-import]
 
             context = autoclass("android.content.Context")
             result = context.getFilesDir().getParentFile().getAbsolutePath()
@@ -169,7 +169,7 @@ def _android_documents_folder() -> str:
     """:return: documents folder for the Android OS"""
     # Get directories with pyjnius
     try:
-        from jnius import autoclass  # noqa: PLC0415
+        from jnius import autoclass  # noqa: PLC0415  # ty: ignore[unresolved-import]
 
         context = autoclass("android.content.Context")
         environment = autoclass("android.os.Environment")
@@ -185,7 +185,7 @@ def _android_downloads_folder() -> str:
     """:return: downloads folder for the Android OS"""
     # Get directories with pyjnius
     try:
-        from jnius import autoclass  # noqa: PLC0415
+        from jnius import autoclass  # noqa: PLC0415  # ty: ignore[unresolved-import]
 
         context = autoclass("android.content.Context")
         environment = autoclass("android.os.Environment")
@@ -201,7 +201,7 @@ def _android_pictures_folder() -> str:
     """:return: pictures folder for the Android OS"""
     # Get directories with pyjnius
     try:
-        from jnius import autoclass  # noqa: PLC0415
+        from jnius import autoclass  # noqa: PLC0415  # ty: ignore[unresolved-import]
 
         context = autoclass("android.content.Context")
         environment = autoclass("android.os.Environment")
@@ -217,7 +217,7 @@ def _android_videos_folder() -> str:
     """:return: videos folder for the Android OS"""
     # Get directories with pyjnius
     try:
-        from jnius import autoclass  # noqa: PLC0415
+        from jnius import autoclass  # noqa: PLC0415  # ty: ignore[unresolved-import]
 
         context = autoclass("android.content.Context")
         environment = autoclass("android.os.Environment")
@@ -233,7 +233,7 @@ def _android_music_folder() -> str:
     """:return: music folder for the Android OS"""
     # Get directories with pyjnius
     try:
-        from jnius import autoclass  # noqa: PLC0415
+        from jnius import autoclass  # noqa: PLC0415  # ty: ignore[unresolved-import]
 
         context = autoclass("android.content.Context")
         environment = autoclass("android.os.Environment")

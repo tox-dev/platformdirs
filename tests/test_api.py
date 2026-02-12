@@ -16,7 +16,7 @@ builtin_import = builtins.__import__
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Mapping, Sequence
     from types import ModuleType
 
 
@@ -92,11 +92,17 @@ def test_android_active(  # noqa: PLR0913
         assert platformdirs._set_platform_dir_class() is not Android  # noqa: SLF001
 
 
-def _fake_import(name: str, *args: Any, **kwargs: Any) -> ModuleType:  # noqa: ANN401
+def _fake_import(
+    name: str,
+    globals: Mapping[str, object] | None = None,  # noqa: A002
+    locals: Mapping[str, object] | None = None,  # noqa: A002
+    fromlist: Sequence[str] | None = (),
+    level: int = 0,
+) -> ModuleType:
     if name == "ctypes":
         msg = f"No module named {name}"
         raise ModuleNotFoundError(msg)
-    return builtin_import(name, *args, **kwargs)
+    return builtin_import(name, globals, locals, fromlist, level)
 
 
 def mock_import(func: Callable[..., None]) -> Callable[..., None]:
@@ -104,7 +110,7 @@ def mock_import(func: Callable[..., None]) -> Callable[..., None]:
     def wrap(*args: Any, **kwargs: Any) -> None:  # noqa: ANN401
         platformdirs_module_items = [item for item in sys.modules.items() if item[0].startswith("platformdirs")]
         try:
-            builtins.__import__ = _fake_import
+            builtins.__import__ = _fake_import  # ty: ignore[invalid-assignment]
             for name, _ in platformdirs_module_items:
                 del sys.modules[name]
             return func(*args, **kwargs)

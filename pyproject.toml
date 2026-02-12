@@ -44,161 +44,61 @@ classifiers = [
 dynamic = [
   "version",
 ]
-optional-dependencies.docs = [
-  "furo>=2025.9.25",
-  "proselint>=0.14",
-  "sphinx>=8.2.3",
-  "sphinx-autodoc-typehints>=3.2",
-]
-optional-dependencies.test = [
-  "appdirs==1.4.4",
-  "covdefaults>=2.3",
-  "pytest>=8.4.2",
-  "pytest-cov>=7",
-  "pytest-mock>=3.15.1",
-]
-optional-dependencies.type = [
-  "mypy>=1.18.2",
-]
-
 urls.Changelog = "https://github.com/tox-dev/platformdirs/releases"
 urls.Documentation = "https://platformdirs.readthedocs.io"
 urls.Homepage = "https://github.com/tox-dev/platformdirs"
 urls.Source = "https://github.com/tox-dev/platformdirs"
 urls.Tracker = "https://github.com/tox-dev/platformdirs/issues"
 
+[dependency-groups]
+dev = [
+  { include-group = "coverage" },
+  { include-group = "docs" },
+  { include-group = "fix" },
+  { include-group = "pkg-meta" },
+  { include-group = "test" },
+  { include-group = "type" },
+]
+test = [
+  "appdirs==1.4.4",
+  "covdefaults>=2.3",
+  "diff-cover>=10.2",
+  "pytest>=8.4.2",
+  "pytest-cov>=7",
+  "pytest-mock>=3.15.1",
+]
+type = [
+  "ty>=0.0.16",
+  { include-group = "test" },
+]
+docs = [
+  "furo>=2025.9.25",
+  "proselint>=0.14",
+  "sphinx>=8.2.3",
+  "sphinx-autodoc-typehints>=3.2",
+]
+coverage = [
+  "covdefaults>=2.3",
+  "coverage[toml]>=7.6.1",
+  "diff-cover>=10.2",
+]
+fix = [
+  "pre-commit-uv>=4.2",
+]
+pkg-meta = [
+  "check-wheel-contents>=0.6.3",
+  "twine>=6.2",
+  "uv>=0.10.2",
+]
+
 [tool.hatch]
 build.hooks.vcs.version-file = "src/platformdirs/version.py"
 build.targets.sdist.include = [
   "/src",
   "/tests",
-  "/tox.ini",
+  "/tox.toml",
 ]
 version.source = "vcs"
-
-[tool.hatch.envs.coverage]
-template = "coverage"
-installer = "uv"
-description = "combine coverage files and generate diff"
-dependencies = [
-  "covdefaults>=2.3",
-  "coverage[toml]>=7.6.1",
-  "diff-cover>=9.2",
-]
-env-vars = { COVERAGE_FILE = "report/.coverage" }
-[tool.hatch.envs.coverage.scripts]
-run = [
-  "coverage combine report",
-  "coverage report --skip-covered --show-missing",
-  "coverage xml -o report/coverage.xml",
-  "coverage html -d report/html",
-  "diff-cover --compare-branch {env:DIFF_AGAINST:origin/main} report/coverage.xml",
-]
-
-[tool.hatch.envs.default]
-installer = "uv"
-description = "Development environment"
-features = [
-  "test",
-  "docs",
-  "type",
-]
-scripts = { show = [
-  "uv pip tree",
-  'python -c "import sys; print(sys.executable)"',
-] }
-
-[tool.hatch.envs.docs]
-template = "docs"
-installer = "uv"
-description = "Build documentation using Sphinx"
-python = "3.12"
-dev-mode = false
-features = [
-  "docs",
-]
-[tool.hatch.envs.docs.scripts]
-build = [
-  """python -c "import glob; import subprocess; subprocess.call(['proselint'] + glob.glob('docs/*.rst'))" """,
-  """python -c "from shutil import rmtree; rmtree('docs/build', ignore_errors=True)" """,
-  "sphinx-build -d docs/build/tree docs docs/build --color -b html",
-  """python -c "from pathlib import Path; p=(Path('docs')/'build'/'index.html').absolute().as_uri(); print('Documentation built under '+p)" """,
-]
-
-[tool.hatch.envs.fix]
-template = "fix"
-installer = "uv"
-description = "Run the pre-commit tool to lint and autofix issues"
-python = "3.12"
-detached = true
-dependencies = [
-  "pre-commit-uv>=4.1",
-]
-scripts = { "run" = [
-  "pre-commit run --all-files --show-diff-on-failure",
-] }
-
-[tool.hatch.envs.readme]
-template = "readme"
-installer = "uv"
-description = "check that the long description is valid"
-python = "3.12"
-dependencies = [
-  "build[uv]>=1.2.2",
-  "twine>=5.1.1",
-  "check-wheel-contents>=0.6",
-]
-scripts = { "run" = [
-  "pyproject-build --installer uv -o dist",
-  "twine check dist/*.whl dist/*.tar.gz",
-  "check-wheel-contents dist",
-] }
-
-[tool.hatch.envs.test]
-template = "test"
-installer = "uv"
-# dev-mode = false # cannot enable this until https://github.com/pypa/hatch/issues/1237
-description = "Run the test suite"
-matrix = [
-  { python = [
-    "3.14",
-    "3.13",
-    "3.12",
-    "3.11",
-    "3.10",
-    "pypy3.11",
-  ] },
-]
-features = [
-  "test",
-]
-env-vars.COVERAGE_FILE = "report/.coverage.{matrix:python}"
-env-vars.COVERAGE_PROCESS_START = "pyproject.toml"
-env-vars._COVERAGE_SRC = "src/platformdirs"
-[tool.hatch.envs.test.scripts]
-run = [
-  """
-    pytest --junitxml report/junit.{matrix:python}.xml --cov src/platformdirs --cov tests \
-      --cov-config=pyproject.toml --no-cov-on-fail --cov-report term-missing:skip-covered --cov-context=test \
-      --cov-report html:report/html{matrix:python} --cov-report xml:report/coverage{matrix:python}.xml \
-      tests
-""",
-]
-
-[tool.hatch.envs.type]
-template = "type"
-installer = "uv"
-description = "Run the type checker"
-python = "3.12"
-dev-mode = false
-features = [
-  "type",
-  "test",
-]
-scripts = { run = [
-  "mypy --strict src",
-  "mypy --strict tests",
-] }
 
 [tool.ruff]
 line-length = 120
@@ -214,7 +114,6 @@ lint.ignore = [
   "D212",   # `multi-line-summary-first-line` (D212) and `multi-line-summary-second-line` (D213) are incompatible
   "D301",   # Use `r"""` if any backslashes in a docstring
   "D401",   # The first line of docstring should be in imperative mood
-
   "DOC",    # no support for restructuredtext
   "RUF067", # `__init__` module should only contain docstrings and re-exports
   "S104",   # Possible binding to all interfaces
@@ -229,7 +128,6 @@ lint.per-file-ignores."tests/**/*.py" = [
   "S101",    # asserts allowed in tests
   "S603",    # `subprocess` call: check for execution of untrusted input
 ]
-
 lint.isort = { known-first-party = [
   "platformdirs",
   "tests",
@@ -247,26 +145,25 @@ quiet-level = 3
 max_supported_python = "3.14"
 
 [tool.coverage]
-html.show_contexts = true
-html.skip_covered = false
-run.relative_files = true
-paths.source = [
-  "src",
-  "**/site-packages",
-]
-report.fail_under = 76
 run.parallel = true
 run.plugins = [
   "covdefaults",
 ]
-
-[tool.mypy]
-python_version = "3.11"
-show_error_codes = true
-strict = true
-overrides = [
-  { module = [
-    "appdirs.*",
-    "jnius.*",
-  ], ignore_missing_imports = true },
+paths.other = [
+  ".",
+  "*/platformdirs",
+  "*\\platformdirs",
 ]
+paths.source = [
+  "src",
+  ".tox/*/lib/*/site-packages",
+  ".tox\\*\\Lib\\site-packages",
+  "**/src",
+  "**\\src",
+]
+report.fail_under = 76
+html.show_contexts = true
+html.skip_covered = false
+
+[tool.ty]
+environment.python-version = "3.14"
