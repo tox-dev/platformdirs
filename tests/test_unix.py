@@ -106,6 +106,7 @@ def _func_to_path(func: str) -> XDGVariable | None:
         "user_log_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
         "user_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", f"{gettempdir()}/runtime-1234"),
         "site_log_dir": None,
+        "site_state_dir": None,
         "site_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", "/run"),
     }
     return mapping.get(func)
@@ -158,6 +159,11 @@ def test_xdg_variable_custom_value(monkeypatch: pytest.MonkeyPatch, dirs_instanc
 def test_site_log_dir_fixed_path(opinion: bool) -> None:
     result = Unix(appname="foo", opinion=opinion).site_log_dir
     assert result == os.path.join("/var/log", "foo")  # noqa: PTH118
+
+
+def test_site_state_dir_fixed_path() -> None:
+    result = Unix(appname="foo").site_state_dir
+    assert result == os.path.join("/var/lib", "foo")  # noqa: PTH118
 
 
 @pytest.mark.usefixtures("_getuid")

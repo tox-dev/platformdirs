@@ -25,7 +25,7 @@ else:
     from os import getuid
 
 
-class _UnixDefaults(PlatformDirsABC):
+class _UnixDefaults(PlatformDirsABC):  # noqa: PLR0904
     """
     Default directories for Unix/Linux without XDG environment variable overrides.
 
@@ -76,6 +76,11 @@ class _UnixDefaults(PlatformDirsABC):
          ``$XDG_STATE_HOME/$appname/$version``
         """
         return self._append_app_name_and_version(os.path.expanduser("~/.local/state"))  # noqa: PTH111
+
+    @property
+    def site_state_dir(self) -> str:
+        """:return: state directory shared by users, e.g. ``/var/lib/$appname/$version``"""
+        return self._append_app_name_and_version("/var/lib")
 
     @property
     def user_log_dir(self) -> str:

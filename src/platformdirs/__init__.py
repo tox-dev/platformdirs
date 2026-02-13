@@ -221,6 +221,27 @@ def user_state_dir(
     ).user_state_dir
 
 
+def site_state_dir(
+    appname: str | None = None,
+    appauthor: str | Literal[False] | None = None,
+    version: str | None = None,
+    ensure_exists: bool = False,  # noqa: FBT001, FBT002
+) -> str:
+    """
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :returns: state directory shared by users
+    """
+    return PlatformDirs(
+        appname=appname,
+        appauthor=appauthor,
+        version=version,
+        ensure_exists=ensure_exists,
+    ).site_state_dir
+
+
 def user_log_dir(
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
@@ -515,6 +536,27 @@ def user_state_path(
     ).user_state_path
 
 
+def site_state_path(
+    appname: str | None = None,
+    appauthor: str | Literal[False] | None = None,
+    version: str | None = None,
+    ensure_exists: bool = False,  # noqa: FBT001, FBT002
+) -> Path:
+    """
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :returns: state path shared by users
+    """
+    return PlatformDirs(
+        appname=appname,
+        appauthor=appauthor,
+        version=version,
+        ensure_exists=ensure_exists,
+    ).site_state_path
+
+
 def user_log_path(
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
@@ -657,6 +699,8 @@ __all__ = [
     "site_log_path",
     "site_runtime_dir",
     "site_runtime_path",
+    "site_state_dir",
+    "site_state_path",
     "user_cache_dir",
     "user_cache_path",
     "user_config_dir",

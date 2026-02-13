@@ -63,6 +63,11 @@ class Android(PlatformDirsABC):
         return self.user_data_dir
 
     @property
+    def site_state_dir(self) -> str:
+        """:return: state directory shared by users, same as `user_state_dir`"""
+        return self.user_state_dir
+
+    @property
     def user_log_dir(self) -> str:
         """
         :return: log directory tied to the user, same as `user_cache_dir` if not opinionated else ``log`` in it,
