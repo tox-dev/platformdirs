@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import sys
 from configparser import ConfigParser
+from functools import cached_property
 from pathlib import Path
 from tempfile import gettempdir
 from typing import TYPE_CHECKING, NoReturn
@@ -31,6 +32,10 @@ class _UnixDefaults(PlatformDirsABC):  # noqa: PLR0904
 
     The XDG env var handling is in :class:`~platformdirs._xdg.XDGMixin`.
     """
+
+    @cached_property
+    def _use_site(self) -> bool:
+        return self.use_site_for_root and getuid() == 0
 
     @property
     def user_data_dir(self) -> str:
@@ -203,6 +208,36 @@ class Unix(XDGMixin, _UnixDefaults):
     <platformdirs.api.PlatformDirsABC.multipath>`, `opinion <platformdirs.api.PlatformDirsABC.opinion>`, `ensure_exists
     <platformdirs.api.PlatformDirsABC.ensure_exists>`.
     """
+
+    @property
+    def user_data_dir(self) -> str:
+        """:return: data directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
+        return self.site_data_dir if self._use_site else super().user_data_dir
+
+    @property
+    def user_config_dir(self) -> str:
+        """:return: config directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
+        return self.site_config_dir if self._use_site else super().user_config_dir
+
+    @property
+    def user_cache_dir(self) -> str:
+        """:return: cache directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
+        return self.site_cache_dir if self._use_site else super().user_cache_dir
+
+    @property
+    def user_state_dir(self) -> str:
+        """:return: state directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
+        return self.site_state_dir if self._use_site else super().user_state_dir
+
+    @property
+    def user_log_dir(self) -> str:
+        """:return: log directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
+        return self.site_log_dir if self._use_site else super().user_log_dir
+
+    @property
+    def user_runtime_dir(self) -> str:
+        """:return: runtime directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
+        return self.site_runtime_dir if self._use_site else super().user_runtime_dir
 
 
 def _get_user_media_dir(env_var: str, fallback_tilde_path: str) -> str:

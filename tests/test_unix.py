@@ -295,3 +295,67 @@ def test_user_media_dir_no_user_dirs_file(
     monkeypatch.setenv("USERPROFILE", "/nonexistent/path")
     monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
     assert Unix().user_documents_dir == "/nonexistent/path/Documents"
+
+
+_SITE_REDIRECT_CASES: list[tuple[str, str]] = [
+    ("user_data_dir", os.path.join("/usr/local/share", "foo")),  # noqa: PTH118
+    ("user_config_dir", os.path.join("/etc/xdg", "foo")),  # noqa: PTH118
+    ("user_cache_dir", os.path.join("/var/cache", "foo")),  # noqa: PTH118
+    ("user_state_dir", os.path.join("/var/lib", "foo")),  # noqa: PTH118
+    ("user_log_dir", os.path.join("/var/log", "foo")),  # noqa: PTH118
+    ("user_runtime_dir", os.path.join("/run", "foo")),  # noqa: PTH118
+]
+
+
+@pytest.mark.parametrize(("prop", "expected"), _SITE_REDIRECT_CASES)
+def test_use_site_for_root_as_root(
+    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, prop: str, expected: str
+) -> None:
+    mocker.patch("platformdirs.unix.getuid", return_value=0)
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    result = getattr(Unix(appname="foo", use_site_for_root=True), prop)
+    assert result == expected
+
+
+@pytest.mark.parametrize(("prop", "expected"), _SITE_REDIRECT_CASES)
+def test_use_site_for_root_as_non_root(
+    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, prop: str, expected: str
+) -> None:
+    mocker.patch("platformdirs.unix.getuid", return_value=1000)
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    mocker.patch("os.access", return_value=True)
+    dirs = Unix(appname="foo", use_site_for_root=True)
+    result = getattr(dirs, prop)
+    assert result != expected
+
+
+@pytest.mark.parametrize(("prop", "expected"), _SITE_REDIRECT_CASES)
+def test_use_site_for_root_disabled_as_root(
+    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, prop: str, expected: str
+) -> None:
+    mocker.patch("platformdirs.unix.getuid", return_value=0)
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    mocker.patch("os.access", return_value=True)
+    dirs = Unix(appname="foo", use_site_for_root=False)
+    result = getattr(dirs, prop)
+    assert result != expected
+
+
+@pytest.mark.parametrize(
+    ("xdg_var", "prop", "expected_site"),
+    [
+        ("XDG_DATA_HOME", "user_data_dir", os.path.join("/usr/local/share", "foo")),  # noqa: PTH118
+        ("XDG_CONFIG_HOME", "user_config_dir", os.path.join("/etc/xdg", "foo")),  # noqa: PTH118
+        ("XDG_CACHE_HOME", "user_cache_dir", os.path.join("/var/cache", "foo")),  # noqa: PTH118
+        ("XDG_STATE_HOME", "user_state_dir", os.path.join("/var/lib", "foo")),  # noqa: PTH118
+        ("XDG_STATE_HOME", "user_log_dir", os.path.join("/var/log", "foo")),  # noqa: PTH118
+    ],
+)
+def test_use_site_for_root_bypasses_xdg_user_vars(
+    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, xdg_var: str, prop: str, expected_site: str
+) -> None:
+    mocker.patch("platformdirs.unix.getuid", return_value=0)
+    monkeypatch.setenv(xdg_var, "/custom/xdg/path")
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    result = getattr(Unix(appname="foo", use_site_for_root=True), prop)
+    assert result == expected_site
