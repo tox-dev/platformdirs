@@ -88,6 +88,11 @@ class _MacOSDefaults(PlatformDirsABC):
         return self._append_app_name_and_version(os.path.expanduser("~/Library/Logs"))  # noqa: PTH111
 
     @property
+    def site_log_dir(self) -> str:
+        """:return: log directory shared by users, e.g. ``/Library/Logs/$appname/$version``"""
+        return self._append_app_name_and_version("/Library/Logs")
+
+    @property
     def user_documents_dir(self) -> str:
         """:return: documents directory tied to the user, e.g. ``~/Documents``"""
         return os.path.expanduser("~/Documents")  # noqa: PTH111

@@ -245,6 +245,30 @@ def user_log_dir(
     ).user_log_dir
 
 
+def site_log_dir(
+    appname: str | None = None,
+    appauthor: str | Literal[False] | None = None,
+    version: str | None = None,
+    opinion: bool = True,  # noqa: FBT001, FBT002
+    ensure_exists: bool = False,  # noqa: FBT001, FBT002
+) -> str:
+    """
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param opinion: See `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
+    :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :returns: log directory shared by users
+    """
+    return PlatformDirs(
+        appname=appname,
+        appauthor=appauthor,
+        version=version,
+        opinion=opinion,
+        ensure_exists=ensure_exists,
+    ).site_log_dir
+
+
 def user_documents_dir() -> str:
     """:returns: documents directory tied to the user"""
     return PlatformDirs().user_documents_dir
@@ -515,6 +539,30 @@ def user_log_path(
     ).user_log_path
 
 
+def site_log_path(
+    appname: str | None = None,
+    appauthor: str | Literal[False] | None = None,
+    version: str | None = None,
+    opinion: bool = True,  # noqa: FBT001, FBT002
+    ensure_exists: bool = False,  # noqa: FBT001, FBT002
+) -> Path:
+    """
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param opinion: See `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
+    :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :returns: log path shared by users
+    """
+    return PlatformDirs(
+        appname=appname,
+        appauthor=appauthor,
+        version=version,
+        opinion=opinion,
+        ensure_exists=ensure_exists,
+    ).site_log_path
+
+
 def user_documents_path() -> Path:
     """:returns: documents path tied to the user"""
     return PlatformDirs().user_documents_path
@@ -605,6 +653,8 @@ __all__ = [
     "site_config_path",
     "site_data_dir",
     "site_data_path",
+    "site_log_dir",
+    "site_log_path",
     "site_runtime_dir",
     "site_runtime_path",
     "user_cache_dir",

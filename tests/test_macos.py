@@ -75,6 +75,7 @@ def test_macos(mocker: MockerFixture, params: dict[str, Any], func: str) -> None
         "site_cache_dir": f"/Library/Caches{suffix}",
         "user_state_dir": f"{home}/Library/Application Support{suffix}",
         "user_log_dir": f"{home}/Library/Logs{suffix}",
+        "site_log_dir": f"/Library/Logs{suffix}",
         "user_documents_dir": f"{home}/Documents",
         "user_downloads_dir": f"{home}/Downloads",
         "user_pictures_dir": f"{home}/Pictures",

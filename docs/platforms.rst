@@ -84,6 +84,21 @@ Default paths
    * - Android
      - ``/data/data/<pkg>/cache/SuperApp/log``
 
+``site_log_dir``
+~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 80
+
+   * - Linux
+     - ``/var/log/SuperApp``
+   * - macOS
+     - ``/Library/Logs/SuperApp``
+   * - Windows
+     - ``C:\ProgramData\Acme\SuperApp\Logs``
+   * - Android
+     - ``/data/data/<pkg>/cache/SuperApp/log``
+
 ``user_runtime_dir``
 ~~~~~~~~~~~~~~~~~~~~
 
