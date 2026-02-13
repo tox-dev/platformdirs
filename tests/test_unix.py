@@ -298,12 +298,12 @@ def test_user_media_dir_no_user_dirs_file(
 
 
 _SITE_REDIRECT_CASES: list[tuple[str, str]] = [
-    ("user_data_dir", "/usr/local/share/foo"),
-    ("user_config_dir", "/etc/xdg/foo"),
-    ("user_cache_dir", "/var/cache/foo"),
-    ("user_state_dir", "/var/lib/foo"),
-    ("user_log_dir", "/var/log/foo"),
-    ("user_runtime_dir", "/run/foo"),
+    ("user_data_dir", os.path.join("/usr/local/share", "foo")),  # noqa: PTH118
+    ("user_config_dir", os.path.join("/etc/xdg", "foo")),  # noqa: PTH118
+    ("user_cache_dir", os.path.join("/var/cache", "foo")),  # noqa: PTH118
+    ("user_state_dir", os.path.join("/var/lib", "foo")),  # noqa: PTH118
+    ("user_log_dir", os.path.join("/var/log", "foo")),  # noqa: PTH118
+    ("user_runtime_dir", os.path.join("/run", "foo")),  # noqa: PTH118
 ]
 
 
@@ -344,11 +344,11 @@ def test_use_site_for_root_disabled_as_root(
 @pytest.mark.parametrize(
     ("xdg_var", "prop", "expected_site"),
     [
-        ("XDG_DATA_HOME", "user_data_dir", "/usr/local/share/foo"),
-        ("XDG_CONFIG_HOME", "user_config_dir", "/etc/xdg/foo"),
-        ("XDG_CACHE_HOME", "user_cache_dir", "/var/cache/foo"),
-        ("XDG_STATE_HOME", "user_state_dir", "/var/lib/foo"),
-        ("XDG_STATE_HOME", "user_log_dir", "/var/log/foo"),
+        ("XDG_DATA_HOME", "user_data_dir", os.path.join("/usr/local/share", "foo")),  # noqa: PTH118
+        ("XDG_CONFIG_HOME", "user_config_dir", os.path.join("/etc/xdg", "foo")),  # noqa: PTH118
+        ("XDG_CACHE_HOME", "user_cache_dir", os.path.join("/var/cache", "foo")),  # noqa: PTH118
+        ("XDG_STATE_HOME", "user_state_dir", os.path.join("/var/lib", "foo")),  # noqa: PTH118
+        ("XDG_STATE_HOME", "user_log_dir", os.path.join("/var/log", "foo")),  # noqa: PTH118
     ],
 )
 def test_use_site_for_root_bypasses_xdg_user_vars(
