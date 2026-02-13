@@ -318,12 +318,12 @@ Environment variable overrides
 
 Unlike Linux/macOS where ``XDG_*`` variables are a platform standard, Windows has no built-in
 convention for overriding folder locations at the application level. To fill this gap,
-``platformdirs`` checks ``PLATFORMDIRS_*`` environment variables before querying the Shell Folder
-APIs. This is useful when large data (ML models, package caches) should live on a different drive
-without changing the system-wide ``APPDATA`` / ``LOCALAPPDATA`` variables that other applications
-rely on.
+``platformdirs`` checks ``WIN_PD_OVERRIDE_*`` environment variables before querying the Shell
+Folder APIs. This is useful when large data (ML models, package caches) should live on a different
+drive without changing the system-wide ``APPDATA`` / ``LOCALAPPDATA`` variables that other
+applications rely on.
 
-The override variable name is ``PLATFORMDIRS_`` followed by the CSIDL suffix:
+The override variable name is ``WIN_PD_OVERRIDE_`` followed by the CSIDL suffix:
 
 .. list-table::
    :widths: 40 60
@@ -331,23 +331,23 @@ The override variable name is ``PLATFORMDIRS_`` followed by the CSIDL suffix:
 
    * - Environment variable
      - Overrides
-   * - ``PLATFORMDIRS_APPDATA``
+   * - ``WIN_PD_OVERRIDE_APPDATA``
      - Roaming user data (``AppData\Roaming``)
-   * - ``PLATFORMDIRS_LOCAL_APPDATA``
+   * - ``WIN_PD_OVERRIDE_LOCAL_APPDATA``
      - Local user data, config, cache, state (``AppData\Local``)
-   * - ``PLATFORMDIRS_COMMON_APPDATA``
+   * - ``WIN_PD_OVERRIDE_COMMON_APPDATA``
      - Site-wide data, config, cache, state (``ProgramData``)
-   * - ``PLATFORMDIRS_PERSONAL``
+   * - ``WIN_PD_OVERRIDE_PERSONAL``
      - Documents
-   * - ``PLATFORMDIRS_DOWNLOADS``
+   * - ``WIN_PD_OVERRIDE_DOWNLOADS``
      - Downloads
-   * - ``PLATFORMDIRS_MYPICTURES``
+   * - ``WIN_PD_OVERRIDE_MYPICTURES``
      - Pictures
-   * - ``PLATFORMDIRS_MYVIDEO``
+   * - ``WIN_PD_OVERRIDE_MYVIDEO``
      - Videos
-   * - ``PLATFORMDIRS_MYMUSIC``
+   * - ``WIN_PD_OVERRIDE_MYMUSIC``
      - Music
-   * - ``PLATFORMDIRS_DESKTOPDIRECTORY``
+   * - ``WIN_PD_OVERRIDE_DESKTOPDIRECTORY``
      - Desktop
 
 Example — redirect cache to a separate drive:
@@ -355,7 +355,7 @@ Example — redirect cache to a separate drive:
 .. code-block:: python
 
    import os
-   os.environ["PLATFORMDIRS_LOCAL_APPDATA"] = r"X:\appdata"
+   os.environ["WIN_PD_OVERRIDE_LOCAL_APPDATA"] = r"X:\appdata"
 
    import platformdirs
    print(platformdirs.user_cache_dir("MyApp", "Acme"))
