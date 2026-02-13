@@ -283,6 +283,33 @@ Key behaviors:
   which syncs across machines in a Windows domain
 - **OPINION**: ``user_cache_dir`` appends ``\Cache``, ``user_log_dir`` appends ``\Logs``
 
+.. note:: **Windows Store Python (MSIX)**
+
+   Python installed from the Microsoft Store runs in a sandboxed (AppContainer) environment.
+   Windows silently redirects writes under ``AppData`` to a per-package private location, e.g.
+   ``AppData\Local\Packages\PythonSoftwareFoundation.Python.3.X_<hash>\LocalCache\Local\...``.
+
+   ``platformdirs`` returns the logical ``AppData`` path, which is correct for code running inside
+   the same sandbox. However, if you pass these paths to external processes (subprocesses, other
+   applications), those processes may not see files created at the logical path because they run
+   outside the sandbox.
+
+   To obtain the real on-disk path for sharing with external processes, call
+   :func:`os.path.realpath` on the path **after** the file or directory has been created:
+
+   .. code-block:: python
+
+      import os
+      import platformdirs
+
+      data_dir = platformdirs.user_data_dir(appname="MyApp", appauthor="Acme", ensure_exists=True)
+      real_dir = os.path.realpath(data_dir)
+
+   This is a Windows design limitation, not a ``platformdirs`` bug. See `Microsoft's MSIX
+   documentation
+   <https://learn.microsoft.com/en-us/windows/msix/desktop/desktop-to-uwp-behind-the-scenes>`_
+   for details on filesystem virtualization.
+
 .. autoclass:: platformdirs.windows.Windows
    :members:
    :show-inheritance:
