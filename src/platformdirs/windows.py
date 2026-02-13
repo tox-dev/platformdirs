@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import sys
-from functools import lru_cache
 from typing import TYPE_CHECKING, Final
 
 from .api import PlatformDirsABC
@@ -320,7 +319,21 @@ def _pick_get_win_folder() -> Callable[[str], str]:
         return get_win_folder_from_registry
 
 
-get_win_folder = lru_cache(maxsize=None)(_pick_get_win_folder())
+_resolve_win_folder = _pick_get_win_folder()
+
+
+def get_win_folder(csidl_name: str) -> str:
+    """
+    Get a Windows folder path, checking for ``PLATFORMDIRS_*`` environment variable overrides first.
+
+    For example, ``CSIDL_LOCAL_APPDATA`` can be overridden by setting ``PLATFORMDIRS_LOCAL_APPDATA``.
+
+    """
+    env_var = f"PLATFORMDIRS_{csidl_name.removeprefix('CSIDL_')}"
+    if override := os.environ.get(env_var, "").strip():
+        return override
+    return _resolve_win_folder(csidl_name)
+
 
 __all__ = [
     "Windows",

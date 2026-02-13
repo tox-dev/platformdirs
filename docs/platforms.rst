@@ -313,6 +313,56 @@ Key behaviors:
   which syncs across machines in a Windows domain
 - **OPINION**: ``user_cache_dir`` appends ``\Cache``, ``user_log_dir`` appends ``\Logs``
 
+Environment variable overrides
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Unlike Linux/macOS where ``XDG_*`` variables are a platform standard, Windows has no built-in
+convention for overriding folder locations at the application level. To fill this gap,
+``platformdirs`` checks ``PLATFORMDIRS_*`` environment variables before querying the Shell Folder
+APIs. This is useful when large data (ML models, package caches) should live on a different drive
+without changing the system-wide ``APPDATA`` / ``LOCALAPPDATA`` variables that other applications
+rely on.
+
+The override variable name is ``PLATFORMDIRS_`` followed by the CSIDL suffix:
+
+.. list-table::
+   :widths: 40 60
+   :header-rows: 1
+
+   * - Environment variable
+     - Overrides
+   * - ``PLATFORMDIRS_APPDATA``
+     - Roaming user data (``AppData\Roaming``)
+   * - ``PLATFORMDIRS_LOCAL_APPDATA``
+     - Local user data, config, cache, state (``AppData\Local``)
+   * - ``PLATFORMDIRS_COMMON_APPDATA``
+     - Site-wide data, config, cache, state (``ProgramData``)
+   * - ``PLATFORMDIRS_PERSONAL``
+     - Documents
+   * - ``PLATFORMDIRS_DOWNLOADS``
+     - Downloads
+   * - ``PLATFORMDIRS_MYPICTURES``
+     - Pictures
+   * - ``PLATFORMDIRS_MYVIDEO``
+     - Videos
+   * - ``PLATFORMDIRS_MYMUSIC``
+     - Music
+   * - ``PLATFORMDIRS_DESKTOPDIRECTORY``
+     - Desktop
+
+Example — redirect cache to a separate drive:
+
+.. code-block:: python
+
+   import os
+   os.environ["PLATFORMDIRS_LOCAL_APPDATA"] = r"X:\appdata"
+
+   import platformdirs
+   print(platformdirs.user_cache_dir("MyApp", "Acme"))
+   # X:\appdata\Acme\MyApp\Cache
+
+Empty or whitespace-only values are ignored and the normal resolution applies.
+
 .. note:: **Windows Store Python (MSIX)**
 
    Python installed from the Microsoft Store runs in a sandboxed (AppContainer) environment.

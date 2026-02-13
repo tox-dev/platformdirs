@@ -14,6 +14,7 @@ from platformdirs.windows import (
     _KF_FLAG_DONT_VERIFY,
     _KNOWN_FOLDER_GUIDS,
     Windows,
+    get_win_folder,
     get_win_folder_from_env_vars,
     get_win_folder_if_csidl_name_not_env_var,
 )
@@ -298,3 +299,42 @@ def test_pick_get_win_folder_ctypes(mocker: MockerFixture) -> None:
     finally:
         if sys.platform != "win32":
             _cleanup_ctypes_mocks()
+
+
+@pytest.mark.parametrize(
+    ("csidl_name", "env_suffix"),
+    [
+        pytest.param("CSIDL_APPDATA", "APPDATA", id="appdata"),
+        pytest.param("CSIDL_LOCAL_APPDATA", "LOCAL_APPDATA", id="local_appdata"),
+        pytest.param("CSIDL_COMMON_APPDATA", "COMMON_APPDATA", id="common_appdata"),
+        pytest.param("CSIDL_PERSONAL", "PERSONAL", id="personal"),
+        pytest.param("CSIDL_DOWNLOADS", "DOWNLOADS", id="downloads"),
+        pytest.param("CSIDL_MYPICTURES", "MYPICTURES", id="mypictures"),
+        pytest.param("CSIDL_MYVIDEO", "MYVIDEO", id="myvideo"),
+        pytest.param("CSIDL_MYMUSIC", "MYMUSIC", id="mymusic"),
+        pytest.param("CSIDL_DESKTOPDIRECTORY", "DESKTOPDIRECTORY", id="desktop"),
+    ],
+)
+def test_get_win_folder_override(monkeypatch: pytest.MonkeyPatch, csidl_name: str, env_suffix: str) -> None:
+    override_path = r"X:\custom\override"
+    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda _csidl: _WIN_FOLDERS[_csidl])
+    monkeypatch.setenv(f"PLATFORMDIRS_{env_suffix}", override_path)
+    assert get_win_folder(csidl_name) == override_path
+
+
+def test_get_win_folder_override_whitespace_only_ignored(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda csidl: _WIN_FOLDERS[csidl])
+    monkeypatch.setenv("PLATFORMDIRS_LOCAL_APPDATA", "   ")
+    assert get_win_folder("CSIDL_LOCAL_APPDATA") == _WIN_FOLDERS["CSIDL_LOCAL_APPDATA"]
+
+
+def test_get_win_folder_override_not_set_falls_back(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda csidl: _WIN_FOLDERS[csidl])
+    monkeypatch.delenv("PLATFORMDIRS_LOCAL_APPDATA", raising=False)
+    assert get_win_folder("CSIDL_LOCAL_APPDATA") == _WIN_FOLDERS["CSIDL_LOCAL_APPDATA"]
+
+
+def test_get_win_folder_override_strips_whitespace(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda csidl: _WIN_FOLDERS[csidl])
+    monkeypatch.setenv("PLATFORMDIRS_LOCAL_APPDATA", "  X:\\custom  ")
+    assert get_win_folder("CSIDL_LOCAL_APPDATA") == r"X:\custom"
