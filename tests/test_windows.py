@@ -170,23 +170,32 @@ def test_get_win_folder_if_csidl_name_not_env_var(
 
 
 def _setup_ctypes_mocks(mocker: MockerFixture) -> None:
-    """Mock ctypes internals so get_win_folder_via_ctypes can be tested on any platform."""
-    if sys.platform != "win32":
-        for attr in ("HRESULT", "WinDLL"):
-            if not hasattr(ctypes, attr):
-                setattr(ctypes, attr, MagicMock())
-        mocker.patch("sys.platform", "win32")
+    """Mock ctypes internals so get_win_folder_via_ctypes can be tested on non-Windows."""
+    for attr in ("HRESULT", "WinDLL"):
+        if not hasattr(ctypes, attr):
+            setattr(ctypes, attr, MagicMock())
+    mocker.patch("sys.platform", "win32")
     mocker.patch("ctypes.POINTER", return_value=MagicMock())
 
 
 def _cleanup_ctypes_mocks() -> None:
-    if sys.platform == "win32":
-        return
     for attr in ("HRESULT", "WinDLL"):
         if isinstance(getattr(ctypes, attr, None), MagicMock):
             delattr(ctypes, attr)
 
 
+@pytest.mark.skipif(sys.platform != "win32", reason="real ctypes test only runs on Windows")
+@pytest.mark.parametrize("csidl_name", list(_KNOWN_FOLDER_GUIDS.keys()), ids=list(_KNOWN_FOLDER_GUIDS.keys()))
+def test_get_win_folder_via_ctypes_real(csidl_name: str) -> None:
+    importlib.reload(windows)
+    from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # noqa: PLC0415
+
+    result = fresh_fn(csidl_name)
+    assert isinstance(result, str)
+    assert len(result) > 0
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="mock-based flag inspection only runs on non-Windows")
 def test_get_win_folder_via_ctypes_passes_dont_verify_flag(mocker: MockerFixture) -> None:
     _setup_ctypes_mocks(mocker)
 
@@ -218,9 +227,9 @@ def test_get_win_folder_via_ctypes_passes_dont_verify_flag(mocker: MockerFixture
 
 
 def test_get_win_folder_via_ctypes_unknown_csidl(mocker: MockerFixture) -> None:
-    _setup_ctypes_mocks(mocker)
-
-    ctypes.WinDLL = MagicMock(side_effect=lambda _name: MagicMock())  # type: ignore[attr-defined]
+    if sys.platform != "win32":
+        _setup_ctypes_mocks(mocker)
+        ctypes.WinDLL = MagicMock(side_effect=lambda _name: MagicMock())  # type: ignore[attr-defined]
 
     try:
         importlib.reload(windows)
@@ -229,9 +238,11 @@ def test_get_win_folder_via_ctypes_unknown_csidl(mocker: MockerFixture) -> None:
         with pytest.raises(ValueError, match="Unknown CSIDL name"):
             fresh_fn("CSIDL_BOGUS")
     finally:
-        _cleanup_ctypes_mocks()
+        if sys.platform != "win32":
+            _cleanup_ctypes_mocks()
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="cannot force NULL from real SHGetKnownFolderPath")
 def test_get_win_folder_via_ctypes_null_result(mocker: MockerFixture) -> None:
     _setup_ctypes_mocks(mocker)
 
@@ -274,12 +285,13 @@ def test_known_folder_guids_has_all_csidl_names() -> None:
 
 
 def test_pick_get_win_folder_ctypes(mocker: MockerFixture) -> None:
-    _setup_ctypes_mocks(mocker)
-
-    ctypes.WinDLL = MagicMock()  # type: ignore[attr-defined]
+    if sys.platform != "win32":
+        _setup_ctypes_mocks(mocker)
+        ctypes.WinDLL = MagicMock()  # type: ignore[attr-defined]
 
     try:
         importlib.reload(windows)
         assert windows._pick_get_win_folder() is windows.get_win_folder_via_ctypes  # noqa: SLF001
     finally:
-        _cleanup_ctypes_mocks()
+        if sys.platform != "win32":
+            _cleanup_ctypes_mocks()
