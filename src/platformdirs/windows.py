@@ -90,6 +90,11 @@ class Windows(PlatformDirsABC):
         return self.user_data_dir
 
     @property
+    def site_state_dir(self) -> str:
+        """:return: state directory shared by users, same as `site_data_dir`"""
+        return self.site_data_dir
+
+    @property
     def user_log_dir(self) -> str:
         """:return: log directory tied to the user, same as `user_data_dir` if not opinionated else ``Logs`` in it"""
         path = self.user_data_dir

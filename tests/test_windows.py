@@ -78,6 +78,7 @@ def test_windows(params: dict[str, Any], func: str) -> None:
         "user_cache_dir": cache_local,
         "site_cache_dir": cache_common,
         "user_state_dir": local,
+        "site_state_dir": common,
         "user_log_dir": log,
         "site_log_dir": log_common,
         "user_documents_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_PERSONAL"]),

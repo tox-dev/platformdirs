@@ -83,6 +83,11 @@ class _MacOSDefaults(PlatformDirsABC):
         return self.user_data_dir
 
     @property
+    def site_state_dir(self) -> str:
+        """:return: state directory shared by users, same as `site_data_dir`"""
+        return self.site_data_dir
+
+    @property
     def user_log_dir(self) -> str:
         """:return: log directory tied to the user, e.g. ``~/Library/Logs/$appname/$version``"""
         return self._append_app_name_and_version(os.path.expanduser("~/Library/Logs"))  # noqa: PTH111

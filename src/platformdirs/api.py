@@ -151,6 +151,11 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
 
     @property
     @abstractmethod
+    def site_state_dir(self) -> str:
+        """:return: state directory shared by users"""
+
+    @property
+    @abstractmethod
     def user_log_dir(self) -> str:
         """:return: log directory tied to the user"""
 
@@ -235,6 +240,11 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
         return Path(self.user_state_dir)
 
     @property
+    def site_state_path(self) -> Path:
+        """:return: state path shared by users"""
+        return Path(self.site_state_dir)
+
+    @property
     def user_log_path(self) -> Path:
         """:return: log path tied to the user"""
         return Path(self.user_log_dir)
@@ -299,6 +309,11 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
         yield self.user_cache_dir
         yield self.site_cache_dir
 
+    def iter_state_dirs(self) -> Iterator[str]:
+        """:yield: all user and site state directories."""
+        yield self.user_state_dir
+        yield self.site_state_dir
+
     def iter_log_dirs(self) -> Iterator[str]:
         """:yield: all user and site log directories."""
         yield self.user_log_dir
@@ -322,6 +337,11 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
     def iter_cache_paths(self) -> Iterator[Path]:
         """:yield: all user and site cache paths."""
         for path in self.iter_cache_dirs():
+            yield Path(path)
+
+    def iter_state_paths(self) -> Iterator[Path]:
+        """:yield: all user and site state paths."""
+        for path in self.iter_state_dirs():
             yield Path(path)
 
     def iter_log_paths(self) -> Iterator[Path]:
