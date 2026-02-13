@@ -157,7 +157,7 @@ def test_xdg_variable_custom_value(monkeypatch: pytest.MonkeyPatch, dirs_instanc
 @pytest.mark.parametrize("opinion", [True, False])
 def test_site_log_dir_fixed_path(opinion: bool) -> None:
     result = Unix(appname="foo", opinion=opinion).site_log_dir
-    assert result == "/var/log/foo"
+    assert result == os.path.join("/var/log", "foo")  # noqa: PTH118
 
 
 @pytest.mark.usefixtures("_getuid")
