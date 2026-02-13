@@ -1,5 +1,9 @@
 Changelog
 =========
+4.7.1 (2026-02-13)
+------------------
+- 🐛 fix(windows): avoid FileNotFoundError in sandboxed environments :pr:`422`
+
 4.7.0 (2026-02-12)
 ------------------
 - 🔧 build(release): adopt filelock-style automated workflow :pr:`420`
