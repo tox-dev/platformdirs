@@ -5,12 +5,15 @@ from __future__ import annotations
 import os
 import sys
 from functools import lru_cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from .api import PlatformDirsABC
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+# Not exposed by CPython; defined in the Windows SDK (shlobj_core.h)
+_KF_FLAG_DONT_VERIFY: Final[int] = 0x00004000
 
 
 class Windows(PlatformDirsABC):
@@ -271,7 +274,7 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
     ole32.CLSIDFromString(folder_guid, byref(guid))
 
     path_ptr = wintypes.LPWSTR()
-    shell32.SHGetKnownFolderPath(byref(guid), 0, None, byref(path_ptr))
+    shell32.SHGetKnownFolderPath(byref(guid), _KF_FLAG_DONT_VERIFY, None, byref(path_ptr))
     result = path_ptr.value
     ole32.CoTaskMemFree(path_ptr)
 
