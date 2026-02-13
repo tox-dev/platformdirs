@@ -367,6 +367,16 @@ the corresponding ``XDG_*_DIRS`` variable, joined by ``:``.
 **FreeBSD / OpenBSD / NetBSD**: ``user_runtime_dir`` falls back to ``/var/run/user/<uid>`` or
 ``/tmp/runtime-<uid>`` when ``/run/user/<uid>`` does not exist.
 
+.. note:: **Running as root**
+
+   When ``use_site_for_root=True`` is passed and the process is running as root (uid 0),
+   ``user_*_dir`` calls are redirected to their ``site_*_dir`` equivalents. This is useful for
+   system daemons and installers that should write to system-wide directories rather than
+   ``/root/.local/...``. XDG user environment variables (e.g. ``XDG_DATA_HOME``) are bypassed
+   when the redirect is active, since they are typically inherited from the calling user via
+   ``sudo`` and would defeat the purpose. The parameter is accepted on all platforms but only
+   has an effect on Unix.
+
 .. autoclass:: platformdirs.unix.Unix
    :members:
    :show-inheritance:

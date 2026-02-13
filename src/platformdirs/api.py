@@ -32,6 +32,7 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
         multipath: bool = False,  # noqa: FBT001, FBT002
         opinion: bool = True,  # noqa: FBT001, FBT002
         ensure_exists: bool = False,  # noqa: FBT001, FBT002
+        use_site_for_root: bool = False,  # noqa: FBT001, FBT002
     ) -> None:
         """
         Create a new platform directory.
@@ -43,6 +44,7 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
         :param multipath: See `multipath`.
         :param opinion: See `opinion`.
         :param ensure_exists: See `ensure_exists`.
+        :param use_site_for_root: See `use_site_for_root`.
 
         """
         self.appname = appname  #: The name of the application.
@@ -91,6 +93,14 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
         Optionally create the directory (and any missing parents) upon access if it does not exist.
 
         By default, no directories are created.
+
+        """
+        self.use_site_for_root = use_site_for_root
+        """
+        Whether to redirect ``user_*_dir`` calls to their ``site_*_dir`` equivalents when running as root (uid 0).
+
+        Only has an effect on Unix. Disabled by default for backwards compatibility. When enabled, XDG user environment
+        variables (e.g. ``XDG_DATA_HOME``) are bypassed for the redirected directories.
 
         """
 

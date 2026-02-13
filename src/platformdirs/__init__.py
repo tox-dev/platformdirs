@@ -53,12 +53,13 @@ else:
 AppDirs = PlatformDirs  #: Backwards compatibility with appdirs
 
 
-def user_data_dir(
+def user_data_dir(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
     roaming: bool = False,  # noqa: FBT001, FBT002
     ensure_exists: bool = False,  # noqa: FBT001, FBT002
+    use_site_for_root: bool = False,  # noqa: FBT001, FBT002
 ) -> str:
     """
     :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
@@ -66,6 +67,7 @@ def user_data_dir(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param roaming: See `roaming <platformdirs.api.PlatformDirsABC.roaming>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param use_site_for_root: See `use_site_for_root <platformdirs.api.PlatformDirsABC.use_site_for_root>`.
     :returns: data directory tied to the user
     """
     return PlatformDirs(
@@ -74,6 +76,7 @@ def user_data_dir(
         version=version,
         roaming=roaming,
         ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
     ).user_data_dir
 
 
@@ -101,12 +104,13 @@ def site_data_dir(
     ).site_data_dir
 
 
-def user_config_dir(
+def user_config_dir(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
     roaming: bool = False,  # noqa: FBT001, FBT002
     ensure_exists: bool = False,  # noqa: FBT001, FBT002
+    use_site_for_root: bool = False,  # noqa: FBT001, FBT002
 ) -> str:
     """
     :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
@@ -114,6 +118,7 @@ def user_config_dir(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param roaming: See `roaming <platformdirs.api.PlatformDirsABC.roaming>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param use_site_for_root: See `use_site_for_root <platformdirs.api.PlatformDirsABC.use_site_for_root>`.
     :returns: config directory tied to the user
     """
     return PlatformDirs(
@@ -122,6 +127,7 @@ def user_config_dir(
         version=version,
         roaming=roaming,
         ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
     ).user_config_dir
 
 
@@ -149,12 +155,13 @@ def site_config_dir(
     ).site_config_dir
 
 
-def user_cache_dir(
+def user_cache_dir(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
     opinion: bool = True,  # noqa: FBT001, FBT002
     ensure_exists: bool = False,  # noqa: FBT001, FBT002
+    use_site_for_root: bool = False,  # noqa: FBT001, FBT002
 ) -> str:
     """
     :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
@@ -162,6 +169,7 @@ def user_cache_dir(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param opinion: See `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param use_site_for_root: See `use_site_for_root <platformdirs.api.PlatformDirsABC.use_site_for_root>`.
     :returns: cache directory tied to the user
     """
     return PlatformDirs(
@@ -170,6 +178,7 @@ def user_cache_dir(
         version=version,
         opinion=opinion,
         ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
     ).user_cache_dir
 
 
@@ -197,12 +206,13 @@ def site_cache_dir(
     ).site_cache_dir
 
 
-def user_state_dir(
+def user_state_dir(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
     roaming: bool = False,  # noqa: FBT001, FBT002
     ensure_exists: bool = False,  # noqa: FBT001, FBT002
+    use_site_for_root: bool = False,  # noqa: FBT001, FBT002
 ) -> str:
     """
     :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
@@ -210,6 +220,7 @@ def user_state_dir(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param roaming: See `roaming <platformdirs.api.PlatformDirsABC.roaming>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param use_site_for_root: See `use_site_for_root <platformdirs.api.PlatformDirsABC.use_site_for_root>`.
     :returns: state directory tied to the user
     """
     return PlatformDirs(
@@ -218,6 +229,7 @@ def user_state_dir(
         version=version,
         roaming=roaming,
         ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
     ).user_state_dir
 
 
@@ -242,12 +254,13 @@ def site_state_dir(
     ).site_state_dir
 
 
-def user_log_dir(
+def user_log_dir(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
     opinion: bool = True,  # noqa: FBT001, FBT002
     ensure_exists: bool = False,  # noqa: FBT001, FBT002
+    use_site_for_root: bool = False,  # noqa: FBT001, FBT002
 ) -> str:
     """
     :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
@@ -255,6 +268,7 @@ def user_log_dir(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param opinion: See `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param use_site_for_root: See `use_site_for_root <platformdirs.api.PlatformDirsABC.use_site_for_root>`.
     :returns: log directory tied to the user
     """
     return PlatformDirs(
@@ -263,6 +277,7 @@ def user_log_dir(
         version=version,
         opinion=opinion,
         ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
     ).user_log_dir
 
 
@@ -320,12 +335,13 @@ def user_desktop_dir() -> str:
     return PlatformDirs().user_desktop_dir
 
 
-def user_runtime_dir(
+def user_runtime_dir(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
     opinion: bool = True,  # noqa: FBT001, FBT002
     ensure_exists: bool = False,  # noqa: FBT001, FBT002
+    use_site_for_root: bool = False,  # noqa: FBT001, FBT002
 ) -> str:
     """
     :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
@@ -333,6 +349,7 @@ def user_runtime_dir(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param opinion: See `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param use_site_for_root: See `use_site_for_root <platformdirs.api.PlatformDirsABC.use_site_for_root>`.
     :returns: runtime directory tied to the user
     """
     return PlatformDirs(
@@ -341,6 +358,7 @@ def user_runtime_dir(
         version=version,
         opinion=opinion,
         ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
     ).user_runtime_dir
 
 
@@ -368,12 +386,13 @@ def site_runtime_dir(
     ).site_runtime_dir
 
 
-def user_data_path(
+def user_data_path(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
     roaming: bool = False,  # noqa: FBT001, FBT002
     ensure_exists: bool = False,  # noqa: FBT001, FBT002
+    use_site_for_root: bool = False,  # noqa: FBT001, FBT002
 ) -> Path:
     """
     :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
@@ -381,6 +400,7 @@ def user_data_path(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param roaming: See `roaming <platformdirs.api.PlatformDirsABC.roaming>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param use_site_for_root: See `use_site_for_root <platformdirs.api.PlatformDirsABC.use_site_for_root>`.
     :returns: data path tied to the user
     """
     return PlatformDirs(
@@ -389,6 +409,7 @@ def user_data_path(
         version=version,
         roaming=roaming,
         ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
     ).user_data_path
 
 
@@ -416,12 +437,13 @@ def site_data_path(
     ).site_data_path
 
 
-def user_config_path(
+def user_config_path(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
     roaming: bool = False,  # noqa: FBT001, FBT002
     ensure_exists: bool = False,  # noqa: FBT001, FBT002
+    use_site_for_root: bool = False,  # noqa: FBT001, FBT002
 ) -> Path:
     """
     :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
@@ -429,6 +451,7 @@ def user_config_path(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param roaming: See `roaming <platformdirs.api.PlatformDirsABC.roaming>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param use_site_for_root: See `use_site_for_root <platformdirs.api.PlatformDirsABC.use_site_for_root>`.
     :returns: config path tied to the user
     """
     return PlatformDirs(
@@ -437,6 +460,7 @@ def user_config_path(
         version=version,
         roaming=roaming,
         ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
     ).user_config_path
 
 
@@ -488,12 +512,13 @@ def site_cache_path(
     ).site_cache_path
 
 
-def user_cache_path(
+def user_cache_path(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
     opinion: bool = True,  # noqa: FBT001, FBT002
     ensure_exists: bool = False,  # noqa: FBT001, FBT002
+    use_site_for_root: bool = False,  # noqa: FBT001, FBT002
 ) -> Path:
     """
     :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
@@ -501,6 +526,7 @@ def user_cache_path(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param opinion: See `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param use_site_for_root: See `use_site_for_root <platformdirs.api.PlatformDirsABC.use_site_for_root>`.
     :returns: cache path tied to the user
     """
     return PlatformDirs(
@@ -509,15 +535,17 @@ def user_cache_path(
         version=version,
         opinion=opinion,
         ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
     ).user_cache_path
 
 
-def user_state_path(
+def user_state_path(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
     roaming: bool = False,  # noqa: FBT001, FBT002
     ensure_exists: bool = False,  # noqa: FBT001, FBT002
+    use_site_for_root: bool = False,  # noqa: FBT001, FBT002
 ) -> Path:
     """
     :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
@@ -525,6 +553,7 @@ def user_state_path(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param roaming: See `roaming <platformdirs.api.PlatformDirsABC.roaming>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param use_site_for_root: See `use_site_for_root <platformdirs.api.PlatformDirsABC.use_site_for_root>`.
     :returns: state path tied to the user
     """
     return PlatformDirs(
@@ -533,6 +562,7 @@ def user_state_path(
         version=version,
         roaming=roaming,
         ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
     ).user_state_path
 
 
@@ -557,12 +587,13 @@ def site_state_path(
     ).site_state_path
 
 
-def user_log_path(
+def user_log_path(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
     opinion: bool = True,  # noqa: FBT001, FBT002
     ensure_exists: bool = False,  # noqa: FBT001, FBT002
+    use_site_for_root: bool = False,  # noqa: FBT001, FBT002
 ) -> Path:
     """
     :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
@@ -570,6 +601,7 @@ def user_log_path(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param opinion: See `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param use_site_for_root: See `use_site_for_root <platformdirs.api.PlatformDirsABC.use_site_for_root>`.
     :returns: log path tied to the user
     """
     return PlatformDirs(
@@ -578,6 +610,7 @@ def user_log_path(
         version=version,
         opinion=opinion,
         ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
     ).user_log_path
 
 
@@ -635,12 +668,13 @@ def user_desktop_path() -> Path:
     return PlatformDirs().user_desktop_path
 
 
-def user_runtime_path(
+def user_runtime_path(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
     opinion: bool = True,  # noqa: FBT001, FBT002
     ensure_exists: bool = False,  # noqa: FBT001, FBT002
+    use_site_for_root: bool = False,  # noqa: FBT001, FBT002
 ) -> Path:
     """
     :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
@@ -648,6 +682,7 @@ def user_runtime_path(
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
     :param opinion: See `opinion <platformdirs.api.PlatformDirsABC.opinion>`.
     :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param use_site_for_root: See `use_site_for_root <platformdirs.api.PlatformDirsABC.use_site_for_root>`.
     :returns: runtime path tied to the user
     """
     return PlatformDirs(
@@ -656,6 +691,7 @@ def user_runtime_path(
         version=version,
         opinion=opinion,
         ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
     ).user_runtime_path
 
 
