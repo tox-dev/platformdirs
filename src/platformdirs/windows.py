@@ -99,6 +99,15 @@ class Windows(PlatformDirsABC):
         return path
 
     @property
+    def site_log_dir(self) -> str:
+        """:return: log directory shared by users, same as `site_data_dir` if not opinionated else ``Logs`` in it"""
+        path = self.site_data_dir
+        if self.opinion:
+            path = os.path.join(path, "Logs")  # noqa: PTH118
+            self._optionally_create_directory(path)
+        return path
+
+    @property
     def user_documents_dir(self) -> str:
         """:return: documents directory tied to the user e.g. ``%USERPROFILE%\\Documents``"""
         return os.path.normpath(get_win_folder("CSIDL_PERSONAL"))

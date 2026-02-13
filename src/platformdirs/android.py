@@ -74,6 +74,11 @@ class Android(PlatformDirsABC):
         return path
 
     @property
+    def site_log_dir(self) -> str:
+        """:return: log directory shared by users, same as `user_log_dir`"""
+        return self.user_log_dir
+
+    @property
     def user_documents_dir(self) -> str:
         """:return: documents directory tied to the user e.g. ``/storage/emulated/0/Documents``"""
         return _android_documents_folder()

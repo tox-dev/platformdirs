@@ -68,6 +68,7 @@ def test_windows(params: dict[str, Any], func: str) -> None:
         _COMMON, *suffix_parts[:2], *(["Cache"] if suffix_parts else []), *suffix_parts[2:]
     )
     log = os.path.join(_LOCAL, *suffix_parts, "Logs")  # noqa: PTH118
+    log_common = os.path.join(_COMMON, *suffix_parts, "Logs")  # noqa: PTH118
 
     expected_map = {
         "user_data_dir": local,
@@ -78,6 +79,7 @@ def test_windows(params: dict[str, Any], func: str) -> None:
         "site_cache_dir": cache_common,
         "user_state_dir": local,
         "user_log_dir": log,
+        "site_log_dir": log_common,
         "user_documents_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_PERSONAL"]),
         "user_downloads_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_DOWNLOADS"]),
         "user_pictures_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_MYPICTURES"]),

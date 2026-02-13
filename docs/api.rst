@@ -101,6 +101,12 @@ Shared cache directory
 .. autofunction:: platformdirs.site_cache_dir
 .. autofunction:: platformdirs.site_cache_path
 
+Shared log directory
+--------------------
+
+.. autofunction:: platformdirs.site_log_dir
+.. autofunction:: platformdirs.site_log_path
+
 Shared runtime directory
 ------------------------
 
