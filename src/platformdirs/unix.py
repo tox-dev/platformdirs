@@ -88,7 +88,11 @@ class _UnixDefaults(PlatformDirsABC):
 
     @property
     def site_log_dir(self) -> str:
-        """:return: log directory shared by users, e.g. ``/var/log/$appname/$version``"""
+        """
+        :return: log directory shared by users, e.g. ``/var/log/$appname/$version``
+
+        Unlike `user_log_dir`, ``opinion`` has no effect since ``/var/log`` is inherently a log directory.
+        """
         return self._append_app_name_and_version("/var/log")
 
     @property
