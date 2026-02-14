@@ -61,6 +61,7 @@ def test_android(mocker: MockerFixture, params: dict[str, Any], func: str) -> No
         "user_videos_dir": "/storage/emulated/0/DCIM/Camera",
         "user_music_dir": "/storage/emulated/0/Music",
         "user_desktop_dir": "/storage/emulated/0/Desktop",
+        "user_bin_dir": "/data/data/com.example/files/bin",
         "user_runtime_dir": f"/data/data/com.example/cache{suffix}{'' if not params.get('opinion', True) else val}",
         "site_runtime_dir": f"/data/data/com.example/cache{suffix}{'' if not params.get('opinion', True) else val}",
     }
