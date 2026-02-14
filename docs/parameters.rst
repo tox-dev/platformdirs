@@ -165,6 +165,8 @@ system-wide directories rather than root's home directory.
 
 **Platform**: Unix only
 
+.. _xdg-env-vars:
+
 XDG environment variables
 --------------------------
 
@@ -192,6 +194,9 @@ Supported XDG variables:
 - ``XDG_DATA_DIRS`` - system data directories (colon-separated).
 - ``XDG_CONFIG_DIRS`` - system config directories (colon-separated).
 - ``XDG_RUNTIME_DIR`` - user runtime directory.
+
+**Windows environment variable overrides**: On Windows, ``WIN_PD_OVERRIDE_*`` environment
+variables can override default paths. See the :ref:`platforms:Windows` section for details.
 
 Directories not covered
 ------------------------
