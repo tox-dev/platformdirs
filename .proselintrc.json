@@ -1,0 +1,6 @@
+{
+  "checks": {
+    "lexical_illusions": false,
+    "typography": false
+  }
+}

@@ -20,6 +20,8 @@ Features
    :caption: Contents
 
    usage
+   howto
+   parameters
    api
    platforms
    changelog
