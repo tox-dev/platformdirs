@@ -169,18 +169,57 @@ def test_site_state_dir_fixed_path() -> None:
 
 
 @pytest.mark.usefixtures("_getuid")
-@pytest.mark.parametrize("platform", ["freebsd", "openbsd", "netbsd"])
-def test_platform_on_bsd(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, platform: str) -> None:
+@pytest.mark.parametrize("platform", [pytest.param("freebsd", id="freebsd"), pytest.param("netbsd", id="netbsd")])
+def test_freebsd_netbsd_site_runtime_dir(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, platform: str) -> None:
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     mocker.patch("sys.platform", platform)
-    mocker.patch("tempfile.tempdir", "/tmp")  # noqa: S108
-
     assert Unix().site_runtime_dir == "/var/run"
 
+
+@pytest.mark.usefixtures("_getuid")
+@pytest.mark.parametrize("platform", [pytest.param("freebsd", id="freebsd"), pytest.param("netbsd", id="netbsd")])
+def test_freebsd_netbsd_user_runtime_dir_writable(
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, platform: str
+) -> None:
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    mocker.patch("sys.platform", platform)
     mocker.patch("os.access", return_value=True)
     assert Unix().user_runtime_dir == "/var/run/user/1234"
 
+
+@pytest.mark.usefixtures("_getuid")
+@pytest.mark.parametrize("platform", [pytest.param("freebsd", id="freebsd"), pytest.param("netbsd", id="netbsd")])
+def test_freebsd_netbsd_user_runtime_dir_not_writable(
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, platform: str
+) -> None:
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    mocker.patch("sys.platform", platform)
     mocker.patch("os.access", return_value=False)
+    mocker.patch("tempfile.tempdir", "/tmp")  # noqa: S108
+    assert Unix().user_runtime_dir == "/tmp/runtime-1234"  # noqa: S108
+
+
+@pytest.mark.usefixtures("_getuid")
+def test_openbsd_site_runtime_dir(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> None:
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    mocker.patch("sys.platform", "openbsd")
+    assert Unix().site_runtime_dir == "/var/run"
+
+
+@pytest.mark.usefixtures("_getuid")
+def test_openbsd_user_runtime_dir_writable(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> None:
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    mocker.patch("sys.platform", "openbsd")
+    mocker.patch("os.access", return_value=True)
+    assert Unix().user_runtime_dir == "/tmp/run/user/1234"  # noqa: S108
+
+
+@pytest.mark.usefixtures("_getuid")
+def test_openbsd_user_runtime_dir_not_writable(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> None:
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    mocker.patch("sys.platform", "openbsd")
+    mocker.patch("os.access", return_value=False)
+    mocker.patch("tempfile.tempdir", "/tmp")  # noqa: S108
     assert Unix().user_runtime_dir == "/tmp/runtime-1234"  # noqa: S108
 
 
