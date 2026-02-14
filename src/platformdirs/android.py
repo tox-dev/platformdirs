@@ -63,6 +63,11 @@ class Android(PlatformDirsABC):
         return self.user_data_dir
 
     @property
+    def site_state_dir(self) -> str:
+        """:return: state directory shared by users, same as `user_state_dir`"""
+        return self.user_state_dir
+
+    @property
     def user_log_dir(self) -> str:
         """
         :return: log directory tied to the user, same as `user_cache_dir` if not opinionated else ``log`` in it,
@@ -72,6 +77,11 @@ class Android(PlatformDirsABC):
         if self.opinion:
             path = os.path.join(path, "log")  # noqa: PTH118
         return path
+
+    @property
+    def site_log_dir(self) -> str:
+        """:return: log directory shared by users, same as `user_log_dir`"""
+        return self.user_log_dir
 
     @property
     def user_documents_dir(self) -> str:
@@ -102,6 +112,16 @@ class Android(PlatformDirsABC):
     def user_desktop_dir(self) -> str:
         """:return: desktop directory tied to the user e.g. ``/storage/emulated/0/Desktop``"""
         return "/storage/emulated/0/Desktop"
+
+    @property
+    def user_bin_dir(self) -> str:
+        """:return: bin directory tied to the user, e.g. ``/data/user/<userid>/<packagename>/files/bin``"""
+        return os.path.join(cast("str", _android_folder()), "files", "bin")  # noqa: PTH118
+
+    @property
+    def user_applications_dir(self) -> str:
+        """:return: applications directory tied to the user, same as `user_data_dir`"""
+        return self.user_data_dir
 
     @property
     def user_runtime_dir(self) -> str:

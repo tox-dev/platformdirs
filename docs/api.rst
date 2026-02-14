@@ -72,6 +72,25 @@ User desktop directory
 .. autofunction:: platformdirs.user_desktop_dir
 .. autofunction:: platformdirs.user_desktop_path
 
+User applications directory
+----------------------------
+
+Where application launchers and shortcuts are registered — ``.desktop`` files on Linux,
+the per-user ``Applications`` folder on macOS, or Start Menu shortcuts on Windows.
+These entries make applications discoverable in menus and app launchers.
+
+.. autofunction:: platformdirs.user_applications_dir
+.. autofunction:: platformdirs.user_applications_path
+
+User binary directory
+----------------------
+
+Where user-installed executables and scripts are placed so they appear on ``$PATH`` —
+``~/.local/bin`` on Linux/macOS or ``%LOCALAPPDATA%\Programs`` on Windows.
+
+.. autofunction:: platformdirs.user_bin_dir
+.. autofunction:: platformdirs.user_bin_path
+
 Runtime directory
 -------------------
 
@@ -100,6 +119,18 @@ Shared cache directory
 
 .. autofunction:: platformdirs.site_cache_dir
 .. autofunction:: platformdirs.site_cache_path
+
+Shared state directory
+----------------------
+
+.. autofunction:: platformdirs.site_state_dir
+.. autofunction:: platformdirs.site_state_path
+
+Shared log directory
+--------------------
+
+.. autofunction:: platformdirs.site_log_dir
+.. autofunction:: platformdirs.site_log_path
 
 Shared runtime directory
 ------------------------

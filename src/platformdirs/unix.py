@@ -5,7 +5,9 @@ from __future__ import annotations
 import os
 import sys
 from configparser import ConfigParser
+from functools import cached_property
 from pathlib import Path
+from tempfile import gettempdir
 from typing import TYPE_CHECKING, NoReturn
 
 from ._xdg import XDGMixin
@@ -24,12 +26,16 @@ else:
     from os import getuid
 
 
-class _UnixDefaults(PlatformDirsABC):
+class _UnixDefaults(PlatformDirsABC):  # noqa: PLR0904
     """
     Default directories for Unix/Linux without XDG environment variable overrides.
 
     The XDG env var handling is in :class:`~platformdirs._xdg.XDGMixin`.
     """
+
+    @cached_property
+    def _use_site(self) -> bool:
+        return self.use_site_for_root and getuid() == 0
 
     @property
     def user_data_dir(self) -> str:
@@ -77,6 +83,11 @@ class _UnixDefaults(PlatformDirsABC):
         return self._append_app_name_and_version(os.path.expanduser("~/.local/state"))  # noqa: PTH111
 
     @property
+    def site_state_dir(self) -> str:
+        """:return: state directory shared by users, e.g. ``/var/lib/$appname/$version``"""
+        return self._append_app_name_and_version("/var/lib")
+
+    @property
     def user_log_dir(self) -> str:
         """:return: log directory tied to the user, same as `user_state_dir` if not opinionated else ``log`` in it"""
         path = self.user_state_dir
@@ -84,6 +95,15 @@ class _UnixDefaults(PlatformDirsABC):
             path = os.path.join(path, "log")  # noqa: PTH118
             self._optionally_create_directory(path)
         return path
+
+    @property
+    def site_log_dir(self) -> str:
+        """
+        :return: log directory shared by users, e.g. ``/var/log/$appname/$version``
+
+        Unlike `user_log_dir`, ``opinion`` has no effect since ``/var/log`` is inherently a log directory.
+        """
+        return self._append_app_name_and_version("/var/log")
 
     @property
     def user_documents_dir(self) -> str:
@@ -116,21 +136,30 @@ class _UnixDefaults(PlatformDirsABC):
         return _get_user_media_dir("XDG_DESKTOP_DIR", "~/Desktop")
 
     @property
+    def user_bin_dir(self) -> str:
+        """:return: bin directory tied to the user, e.g. ``~/.local/bin``"""
+        return os.path.expanduser("~/.local/bin")  # noqa: PTH111
+
+    @property
+    def user_applications_dir(self) -> str:
+        """:return: applications directory tied to the user, e.g. ``~/.local/share/applications``"""
+        return os.path.join(os.path.expanduser("~/.local/share"), "applications")  # noqa: PTH111, PTH118
+
+    @property
     def user_runtime_dir(self) -> str:
         """
-        :return: runtime directory tied to the user, e.g. ``/run/user/$(id -u)/$appname/$version`` or
-         ``$XDG_RUNTIME_DIR/$appname/$version``.
+        :return: runtime directory tied to the user, e.g. ``$XDG_RUNTIME_DIR/$appname/$version``.
 
-         For FreeBSD/OpenBSD/NetBSD, it would return ``/var/run/user/$(id -u)/$appname/$version`` if
-         exists, otherwise ``/tmp/runtime-$(id -u)/$appname/$version``, if``$XDG_RUNTIME_DIR``
-         is not set.
+        If ``$XDG_RUNTIME_DIR`` is unset, tries the platform default (``/var/run/user/$(id -u)`` on
+        FreeBSD/OpenBSD/NetBSD, ``/run/user/$(id -u)`` otherwise). If the default is not writable,
+        falls back to a temporary directory.
         """
         if sys.platform.startswith(("freebsd", "openbsd", "netbsd")):
             path = f"/var/run/user/{getuid()}"
-            if not Path(path).exists():
-                path = f"/tmp/runtime-{getuid()}"  # noqa: S108
         else:
             path = f"/run/user/{getuid()}"
+        if not os.access(path, os.W_OK):
+            path = f"{gettempdir()}/runtime-{getuid()}"
         return self._append_app_name_and_version(path)
 
     @property
@@ -189,6 +218,36 @@ class Unix(XDGMixin, _UnixDefaults):
     <platformdirs.api.PlatformDirsABC.multipath>`, `opinion <platformdirs.api.PlatformDirsABC.opinion>`, `ensure_exists
     <platformdirs.api.PlatformDirsABC.ensure_exists>`.
     """
+
+    @property
+    def user_data_dir(self) -> str:
+        """:return: data directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
+        return self.site_data_dir if self._use_site else super().user_data_dir
+
+    @property
+    def user_config_dir(self) -> str:
+        """:return: config directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
+        return self.site_config_dir if self._use_site else super().user_config_dir
+
+    @property
+    def user_cache_dir(self) -> str:
+        """:return: cache directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
+        return self.site_cache_dir if self._use_site else super().user_cache_dir
+
+    @property
+    def user_state_dir(self) -> str:
+        """:return: state directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
+        return self.site_state_dir if self._use_site else super().user_state_dir
+
+    @property
+    def user_log_dir(self) -> str:
+        """:return: log directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
+        return self.site_log_dir if self._use_site else super().user_log_dir
+
+    @property
+    def user_runtime_dir(self) -> str:
+        """:return: runtime directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
+        return self.site_runtime_dir if self._use_site else super().user_runtime_dir
 
 
 def _get_user_media_dir(env_var: str, fallback_tilde_path: str) -> str:

@@ -74,13 +74,17 @@ def test_macos(mocker: MockerFixture, params: dict[str, Any], func: str) -> None
         "user_cache_dir": f"{home}/Library/Caches{suffix}",
         "site_cache_dir": f"/Library/Caches{suffix}",
         "user_state_dir": f"{home}/Library/Application Support{suffix}",
+        "site_state_dir": f"/Library/Application Support{suffix}",
         "user_log_dir": f"{home}/Library/Logs{suffix}",
+        "site_log_dir": f"/Library/Logs{suffix}",
         "user_documents_dir": f"{home}/Documents",
         "user_downloads_dir": f"{home}/Downloads",
         "user_pictures_dir": f"{home}/Pictures",
         "user_videos_dir": f"{home}/Movies",
         "user_music_dir": f"{home}/Music",
         "user_desktop_dir": f"{home}/Desktop",
+        "user_bin_dir": f"{home}/.local/bin",
+        "user_applications_dir": f"{home}/Applications",
         "user_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
         "site_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
     }
@@ -264,5 +268,50 @@ def test_macos_xdg_empty_falls_back(
         "user_videos_dir": f"{home}/Movies",
         "user_music_dir": f"{home}/Music",
         "user_desktop_dir": f"{home}/Desktop",
+        "user_bin_dir": f"{home}/.local/bin",
+        "user_applications_dir": f"{home}/Applications",
     }
     assert getattr(MacOS(), prop) == expected_map[prop]
+
+
+def test_iter_data_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("XDG_DATA_HOME", "/xdg/data")
+    monkeypatch.setenv("XDG_DATA_DIRS", "/xdg/share1:/xdg/share2")
+    dirs = list(MacOS().iter_data_dirs())
+    assert dirs == ["/xdg/data", "/xdg/share1", "/xdg/share2"]
+
+
+def test_iter_config_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", "/xdg/config")
+    monkeypatch.setenv("XDG_CONFIG_DIRS", "/xdg/etc1:/xdg/etc2")
+    dirs = list(MacOS().iter_config_dirs())
+    assert dirs == ["/xdg/config", "/xdg/etc1", "/xdg/etc2"]
+
+
+@pytest.mark.usefixtures("_clear_xdg_env")
+def test_iter_data_dirs_homebrew(mocker: MockerFixture) -> None:
+    mocker.patch("sys.prefix", "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
+    dirs = list(MacOS().iter_data_dirs())
+    home = str(Path("~").expanduser())
+    assert dirs == [f"{home}/Library/Application Support", "/opt/homebrew/share", "/Library/Application Support"]
+
+
+@pytest.mark.usefixtures("_clear_xdg_env")
+def test_iter_config_dirs_homebrew(mocker: MockerFixture) -> None:
+    mocker.patch("sys.prefix", "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
+    dirs = list(MacOS().iter_config_dirs())
+    home = str(Path("~").expanduser())
+    assert dirs == [f"{home}/Library/Application Support", "/opt/homebrew/share", "/Library/Application Support"]
+
+
+@pytest.mark.usefixtures("_clear_xdg_env")
+def test_iter_data_dirs_no_homebrew(mocker: MockerFixture) -> None:
+    py_version = sys.version_info
+    builtin_py_prefix = (
+        "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework"
+        f"/Versions/{py_version.major}.{py_version.minor}"
+    )
+    mocker.patch("sys.prefix", builtin_py_prefix)
+    dirs = list(MacOS().iter_data_dirs())
+    home = str(Path("~").expanduser())
+    assert dirs == [f"{home}/Library/Application Support", "/Library/Application Support"]

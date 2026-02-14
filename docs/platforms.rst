@@ -84,6 +84,36 @@ Default paths
    * - Android
      - ``/data/data/<pkg>/cache/SuperApp/log``
 
+``site_state_dir``
+~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 80
+
+   * - Linux
+     - ``/var/lib/SuperApp``
+   * - macOS
+     - ``/Library/Application Support/SuperApp``
+   * - Windows
+     - ``C:\ProgramData\Acme\SuperApp``
+   * - Android
+     - ``/data/data/<pkg>/files/SuperApp``
+
+``site_log_dir``
+~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 80
+
+   * - Linux
+     - ``/var/log/SuperApp``
+   * - macOS
+     - ``/Library/Logs/SuperApp``
+   * - Windows
+     - ``C:\ProgramData\Acme\SuperApp\Logs``
+   * - Android
+     - ``/data/data/<pkg>/cache/SuperApp/log``
+
 ``user_runtime_dir``
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -249,6 +279,47 @@ Default paths
    * - Android
      - ``/storage/emulated/0/Desktop``
 
+``user_applications_dir``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 80
+
+   * - Linux
+     - ``~/.local/share/applications``
+   * - macOS
+     - ``~/Applications``
+   * - Windows
+     - ``C:\Users\<User>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs``
+   * - Android
+     - same as ``user_data_dir``
+
+.. note::
+
+   This property does not append ``appname`` or ``version``. It returns the shared
+   applications directory where ``.desktop`` files (Linux), app bundles (macOS), or
+   Start Menu shortcuts (Windows) are placed.
+
+``user_bin_dir``
+~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 80
+
+   * - Linux
+     - ``~/.local/bin``
+   * - macOS
+     - ``~/.local/bin``
+   * - Windows
+     - ``C:\Users\<User>\AppData\Local\Programs``
+   * - Android
+     - ``/data/data/<pkg>/files/bin``
+
+.. note::
+
+   This property does not append ``appname`` or ``version``. It returns the directory
+   where user-installed executables and scripts are placed.
+
 macOS
 -----
 
@@ -283,6 +354,85 @@ Key behaviors:
   which syncs across machines in a Windows domain
 - **OPINION**: ``user_cache_dir`` appends ``\Cache``, ``user_log_dir`` appends ``\Logs``
 
+Environment variable overrides
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Unlike Linux/macOS where ``XDG_*`` variables are a platform standard, Windows has no built-in
+convention for overriding folder locations at the application level. To fill this gap,
+``platformdirs`` checks ``WIN_PD_OVERRIDE_*`` environment variables before querying the Shell
+Folder APIs. This is useful when large data (ML models, package caches) should live on a different
+drive without changing the system-wide ``APPDATA`` / ``LOCALAPPDATA`` variables that other
+applications rely on.
+
+The override variable name is ``WIN_PD_OVERRIDE_`` followed by the CSIDL suffix:
+
+.. list-table::
+   :widths: 40 60
+   :header-rows: 1
+
+   * - Environment variable
+     - Overrides
+   * - ``WIN_PD_OVERRIDE_APPDATA``
+     - Roaming user data (``AppData\Roaming``)
+   * - ``WIN_PD_OVERRIDE_LOCAL_APPDATA``
+     - Local user data, config, cache, state (``AppData\Local``)
+   * - ``WIN_PD_OVERRIDE_COMMON_APPDATA``
+     - Site-wide data, config, cache, state (``ProgramData``)
+   * - ``WIN_PD_OVERRIDE_PERSONAL``
+     - Documents
+   * - ``WIN_PD_OVERRIDE_DOWNLOADS``
+     - Downloads
+   * - ``WIN_PD_OVERRIDE_MYPICTURES``
+     - Pictures
+   * - ``WIN_PD_OVERRIDE_MYVIDEO``
+     - Videos
+   * - ``WIN_PD_OVERRIDE_MYMUSIC``
+     - Music
+   * - ``WIN_PD_OVERRIDE_DESKTOPDIRECTORY``
+     - Desktop
+   * - ``WIN_PD_OVERRIDE_PROGRAMS``
+     - Applications (Start Menu Programs)
+
+Example — redirect cache to a separate drive:
+
+.. code-block:: python
+
+   import os
+   os.environ["WIN_PD_OVERRIDE_LOCAL_APPDATA"] = r"X:\appdata"
+
+   import platformdirs
+   print(platformdirs.user_cache_dir("MyApp", "Acme"))
+   # X:\appdata\Acme\MyApp\Cache
+
+Empty or whitespace-only values are ignored and the normal resolution applies.
+
+.. note:: **Windows Store Python (MSIX)**
+
+   Python installed from the Microsoft Store runs in a sandboxed (AppContainer) environment.
+   Windows silently redirects writes under ``AppData`` to a per-package private location, e.g.
+   ``AppData\Local\Packages\PythonSoftwareFoundation.Python.3.X_<hash>\LocalCache\Local\...``.
+
+   ``platformdirs`` returns the logical ``AppData`` path, which is correct for code running inside
+   the same sandbox. However, if you pass these paths to external processes (subprocesses, other
+   applications), those processes may not see files created at the logical path because they run
+   outside the sandbox.
+
+   To obtain the real on-disk path for sharing with external processes, call
+   :func:`os.path.realpath` on the path **after** the file or directory has been created:
+
+   .. code-block:: python
+
+      import os
+      import platformdirs
+
+      data_dir = platformdirs.user_data_dir(appname="MyApp", appauthor="Acme", ensure_exists=True)
+      real_dir = os.path.realpath(data_dir)
+
+   This is a Windows design limitation, not a ``platformdirs`` bug. See `Microsoft's MSIX
+   documentation
+   <https://learn.microsoft.com/en-us/windows/msix/desktop/desktop-to-uwp-behind-the-scenes>`_
+   for details on filesystem virtualization.
+
 .. autoclass:: platformdirs.windows.Windows
    :members:
    :show-inheritance:
@@ -309,6 +459,16 @@ the corresponding ``XDG_*_DIRS`` variable, joined by ``:``.
 
 **FreeBSD / OpenBSD / NetBSD**: ``user_runtime_dir`` falls back to ``/var/run/user/<uid>`` or
 ``/tmp/runtime-<uid>`` when ``/run/user/<uid>`` does not exist.
+
+.. note:: **Running as root**
+
+   When ``use_site_for_root=True`` is passed and the process is running as root (uid 0),
+   ``user_*_dir`` calls are redirected to their ``site_*_dir`` equivalents. This is useful for
+   system daemons and installers that should write to system-wide directories rather than
+   ``/root/.local/...``. XDG user environment variables (e.g. ``XDG_DATA_HOME``) are bypassed
+   when the redirect is active, since they are typically inherited from the calling user via
+   ``sudo`` and would defeat the purpose. The parameter is accepted on all platforms but only
+   has an effect on Unix.
 
 .. autoclass:: platformdirs.unix.Unix
    :members:
