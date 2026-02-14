@@ -66,5 +66,5 @@ Full documentation is available at [platformdirs.readthedocs.io](https://platfor
 - **[Platform details](https://platformdirs.readthedocs.io/en/latest/platforms.html)** -- default paths for each
   operating system
 
-Contributions are welcome! This project is a maintained fork of the original
-[appdirs](https://github.com/ActiveState/appdirs) library.
+Contributions are welcome! See
+[CONTRIBUTING.md](https://github.com/tox-dev/platformdirs/blob/main/CONTRIBUTING.md) for details.
