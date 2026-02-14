@@ -279,6 +279,47 @@ Default paths
    * - Android
      - ``/storage/emulated/0/Desktop``
 
+``user_applications_dir``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 80
+
+   * - Linux
+     - ``~/.local/share/applications``
+   * - macOS
+     - ``~/Applications``
+   * - Windows
+     - ``C:\Users\<User>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs``
+   * - Android
+     - same as ``user_data_dir``
+
+.. note::
+
+   This property does not append ``appname`` or ``version``. It returns the shared
+   applications directory where ``.desktop`` files (Linux), app bundles (macOS), or
+   Start Menu shortcuts (Windows) are placed.
+
+``user_bin_dir``
+~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 80
+
+   * - Linux
+     - ``~/.local/bin``
+   * - macOS
+     - ``~/.local/bin``
+   * - Windows
+     - ``C:\Users\<User>\AppData\Local\Programs``
+   * - Android
+     - ``/data/data/<pkg>/files/bin``
+
+.. note::
+
+   This property does not append ``appname`` or ``version``. It returns the directory
+   where user-installed executables and scripts are placed.
+
 macOS
 -----
 
@@ -349,6 +390,8 @@ The override variable name is ``WIN_PD_OVERRIDE_`` followed by the CSIDL suffix:
      - Music
    * - ``WIN_PD_OVERRIDE_DESKTOPDIRECTORY``
      - Desktop
+   * - ``WIN_PD_OVERRIDE_PROGRAMS``
+     - Applications (Start Menu Programs)
 
 Example — redirect cache to a separate drive:
 

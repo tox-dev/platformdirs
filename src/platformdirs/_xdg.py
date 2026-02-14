@@ -118,6 +118,13 @@ class XDGMixin(PlatformDirsABC):
             return os.path.expanduser(path)  # noqa: PTH111
         return super().user_desktop_dir
 
+    @property
+    def user_applications_dir(self) -> str:
+        """:return: applications directory tied to the user, from ``$XDG_DATA_HOME`` if set, else platform default"""
+        if path := os.environ.get("XDG_DATA_HOME", "").strip():
+            return os.path.join(os.path.expanduser(path), "applications")  # noqa: PTH111, PTH118
+        return super().user_applications_dir
+
 
 __all__ = [
     "XDGMixin",

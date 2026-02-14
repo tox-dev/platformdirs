@@ -147,6 +147,11 @@ class Windows(PlatformDirsABC):
         return os.path.normpath(os.path.join(get_win_folder("CSIDL_LOCAL_APPDATA"), "Programs"))  # noqa: PTH118
 
     @property
+    def user_applications_dir(self) -> str:
+        """:return: applications directory tied to the user, e.g. ``Start Menu\\Programs``"""
+        return os.path.normpath(get_win_folder("CSIDL_PROGRAMS"))
+
+    @property
     def user_runtime_dir(self) -> str:
         """
         :return: runtime directory tied to the user, e.g.
@@ -182,7 +187,7 @@ def get_win_folder_from_env_vars(csidl_name: str) -> str:
     return result
 
 
-def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
+def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:  # noqa: PLR0911
     """Get a folder for a CSIDL name that does not exist as an environment variable."""
     if csidl_name == "CSIDL_PERSONAL":
         return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Documents")  # noqa: PTH118
@@ -198,6 +203,15 @@ def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
 
     if csidl_name == "CSIDL_MYMUSIC":
         return os.path.join(os.path.normpath(os.environ["USERPROFILE"]), "Music")  # noqa: PTH118
+
+    if csidl_name == "CSIDL_PROGRAMS":
+        return os.path.join(  # noqa: PTH118
+            os.path.normpath(os.environ["APPDATA"]),
+            "Microsoft",
+            "Windows",
+            "Start Menu",
+            "Programs",
+        )
     return None
 
 
@@ -221,6 +235,7 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
         "CSIDL_MYPICTURES": "My Pictures",
         "CSIDL_MYVIDEO": "My Video",
         "CSIDL_MYMUSIC": "My Music",
+        "CSIDL_PROGRAMS": "Programs",
     }.get(csidl_name)
     if shell_folder_name is None:
         msg = f"Unknown CSIDL name: {csidl_name}"
@@ -247,6 +262,7 @@ _KNOWN_FOLDER_GUIDS: dict[str, str] = {
     "CSIDL_MYMUSIC": "{4BD8D571-6D19-48D3-BE97-422220080E43}",
     "CSIDL_DOWNLOADS": "{374DE290-123F-4565-9164-39C4925E467B}",
     "CSIDL_DESKTOPDIRECTORY": "{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}",
+    "CSIDL_PROGRAMS": "{A77F5D77-2E2B-44C3-A6A2-ABA601054A51}",
 }
 
 

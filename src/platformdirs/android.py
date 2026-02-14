@@ -119,6 +119,11 @@ class Android(PlatformDirsABC):
         return os.path.join(cast("str", _android_folder()), "files", "bin")  # noqa: PTH118
 
     @property
+    def user_applications_dir(self) -> str:
+        """:return: applications directory tied to the user, same as `user_data_dir`"""
+        return self.user_data_dir
+
+    @property
     def user_runtime_dir(self) -> str:
         """
         :return: runtime directory tied to the user, same as `user_cache_dir` if not opinionated else ``tmp`` in it,

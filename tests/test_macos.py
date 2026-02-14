@@ -84,6 +84,7 @@ def test_macos(mocker: MockerFixture, params: dict[str, Any], func: str) -> None
         "user_music_dir": f"{home}/Music",
         "user_desktop_dir": f"{home}/Desktop",
         "user_bin_dir": f"{home}/.local/bin",
+        "user_applications_dir": f"{home}/Applications",
         "user_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
         "site_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
     }
@@ -268,6 +269,7 @@ def test_macos_xdg_empty_falls_back(
         "user_music_dir": f"{home}/Music",
         "user_desktop_dir": f"{home}/Desktop",
         "user_bin_dir": f"{home}/.local/bin",
+        "user_applications_dir": f"{home}/Applications",
     }
     assert getattr(MacOS(), prop) == expected_map[prop]
 
