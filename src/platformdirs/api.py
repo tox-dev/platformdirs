@@ -216,6 +216,11 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
 
     @property
     @abstractmethod
+    def site_applications_dir(self) -> str:
+        """:return: applications directory shared by users"""
+
+    @property
+    @abstractmethod
     def user_runtime_dir(self) -> str:
         """:return: runtime directory tied to the user"""
 
@@ -313,6 +318,11 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
     def user_applications_path(self) -> Path:
         """:return: applications path tied to the user"""
         return Path(self.user_applications_dir)
+
+    @property
+    def site_applications_path(self) -> Path:
+        """:return: applications path shared by users"""
+        return Path(self.site_applications_dir)
 
     @property
     def user_runtime_path(self) -> Path:

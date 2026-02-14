@@ -146,6 +146,16 @@ class _UnixDefaults(PlatformDirsABC):  # noqa: PLR0904
         return os.path.join(os.path.expanduser("~/.local/share"), "applications")  # noqa: PTH111, PTH118
 
     @property
+    def _site_applications_dirs(self) -> list[str]:
+        return [os.path.join(p, "applications") for p in ["/usr/local/share", "/usr/share"]]  # noqa: PTH118
+
+    @property
+    def site_applications_dir(self) -> str:
+        """:return: applications directory shared by users, e.g. ``/usr/share/applications``"""
+        dirs = self._site_applications_dirs
+        return os.pathsep.join(dirs) if self.multipath else dirs[0]
+
+    @property
     def user_runtime_dir(self) -> str:
         """
         :return: runtime directory tied to the user, e.g. ``$XDG_RUNTIME_DIR/$appname/$version``.
@@ -245,6 +255,11 @@ class Unix(XDGMixin, _UnixDefaults):
     def user_log_dir(self) -> str:
         """:return: log directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
         return self.site_log_dir if self._use_site else super().user_log_dir
+
+    @property
+    def user_applications_dir(self) -> str:
+        """:return: applications directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
+        return self.site_applications_dir if self._use_site else super().user_applications_dir
 
     @property
     def user_runtime_dir(self) -> str:

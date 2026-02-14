@@ -85,6 +85,7 @@ def test_macos(mocker: MockerFixture, params: dict[str, Any], func: str) -> None
         "user_desktop_dir": f"{home}/Desktop",
         "user_bin_dir": f"{home}/.local/bin",
         "user_applications_dir": f"{home}/Applications",
+        "site_applications_dir": "/Applications",
         "user_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
         "site_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
     }

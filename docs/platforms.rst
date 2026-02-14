@@ -300,6 +300,27 @@ Default paths
    applications directory where ``.desktop`` files (Linux), app bundles (macOS), or
    Start Menu shortcuts (Windows) are placed.
 
+``site_applications_dir``
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 80
+
+   * - Linux
+     - ``/usr/share/applications``
+   * - macOS
+     - ``/Applications``
+   * - Windows
+     - ``C:\ProgramData\Microsoft\Windows\Start Menu\Programs``
+   * - Android
+     - same as ``user_applications_dir``
+
+.. note::
+
+   This property does not append ``appname`` or ``version``. It returns the system-wide
+   applications directory where ``.desktop`` files (Linux), app bundles (macOS), or
+   Start Menu shortcuts (Windows) are installed for all users.
+
 ``user_bin_dir``
 ~~~~~~~~~~~~~~~~
 

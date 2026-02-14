@@ -23,6 +23,7 @@ PROPS = (
     "site_cache_dir",
     "site_state_dir",
     "site_log_dir",
+    "site_applications_dir",
     "site_runtime_dir",
 )
 
