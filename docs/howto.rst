@@ -162,12 +162,8 @@ Use ``roaming=True`` for settings that should sync across domain-joined machines
 Environment variable overrides
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Windows supports environment variable overrides for certain directories:
-
-- ``WIN_PD_OVERRIDE_*`` - Override specific directory types
-- ``PLATFORMDIRS_*`` - Alternative override mechanism
-
-See the source code for complete list of supported variables.
+Windows supports environment variable overrides for certain directories using
+``WIN_PD_OVERRIDE_*`` variables. See the :ref:`platforms:Windows` section for the complete list.
 
 macOS
 ~~~~~
@@ -234,15 +230,9 @@ XDG Base Directory Specification
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``platformdirs`` fully supports the XDG Base Directory Specification. Users can override
-default paths by setting environment variables:
-
-- ``XDG_DATA_HOME`` - defaults to ``~/.local/share``
-- ``XDG_CONFIG_HOME`` - defaults to ``~/.config``
-- ``XDG_CACHE_HOME`` - defaults to ``~/.cache``
-- ``XDG_STATE_HOME`` - defaults to ``~/.local/state``
-- ``XDG_RUNTIME_DIR`` - defaults to ``/run/user/$UID``
-- ``XDG_DATA_DIRS`` - defaults to ``/usr/local/share:/usr/share``
-- ``XDG_CONFIG_DIRS`` - defaults to ``/etc/xdg``
+default paths by setting environment variables like ``XDG_DATA_HOME``, ``XDG_CONFIG_HOME``,
+``XDG_CACHE_HOME``, and ``XDG_STATE_HOME``. See :ref:`xdg-env-vars` for the complete list
+of supported variables and their defaults.
 
 Running as root
 ^^^^^^^^^^^^^^^
