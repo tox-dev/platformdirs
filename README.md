@@ -58,10 +58,13 @@ Each type has both `user_*` (per-user, writable) and `site_*` (system-wide, read
 
 Full documentation is available at [platformdirs.readthedocs.io](https://platformdirs.readthedocs.io):
 
-- **[Getting started tutorial](https://platformdirs.readthedocs.io/en/latest/usage.html)** -- learn core concepts through real-world examples
-- **[How-to guides](https://platformdirs.readthedocs.io/en/latest/howto.html)** -- recipes for common tasks and platform-specific tips
+- **[Getting started tutorial](https://platformdirs.readthedocs.io/en/latest/usage.html)** -- learn core concepts
+  through real-world examples
+- **[How-to guides](https://platformdirs.readthedocs.io/en/latest/howto.html)** -- recipes for common tasks and
+  platform-specific tips
 - **[API reference](https://platformdirs.readthedocs.io/en/latest/api.html)** -- complete list of functions and classes
-- **[Platform details](https://platformdirs.readthedocs.io/en/latest/platforms.html)** -- default paths for each operating system
+- **[Platform details](https://platformdirs.readthedocs.io/en/latest/platforms.html)** -- default paths for each
+  operating system
 
 Contributions are welcome! This project is a maintained fork of the original
 [appdirs](https://github.com/ActiveState/appdirs) library.
