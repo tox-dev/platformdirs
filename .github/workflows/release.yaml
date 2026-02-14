@@ -17,6 +17,7 @@ concurrency:
 
 
 
+
       github.event.inputs.release && github.event.inputs.release != 'no' && '-release' || ''
     }}
   cancel-in-progress: ${{ github.event.inputs.release == 'no' || github.event.inputs.release == null }}
