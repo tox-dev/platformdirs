@@ -361,7 +361,7 @@ Default paths
    This property does not append ``appname`` or ``version``. It returns the directory
    where system-wide executables and scripts are placed. On Unix/Linux, this follows
    the `FHS 3.0 <https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html>`_
-   standard for locally-installed software. On Windows, it mirrors the ``site_data_dir``
+   standard for locally installed software. On Windows, it mirrors the ``site_data_dir``
    pattern using ``%ProgramData%``, following the precedent set by
    `Chocolatey <https://docs.chocolatey.org/en-us/choco/setup>`_.
 

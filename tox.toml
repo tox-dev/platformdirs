@@ -98,7 +98,7 @@ commands = [
   [
     "python",
     "-c",
-    "import glob; import subprocess; subprocess.call(['proselint', 'check'] + glob.glob('docs/*.rst'))",
+    "import glob; import subprocess; subprocess.check_call(['proselint', 'check'] + glob.glob('docs/*.rst'))",
   ],
   [
     "sphinx-build",
