@@ -1,5 +1,18 @@
 Changelog
 =========
+4.8.0 (2026-02-14)
+------------------
+- 📝 docs(usage): note that home dir is in stdlib :pr:`431`
+- ✨ feat(api): add user_applications_dir property :pr:`432`
+- ✨ feat(api): add user_bin_dir property :pr:`430`
+- 🐛 fix(macos): yield individual site dirs in iter_*_dirs :pr:`429`
+- ✨ feat(windows): add WIN_PD_OVERRIDE_* env var overrides :pr:`428`
+- ✨ feat(windows): add PLATFORMDIRS_* env var overrides :pr:`427`
+- ✨ feat(api): add use_site_for_root parameter :pr:`426`
+- ✨ feat(api): add site_state_dir for system-wide state :pr:`425`
+- ✨ feat(api): add site_log_dir and document Store Python sandbox :pr:`424`
+- 📝 docs(windows): document Store Python sandbox path behavior :pr:`423`
+
 4.7.1 (2026-02-13)
 ------------------
 - 🐛 fix(windows): avoid FileNotFoundError in sandboxed environments :pr:`422`
