@@ -151,6 +151,18 @@ Defaults to ``False``.
    dirs = PlatformDirs("SuperApp", "Acme", ensure_exists=True)
    dirs.user_cache_dir  # directory is created if it does not exist
 
+Directories not covered
+-----------------------
+
+``platformdirs`` does not provide a property for the user's **home directory**. Use
+:meth:`pathlib.Path.home` or :func:`os.path.expanduser` from the standard library instead:
+
+.. code-block:: pycon
+
+   >>> from pathlib import Path
+   >>> Path.home()
+   PosixPath('/Users/trentm')
+
 XDG environment variables
 -------------------------
 
