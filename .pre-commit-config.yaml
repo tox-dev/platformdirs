@@ -32,7 +32,6 @@ repos:
     rev: "v0.21.0"
     hooks:
       - id: yamlfmt
-        exclude: ".github/workflows/release.yaml"
   - repo: local
     hooks:
       - id: mdformat
