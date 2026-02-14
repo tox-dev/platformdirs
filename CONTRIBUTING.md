@@ -38,8 +38,9 @@ pyright.
 
 ### Coverage
 
-Combine coverage from all test runs and generate reports with `tox r -e coverage`. This generates HTML coverage reports
-in `.tox/htmlcov/` and checks coverage diff against `origin/main`.
+The `coverage` environment combines results from previous test runs and generates reports. Run tests first with specific
+Python versions, then add `coverage` to the command, for example `tox r -e 3.14,3.13,3.12,coverage`. This generates HTML
+coverage reports in `.tox/htmlcov/` and checks coverage diff against `origin/main`.
 
 ### Documentation
 
@@ -77,8 +78,9 @@ prefer explicit over implicit code.
 
 ### Testing
 
-Add tests for all new features and bug fixes. Tests must pass on all supported Python versions. Run `tox r -e coverage`
-to check test coverage. We target 100% code coverage.
+Add tests for all new features and bug fixes. Tests must pass on all supported Python versions. To check coverage across
+multiple Python versions, run `tox r -e 3.14,3.13,3.12,coverage` to execute tests and then combine coverage results. We
+target 100% code coverage.
 
 ### Documentation
 
