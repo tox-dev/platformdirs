@@ -340,6 +340,11 @@ def user_bin_dir() -> str:
     return PlatformDirs().user_bin_dir
 
 
+def site_bin_dir() -> str:
+    """:returns: bin directory shared by users"""
+    return PlatformDirs().site_bin_dir
+
+
 def user_applications_dir() -> str:
     """:returns: applications directory tied to the user"""
     return PlatformDirs().user_applications_dir
@@ -698,6 +703,11 @@ def user_bin_path() -> Path:
     return PlatformDirs().user_bin_path
 
 
+def site_bin_path() -> Path:
+    """:returns: bin path shared by users"""
+    return PlatformDirs().site_bin_path
+
+
 def user_applications_path() -> Path:
     """:returns: applications path tied to the user"""
     return PlatformDirs().user_applications_path
@@ -777,6 +787,8 @@ __all__ = [
     "__version_info__",
     "site_applications_dir",
     "site_applications_path",
+    "site_bin_dir",
+    "site_bin_path",
     "site_cache_dir",
     "site_cache_path",
     "site_config_dir",

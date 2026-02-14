@@ -211,6 +211,11 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
 
     @property
     @abstractmethod
+    def site_bin_dir(self) -> str:
+        """:return: bin directory shared by users"""
+
+    @property
+    @abstractmethod
     def user_applications_dir(self) -> str:
         """:return: applications directory tied to the user"""
 
@@ -313,6 +318,11 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
     def user_bin_path(self) -> Path:
         """:return: bin path tied to the user"""
         return Path(self.user_bin_dir)
+
+    @property
+    def site_bin_path(self) -> Path:
+        """:return: bin path shared by users"""
+        return Path(self.site_bin_dir)
 
     @property
     def user_applications_path(self) -> Path:

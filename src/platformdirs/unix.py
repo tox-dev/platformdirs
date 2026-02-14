@@ -141,6 +141,11 @@ class _UnixDefaults(PlatformDirsABC):  # noqa: PLR0904
         return os.path.expanduser("~/.local/bin")  # noqa: PTH111
 
     @property
+    def site_bin_dir(self) -> str:
+        """:return: bin directory shared by users, e.g. ``/usr/local/bin``"""
+        return "/usr/local/bin"
+
+    @property
     def user_applications_dir(self) -> str:
         """:return: applications directory tied to the user, e.g. ``~/.local/share/applications``"""
         return os.path.join(os.path.expanduser("~/.local/share"), "applications")  # noqa: PTH111, PTH118
@@ -265,6 +270,11 @@ class Unix(XDGMixin, _UnixDefaults):
     def user_runtime_dir(self) -> str:
         """:return: runtime directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
         return self.site_runtime_dir if self._use_site else super().user_runtime_dir
+
+    @property
+    def user_bin_dir(self) -> str:
+        """:return: bin directory tied to the user, or site equivalent when root with ``use_site_for_root``"""
+        return self.site_bin_dir if self._use_site else super().user_bin_dir
 
 
 def _get_user_media_dir(env_var: str, fallback_tilde_path: str) -> str:
