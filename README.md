@@ -14,14 +14,14 @@ differences between macOS, Windows, Linux/Unix, and Android so you don't have to
 from platformdirs import PlatformDirs
 
 dirs = PlatformDirs("MyApp", "MyCompany")
-dirs.user_data_dir      # ~/.local/share/MyApp (Linux)
-dirs.user_config_dir    # ~/.config/MyApp (Linux)
-dirs.user_cache_dir     # ~/.cache/MyApp (Linux)
-dirs.user_state_dir     # ~/.local/state/MyApp (Linux)
-dirs.user_log_dir       # ~/.local/state/MyApp/log (Linux)
-dirs.user_documents_dir # ~/Documents
-dirs.user_downloads_dir # ~/Downloads
-dirs.user_runtime_dir   # /run/user/<uid>/MyApp (Linux)
+dirs.user_data_dir  # ~/.local/share/MyApp (Linux)
+dirs.user_config_dir  # ~/.config/MyApp (Linux)
+dirs.user_cache_dir  # ~/.cache/MyApp (Linux)
+dirs.user_state_dir  # ~/.local/state/MyApp (Linux)
+dirs.user_log_dir  # ~/.local/state/MyApp/log (Linux)
+dirs.user_documents_dir  # ~/Documents
+dirs.user_downloads_dir  # ~/Downloads
+dirs.user_runtime_dir  # /run/user/<uid>/MyApp (Linux)
 ```
 
 For Path objects instead of strings:
@@ -30,8 +30,8 @@ For Path objects instead of strings:
 from platformdirs import PlatformDirs
 
 dirs = PlatformDirs("MyApp", "MyCompany")
-dirs.user_data_path   # pathlib.Path('~/.local/share/MyApp')
-dirs.user_config_path # pathlib.Path('~/.config/MyApp')
+dirs.user_data_path  # pathlib.Path('~/.local/share/MyApp')
+dirs.user_config_path  # pathlib.Path('~/.config/MyApp')
 ```
 
 Convenience functions for quick access:

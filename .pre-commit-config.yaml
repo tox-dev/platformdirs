@@ -15,15 +15,15 @@ repos:
       - id: codespell
         additional_dependencies: ["tomli>=2.4"]
   - repo: https://github.com/tox-dev/tox-toml-fmt
-    rev: "v1.5.4"
+    rev: "v1.6.0"
     hooks:
       - id: tox-toml-fmt
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "v2.15.3"
+    rev: "v2.16.0"
     hooks:
       - id: pyproject-fmt
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.15.0"
+    rev: "v0.15.1"
     hooks:
       - id: ruff-format
       - id: ruff-check

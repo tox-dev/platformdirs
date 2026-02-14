@@ -11,20 +11,19 @@ on:
   push:
     branches: ["main"]
   pull_request:
-
 concurrency:
   group: >-
     ${{ github.workflow }}-${{ github.ref }}${{
+
+
+
       github.event.inputs.release && github.event.inputs.release != 'no' && '-release' || ''
     }}
   cancel-in-progress: ${{ github.event.inputs.release == 'no' || github.event.inputs.release == null }}
-
 permissions:
   contents: read
-
 env:
   dists-artifact-name: python-package-distributions
-
 jobs:
   build:
     name: build
@@ -48,9 +47,7 @@ jobs:
       - name: Generate changelog
         id: v
         run: >-
-          uv run tasks/changelog.py '${{ github.event.inputs.release == 'no' || github.event.inputs.release == null &&
-          'patch' || github.event.inputs.release }}' '${{ github.event.number }}' '${{
-          github.event.pull_request.base.sha }}'
+          uv run tasks/changelog.py '${{ github.event.inputs.release == 'no' || github.event.inputs.release == null && 'patch' || github.event.inputs.release }}' '${{ github.event.number }}' '${{ github.event.pull_request.base.sha }}'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create temporary tag for hatch-vcs
@@ -63,7 +60,6 @@ jobs:
         with:
           name: ${{ env.dists-artifact-name }}
           path: dist/*
-
   release:
     name: release
     needs: [build]
