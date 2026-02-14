@@ -1,5 +1,9 @@
 Changelog
 =========
+4.9.1 (2026-02-14)
+------------------
+- 📝 docs: enhance README, fix issues, and reorganize platforms.rst :pr:`445`
+
 4.9.0 (2026-02-14)
 ------------------
 - 📚 docs: split usage guide into tutorial, how-to, and reference :pr:`441`
