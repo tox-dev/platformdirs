@@ -341,6 +341,30 @@ Default paths
    This property does not append ``appname`` or ``version``. It returns the directory
    where user-installed executables and scripts are placed.
 
+``site_bin_dir``
+~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 80
+
+   * - Linux
+     - ``/usr/local/bin``
+   * - macOS
+     - ``/usr/local/bin``
+   * - Windows
+     - ``C:\ProgramData\bin``
+   * - Android
+     - Same as ``user_bin_dir``
+
+.. note::
+
+   This property does not append ``appname`` or ``version``. It returns the directory
+   where system-wide executables and scripts are placed. On Unix/Linux, this follows
+   the `FHS 3.0 <https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html>`_
+   standard for locally-installed software. On Windows, it mirrors the ``site_data_dir``
+   pattern using ``%ProgramData%``, following the precedent set by
+   `Chocolatey <https://docs.chocolatey.org/en-us/choco/setup>`_.
+
 macOS
 -----
 

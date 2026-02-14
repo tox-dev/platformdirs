@@ -147,6 +147,11 @@ class Windows(PlatformDirsABC):  # noqa: PLR0904
         return os.path.normpath(os.path.join(get_win_folder("CSIDL_LOCAL_APPDATA"), "Programs"))  # noqa: PTH118
 
     @property
+    def site_bin_dir(self) -> str:
+        """:return: bin directory shared by users, e.g. ``C:\\ProgramData\\bin``"""
+        return os.path.normpath(os.path.join(get_win_folder("CSIDL_COMMON_APPDATA"), "bin"))  # noqa: PTH118
+
+    @property
     def user_applications_dir(self) -> str:
         """:return: applications directory tied to the user, e.g. ``Start Menu\\Programs``"""
         return os.path.normpath(get_win_folder("CSIDL_PROGRAMS"))
