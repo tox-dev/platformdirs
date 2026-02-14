@@ -345,6 +345,21 @@ def user_applications_dir() -> str:
     return PlatformDirs().user_applications_dir
 
 
+def site_applications_dir(
+    multipath: bool = False,  # noqa: FBT001, FBT002
+    ensure_exists: bool = False,  # noqa: FBT001, FBT002
+) -> str:
+    """
+    :param multipath: See `multipath <platformdirs.api.PlatformDirsABC.multipath>`.
+    :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :returns: applications directory shared by users
+    """
+    return PlatformDirs(
+        multipath=multipath,
+        ensure_exists=ensure_exists,
+    ).site_applications_dir
+
+
 def user_runtime_dir(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
@@ -688,6 +703,21 @@ def user_applications_path() -> Path:
     return PlatformDirs().user_applications_path
 
 
+def site_applications_path(
+    multipath: bool = False,  # noqa: FBT001, FBT002
+    ensure_exists: bool = False,  # noqa: FBT001, FBT002
+) -> Path:
+    """
+    :param multipath: See `multipath <platformdirs.api.PlatformDirsABC.multipath>`.
+    :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :returns: applications path shared by users
+    """
+    return PlatformDirs(
+        multipath=multipath,
+        ensure_exists=ensure_exists,
+    ).site_applications_path
+
+
 def user_runtime_path(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
@@ -745,6 +775,8 @@ __all__ = [
     "PlatformDirsABC",
     "__version__",
     "__version_info__",
+    "site_applications_dir",
+    "site_applications_path",
     "site_cache_dir",
     "site_cache_path",
     "site_config_dir",
