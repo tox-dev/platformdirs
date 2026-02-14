@@ -142,6 +142,11 @@ class Windows(PlatformDirsABC):
         return os.path.normpath(get_win_folder("CSIDL_DESKTOPDIRECTORY"))
 
     @property
+    def user_bin_dir(self) -> str:
+        """:return: bin directory tied to the user, e.g. ``%LOCALAPPDATA%\\Programs``"""
+        return os.path.normpath(os.path.join(get_win_folder("CSIDL_LOCAL_APPDATA"), "Programs"))  # noqa: PTH118
+
+    @property
     def user_runtime_dir(self) -> str:
         """
         :return: runtime directory tied to the user, e.g.

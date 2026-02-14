@@ -136,6 +136,11 @@ class _UnixDefaults(PlatformDirsABC):  # noqa: PLR0904
         return _get_user_media_dir("XDG_DESKTOP_DIR", "~/Desktop")
 
     @property
+    def user_bin_dir(self) -> str:
+        """:return: bin directory tied to the user, e.g. ``~/.local/bin``"""
+        return os.path.expanduser("~/.local/bin")  # noqa: PTH111
+
+    @property
     def user_runtime_dir(self) -> str:
         """
         :return: runtime directory tied to the user, e.g. ``$XDG_RUNTIME_DIR/$appname/$version``.

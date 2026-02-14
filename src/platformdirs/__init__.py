@@ -335,6 +335,11 @@ def user_desktop_dir() -> str:
     return PlatformDirs().user_desktop_dir
 
 
+def user_bin_dir() -> str:
+    """:returns: bin directory tied to the user"""
+    return PlatformDirs().user_bin_dir
+
+
 def user_runtime_dir(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
@@ -668,6 +673,11 @@ def user_desktop_path() -> Path:
     return PlatformDirs().user_desktop_path
 
 
+def user_bin_path() -> Path:
+    """:returns: bin path tied to the user"""
+    return PlatformDirs().user_bin_path
+
+
 def user_runtime_path(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
@@ -737,6 +747,8 @@ __all__ = [
     "site_runtime_path",
     "site_state_dir",
     "site_state_path",
+    "user_bin_dir",
+    "user_bin_path",
     "user_cache_dir",
     "user_cache_path",
     "user_config_dir",

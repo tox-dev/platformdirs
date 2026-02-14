@@ -88,6 +88,7 @@ def test_windows(params: dict[str, Any], func: str) -> None:
         "user_videos_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_MYVIDEO"]),
         "user_music_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_MYMUSIC"]),
         "user_desktop_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_DESKTOPDIRECTORY"]),
+        "user_bin_dir": os.path.join(_LOCAL, "Programs"),  # noqa: PTH118
         "user_runtime_dir": temp,
         "site_runtime_dir": temp,
     }

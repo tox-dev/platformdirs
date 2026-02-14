@@ -114,6 +114,11 @@ class Android(PlatformDirsABC):
         return "/storage/emulated/0/Desktop"
 
     @property
+    def user_bin_dir(self) -> str:
+        """:return: bin directory tied to the user, e.g. ``/data/user/<userid>/<packagename>/files/bin``"""
+        return os.path.join(cast("str", _android_folder()), "files", "bin")  # noqa: PTH118
+
+    @property
     def user_runtime_dir(self) -> str:
         """
         :return: runtime directory tied to the user, same as `user_cache_dir` if not opinionated else ``tmp`` in it,

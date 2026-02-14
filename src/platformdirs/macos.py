@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-class _MacOSDefaults(PlatformDirsABC):
+class _MacOSDefaults(PlatformDirsABC):  # noqa: PLR0904
     """
     Default platform directories for macOS without XDG environment variable overrides.
 
@@ -129,6 +129,11 @@ class _MacOSDefaults(PlatformDirsABC):
     def user_desktop_dir(self) -> str:
         """:return: desktop directory tied to the user, e.g. ``~/Desktop``"""
         return os.path.expanduser("~/Desktop")  # noqa: PTH111
+
+    @property
+    def user_bin_dir(self) -> str:
+        """:return: bin directory tied to the user, e.g. ``~/.local/bin``"""
+        return os.path.expanduser("~/.local/bin")  # noqa: PTH111
 
     @property
     def user_runtime_dir(self) -> str:
