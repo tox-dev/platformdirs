@@ -340,6 +340,11 @@ def user_bin_dir() -> str:
     return PlatformDirs().user_bin_dir
 
 
+def user_applications_dir() -> str:
+    """:returns: applications directory tied to the user"""
+    return PlatformDirs().user_applications_dir
+
+
 def user_runtime_dir(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
@@ -678,6 +683,11 @@ def user_bin_path() -> Path:
     return PlatformDirs().user_bin_path
 
 
+def user_applications_path() -> Path:
+    """:returns: applications path tied to the user"""
+    return PlatformDirs().user_applications_path
+
+
 def user_runtime_path(  # noqa: PLR0913, PLR0917
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
@@ -747,6 +757,8 @@ __all__ = [
     "site_runtime_path",
     "site_state_dir",
     "site_state_path",
+    "user_applications_dir",
+    "user_applications_path",
     "user_bin_dir",
     "user_bin_path",
     "user_cache_dir",

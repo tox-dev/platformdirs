@@ -106,6 +106,7 @@ def _func_to_path(func: str) -> XDGVariable | None:
         "user_log_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
         "user_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", f"{gettempdir()}/runtime-1234"),
         "user_bin_dir": None,
+        "user_applications_dir": None,
         "site_log_dir": None,
         "site_state_dir": None,
         "site_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", "/run"),

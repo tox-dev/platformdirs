@@ -141,6 +141,11 @@ class _UnixDefaults(PlatformDirsABC):  # noqa: PLR0904
         return os.path.expanduser("~/.local/bin")  # noqa: PTH111
 
     @property
+    def user_applications_dir(self) -> str:
+        """:return: applications directory tied to the user, e.g. ``~/.local/share/applications``"""
+        return os.path.join(os.path.expanduser("~/.local/share"), "applications")  # noqa: PTH111, PTH118
+
+    @property
     def user_runtime_dir(self) -> str:
         """
         :return: runtime directory tied to the user, e.g. ``$XDG_RUNTIME_DIR/$appname/$version``.

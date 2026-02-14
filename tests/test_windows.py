@@ -32,6 +32,7 @@ _WIN_FOLDERS: dict[str, str] = {
     "CSIDL_MYVIDEO": r"C:\Users\Test\Videos",
     "CSIDL_MYMUSIC": r"C:\Users\Test\Music",
     "CSIDL_DESKTOPDIRECTORY": r"C:\Users\Test\Desktop",
+    "CSIDL_PROGRAMS": r"C:\Users\Test\AppData\Roaming\Microsoft\Windows\Start Menu\Programs",
 }
 
 _LOCAL = os.path.normpath(_WIN_FOLDERS["CSIDL_LOCAL_APPDATA"])
@@ -89,6 +90,7 @@ def test_windows(params: dict[str, Any], func: str) -> None:
         "user_music_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_MYMUSIC"]),
         "user_desktop_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_DESKTOPDIRECTORY"]),
         "user_bin_dir": os.path.join(_LOCAL, "Programs"),  # noqa: PTH118
+        "user_applications_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_PROGRAMS"]),
         "user_runtime_dir": temp,
         "site_runtime_dir": temp,
     }
@@ -149,6 +151,12 @@ def test_get_win_folder_from_env_vars_user_folders(
     assert get_win_folder_from_env_vars(csidl_name).endswith(subfolder)
 
 
+def test_get_win_folder_from_env_vars_programs(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("APPDATA", r"C:\Users\Test\AppData\Roaming")
+    result = get_win_folder_from_env_vars("CSIDL_PROGRAMS")
+    assert result.endswith("Programs")
+
+
 def test_get_win_folder_from_env_vars_unknown() -> None:
     with pytest.raises(ValueError, match="Unknown CSIDL name"):
         get_win_folder_from_env_vars("CSIDL_BOGUS")
@@ -172,6 +180,13 @@ def test_get_win_folder_if_csidl_name_not_env_var(
     result = get_win_folder_if_csidl_name_not_env_var(csidl_name)
     assert result is not None
     assert result.endswith(subfolder)
+
+
+def test_get_win_folder_if_csidl_name_not_env_var_programs(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("APPDATA", r"C:\Users\Test\AppData\Roaming")
+    result = get_win_folder_if_csidl_name_not_env_var("CSIDL_PROGRAMS")
+    assert result is not None
+    assert result.endswith("Programs")
 
 
 def _setup_ctypes_mocks(mocker: MockerFixture, *, win_dll: MagicMock | None = None) -> None:
@@ -286,6 +301,7 @@ def test_known_folder_guids_has_all_csidl_names() -> None:
         "CSIDL_MYMUSIC",
         "CSIDL_DOWNLOADS",
         "CSIDL_DESKTOPDIRECTORY",
+        "CSIDL_PROGRAMS",
     }
     assert set(_KNOWN_FOLDER_GUIDS.keys()) == expected
 
@@ -314,6 +330,7 @@ def test_pick_get_win_folder_ctypes(mocker: MockerFixture) -> None:
         pytest.param("CSIDL_MYVIDEO", "MYVIDEO", id="myvideo"),
         pytest.param("CSIDL_MYMUSIC", "MYMUSIC", id="mymusic"),
         pytest.param("CSIDL_DESKTOPDIRECTORY", "DESKTOPDIRECTORY", id="desktop"),
+        pytest.param("CSIDL_PROGRAMS", "PROGRAMS", id="programs"),
     ],
 )
 def test_get_win_folder_override(monkeypatch: pytest.MonkeyPatch, csidl_name: str, env_suffix: str) -> None:
