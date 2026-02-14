@@ -1,5 +1,13 @@
 Changelog
 =========
+4.9.0 (2026-02-14)
+------------------
+- 📚 docs: split usage guide into tutorial, how-to, and reference :pr:`441`
+- ✨ feat(api): add site_bin_dir property :pr:`443`
+- ✨ feat(api): add site_applications_dir property :pr:`442`
+- 🐛 fix(unix): use correct runtime dir path for OpenBSD :pr:`440`
+- 📝 docs(usage): document use_site_for_root parameter :pr:`439`
+
 4.8.0 (2026-02-14)
 ------------------
 - 📝 docs(usage): note that home dir is in stdlib :pr:`431`
