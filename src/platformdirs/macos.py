@@ -6,6 +6,9 @@ import os.path
 import sys
 from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
 from ._xdg import XDGMixin
 from .api import PlatformDirsABC
 
@@ -136,6 +139,16 @@ class _MacOSDefaults(PlatformDirsABC):
     def site_runtime_dir(self) -> str:
         """:return: runtime directory shared by users, same as `user_runtime_dir`"""
         return self.user_runtime_dir
+
+    def iter_config_dirs(self) -> Iterator[str]:
+        """:yield: all user and site configuration directories."""
+        yield self.user_config_dir
+        yield from self._site_config_dirs
+
+    def iter_data_dirs(self) -> Iterator[str]:
+        """:yield: all user and site data directories."""
+        yield self.user_data_dir
+        yield from self._site_data_dirs
 
 
 class MacOS(XDGMixin, _MacOSDefaults):
