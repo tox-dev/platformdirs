@@ -5,8 +5,6 @@ Platform details
 This page describes the default paths for each platform and any platform-specific behavior.
 
 All examples below assume ``appname="SuperApp"`` and ``appauthor="Acme"`` unless stated otherwise.
-Default paths
--------------
 
 User directories
 ~~~~~~~~~~~~~~~~
@@ -419,7 +417,7 @@ See also: :ref:`api:Shared binary directory`
    `Chocolatey <https://docs.chocolatey.org/en-us/choco/setup>`_.
 
 macOS
------
+~~~~~
 
 On macOS, ``platformdirs`` uses the standard Apple ``~/Library`` directories by default.
 See `Apple's File System Programming Guide
@@ -439,7 +437,7 @@ the Homebrew prefix as an additional path when ``multipath=True``.
    :no-index:
 
 Windows
--------
+~~~~~~~
 
 On Windows, ``platformdirs`` uses the Shell Folder APIs to resolve directories.
 See `Microsoft's Known Folder documentation
@@ -534,7 +532,7 @@ Empty or whitespace-only values are ignored and the normal resolution applies.
    :no-index:
 
 Linux / Unix
-------------
+~~~~~~~~~~~~
 
 On Linux and other Unix-like systems, ``platformdirs`` follows the
 `XDG Base Directory Specification <https://specifications.freedesktop.org/basedir/latest/>`_.
@@ -571,7 +569,7 @@ the corresponding ``XDG_*_DIRS`` variable, joined by ``:``.
    :no-index:
 
 Android
--------
+~~~~~~~
 
 On Android, ``platformdirs`` uses the app's private storage directories. The app's package
 folder (e.g. ``/data/data/com.example.app``) is detected via ``python-for-android`` or
