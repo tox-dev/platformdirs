@@ -20,6 +20,11 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
     "sphinx_autodoc_typehints",
+    "sphinx_copybutton",
+    "sphinx_design",
+    "sphinx_sitemap",
+    "sphinxcontrib.mermaid",
+    "sphinxext.opengraph",
 ]
 html_theme = "furo"
 html_title, html_last_updated_fmt = "platformdirs", datetime.now(tz=timezone.utc).isoformat()
@@ -38,3 +43,10 @@ extlinks = {
     "pr": ("https://github.com/tox-dev/platformdirs/issues/%s", "PR #%s"),
     "user": ("https://github.com/%s", "@%s"),
 }
+copybutton_prompt_text = r">>> |\.\.\. |\$ "
+copybutton_prompt_is_regexp = True
+html_baseurl = "https://platformdirs.readthedocs.io/en/latest/"
+sitemap_url_scheme = "{link}"
+ogp_site_url = "https://platformdirs.readthedocs.io/en/latest/"
+ogp_site_name = "platformdirs"
+ogp_enable_meta_description = True
