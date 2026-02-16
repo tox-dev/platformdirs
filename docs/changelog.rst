@@ -2,6 +2,12 @@
  Changelog
 ###########
 
+*******************
+ 4.9.2 (2026-02-16)
+*******************
+- 📝 docs: restructure following Diataxis framework :pr:`448`
+- 📝 docs(platforms): fix RST formatting and TOC hierarchy :pr:`447`
+
 ********************
  4.9.1 (2026-02-14)
 ********************
