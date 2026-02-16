@@ -80,12 +80,12 @@ jobs:
           fi
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
-          header="$VERSION ($(date -u +%Y-%m-%d))"
-          separator=$(printf '%0.s-' $(seq 1 ${#header}))
+          header=" $VERSION ($(date -u +%Y-%m-%d))"
+          separator=$(printf '%0.s*' $(seq 1 ${#header}))
           {
-            head -2 docs/changelog.rst
-            printf '%s\n%s\n%s\n\n' "$header" "$separator" "$CHANGELOG"
-            tail -n +3 docs/changelog.rst
+            head -4 docs/changelog.rst
+            printf '%s\n%s\n%s\n%s\n\n' "$separator" "$header" "$separator" "$CHANGELOG"
+            tail -n +5 docs/changelog.rst
           } > docs/changelog.tmp
           mv docs/changelog.tmp docs/changelog.rst
           git add docs/changelog.rst
