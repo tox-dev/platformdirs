@@ -348,7 +348,10 @@ _SITE_REDIRECT_CASES: list[tuple[str, str]] = [
     ("user_cache_dir", os.path.join("/var/cache", "foo")),  # noqa: PTH118
     ("user_state_dir", os.path.join("/var/lib", "foo")),  # noqa: PTH118
     ("user_log_dir", os.path.join("/var/log", "foo")),  # noqa: PTH118
-    ("user_runtime_dir", os.path.join("/var/run" if sys.platform.startswith(("freebsd", "openbsd", "netbsd")) else "/run", "foo")),  # noqa: PTH118
+    (
+        "user_runtime_dir",
+        os.path.join("/var/run" if sys.platform.startswith(("freebsd", "openbsd", "netbsd")) else "/run", "foo"),
+    ),
     ("user_bin_dir", "/usr/local/bin"),
 ]
 
