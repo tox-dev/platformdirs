@@ -111,7 +111,9 @@ def _func_to_path(func: str) -> XDGVariable | None:
         "site_applications_dir": None,
         "site_log_dir": None,
         "site_state_dir": None,
-        "site_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", "/run"),
+        "site_runtime_dir": XDGVariable(
+            "XDG_RUNTIME_DIR", "/var/run" if sys.platform.startswith(("freebsd", "openbsd", "netbsd")) else "/run"
+        ),
     }
     return mapping.get(func)
 
@@ -346,7 +348,7 @@ _SITE_REDIRECT_CASES: list[tuple[str, str]] = [
     ("user_cache_dir", os.path.join("/var/cache", "foo")),  # noqa: PTH118
     ("user_state_dir", os.path.join("/var/lib", "foo")),  # noqa: PTH118
     ("user_log_dir", os.path.join("/var/log", "foo")),  # noqa: PTH118
-    ("user_runtime_dir", os.path.join("/run", "foo")),  # noqa: PTH118
+    ("user_runtime_dir", os.path.join("/var/run" if sys.platform.startswith(("freebsd", "openbsd", "netbsd")) else "/run", "foo")),  # noqa: PTH118
     ("user_bin_dir", "/usr/local/bin"),
 ]
 
