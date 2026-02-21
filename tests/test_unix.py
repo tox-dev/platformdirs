@@ -342,6 +342,18 @@ def test_user_media_dir_no_user_dirs_file(
     assert Unix().user_documents_dir == "/nonexistent/path/Documents"
 
 
+def test_user_dirs_respects_xdg_config_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    custom_config = tmp_path / "custom_config"
+    custom_config.mkdir()
+    user_dirs_file = custom_config / "user-dirs.dirs"
+    user_dirs_file.write_text('XDG_DOCUMENTS_DIR="$HOME/CustomDocs"\n')
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(custom_config))
+    assert Unix().user_documents_dir == f"{tmp_path}/CustomDocs"
+
+
 _SITE_REDIRECT_CASES: list[tuple[str, str]] = [
     ("user_data_dir", os.path.join("/usr/local/share", "foo")),  # noqa: PTH118
     ("user_config_dir", os.path.join("/etc/xdg", "foo")),  # noqa: PTH118
