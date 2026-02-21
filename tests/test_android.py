@@ -9,6 +9,8 @@ import pytest
 from platformdirs.android import Android
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from pytest_mock import MockerFixture
 
 
@@ -167,7 +169,7 @@ def test_android_folder_not_found(mocker: MockerFixture, monkeypatch: pytest.Mon
 )
 def test_android_ensure_exists_creates_opinion_subdir(
     mocker: MockerFixture,
-    tmp_path: "Path",
+    tmp_path: Path,
     prop: str,
     subdir: str,
 ) -> None:
