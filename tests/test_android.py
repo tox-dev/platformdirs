@@ -156,3 +156,30 @@ def test_android_folder_not_found(mocker: MockerFixture, monkeypatch: pytest.Mon
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", [])
     assert _android_folder() is None
+
+
+@pytest.mark.parametrize(
+    ("prop", "subdir"),
+    [
+        ("user_log_dir", "log"),
+        ("user_runtime_dir", "tmp"),
+    ],
+)
+def test_android_ensure_exists_creates_opinion_subdir(
+    mocker: MockerFixture,
+    tmp_path: "Path",
+    prop: str,
+    subdir: str,
+) -> None:
+    from pathlib import Path  # noqa: PLC0415
+
+    mocker.patch("platformdirs.android._android_folder", return_value=str(tmp_path), autospec=True)
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    dirs = Android(appname="myapp", ensure_exists=True)
+    result = getattr(dirs, prop)
+
+    expected = str(cache_dir / "myapp" / subdir)
+    assert result == expected
+    assert Path(result).is_dir()
