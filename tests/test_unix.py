@@ -342,9 +342,7 @@ def test_user_media_dir_no_user_dirs_file(
     assert Unix().user_documents_dir == "/nonexistent/path/Documents"
 
 
-def test_user_dirs_respects_xdg_config_home(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_user_dirs_respects_xdg_config_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
     custom_config = tmp_path / "custom_config"
     custom_config.mkdir()
