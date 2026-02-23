@@ -1,5 +1,5 @@
 requires = [ "tox>=4.34.1" ]
-env_list = [ "fix", "3.14", "3.13", "3.12", "3.11", "3.10", "pypy3.11", "coverage", "type", "docs", "pkg_meta" ]
+env_list = [ "3.14", "3.13", "3.12", "3.11", "3.10", "pypy3.11", "coverage", "docs", "fix", "pkg_meta", "type" ]
 skip_missing_interpreters = true
 
 [env_run_base]
@@ -45,24 +45,11 @@ commands = [
   ] },
 ]
 
-[env.fix]
-description = "format the code base to adhere to our styles, and complain about what we cannot do automatically"
-skip_install = true
-dependency_groups = [ "fix" ]
-pass_env = [
-  { replace = "ref", of = [
-    "env_run_base",
-    "pass_env",
-  ], extend = true },
-  "PROGRAMDATA",
-  "DISABLE_PRE_COMMIT_UV_PATCH",
-]
-commands = [ [ "pre-commit", "run", "--all-files", "--show-diff-on-failure", { replace = "posargs", extend = true } ] ]
-
 [env.coverage]
 description = "combine coverage files and generate diff (against DIFF_AGAINST defaulting to origin/main)"
 skip_install = true
 dependency_groups = [ "coverage" ]
+parallel_show_output = true
 pass_env = [
   { replace = "ref", of = [
     "env_run_base",
@@ -83,13 +70,7 @@ commands = [
     "{env_tmp_dir}{/}coverage.xml",
   ],
 ]
-parallel_show_output = true
-depends = [ "3.14", "3.13", "3.12", "3.11", "3.10", "pypy3.11" ]
-
-[env.type]
-description = "run type check on code base"
-dependency_groups = [ "type" ]
-commands = [ [ "ty", "check", "--output-format", "concise", "--error-on-warning", "." ] ]
+depends = [ "3.10", "3.11", "3.12", "3.13", "3.14", "pypy3.11" ]
 
 [env.docs]
 description = "build documentation"
@@ -119,6 +100,20 @@ commands = [
   ],
 ]
 
+[env.fix]
+description = "format the code base to adhere to our styles, and complain about what we cannot do automatically"
+skip_install = true
+dependency_groups = [ "fix" ]
+pass_env = [
+  { replace = "ref", of = [
+    "env_run_base",
+    "pass_env",
+  ], extend = true },
+  "DISABLE_PRE_COMMIT_UV_PATCH",
+  "PROGRAMDATA",
+]
+commands = [ [ "pre-commit", "run", "--all-files", "--show-diff-on-failure", { replace = "posargs", extend = true } ] ]
+
 [env.pkg_meta]
 description = "check that the long description is valid"
 skip_install = true
@@ -144,6 +139,11 @@ commands = [
     "{env_tmp_dir}",
   ],
 ]
+
+[env.type]
+description = "run type check on code base"
+dependency_groups = [ "type" ]
+commands = [ [ "ty", "check", "--output-format", "concise", "--error-on-warning", "." ] ]
 
 [env.dev]
 description = "dev environment with all deps at {envdir}"
