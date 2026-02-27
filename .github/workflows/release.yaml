@@ -49,7 +49,7 @@ jobs:
       - name: Build package
         run: uv build --python 3.14 --python-preference only-managed --sdist --wheel . --out-dir dist
       - name: Store the distribution packages
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.dists-artifact-name }}
           path: dist/*
@@ -94,7 +94,7 @@ jobs:
           git push origin "$VERSION"
           git push origin main
       - name: Download all the dists
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: ${{ env.dists-artifact-name }}
           path: dist/
