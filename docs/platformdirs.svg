@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="platformdirs">
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="#306998"></rect>
+  <!-- notch (dir tab) -->
+  <path d="M18 18h14l4 5H18z" fill="#FFD43B"></path>
+  <!-- P -->
+  <path fill="#FFD43B" d="
+    M22 22h16c7 0 12 4.5 12 11.5S45 45 38 45H30v11H22V22zm8 7v9h7
+    c3.5 0 5.5-1.6 5.5-4.5S40.5 29 37 29h-7z
+  "></path>
+</svg>

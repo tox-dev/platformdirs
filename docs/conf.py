@@ -27,6 +27,7 @@ extensions = [
     "sphinxext.opengraph",
 ]
 html_theme = "furo"
+html_logo = html_favicon = "platformdirs.svg"
 html_title, html_last_updated_fmt = "platformdirs", datetime.now(tz=timezone.utc).isoformat()
 pygments_style, pygments_dark_style = "sphinx", "monokai"
 autoclass_content, autodoc_member_order, autodoc_typehints = "class", "bysource", "none"
