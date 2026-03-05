@@ -2,6 +2,19 @@
  Changelog
 ###########
 
+*******************
+ 4.9.4 (2026-03-05)
+*******************
+- [pre-commit.ci] pre-commit autoupdate :pr:`461` - by :user:`pre-commit-ci[bot]`
+- Update README.md
+- 📝 docs: add project logo to documentation :pr:`459`
+- Standardize .github files to .yaml suffix
+- build(deps): bump the all group with 2 updates :pr:`457` - by :user:`dependabot[bot]`
+- Move SECURITY.md to .github/SECURITY.md
+- Add permissions to workflows :pr:`455`
+- Add security policy
+- [pre-commit.ci] pre-commit autoupdate :pr:`454` - by :user:`pre-commit-ci[bot]`
+
 ********************
  4.9.2 (2026-02-16)
 ********************
