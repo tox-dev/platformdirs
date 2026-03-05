@@ -2,9 +2,10 @@
  Changelog
 ###########
 
-*******************
+********************
  4.9.4 (2026-03-05)
-*******************
+********************
+
 - [pre-commit.ci] pre-commit autoupdate :pr:`461` - by :user:`pre-commit-ci[bot]`
 - Update README.md
 - 📝 docs: add project logo to documentation :pr:`459`

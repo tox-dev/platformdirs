@@ -61,7 +61,7 @@ def run() -> None:
 
 
 def _load_excluded_authors() -> set[str]:
-    release_config = ROOT / ".github" / "release.yml"
+    release_config = ROOT / ".github" / "release.yaml"
     if release_config.exists():
         with release_config.open(encoding="utf-8") as file_handler:
             config = yaml.safe_load(file_handler)
