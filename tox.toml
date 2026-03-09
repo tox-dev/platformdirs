@@ -16,7 +16,7 @@ commands = [
     "10",
     "--junitxml",
     "{env_tmp_dir}{/}junit.xml",
-    { replace = "posargs", extend = true, default = [
+    { replace = "posargs", default = [
       "--no-cov-on-fail",
       "--cov",
       "{env_site_packages_dir}{/}platformdirs",
@@ -32,17 +32,17 @@ commands = [
       "html:{env_tmp_dir}{/}htmlcov",
       "--cov-report",
       "xml:{env_tmp_dir}{/}coverage.xml",
-    ] },
+    ], extend = true },
     "tests",
   ],
-  { replace = "posargs", extend = true, default = [
+  { replace = "posargs", default = [
     [
       "diff-cover",
       "--compare-branch",
       { replace = "env", name = "DIFF_AGAINST", default = "origin/main" },
       "{env_tmp_dir}{/}coverage.xml",
     ],
-  ] },
+  ], extend = true },
 ]
 
 [env.coverage]
