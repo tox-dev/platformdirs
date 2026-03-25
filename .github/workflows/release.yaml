@@ -30,26 +30,32 @@ jobs:
       changelog: ${{ steps.v.outputs.changelog }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Setup uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
           enable-cache: true
           cache-dependency-glob: "tasks/changelog.py"
       - name: Generate changelog
         id: v
-        run: uv run tasks/changelog.py '${{ github.event.inputs.release == 'no' || github.event.inputs.release == null && 'patch' || github.event.inputs.release }}' '${{ github.event.number }}' '${{ github.event.pull_request.base.sha }}'
+        run: uv run tasks/changelog.py "$RELEASE_TYPE" "$EVENT_NUMBER" "$BASE_SHA"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TYPE: ${{ github.event.inputs.release == 'no' || github.event.inputs.release == null && 'patch' || github.event.inputs.release }}
+          EVENT_NUMBER: ${{ github.event.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
       - name: Create temporary tag for hatch-vcs
         if: github.event.inputs.release != 'no' && github.event.inputs.release != null
-        run: git tag '${{ steps.v.outputs.version }}'
+        run: git tag '${STEPS_V_OUTPUTS_VERSION}'
+        env:
+          STEPS_V_OUTPUTS_VERSION: ${{ steps.v.outputs.version }}
       - name: Build package
         run: uv build --python 3.14 --python-preference only-managed --sdist --wheel . --out-dir dist
       - name: Store the distribution packages
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
           name: ${{ env.dists-artifact-name }}
           path: dist/*
@@ -66,9 +72,10 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
+          persist-credentials: false
       - name: Commit changelog and tag
         env:
           CHANGELOG: ${{ needs.build.outputs.changelog }}
@@ -78,8 +85,8 @@ jobs:
             echo "Tag $VERSION already exists, skipping changelog commit"
             exit 0
           fi
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
           header=" $VERSION ($(date -u +%Y-%m-%d))"
           separator=$(printf '%0.s*' $(seq 1 $((${#header} + 1))))
           {
@@ -94,12 +101,12 @@ jobs:
           git push origin "$VERSION"
           git push origin main
       - name: Download all the dists
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: ${{ env.dists-artifact-name }}
           path: dist/
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.13.0
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
         with:
           skip-existing: true
       - name: Create GitHub release

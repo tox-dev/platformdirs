@@ -33,11 +33,14 @@ jobs:
         exclude:
           - {os: windows-2025, py: pypy3.11}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          enable-cache: false
       - name: Install tox
         run: uv tool install --python-preference only-managed --python 3.14 tox --with tox-uv
       - name: Install Python
@@ -66,7 +69,7 @@ jobs:
         shell: python
       - name: Upload coverage data
         if: ${{ !startsWith(matrix.py, 'pypy')}}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
           include-hidden-files: true
           name: .coverage.${{ matrix.os }}.${{ matrix.py }}
@@ -77,11 +80,14 @@ jobs:
     runs-on: ubuntu-24.04
     needs: test
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          enable-cache: false
       - name: Install tox
         run: uv tool install --python-preference only-managed --python 3.14 tox --with tox-uv
       - name: Build package to generate version
@@ -91,7 +97,7 @@ jobs:
         env:
           UV_PYTHON_PREFERENCE: only-managed
       - name: Download coverage data
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           path: .tox
           pattern: .coverage.*
@@ -101,7 +107,7 @@ jobs:
         env:
           UV_PYTHON_PREFERENCE: only-managed
       - name: Upload HTML report
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
           name: html-report
           path: .tox/htmlcov
@@ -122,11 +128,14 @@ jobs:
         exclude:
           - {os: windows-2025, tox_env: pkg_meta}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          enable-cache: false
       - name: Install tox
         run: uv tool install --python-preference only-managed --python 3.14 tox --with tox-uv
       - name: Setup test suite
