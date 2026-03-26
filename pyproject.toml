@@ -68,7 +68,7 @@ test = [
   "pytest-mock>=3.15.1",
 ]
 type = [
-  "ty>=0.0.19,<0.0.25",
+  "ty>=0.0.19",
   { include-group = "release" },
   { include-group = "test" },
 ]

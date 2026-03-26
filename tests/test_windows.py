@@ -198,7 +198,7 @@ def _setup_ctypes_mocks(mocker: MockerFixture, *, win_dll: MagicMock | None = No
         if not hasattr(ctypes, attr):
             setattr(ctypes, attr, MagicMock())
     if win_dll is not None:
-        ctypes.WinDLL = win_dll  # type: ignore[attr-defined]
+        mocker.patch.object(ctypes, "WinDLL", win_dll)
     mocker.patch("sys.platform", "win32")
     mocker.patch("ctypes.POINTER", return_value=MagicMock())
 
@@ -227,8 +227,12 @@ def test_get_win_folder_via_ctypes_passes_dont_verify_flag(mocker: MockerFixture
     mock_ole32 = MagicMock()
     mock_shell32 = MagicMock()
     mock_kernel32 = MagicMock()
-    ctypes.WinDLL = MagicMock(  # type: ignore[attr-defined]
-        side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32, "kernel32": mock_kernel32}[name],
+    mocker.patch.object(
+        ctypes,
+        "WinDLL",
+        MagicMock(
+            side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32, "kernel32": mock_kernel32}[name],
+        ),
     )
 
     mocker.patch("ctypes.byref", side_effect=lambda x: x)
@@ -273,8 +277,12 @@ def test_get_win_folder_via_ctypes_null_result(mocker: MockerFixture) -> None:
     mock_ole32 = MagicMock()
     mock_shell32 = MagicMock()
     mock_kernel32 = MagicMock()
-    ctypes.WinDLL = MagicMock(  # type: ignore[attr-defined]
-        side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32, "kernel32": mock_kernel32}[name],
+    mocker.patch.object(
+        ctypes,
+        "WinDLL",
+        MagicMock(
+            side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32, "kernel32": mock_kernel32}[name],
+        ),
     )
 
     mocker.patch("ctypes.byref", side_effect=lambda x: x)
