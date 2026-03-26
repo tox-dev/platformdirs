@@ -12,6 +12,7 @@ from platformdirs import unix
 from platformdirs.unix import Unix
 
 if typing.TYPE_CHECKING:
+    from collections.abc import Callable, Iterator
     from pathlib import Path
 
     from pytest_mock import MockerFixture
@@ -423,3 +424,22 @@ def test_use_site_for_root_bypasses_xdg_user_vars(
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     result = getattr(Unix(appname="foo", use_site_for_root=True), prop)
     assert result == expected_site
+
+
+@pytest.mark.parametrize(
+    ("xdg_var", "func"),
+    [
+        ("XDG_DATA_DIRS", Unix.iter_data_dirs),
+        ("XDG_CONFIG_DIRS", Unix.iter_config_dirs),
+    ],
+)
+def test_use_site_iter_dirs_no_duplicates(
+    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    xdg_var: str,
+    func: Callable[[Unix], Iterator[str]],
+) -> None:
+    mocker.patch("platformdirs.unix.getuid", return_value=0)
+    monkeypatch.setenv(xdg_var, "/custom/xdg/path")
+    result = func(Unix(appname="foo", use_site_for_root=True))
+    assert list(result) == [os.path.join("/custom/xdg/path", "foo")]  # noqa: PTH118
