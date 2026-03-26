@@ -124,6 +124,10 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
         """:returns: data directory shared by users"""
 
     @property
+    def _site_data_dirs(self) -> list[str]:
+        raise NotImplementedError
+
+    @property
     @abstractmethod
     def user_config_dir(self) -> str:
         """:returns: config directory tied to the user"""
@@ -132,6 +136,10 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
     @abstractmethod
     def site_config_dir(self) -> str:
         """:returns: config directory shared by users"""
+
+    @property
+    def _site_config_dirs(self) -> list[str]:
+        raise NotImplementedError
 
     @property
     @abstractmethod
@@ -212,6 +220,10 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
     @abstractmethod
     def site_applications_dir(self) -> str:
         """:returns: applications directory shared by users"""
+
+    @property
+    def _site_applications_dirs(self) -> list[str]:
+        raise NotImplementedError
 
     @property
     @abstractmethod
