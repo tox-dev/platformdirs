@@ -277,6 +277,36 @@ def test_macos_xdg_empty_falls_back(
     assert getattr(MacOS(), prop) == expected_map[prop]
 
 
+@pytest.mark.parametrize(
+    ("env_var_1", "prop_1", "env_var_2", "prop_2"),
+    [
+        pytest.param("XDG_DATA_HOME", "user_data_dir", "XDG_CONFIG_HOME", "user_config_dir", id="data/config"),
+        pytest.param("XDG_DATA_HOME", "user_data_dir", "XDG_STATE_HOME", "user_state_dir", id="data/state"),
+        pytest.param("XDG_CONFIG_HOME", "user_config_dir", "XDG_STATE_HOME", "user_state_dir", id="config/state"),
+    ],
+)
+@pytest.mark.usefixtures("_clear_xdg_env")
+def test_no_xdg_vars_leak(
+    monkeypatch: pytest.MonkeyPatch, env_var_1: str, prop_1: str, env_var_2: str, prop_2: str
+) -> None:
+    value_1, value_2 = ("/foo/bar", "/xyz/jkl")
+
+    monkeypatch.setenv(env_var_1, value_1)
+    monkeypatch.setenv(env_var_2, "")
+    assert getattr(MacOS(), prop_1) == value_1
+    assert getattr(MacOS(), prop_1) != getattr(MacOS(), prop_2)
+
+    monkeypatch.setenv(env_var_1, "")
+    monkeypatch.setenv(env_var_2, value_2)
+    assert getattr(MacOS(), prop_2) == value_2
+    assert getattr(MacOS(), prop_1) != getattr(MacOS(), prop_2)
+
+    monkeypatch.setenv(env_var_1, value_1)
+    monkeypatch.setenv(env_var_2, value_2)
+    assert getattr(MacOS(), prop_1) == value_1
+    assert getattr(MacOS(), prop_2) == value_2
+
+
 def test_iter_data_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("XDG_DATA_HOME", "/xdg/data")
     monkeypatch.setenv("XDG_DATA_DIRS", "/xdg/share1:/xdg/share2")
@@ -318,3 +348,31 @@ def test_iter_data_dirs_no_homebrew(mocker: MockerFixture) -> None:
     dirs = list(MacOS().iter_data_dirs())
     home = str(Path("~").expanduser())
     assert dirs == [f"{home}/Library/Application Support", "/Library/Application Support"]
+
+
+@pytest.mark.usefixtures("_clear_xdg_env")
+def test_no_xdg_site_dirs_leak(monkeypatch: pytest.MonkeyPatch) -> None:
+    data_value, config_value = ("/foo/bar/data", "/xyz/jkl/config")
+
+    monkeypatch.setenv("XDG_DATA_DIRS", data_value)
+    monkeypatch.setenv("XDG_CONFIG_DIRS", "")
+    data_dirs = list(MacOS().iter_data_dirs())
+    config_dirs = list(MacOS().iter_config_dirs())
+    assert data_value in data_dirs
+    assert data_value not in config_dirs
+
+    monkeypatch.setenv("XDG_DATA_DIRS", "")
+    monkeypatch.setenv("XDG_CONFIG_DIRS", config_value)
+    data_dirs = list(MacOS().iter_data_dirs())
+    config_dirs = list(MacOS().iter_config_dirs())
+    assert config_value in config_dirs
+    assert config_value not in data_dirs
+
+    monkeypatch.setenv("XDG_DATA_DIRS", data_value)
+    monkeypatch.setenv("XDG_CONFIG_DIRS", config_value)
+    data_dirs = list(MacOS().iter_data_dirs())
+    config_dirs = list(MacOS().iter_config_dirs())
+    assert data_value in data_dirs
+    assert config_value in config_dirs
+    assert config_value not in data_dirs
+    assert data_value not in config_dirs
