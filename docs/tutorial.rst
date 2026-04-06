@@ -60,6 +60,15 @@ The result depends on the platform you're running on:
 
           'C:\\Users\\<you>\\AppData\\Local\\AcmeCompany\\MyApp'
 
+Notice on Windows the path includes both the author (``AcmeCompany``) and the app name (``MyApp``). If we omit
+``appauthor``, it defaults to ``appname``, producing ``AppData\Local\MyApp\MyApp``. To get a flat
+``AppData\Local\MyApp``, pass ``appauthor=False``:
+
+.. code-block:: pycon
+
+    >>> user_data_dir("MyApp", appauthor=False)  # on Windows
+    'C:\\Users\\<you>\\AppData\\Local\\MyApp'
+
 Each function returns a :class:`str`. If we prefer a :class:`~pathlib.Path`, we use the ``_path`` variant:
 
 .. code-block:: pycon

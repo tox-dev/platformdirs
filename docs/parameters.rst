@@ -75,14 +75,22 @@ directory is returned without any app-specific subdirectory.
 ``appauthor``
 =============
 
-The app author or distributing organization. On Windows, this adds an additional parent directory:
+The app author or distributing organization. On Windows, this adds an additional parent directory above ``appname``:
 
 .. code-block:: pycon
 
     >>> user_data_dir("SuperApp", "Acme")  # on Windows
     'C:\\Users\\trentm\\AppData\\Local\\Acme\\SuperApp'
 
-Set to ``False`` to suppress the author directory even on Windows:
+When ``None`` (the default), ``appauthor`` falls back to ``appname``, which means the app name appears **twice** in the
+path:
+
+.. code-block:: pycon
+
+    >>> user_data_dir("SuperApp")  # on Windows, appauthor defaults to appname
+    'C:\\Users\\trentm\\AppData\\Local\\SuperApp\\SuperApp'
+
+Set to ``False`` to suppress the author directory entirely:
 
 .. code-block:: pycon
 
