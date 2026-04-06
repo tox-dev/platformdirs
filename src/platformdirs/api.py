@@ -52,8 +52,8 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
 
         .. note::
 
-            On Windows, the directory structure is ``<base>/<appauthor>/<appname>``. When ``appauthor`` is ``None``
-            (the default), it falls back to ``appname``, resulting in ``<base>/<appname>/<appname>`` (e.g.
+            On Windows, the directory structure is ``<base>/<appauthor>/<appname>``. When ``appauthor`` is ``None`` (the
+            default), it falls back to ``appname``, resulting in ``<base>/<appname>/<appname>`` (e.g.
             ``AppData/Local/myapp/myapp``). Pass ``appauthor=False`` to omit the author directory entirely and get
             ``<base>/<appname>``.
 
