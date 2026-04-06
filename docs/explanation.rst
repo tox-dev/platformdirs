@@ -224,7 +224,10 @@ documentation <https://docs.microsoft.com/en-us/windows/win32/shell/known-folder
 
 Key behaviors:
 
-- ``appauthor`` adds a parent directory: ``AppData\Local\<Author>\<App>``
+- ``appauthor`` adds a parent directory: ``AppData\Local\<Author>\<App>``. When ``appauthor`` is ``None`` (the default),
+  it falls back to ``appname``, producing a doubled path like ``AppData\Local\MyApp\MyApp``. This follows the Windows
+  convention of grouping applications by publisher. If your application does not need an author directory, pass
+  ``appauthor=False`` to get ``AppData\Local\MyApp`` instead.
 - ``roaming=True`` switches from ``AppData\Local`` to ``AppData\Roaming``, which syncs across machines in a Windows
   domain. Use roaming for user preferences that should follow the user; use local (default) for machine-specific data
   like caches.

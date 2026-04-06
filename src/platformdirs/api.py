@@ -50,6 +50,13 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
 
         Typically, it is the owning company name. Defaults to `appname`. You may pass ``False`` to disable it.
 
+        .. note::
+
+            On Windows, the directory structure is ``<base>/<appauthor>/<appname>``. When ``appauthor`` is ``None`` (the
+            default), it falls back to ``appname``, resulting in ``<base>/<appname>/<appname>`` (e.g.
+            ``AppData/Local/myapp/myapp``). Pass ``appauthor=False`` to omit the author directory entirely and get
+            ``<base>/<appname>``.
+
         """
         self.version = version
         """An optional version path element to append to the path.

@@ -222,6 +222,30 @@ See :ref:`xdg-env-vars` for the full list of supported XDG variables, and the :r
  Platform-specific recipes
 ***************************
 
+Windows: controlling the author directory
+=========================================
+
+On Windows, ``platformdirs`` creates a two-level directory structure: ``AppData\Local\<appauthor>\<appname>``. When
+``appauthor`` is omitted (``None``), it defaults to ``appname``, producing a doubled path like
+``AppData\Local\MyApp\MyApp``. Choose the right value based on your needs:
+
+.. code-block:: python
+
+    from platformdirs import user_data_dir
+
+    # Explicit author -- AppData\Local\AcmeCompany\MyApp
+    user_data_dir("MyApp", "AcmeCompany")
+
+    # No author -- AppData\Local\MyApp (flat structure)
+    user_data_dir("MyApp", appauthor=False)
+
+    # Default (appauthor=None) -- AppData\Local\MyApp\MyApp
+    # appauthor falls back to appname
+    user_data_dir("MyApp")
+
+Use an explicit author string when you publish multiple apps under the same organization. Use ``appauthor=False`` when
+you want a flat structure with just the app name. On non-Windows platforms, ``appauthor`` is always ignored.
+
 Windows: roaming vs local profiles
 ==================================
 
