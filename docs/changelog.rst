@@ -3,6 +3,18 @@
 ###########
 
 ********************
+ 4.9.5 (2026-04-06)
+********************
+
+- 📝 docs(appauthor): clarify None vs False on Windows :pr:`476`
+- Separates implementations of macOS dirs that share a default :pr:`473` - by :user:`Goddesen`
+- Remove persist-credentials: false from release job :pr:`472`
+- fix: do not duplicate site dirs in Unix.iter_{config,site}_dirs() when use_site_for_root is active :pr:`469` - by :user:`viccie30`
+- 🔧 fix(type): resolve ty 0.0.25 type errors :pr:`468`
+- 🔒 ci(workflows): add zizmor security auditing :pr:`467`
+- 🐛 fix(release): generate docstrfmt-compatible changelog entries :pr:`463`
+
+********************
  4.9.4 (2026-03-05)
 ********************
 
