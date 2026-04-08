@@ -49,7 +49,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
       - name: Create temporary tag for hatch-vcs
         if: github.event.inputs.release != 'no' && github.event.inputs.release != null
-        run: git tag '${STEPS_V_OUTPUTS_VERSION}'
+        run: git tag "${STEPS_V_OUTPUTS_VERSION}"
         env:
           STEPS_V_OUTPUTS_VERSION: ${{ steps.v.outputs.version }}
       - name: Build package
