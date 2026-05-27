@@ -119,6 +119,13 @@ class XDGMixin(PlatformDirsABC):
         return super().user_desktop_dir
 
     @property
+    def user_projects_dir(self) -> str:
+        """:returns: projects directory tied to the user, from ``$XDG_PROJECTS_DIR`` if set, else platform default"""
+        if path := os.environ.get("XDG_PROJECTS_DIR", "").strip():
+            return os.path.expanduser(path)  # noqa: PTH111
+        return super().user_projects_dir
+
+    @property
     def user_applications_dir(self) -> str:
         """:returns: applications directory tied to the user, from ``$XDG_DATA_HOME`` if set, else platform default"""
         if path := os.environ.get("XDG_DATA_HOME", "").strip():

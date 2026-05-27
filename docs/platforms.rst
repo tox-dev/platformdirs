@@ -401,6 +401,34 @@ See also: :ref:`api:User desktop directory`
 
        ``/storage/emulated/0/Desktop``
 
+``user_projects_dir``
+=====================
+
+See also: :ref:`api:User projects directory`
+
+.. tab-set::
+
+    .. tab-item:: Linux
+       :sync: linux
+
+       ``~/Projects`` (from ``$XDG_PROJECTS_DIR`` if set, else ``$XDG_PROJECTS_DIR`` entry in
+       ``user-dirs.dirs``, else ``~/Projects``)
+
+    .. tab-item:: macOS
+       :sync: macos
+
+       ``~/Projects``
+
+    .. tab-item:: Windows
+       :sync: windows
+
+       ``C:\Users\<User>\Projects``
+
+    .. tab-item:: Android
+       :sync: android
+
+       ``/storage/emulated/0/Projects``
+
 ********************
  Shared directories
 ********************

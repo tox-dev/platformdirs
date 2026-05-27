@@ -210,6 +210,11 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
 
     @property
     @abstractmethod
+    def user_projects_dir(self) -> str:
+        """:returns: projects directory tied to the user"""
+
+    @property
+    @abstractmethod
     def user_bin_dir(self) -> str:
         """:returns: bin directory tied to the user"""
 
@@ -321,6 +326,11 @@ class PlatformDirsABC(ABC):  # noqa: PLR0904
     def user_desktop_path(self) -> Path:
         """:returns: desktop path tied to the user"""
         return Path(self.user_desktop_dir)
+
+    @property
+    def user_projects_path(self) -> Path:
+        """:returns: projects path tied to the user"""
+        return Path(self.user_projects_dir)
 
     @property
     def user_bin_path(self) -> Path:

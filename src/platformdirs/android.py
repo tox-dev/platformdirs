@@ -108,6 +108,11 @@ class Android(PlatformDirsABC):  # noqa: PLR0904
         return "/storage/emulated/0/Desktop"
 
     @property
+    def user_projects_dir(self) -> str:
+        """:returns: projects directory tied to the user e.g. ``/storage/emulated/0/Projects``"""
+        return "/storage/emulated/0/Projects"
+
+    @property
     def user_bin_dir(self) -> str:
         """:returns: bin directory tied to the user, e.g. ``/data/user/<userid>/<packagename>/files/bin``"""
         return os.path.join(cast("str", _android_folder()), "files", "bin")  # noqa: PTH118

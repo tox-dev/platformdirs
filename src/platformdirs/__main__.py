@@ -15,6 +15,7 @@ PROPS = (
     "user_pictures_dir",
     "user_videos_dir",
     "user_music_dir",
+    "user_projects_dir",
     "user_bin_dir",
     "site_bin_dir",
     "user_applications_dir",

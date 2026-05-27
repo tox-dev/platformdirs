@@ -134,6 +134,11 @@ class Windows(PlatformDirsABC):  # noqa: PLR0904
         return os.path.normpath(get_win_folder("CSIDL_DESKTOPDIRECTORY"))
 
     @property
+    def user_projects_dir(self) -> str:
+        r""":returns: projects directory tied to the user, e.g. ``%USERPROFILE%\Projects``"""
+        return os.path.normpath(os.path.expanduser("~/Projects"))  # noqa: PTH111
+
+    @property
     def user_bin_dir(self) -> str:
         r""":returns: bin directory tied to the user, e.g. ``%LOCALAPPDATA%\Programs``"""
         return os.path.normpath(os.path.join(get_win_folder("CSIDL_LOCAL_APPDATA"), "Programs"))  # noqa: PTH118

@@ -344,6 +344,11 @@ def user_desktop_dir() -> str:
     return PlatformDirs().user_desktop_dir
 
 
+def user_projects_dir() -> str:
+    """:returns: projects directory tied to the user"""
+    return PlatformDirs().user_projects_dir
+
+
 def user_bin_dir() -> str:
     """:returns: bin directory tied to the user"""
     return PlatformDirs().user_bin_dir
@@ -720,6 +725,11 @@ def user_desktop_path() -> Path:
     return PlatformDirs().user_desktop_path
 
 
+def user_projects_path() -> Path:
+    """:returns: projects path tied to the user"""
+    return PlatformDirs().user_projects_path
+
+
 def user_bin_path() -> Path:
     """:returns: bin path tied to the user"""
     return PlatformDirs().user_bin_path
@@ -848,6 +858,8 @@ __all__ = [
     "user_music_path",
     "user_pictures_dir",
     "user_pictures_path",
+    "user_projects_dir",
+    "user_projects_path",
     "user_runtime_dir",
     "user_runtime_path",
     "user_state_dir",

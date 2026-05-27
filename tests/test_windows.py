@@ -3,6 +3,7 @@ from __future__ import annotations
 import ctypes
 import importlib
 import os
+import pathlib
 import sys
 from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
@@ -90,6 +91,7 @@ def test_windows(params: dict[str, Any], func: str) -> None:
         "user_videos_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_MYVIDEO"]),
         "user_music_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_MYMUSIC"]),
         "user_desktop_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_DESKTOPDIRECTORY"]),
+        "user_projects_dir": os.path.normpath(pathlib.Path("~/Projects").expanduser()),
         "user_bin_dir": os.path.join(_LOCAL, "Programs"),  # noqa: PTH118
         "site_bin_dir": os.path.join(_COMMON, "bin"),  # noqa: PTH118
         "user_applications_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_PROGRAMS"]),
