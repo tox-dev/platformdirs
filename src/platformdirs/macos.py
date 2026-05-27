@@ -50,6 +50,11 @@ class _MacOSDefaults(PlatformDirsABC):  # noqa: PLR0904
         return self._first_item_as_path_if_multipath(self.site_data_dir)
 
     @property
+    def site_config_path(self) -> Path:
+        """:returns: config path shared by users. Only return the first item, even if ``multipath`` is set to ``True``"""
+        return self._first_item_as_path_if_multipath(self.site_config_dir)
+
+    @property
     def user_config_dir(self) -> str:
         """:returns: config directory tied to the user, same as `user_data_dir`"""
         return self._base_user_app_support_dir()
