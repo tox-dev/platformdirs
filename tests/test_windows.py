@@ -246,13 +246,13 @@ def test_get_win_folder_via_ctypes_passes_dont_verify_flag(mocker: MockerFixture
         from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # noqa: PLC0415
 
         result = fresh_fn("CSIDL_LOCAL_APPDATA")
-
-        assert result == r"C:\Users\Test\AppData\Local"
-        mock_shell32.SHGetKnownFolderPath.assert_called_once()
-        flags_arg = mock_shell32.SHGetKnownFolderPath.call_args[0][1]
-        assert flags_arg == _KF_FLAG_DONT_VERIFY
     finally:
         _cleanup_ctypes_mocks()
+
+    assert result == r"C:\Users\Test\AppData\Local"
+    mock_shell32.SHGetKnownFolderPath.assert_called_once()
+    flags_arg = mock_shell32.SHGetKnownFolderPath.call_args[0][1]
+    assert flags_arg == _KF_FLAG_DONT_VERIFY
 
 
 def test_get_win_folder_via_ctypes_unknown_csidl(mocker: MockerFixture) -> None:
