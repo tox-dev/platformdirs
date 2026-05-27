@@ -140,6 +140,26 @@ class _MacOSDefaults(PlatformDirsABC):  # noqa: PLR0904
         return os.path.expanduser("~/Projects")  # noqa: PTH111
 
     @property
+    def user_publicshare_dir(self) -> str:
+        """:returns: public share directory tied to the user, e.g. ``~/Public``"""
+        return os.path.expanduser("~/Public")  # noqa: PTH111
+
+    @property
+    def user_templates_dir(self) -> str:
+        """:returns: templates directory tied to the user, e.g. ``~/Templates``"""
+        return os.path.expanduser("~/Templates")  # noqa: PTH111
+
+    @property
+    def user_fonts_dir(self) -> str:
+        """:returns: fonts directory tied to the user, e.g. ``~/Library/Fonts``"""
+        return os.path.expanduser("~/Library/Fonts")  # noqa: PTH111
+
+    @property
+    def user_preference_dir(self) -> str:
+        """:returns: preference directory tied to the user, e.g. ``~/Library/Preferences/AppName``"""
+        return self._append_app_name_and_version(os.path.expanduser("~/Library/Preferences"))  # noqa: PTH111
+
+    @property
     def user_bin_dir(self) -> str:
         """:returns: bin directory tied to the user, e.g. ``~/.local/bin``"""
         return os.path.expanduser("~/.local/bin")  # noqa: PTH111
