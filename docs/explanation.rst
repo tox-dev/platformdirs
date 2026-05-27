@@ -141,6 +141,133 @@ Use ``user_log_dir`` and ``site_log_dir`` for application logs:
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
 
+******************************
+ User media directories
+******************************
+
+Unlike app dirs (data, config, cache, etc.), media dirs are **not** scoped to the app name. They point to
+standard user-facing folders that exist independently of any particular application. Use them when your app
+needs to read from or save into a folder the user already expects — not when storing application state.
+
+The distinction matters:
+
+- ``user_data_dir("MyApp")`` → ``~/.local/share/MyApp`` — your app's private storage
+- ``user_documents_dir()`` → ``~/Documents`` — the user's document library
+
+On Linux, media dirs are defined by the `XDG user-dirs specification
+<https://www.freedesktop.org/wiki/Software/xdg-user-dirs/>`_ and stored in ``~/.config/user-dirs.dirs``.
+The ``xdg-user-dirs`` tool lets users relocate them. Set the corresponding environment variable
+(``XDG_DOCUMENTS_DIR``, ``XDG_DOWNLOAD_DIR``, etc.) to override on a per-session basis. On macOS and
+Windows, ``platformdirs`` returns the platform-conventional location.
+
+Documents, downloads, and media
+================================
+
+Use these dirs when saving or opening files that belong in the user's library:
+
+.. list-table::
+   :widths: 30 20 50
+   :header-rows: 1
+
+   * - Property
+     - XDG variable
+     - Typical use
+   * - ``user_documents_dir``
+     - ``XDG_DOCUMENTS_DIR``
+     - Exported reports, user-authored files
+   * - ``user_downloads_dir``
+     - ``XDG_DOWNLOAD_DIR``
+     - Files fetched from the internet at user request
+   * - ``user_pictures_dir``
+     - ``XDG_PICTURES_DIR``
+     - Images the user owns
+   * - ``user_videos_dir``
+     - ``XDG_VIDEOS_DIR``
+     - Video files the user owns
+   * - ``user_music_dir``
+     - ``XDG_MUSIC_DIR``
+     - Audio files the user owns
+
+.. code-block:: python
+
+    from platformdirs import user_documents_path
+
+    # Save an exported report where the user expects documents
+    report = user_documents_path() / "report.pdf"
+
+Do not use ``user_documents_dir`` to store application data or config. If the file would confuse the user if
+they opened the folder, it belongs in ``user_data_dir`` instead.
+
+Desktop, projects, and public share
+=====================================
+
+.. list-table::
+   :widths: 30 20 50
+   :header-rows: 1
+
+   * - Property
+     - XDG variable
+     - Typical use
+   * - ``user_desktop_dir``
+     - ``XDG_DESKTOP_DIR``
+     - Shortcut files, launchers (rarely needed in code)
+   * - ``user_projects_dir``
+     - ``XDG_PROJECTS_DIR``
+     - Root directory for user's coding projects (`recently added to xdg-user-dirs
+       <https://gitlab.freedesktop.org/xdg/xdg-user-dirs/-/commit/217cae71c620ed2b3ed2936256ece68defccc6ab>`_)
+   * - ``user_publicshare_dir``
+     - ``XDG_PUBLICSHARE_DIR``
+     - Files shared with other users on the same machine
+
+On Windows, ``user_publicshare_dir`` returns ``C:\Users\Public`` (``%PUBLIC%``) — a machine-wide shared
+folder, not per-user. This matches what Rust ``dirs`` and Java ``directories-jvm`` return, following the
+platform convention.
+
+Templates
+=========
+
+``user_templates_dir`` (``XDG_TEMPLATES_DIR``) points to the folder used by file managers for new-file
+templates. macOS has no platform-defined templates directory; ``~/Templates`` is returned as a pragmatic
+fallback.
+
+Fonts
+=====
+
+``user_fonts_dir`` points to the per-user font installation directory:
+
+- **Linux**: ``$XDG_DATA_HOME/fonts`` (default ``~/.local/share/fonts``) — derived from ``$XDG_DATA_HOME``,
+  not a dedicated env var. See the `XDG Base Directory Specification
+  <https://specifications.freedesktop.org/basedir/latest/>`_.
+- **macOS**: ``~/Library/Fonts``
+- **Windows**: ``%LOCALAPPDATA%\Microsoft\Windows\Fonts`` — the per-user font location added in Windows 10
+
+.. code-block:: python
+
+    import shutil
+    from platformdirs import user_fonts_path
+
+    font_dir = user_fonts_path()
+    font_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy("MyFont.ttf", font_dir / "MyFont.ttf")
+
+**********************
+ Preference directory
+**********************
+
+``user_preference_dir`` is meaningful mainly on macOS, where Apple's conventions distinguish two separate
+locations:
+
+- ``~/Library/Application Support/AppName`` — long-term application data, databases, plug-ins
+- ``~/Library/Preferences/AppName`` — user-adjustable preference files (historically ``.plist``)
+
+On Linux and Windows, ``user_preference_dir`` is an alias for ``user_config_dir`` — the XDG and Windows
+conventions make no such distinction. On Android, it also aliases ``user_config_dir``.
+
+Use ``user_preference_dir`` when you specifically need to follow Apple's `File System Programming Guide
+<https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html>`_
+and store preference files in ``~/Library/Preferences``. For most cross-platform applications
+``user_config_dir`` is sufficient.
+
 **************************
  User vs site directories
 **************************

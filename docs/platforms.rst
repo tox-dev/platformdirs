@@ -406,6 +406,9 @@ See also: :ref:`api:User desktop directory`
 
 See also: :ref:`api:User projects directory`
 
+Defined by `$XDG_PROJECTS_DIR <https://gitlab.freedesktop.org/xdg/xdg-user-dirs/-/commit/217cae71c620ed2b3ed2936256ece68defccc6ab>`_
+(recently added to xdg-user-dirs).
+
 .. tab-set::
 
     .. tab-item:: Linux
@@ -428,6 +431,135 @@ See also: :ref:`api:User projects directory`
        :sync: android
 
        ``/storage/emulated/0/Projects``
+
+``user_publicshare_dir``
+========================
+
+See also: :ref:`api:User public share directory`
+
+Defined by `$XDG_PUBLICSHARE_DIR <https://www.freedesktop.org/wiki/Software/xdg-user-dirs/>`_.
+
+On Windows, this is the machine-wide ``C:\Users\Public`` (``%PUBLIC%``), shared across all local accounts —
+not a per-user directory. See `FOLDERID_Public
+<https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid>`_.
+
+.. tab-set::
+
+    .. tab-item:: Linux
+       :sync: linux
+
+       ``~/Public`` (from ``$XDG_PUBLICSHARE_DIR`` if set, else ``$XDG_PUBLICSHARE_DIR`` entry in
+       ``user-dirs.dirs``, else ``~/Public``)
+
+    .. tab-item:: macOS
+       :sync: macos
+
+       ``~/Public``
+
+    .. tab-item:: Windows
+       :sync: windows
+
+       ``C:\Users\Public`` (``%PUBLIC%``)
+
+    .. tab-item:: Android
+       :sync: android
+
+       ``/storage/emulated/0/Public``
+
+``user_templates_dir``
+======================
+
+See also: :ref:`api:User templates directory`
+
+Defined by `$XDG_TEMPLATES_DIR <https://www.freedesktop.org/wiki/Software/xdg-user-dirs/>`_. macOS has no
+platform-defined templates directory; ``~/Templates`` is returned as a pragmatic fallback. On Windows, see
+`FOLDERID_Templates <https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid>`_.
+
+.. tab-set::
+
+    .. tab-item:: Linux
+       :sync: linux
+
+       ``~/Templates`` (from ``$XDG_TEMPLATES_DIR`` if set, else ``$XDG_TEMPLATES_DIR`` entry in
+       ``user-dirs.dirs``, else ``~/Templates``)
+
+    .. tab-item:: macOS
+       :sync: macos
+
+       ``~/Templates`` (pragmatic fallback; macOS has no native templates directory)
+
+    .. tab-item:: Windows
+       :sync: windows
+
+       ``%APPDATA%\Microsoft\Windows\Templates``
+
+    .. tab-item:: Android
+       :sync: android
+
+       ``/storage/emulated/0/Templates``
+
+``user_fonts_dir``
+==================
+
+See also: :ref:`api:User fonts directory`
+
+Derived from ``$XDG_DATA_HOME/fonts`` on Linux (no dedicated env var). See the `XDG Base Directory
+Specification <https://specifications.freedesktop.org/basedir/latest/>`_. On Windows, uses the per-user font
+location added in Windows 10.
+
+.. tab-set::
+
+    .. tab-item:: Linux
+       :sync: linux
+
+       ``$XDG_DATA_HOME/fonts`` (default ``~/.local/share/fonts``)
+
+    .. tab-item:: macOS
+       :sync: macos
+
+       ``~/Library/Fonts``
+
+    .. tab-item:: Windows
+       :sync: windows
+
+       ``%LOCALAPPDATA%\Microsoft\Windows\Fonts``
+
+    .. tab-item:: Android
+       :sync: android
+
+       ``/storage/emulated/0/fonts``
+
+``user_preference_dir``
+=======================
+
+See also: :ref:`api:User preference directory`
+
+On macOS, ``~/Library/Preferences`` is distinct from ``~/Library/Application Support`` (``user_config_dir``).
+See `Apple's File System Programming Guide
+<https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html>`_.
+On all other platforms, this aliases ``user_config_dir``.
+
+.. tab-set::
+
+    .. tab-item:: Linux
+       :sync: linux
+
+       Same as ``user_config_dir`` (``$XDG_CONFIG_HOME`` or ``~/.config/AppName``)
+
+    .. tab-item:: macOS
+       :sync: macos
+
+       ``~/Library/Preferences/AppName`` (distinct from ``~/Library/Application Support``)
+
+    .. tab-item:: Windows
+       :sync: windows
+
+       Same as ``user_config_dir`` (``%APPDATA%\AppName``)
+
+    .. tab-item:: Android
+       :sync: android
+
+       Same as ``user_config_dir``
 
 ********************
  Shared directories
