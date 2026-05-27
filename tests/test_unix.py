@@ -33,6 +33,7 @@ def _reload_after_test() -> typing.Iterator[None]:
         "user_videos_dir",
         "user_music_dir",
         "user_desktop_dir",
+        "user_projects_dir",
     ],
 )
 def test_user_media_dir(mocker: MockerFixture, prop: str) -> None:
@@ -51,6 +52,7 @@ def test_user_media_dir(mocker: MockerFixture, prop: str) -> None:
         pytest.param("XDG_VIDEOS_DIR", "user_videos_dir", id="user_videos_dir"),
         pytest.param("XDG_MUSIC_DIR", "user_music_dir", id="user_music_dir"),
         pytest.param("XDG_DESKTOP_DIR", "user_desktop_dir", id="user_desktop_dir"),
+        pytest.param("XDG_PROJECTS_DIR", "user_projects_dir", id="user_projects_dir"),
     ],
 )
 def test_user_media_dir_env_var(mocker: MockerFixture, env_var: str, prop: str) -> None:
@@ -73,6 +75,7 @@ def test_user_media_dir_env_var(mocker: MockerFixture, env_var: str, prop: str) 
         pytest.param("XDG_VIDEOS_DIR", "user_videos_dir", "/home/example/Videos", id="user_videos_dir"),
         pytest.param("XDG_MUSIC_DIR", "user_music_dir", "/home/example/Music", id="user_music_dir"),
         pytest.param("XDG_DESKTOP_DIR", "user_desktop_dir", "/home/example/Desktop", id="user_desktop_dir"),
+        pytest.param("XDG_PROJECTS_DIR", "user_projects_dir", "/home/example/Projects", id="user_projects_dir"),
     ],
 )
 def test_user_media_dir_default(mocker: MockerFixture, env_var: str, prop: str, default_abs_path: str) -> None:

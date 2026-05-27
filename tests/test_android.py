@@ -63,6 +63,7 @@ def test_android(mocker: MockerFixture, params: dict[str, Any], func: str) -> No
         "user_videos_dir": "/storage/emulated/0/DCIM/Camera",
         "user_music_dir": "/storage/emulated/0/Music",
         "user_desktop_dir": "/storage/emulated/0/Desktop",
+        "user_projects_dir": "/storage/emulated/0/Projects",
         "user_bin_dir": "/data/data/com.example/files/bin",
         "site_bin_dir": "/data/data/com.example/files/bin",
         "user_applications_dir": f"/data/data/com.example/files{suffix}",

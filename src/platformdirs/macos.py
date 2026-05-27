@@ -135,6 +135,11 @@ class _MacOSDefaults(PlatformDirsABC):  # noqa: PLR0904
         return os.path.expanduser("~/Desktop")  # noqa: PTH111
 
     @property
+    def user_projects_dir(self) -> str:
+        """:returns: projects directory tied to the user, e.g. ``~/Projects``"""
+        return os.path.expanduser("~/Projects")  # noqa: PTH111
+
+    @property
     def user_bin_dir(self) -> str:
         """:returns: bin directory tied to the user, e.g. ``~/.local/bin``"""
         return os.path.expanduser("~/.local/bin")  # noqa: PTH111

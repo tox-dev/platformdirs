@@ -141,6 +141,15 @@ See also: :ref:`platforms:``user_desktop_dir```
 
 .. autofunction:: platformdirs.user_desktop_path
 
+User projects directory
+=======================
+
+See also: :ref:`platforms:``user_projects_dir```
+
+.. autofunction:: platformdirs.user_projects_dir
+
+.. autofunction:: platformdirs.user_projects_path
+
 ********************
  Shared directories
 ********************
