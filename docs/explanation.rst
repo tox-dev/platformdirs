@@ -17,8 +17,18 @@ purpose. Application authors write platform-agnostic code while end users get pa
  Choosing the right directory
 ******************************
 
-``platformdirs`` provides different directory types for different kinds of data. Choose based on the data's purpose and
-lifetime.
+The first question is always: who owns this data? **App-internal data** — databases, caches, config files, logs — goes
+in an app dir scoped to your app name. **User-facing data** — files the user would browse to directly — goes in a media
+dir that sits alongside their documents, music, and photos.
+
+Within app dirs, the next question is whether the data is essential. If it can be regenerated, use ``cache`` (fast
+lookups) or ``runtime`` (session-only sockets and PIDs). If it is important but not critical, use ``state`` (window
+positions, recent files). For settings use ``config``; on macOS, ``preference`` gives you the separate
+``~/Library/Preferences`` location that Apple convention expects. Use ``data`` for everything else that must survive
+app updates.
+
+Within media dirs, pick the folder that matches the file's type from the user's perspective — not what your app does
+with it. A font your app installs for the user goes in ``fonts``, not ``data``.
 
 .. mermaid::
 
