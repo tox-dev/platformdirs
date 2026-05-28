@@ -23,17 +23,58 @@ lifetime.
 .. mermaid::
 
     flowchart TD
-        A[What kind of data?] --> B{Can it be deleted<br/>without data loss?}
-        B -- Yes --> C{Is it used to<br/>speed things up?}
-        C -- Yes --> D[**cache** dir]
-        C -- No --> E{Is it temporary<br/>for this session?}
-        E -- Yes --> F[**runtime** dir]
-        E -- No --> G[**state** dir]
-        B -- No --> H{Is it a<br/>user preference?}
-        H -- Yes --> I[**config** dir]
-        H -- No --> J{Is it a<br/>log file?}
-        J -- Yes --> K[**log** dir]
-        J -- No --> L[**data** dir]
+        A([What kind of data?]) --> B{Belongs to the app<br/>or to the user?}
+
+        B -- App internal --> C{Can it be deleted<br/>without data loss?}
+        C -- Yes --> D{Speeds things up?}
+        D -- Yes --> CACHE[cache dir]
+        D -- No --> E{Temporary for<br/>this session only?}
+        E -- Yes --> RUNTIME[runtime dir]
+        E -- No --> STATE[state dir]
+        C -- No --> F{What kind?}
+        F -- Settings / options --> CONFIG[config dir]
+        F -- macOS preferences --> PREF[preference dir]
+        F -- Log file --> LOG[log dir]
+        F -- Everything else --> DATA[data dir]
+
+        B -- User-facing file --> G{File type?}
+        G -- Document / report --> DOC[documents dir]
+        G -- Downloaded content --> DL[downloads dir]
+        G -- Image --> PIC[pictures dir]
+        G -- Video --> VID[videos dir]
+        G -- Audio --> MUS[music dir]
+        G -- Font --> FONT[fonts dir]
+        G -- Template --> TMPL[templates dir]
+        G -- Project / code --> PROJ[projects dir]
+        G -- Desktop shortcut --> DESK[desktop dir]
+        G -- Share with others --> PUB[publicshare dir]
+
+        style A  fill:#1e40af,stroke:#1e3a8a,color:#fff
+        style B  fill:#d97706,stroke:#b45309,color:#fff
+        style C  fill:#d97706,stroke:#b45309,color:#fff
+        style D  fill:#d97706,stroke:#b45309,color:#fff
+        style E  fill:#d97706,stroke:#b45309,color:#fff
+        style F  fill:#d97706,stroke:#b45309,color:#fff
+        style G  fill:#d97706,stroke:#b45309,color:#fff
+
+        style CACHE   fill:#2563eb,stroke:#1d4ed8,color:#fff
+        style RUNTIME fill:#2563eb,stroke:#1d4ed8,color:#fff
+        style STATE   fill:#2563eb,stroke:#1d4ed8,color:#fff
+        style CONFIG  fill:#2563eb,stroke:#1d4ed8,color:#fff
+        style PREF    fill:#7c3aed,stroke:#6d28d9,color:#fff
+        style LOG     fill:#2563eb,stroke:#1d4ed8,color:#fff
+        style DATA    fill:#2563eb,stroke:#1d4ed8,color:#fff
+
+        style DOC   fill:#16a34a,stroke:#15803d,color:#fff
+        style DL    fill:#16a34a,stroke:#15803d,color:#fff
+        style PIC   fill:#16a34a,stroke:#15803d,color:#fff
+        style VID   fill:#16a34a,stroke:#15803d,color:#fff
+        style MUS   fill:#16a34a,stroke:#15803d,color:#fff
+        style FONT  fill:#16a34a,stroke:#15803d,color:#fff
+        style TMPL  fill:#16a34a,stroke:#15803d,color:#fff
+        style PROJ  fill:#16a34a,stroke:#15803d,color:#fff
+        style DESK  fill:#16a34a,stroke:#15803d,color:#fff
+        style PUB   fill:#16a34a,stroke:#15803d,color:#fff
 
 Data directories
 ================
