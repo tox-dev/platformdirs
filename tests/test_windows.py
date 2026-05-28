@@ -5,6 +5,7 @@ import importlib
 import os
 import pathlib
 import sys
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
 
@@ -92,6 +93,14 @@ def test_windows(params: dict[str, Any], func: str) -> None:
         "user_music_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_MYMUSIC"]),
         "user_desktop_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_DESKTOPDIRECTORY"]),
         "user_projects_dir": os.path.normpath(pathlib.Path("~/Projects").expanduser()),
+        "user_publicshare_dir": os.path.normpath(
+            os.environ.get("PUBLIC", str(Path("~").expanduser().parent / "Public"))
+        ),
+        "user_templates_dir": os.path.normpath(
+            str(Path(_WIN_FOLDERS["CSIDL_APPDATA"]) / "Microsoft" / "Windows" / "Templates")
+        ),
+        "user_fonts_dir": os.path.normpath(str(Path(_LOCAL) / "Microsoft" / "Windows" / "Fonts")),
+        "user_preference_dir": local,
         "user_bin_dir": os.path.join(_LOCAL, "Programs"),  # noqa: PTH118
         "site_bin_dir": os.path.join(_COMMON, "bin"),  # noqa: PTH118
         "user_applications_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_PROGRAMS"]),

@@ -150,6 +150,42 @@ See also: :ref:`platforms:``user_projects_dir```
 
 .. autofunction:: platformdirs.user_projects_path
 
+User public share directory
+===========================
+
+See also: :ref:`platforms:``user_publicshare_dir```
+
+.. autofunction:: platformdirs.user_publicshare_dir
+
+.. autofunction:: platformdirs.user_publicshare_path
+
+User templates directory
+========================
+
+See also: :ref:`platforms:``user_templates_dir```
+
+.. autofunction:: platformdirs.user_templates_dir
+
+.. autofunction:: platformdirs.user_templates_path
+
+User fonts directory
+====================
+
+See also: :ref:`platforms:``user_fonts_dir```
+
+.. autofunction:: platformdirs.user_fonts_dir
+
+.. autofunction:: platformdirs.user_fonts_path
+
+User preference directory
+=========================
+
+See also: :ref:`platforms:``user_preference_dir```
+
+.. autofunction:: platformdirs.user_preference_dir
+
+.. autofunction:: platformdirs.user_preference_path
+
 ********************
  Shared directories
 ********************

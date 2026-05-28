@@ -44,15 +44,30 @@ and Android.
        Keep multiple app versions side by side with the ``version`` parameter.
 
 .. toctree::
-    :maxdepth: 2
-    :caption: Contents
+    :hidden:
+    :caption: Tutorial
 
     tutorial
+
+.. toctree::
+    :hidden:
+    :caption: How-to guides
+
     howto
-    explanation
+
+.. toctree::
+    :hidden:
+    :caption: Reference
+
     parameters
     api
     platforms
+
+.. toctree::
+    :hidden:
+    :caption: Explanation
+
+    explanation
     changelog
 
 ********************

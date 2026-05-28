@@ -17,23 +17,74 @@ purpose. Application authors write platform-agnostic code while end users get pa
  Choosing the right directory
 ******************************
 
-``platformdirs`` provides different directory types for different kinds of data. Choose based on the data's purpose and
-lifetime.
+The first question is always: who owns this data? **App-internal data** — databases, caches, config files, logs — goes
+in an app dir scoped to your app name. **User-facing data** — files the user would browse to directly — goes in a media
+dir that sits alongside their documents, music, and photos.
+
+Within app dirs, the next question is whether the data is essential. If it can be regenerated, use ``cache`` (fast
+lookups) or ``runtime`` (session-only sockets and PIDs). If it is important but not critical, use ``state`` (window
+positions, recent files). For settings use ``config``; on macOS, ``preference`` gives you the separate
+``~/Library/Preferences`` location that Apple convention expects. Use ``data`` for everything else that must survive app
+updates.
+
+Within media dirs, pick the folder that matches the file's type from the user's perspective — not what your app does
+with it. A font your app installs for the user goes in ``fonts``, not ``data``.
 
 .. mermaid::
 
     flowchart TD
-        A[What kind of data?] --> B{Can it be deleted<br/>without data loss?}
-        B -- Yes --> C{Is it used to<br/>speed things up?}
-        C -- Yes --> D[**cache** dir]
-        C -- No --> E{Is it temporary<br/>for this session?}
-        E -- Yes --> F[**runtime** dir]
-        E -- No --> G[**state** dir]
-        B -- No --> H{Is it a<br/>user preference?}
-        H -- Yes --> I[**config** dir]
-        H -- No --> J{Is it a<br/>log file?}
-        J -- Yes --> K[**log** dir]
-        J -- No --> L[**data** dir]
+        A([What kind of data?]) --> B{Belongs to the app<br/>or to the user?}
+
+        B -- App internal --> C{Can it be deleted<br/>without data loss?}
+        C -- Yes --> D{Speeds things up?}
+        D -- Yes --> CACHE[cache dir]
+        D -- No --> E{Temporary for<br/>this session only?}
+        E -- Yes --> RUNTIME[runtime dir]
+        E -- No --> STATE[state dir]
+        C -- No --> F{What kind?}
+        F -- Settings / options --> CONFIG[config dir]
+        F -- macOS preferences --> PREF[preference dir]
+        F -- Log file --> LOG[log dir]
+        F -- Everything else --> DATA[data dir]
+
+        B -- User-facing file --> G{File type?}
+        G -- Document / report --> DOC[documents dir]
+        G -- Downloaded content --> DL[downloads dir]
+        G -- Image --> PIC[pictures dir]
+        G -- Video --> VID[videos dir]
+        G -- Audio --> MUS[music dir]
+        G -- Font --> FONT[fonts dir]
+        G -- Template --> TMPL[templates dir]
+        G -- Project / code --> PROJ[projects dir]
+        G -- Desktop shortcut --> DESK[desktop dir]
+        G -- Share with others --> PUB[publicshare dir]
+
+        style A  fill:#1e40af,stroke:#1e3a8a,color:#fff
+        style B  fill:#d97706,stroke:#b45309,color:#fff
+        style C  fill:#d97706,stroke:#b45309,color:#fff
+        style D  fill:#d97706,stroke:#b45309,color:#fff
+        style E  fill:#d97706,stroke:#b45309,color:#fff
+        style F  fill:#d97706,stroke:#b45309,color:#fff
+        style G  fill:#d97706,stroke:#b45309,color:#fff
+
+        style CACHE   fill:#2563eb,stroke:#1d4ed8,color:#fff
+        style RUNTIME fill:#2563eb,stroke:#1d4ed8,color:#fff
+        style STATE   fill:#2563eb,stroke:#1d4ed8,color:#fff
+        style CONFIG  fill:#2563eb,stroke:#1d4ed8,color:#fff
+        style PREF    fill:#7c3aed,stroke:#6d28d9,color:#fff
+        style LOG     fill:#2563eb,stroke:#1d4ed8,color:#fff
+        style DATA    fill:#2563eb,stroke:#1d4ed8,color:#fff
+
+        style DOC   fill:#16a34a,stroke:#15803d,color:#fff
+        style DL    fill:#16a34a,stroke:#15803d,color:#fff
+        style PIC   fill:#16a34a,stroke:#15803d,color:#fff
+        style VID   fill:#16a34a,stroke:#15803d,color:#fff
+        style MUS   fill:#16a34a,stroke:#15803d,color:#fff
+        style FONT  fill:#16a34a,stroke:#15803d,color:#fff
+        style TMPL  fill:#16a34a,stroke:#15803d,color:#fff
+        style PROJ  fill:#16a34a,stroke:#15803d,color:#fff
+        style DESK  fill:#16a34a,stroke:#15803d,color:#fff
+        style PUB   fill:#16a34a,stroke:#15803d,color:#fff
 
 Data directories
 ================
@@ -140,6 +191,102 @@ Use ``user_log_dir`` and ``site_log_dir`` for application logs:
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
+
+************************
+ User media directories
+************************
+
+Unlike app dirs (data, config, cache, etc.), media dirs are **not** scoped to the app name. They point to standard
+user-facing folders that exist independently of any particular application. Use them when your app needs to read from or
+save into a folder the user already expects — not when storing application state.
+
+The distinction matters:
+
+- ``user_data_dir("MyApp")`` → ``~/.local/share/MyApp`` — your app's private storage
+- ``user_documents_dir()`` → ``~/Documents`` — the user's document library
+
+On Linux, media dirs are defined by the `XDG user-dirs specification
+<https://www.freedesktop.org/wiki/Software/xdg-user-dirs/>`_ and stored in ``~/.config/user-dirs.dirs``. The
+``xdg-user-dirs`` tool lets users relocate them. Set the corresponding environment variable (``XDG_DOCUMENTS_DIR``,
+``XDG_DOWNLOAD_DIR``, etc.) to override on a per-session basis. On macOS and Windows, ``platformdirs`` returns the
+platform-conventional location.
+
+Media and user-facing directories
+=================================
+
+Use these when your app saves or opens files the user should see in their own folders:
+
+``user_documents_dir`` (``XDG_DOCUMENTS_DIR``)
+    Exported reports, user-authored files. Save here when the file is *for the user*, not the app.
+
+``user_downloads_dir`` (``XDG_DOWNLOAD_DIR``)
+    Files fetched from the internet at the user's request.
+
+``user_pictures_dir`` / ``user_videos_dir`` / ``user_music_dir``
+    Platform media libraries. Use when importing or exporting to the user's existing collection.
+
+``user_desktop_dir`` (``XDG_DESKTOP_DIR``)
+    Shortcut files and launchers. Rarely needed directly in code.
+
+``user_projects_dir`` (``XDG_PROJECTS_DIR``)
+    Root directory for the user's coding projects. `Recently added to xdg-user-dirs
+    <https://gitlab.freedesktop.org/xdg/xdg-user-dirs/-/commit/217cae71c620ed2b3ed2936256ece68defccc6ab>`_.
+
+``user_publicshare_dir`` (``XDG_PUBLICSHARE_DIR``)
+    Files shared with other local accounts. On Windows this is the machine-wide ``C:\Users\Public`` (``%PUBLIC%``), not
+    a per-user directory.
+
+.. code-block:: python
+
+    from platformdirs import user_documents_path
+
+    report = user_documents_path() / "report.pdf"
+
+Do not use these to store application state or config — if the file would confuse the user when they browse the folder,
+it belongs in ``user_data_dir`` instead.
+
+Templates
+=========
+
+``user_templates_dir`` (``XDG_TEMPLATES_DIR``) points to the folder used by file managers for new-file templates. macOS
+has no platform-defined templates directory; ``~/Templates`` is returned as a pragmatic fallback.
+
+Fonts
+=====
+
+``user_fonts_dir`` points to the per-user font installation directory:
+
+- **Linux**: ``$XDG_DATA_HOME/fonts`` (default ``~/.local/share/fonts``) — derived from ``$XDG_DATA_HOME``, not a
+  dedicated env var. See the `XDG Base Directory Specification
+  <https://specifications.freedesktop.org/basedir/latest/>`_.
+- **macOS**: ``~/Library/Fonts``
+- **Windows**: ``%LOCALAPPDATA%\Microsoft\Windows\Fonts`` — the per-user font location added in Windows 10
+
+.. code-block:: python
+
+    import shutil
+    from platformdirs import user_fonts_path
+
+    font_dir = user_fonts_path()
+    font_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy("MyFont.ttf", font_dir / "MyFont.ttf")
+
+**********************
+ Preference directory
+**********************
+
+``user_preference_dir`` is meaningful mainly on macOS, where Apple's conventions distinguish two separate locations:
+
+- ``~/Library/Application Support/AppName`` — long-term application data, databases, plug-ins
+- ``~/Library/Preferences/AppName`` — user-adjustable preference files (historically ``.plist``)
+
+On Linux and Windows, ``user_preference_dir`` is an alias for ``user_config_dir`` — the XDG and Windows conventions make
+no such distinction. On Android, it also aliases ``user_config_dir``.
+
+Use ``user_preference_dir`` when you specifically need to follow Apple's `File System Programming Guide
+<https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html>`_
+and store preference files in ``~/Library/Preferences``. For most cross-platform applications ``user_config_dir`` is
+sufficient.
 
 **************************
  User vs site directories
