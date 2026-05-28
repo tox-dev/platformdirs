@@ -2,6 +2,14 @@
  Changelog
 ###########
 
+*********************
+ 4.10.0 (2026-05-28)
+*********************
+
+- ✨ feat: add user_publicshare_dir, user_templates_dir, user_fonts_dir, user_preference_dir :pr:`491`
+- ✨ feat: add user_projects_dir for $XDG_PROJECTS_DIR :pr:`490`
+- chore: improve platformdirs maintenance path :pr:`488` - by :user:`lphuc2250gma`
+
 ********************
  4.9.6 (2026-04-09)
 ********************
