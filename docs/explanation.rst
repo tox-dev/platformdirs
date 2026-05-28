@@ -160,68 +160,39 @@ The ``xdg-user-dirs`` tool lets users relocate them. Set the corresponding envir
 (``XDG_DOCUMENTS_DIR``, ``XDG_DOWNLOAD_DIR``, etc.) to override on a per-session basis. On macOS and
 Windows, ``platformdirs`` returns the platform-conventional location.
 
-Documents, downloads, and media
-================================
+Media and user-facing directories
+==================================
 
-Use these dirs when saving or opening files that belong in the user's library:
+Use these when your app saves or opens files the user should see in their own folders:
 
-.. list-table::
-   :widths: 30 20 50
-   :header-rows: 1
+``user_documents_dir`` (``XDG_DOCUMENTS_DIR``)
+    Exported reports, user-authored files. Save here when the file is *for the user*, not the app.
 
-   * - Property
-     - XDG variable
-     - Typical use
-   * - ``user_documents_dir``
-     - ``XDG_DOCUMENTS_DIR``
-     - Exported reports, user-authored files
-   * - ``user_downloads_dir``
-     - ``XDG_DOWNLOAD_DIR``
-     - Files fetched from the internet at user request
-   * - ``user_pictures_dir``
-     - ``XDG_PICTURES_DIR``
-     - Images the user owns
-   * - ``user_videos_dir``
-     - ``XDG_VIDEOS_DIR``
-     - Video files the user owns
-   * - ``user_music_dir``
-     - ``XDG_MUSIC_DIR``
-     - Audio files the user owns
+``user_downloads_dir`` (``XDG_DOWNLOAD_DIR``)
+    Files fetched from the internet at the user's request.
+
+``user_pictures_dir`` / ``user_videos_dir`` / ``user_music_dir``
+    Platform media libraries. Use when importing or exporting to the user's existing collection.
+
+``user_desktop_dir`` (``XDG_DESKTOP_DIR``)
+    Shortcut files and launchers. Rarely needed directly in code.
+
+``user_projects_dir`` (``XDG_PROJECTS_DIR``)
+    Root directory for the user's coding projects. `Recently added to xdg-user-dirs
+    <https://gitlab.freedesktop.org/xdg/xdg-user-dirs/-/commit/217cae71c620ed2b3ed2936256ece68defccc6ab>`_.
+
+``user_publicshare_dir`` (``XDG_PUBLICSHARE_DIR``)
+    Files shared with other local accounts. On Windows this is the machine-wide ``C:\Users\Public``
+    (``%PUBLIC%``), not a per-user directory.
 
 .. code-block:: python
 
     from platformdirs import user_documents_path
 
-    # Save an exported report where the user expects documents
     report = user_documents_path() / "report.pdf"
 
-Do not use ``user_documents_dir`` to store application data or config. If the file would confuse the user if
-they opened the folder, it belongs in ``user_data_dir`` instead.
-
-Desktop, projects, and public share
-=====================================
-
-.. list-table::
-   :widths: 30 20 50
-   :header-rows: 1
-
-   * - Property
-     - XDG variable
-     - Typical use
-   * - ``user_desktop_dir``
-     - ``XDG_DESKTOP_DIR``
-     - Shortcut files, launchers (rarely needed in code)
-   * - ``user_projects_dir``
-     - ``XDG_PROJECTS_DIR``
-     - Root directory for user's coding projects (`recently added to xdg-user-dirs
-       <https://gitlab.freedesktop.org/xdg/xdg-user-dirs/-/commit/217cae71c620ed2b3ed2936256ece68defccc6ab>`_)
-   * - ``user_publicshare_dir``
-     - ``XDG_PUBLICSHARE_DIR``
-     - Files shared with other users on the same machine
-
-On Windows, ``user_publicshare_dir`` returns ``C:\Users\Public`` (``%PUBLIC%``) — a machine-wide shared
-folder, not per-user. This matches what Rust ``dirs`` and Java ``directories-jvm`` return, following the
-platform convention.
+Do not use these to store application state or config — if the file would confuse the user when they browse
+the folder, it belongs in ``user_data_dir`` instead.
 
 Templates
 =========
