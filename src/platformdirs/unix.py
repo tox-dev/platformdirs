@@ -141,7 +141,7 @@ class _UnixDefaults(PlatformDirsABC):  # noqa: PLR0904
     @property
     def user_fonts_dir(self) -> str:
         """:returns: fonts directory tied to the user, e.g. ``~/.local/share/fonts``"""
-        return os.path.join(os.path.expanduser("~/.local/share"), "fonts")  # noqa: PTH111, PTH118
+        return f"{os.path.expanduser('~/.local/share')}/fonts"  # noqa: PTH111  # API returns str, not Path
 
     @property
     def user_preference_dir(self) -> str:
