@@ -406,8 +406,9 @@ See also: :ref:`api:User desktop directory`
 
 See also: :ref:`api:User projects directory`
 
-Defined by `$XDG_PROJECTS_DIR <https://gitlab.freedesktop.org/xdg/xdg-user-dirs/-/commit/217cae71c620ed2b3ed2936256ece68defccc6ab>`_
-(recently added to xdg-user-dirs).
+Defined by `$XDG_PROJECTS_DIR
+<https://gitlab.freedesktop.org/xdg/xdg-user-dirs/-/commit/217cae71c620ed2b3ed2936256ece68defccc6ab>`_ (recently added
+to xdg-user-dirs).
 
 .. tab-set::
 
@@ -439,9 +440,8 @@ See also: :ref:`api:User public share directory`
 
 Defined by `$XDG_PUBLICSHARE_DIR <https://www.freedesktop.org/wiki/Software/xdg-user-dirs/>`_.
 
-On Windows, this is the machine-wide ``C:\Users\Public`` (``%PUBLIC%``), shared across all local accounts —
-not a per-user directory. See `FOLDERID_Public
-<https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid>`_.
+On Windows, this is the machine-wide ``C:\Users\Public`` (``%PUBLIC%``), shared across all local accounts — not a
+per-user directory. See `FOLDERID_Public <https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid>`_.
 
 .. tab-set::
 
@@ -503,9 +503,9 @@ platform-defined templates directory; ``~/Templates`` is returned as a pragmatic
 
 See also: :ref:`api:User fonts directory`
 
-Derived from ``$XDG_DATA_HOME/fonts`` on Linux (no dedicated env var). See the `XDG Base Directory
-Specification <https://specifications.freedesktop.org/basedir/latest/>`_. On Windows, uses the per-user font
-location added in Windows 10.
+Derived from ``$XDG_DATA_HOME/fonts`` on Linux (no dedicated env var). See the `XDG Base Directory Specification
+<https://specifications.freedesktop.org/basedir/latest/>`_. On Windows, uses the per-user font location added in Windows
+10.
 
 .. tab-set::
 
@@ -534,8 +534,8 @@ location added in Windows 10.
 
 See also: :ref:`api:User preference directory`
 
-On macOS, ``~/Library/Preferences`` is distinct from ``~/Library/Application Support`` (``user_config_dir``).
-See `Apple's File System Programming Guide
+On macOS, ``~/Library/Preferences`` is distinct from ``~/Library/Application Support`` (``user_config_dir``). See
+`Apple's File System Programming Guide
 <https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html>`_.
 On all other platforms, this aliases ``user_config_dir``.
 

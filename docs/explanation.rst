@@ -24,8 +24,8 @@ dir that sits alongside their documents, music, and photos.
 Within app dirs, the next question is whether the data is essential. If it can be regenerated, use ``cache`` (fast
 lookups) or ``runtime`` (session-only sockets and PIDs). If it is important but not critical, use ``state`` (window
 positions, recent files). For settings use ``config``; on macOS, ``preference`` gives you the separate
-``~/Library/Preferences`` location that Apple convention expects. Use ``data`` for everything else that must survive
-app updates.
+``~/Library/Preferences`` location that Apple convention expects. Use ``data`` for everything else that must survive app
+updates.
 
 Within media dirs, pick the folder that matches the file's type from the user's perspective — not what your app does
 with it. A font your app installs for the user goes in ``fonts``, not ``data``.
@@ -192,13 +192,13 @@ Use ``user_log_dir`` and ``site_log_dir`` for application logs:
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
 
-******************************
+************************
  User media directories
-******************************
+************************
 
-Unlike app dirs (data, config, cache, etc.), media dirs are **not** scoped to the app name. They point to
-standard user-facing folders that exist independently of any particular application. Use them when your app
-needs to read from or save into a folder the user already expects — not when storing application state.
+Unlike app dirs (data, config, cache, etc.), media dirs are **not** scoped to the app name. They point to standard
+user-facing folders that exist independently of any particular application. Use them when your app needs to read from or
+save into a folder the user already expects — not when storing application state.
 
 The distinction matters:
 
@@ -206,13 +206,13 @@ The distinction matters:
 - ``user_documents_dir()`` → ``~/Documents`` — the user's document library
 
 On Linux, media dirs are defined by the `XDG user-dirs specification
-<https://www.freedesktop.org/wiki/Software/xdg-user-dirs/>`_ and stored in ``~/.config/user-dirs.dirs``.
-The ``xdg-user-dirs`` tool lets users relocate them. Set the corresponding environment variable
-(``XDG_DOCUMENTS_DIR``, ``XDG_DOWNLOAD_DIR``, etc.) to override on a per-session basis. On macOS and
-Windows, ``platformdirs`` returns the platform-conventional location.
+<https://www.freedesktop.org/wiki/Software/xdg-user-dirs/>`_ and stored in ``~/.config/user-dirs.dirs``. The
+``xdg-user-dirs`` tool lets users relocate them. Set the corresponding environment variable (``XDG_DOCUMENTS_DIR``,
+``XDG_DOWNLOAD_DIR``, etc.) to override on a per-session basis. On macOS and Windows, ``platformdirs`` returns the
+platform-conventional location.
 
 Media and user-facing directories
-==================================
+=================================
 
 Use these when your app saves or opens files the user should see in their own folders:
 
@@ -233,8 +233,8 @@ Use these when your app saves or opens files the user should see in their own fo
     <https://gitlab.freedesktop.org/xdg/xdg-user-dirs/-/commit/217cae71c620ed2b3ed2936256ece68defccc6ab>`_.
 
 ``user_publicshare_dir`` (``XDG_PUBLICSHARE_DIR``)
-    Files shared with other local accounts. On Windows this is the machine-wide ``C:\Users\Public``
-    (``%PUBLIC%``), not a per-user directory.
+    Files shared with other local accounts. On Windows this is the machine-wide ``C:\Users\Public`` (``%PUBLIC%``), not
+    a per-user directory.
 
 .. code-block:: python
 
@@ -242,23 +242,22 @@ Use these when your app saves or opens files the user should see in their own fo
 
     report = user_documents_path() / "report.pdf"
 
-Do not use these to store application state or config — if the file would confuse the user when they browse
-the folder, it belongs in ``user_data_dir`` instead.
+Do not use these to store application state or config — if the file would confuse the user when they browse the folder,
+it belongs in ``user_data_dir`` instead.
 
 Templates
 =========
 
-``user_templates_dir`` (``XDG_TEMPLATES_DIR``) points to the folder used by file managers for new-file
-templates. macOS has no platform-defined templates directory; ``~/Templates`` is returned as a pragmatic
-fallback.
+``user_templates_dir`` (``XDG_TEMPLATES_DIR``) points to the folder used by file managers for new-file templates. macOS
+has no platform-defined templates directory; ``~/Templates`` is returned as a pragmatic fallback.
 
 Fonts
 =====
 
 ``user_fonts_dir`` points to the per-user font installation directory:
 
-- **Linux**: ``$XDG_DATA_HOME/fonts`` (default ``~/.local/share/fonts``) — derived from ``$XDG_DATA_HOME``,
-  not a dedicated env var. See the `XDG Base Directory Specification
+- **Linux**: ``$XDG_DATA_HOME/fonts`` (default ``~/.local/share/fonts``) — derived from ``$XDG_DATA_HOME``, not a
+  dedicated env var. See the `XDG Base Directory Specification
   <https://specifications.freedesktop.org/basedir/latest/>`_.
 - **macOS**: ``~/Library/Fonts``
 - **Windows**: ``%LOCALAPPDATA%\Microsoft\Windows\Fonts`` — the per-user font location added in Windows 10
@@ -276,19 +275,18 @@ Fonts
  Preference directory
 **********************
 
-``user_preference_dir`` is meaningful mainly on macOS, where Apple's conventions distinguish two separate
-locations:
+``user_preference_dir`` is meaningful mainly on macOS, where Apple's conventions distinguish two separate locations:
 
 - ``~/Library/Application Support/AppName`` — long-term application data, databases, plug-ins
 - ``~/Library/Preferences/AppName`` — user-adjustable preference files (historically ``.plist``)
 
-On Linux and Windows, ``user_preference_dir`` is an alias for ``user_config_dir`` — the XDG and Windows
-conventions make no such distinction. On Android, it also aliases ``user_config_dir``.
+On Linux and Windows, ``user_preference_dir`` is an alias for ``user_config_dir`` — the XDG and Windows conventions make
+no such distinction. On Android, it also aliases ``user_config_dir``.
 
 Use ``user_preference_dir`` when you specifically need to follow Apple's `File System Programming Guide
 <https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html>`_
-and store preference files in ``~/Library/Preferences``. For most cross-platform applications
-``user_config_dir`` is sufficient.
+and store preference files in ``~/Library/Preferences``. For most cross-platform applications ``user_config_dir`` is
+sufficient.
 
 **************************
  User vs site directories
