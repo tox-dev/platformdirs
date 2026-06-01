@@ -103,13 +103,13 @@ release = [
 ]
 
 [tool.hatch]
+version.source = "vcs"
 build.hooks.vcs.version-file = "src/platformdirs/version.py"
 build.targets.sdist.include = [
   "/src",
   "/tests",
   "/tox.toml",
 ]
-version.source = "vcs"
 
 [tool.ruff]
 line-length = 120
