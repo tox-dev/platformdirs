@@ -18,7 +18,7 @@ if typing.TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True)  # noqa: RUF076
 def _reload_after_test() -> typing.Iterator[None]:
     yield
     importlib.reload(unix)
