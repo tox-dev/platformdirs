@@ -11,7 +11,7 @@ These are user-specific (and, generally, user-writeable) directories.
 User data directory
 ===================
 
-See also: :ref:`platforms:``user_data_dir```
+See also: :ref:`platforms:\`\`user_data_dir\`\``
 
 .. autofunction:: platformdirs.user_data_dir
 
@@ -20,7 +20,7 @@ See also: :ref:`platforms:``user_data_dir```
 User config directory
 =====================
 
-See also: :ref:`platforms:``user_config_dir```
+See also: :ref:`platforms:\`\`user_config_dir\`\``
 
 .. autofunction:: platformdirs.user_config_dir
 
@@ -29,7 +29,7 @@ See also: :ref:`platforms:``user_config_dir```
 User cache directory
 ====================
 
-See also: :ref:`platforms:``user_cache_dir```
+See also: :ref:`platforms:\`\`user_cache_dir\`\``
 
 .. autofunction:: platformdirs.user_cache_dir
 
@@ -38,7 +38,7 @@ See also: :ref:`platforms:``user_cache_dir```
 User state directory
 ====================
 
-See also: :ref:`platforms:``user_state_dir```
+See also: :ref:`platforms:\`\`user_state_dir\`\``
 
 .. autofunction:: platformdirs.user_state_dir
 
@@ -47,7 +47,7 @@ See also: :ref:`platforms:``user_state_dir```
 User log directory
 ==================
 
-See also: :ref:`platforms:``user_log_dir```
+See also: :ref:`platforms:\`\`user_log_dir\`\``
 
 .. autofunction:: platformdirs.user_log_dir
 
@@ -56,7 +56,7 @@ See also: :ref:`platforms:``user_log_dir```
 User runtime directory
 ======================
 
-See also: :ref:`platforms:``user_runtime_dir```
+See also: :ref:`platforms:\`\`user_runtime_dir\`\``
 
 .. autofunction:: platformdirs.user_runtime_dir
 
@@ -65,7 +65,7 @@ See also: :ref:`platforms:``user_runtime_dir```
 User applications directory
 ===========================
 
-See also: :ref:`platforms:``user_applications_dir```
+See also: :ref:`platforms:\`\`user_applications_dir\`\``
 
 Where application launchers and shortcuts are registered — ``.desktop`` files on Linux, the per-user ``Applications``
 folder on macOS, or Start Menu shortcuts on Windows. These entries make applications discoverable in menus and app
@@ -78,7 +78,7 @@ launchers.
 User binary directory
 =====================
 
-See also: :ref:`platforms:``user_bin_dir```
+See also: :ref:`platforms:\`\`user_bin_dir\`\``
 
 Where user-installed executables and scripts are placed so they appear on ``$PATH`` — ``~/.local/bin`` on Linux/macOS or
 ``%LOCALAPPDATA%\Programs`` on Windows.
@@ -90,7 +90,7 @@ Where user-installed executables and scripts are placed so they appear on ``$PAT
 User documents directory
 ========================
 
-See also: :ref:`platforms:``user_documents_dir```
+See also: :ref:`platforms:\`\`user_documents_dir\`\``
 
 .. autofunction:: platformdirs.user_documents_dir
 
@@ -99,7 +99,7 @@ See also: :ref:`platforms:``user_documents_dir```
 User downloads directory
 ========================
 
-See also: :ref:`platforms:``user_downloads_dir```
+See also: :ref:`platforms:\`\`user_downloads_dir\`\``
 
 .. autofunction:: platformdirs.user_downloads_dir
 
@@ -108,7 +108,7 @@ See also: :ref:`platforms:``user_downloads_dir```
 User pictures directory
 =======================
 
-See also: :ref:`platforms:``user_pictures_dir```
+See also: :ref:`platforms:\`\`user_pictures_dir\`\``
 
 .. autofunction:: platformdirs.user_pictures_dir
 
@@ -117,7 +117,7 @@ See also: :ref:`platforms:``user_pictures_dir```
 User videos directory
 =====================
 
-See also: :ref:`platforms:``user_videos_dir```
+See also: :ref:`platforms:\`\`user_videos_dir\`\``
 
 .. autofunction:: platformdirs.user_videos_dir
 
@@ -126,7 +126,7 @@ See also: :ref:`platforms:``user_videos_dir```
 User music directory
 ====================
 
-See also: :ref:`platforms:``user_music_dir```
+See also: :ref:`platforms:\`\`user_music_dir\`\``
 
 .. autofunction:: platformdirs.user_music_dir
 
@@ -135,7 +135,7 @@ See also: :ref:`platforms:``user_music_dir```
 User desktop directory
 ======================
 
-See also: :ref:`platforms:``user_desktop_dir```
+See also: :ref:`platforms:\`\`user_desktop_dir\`\``
 
 .. autofunction:: platformdirs.user_desktop_dir
 
@@ -144,7 +144,7 @@ See also: :ref:`platforms:``user_desktop_dir```
 User projects directory
 =======================
 
-See also: :ref:`platforms:``user_projects_dir```
+See also: :ref:`platforms:\`\`user_projects_dir\`\``
 
 .. autofunction:: platformdirs.user_projects_dir
 
@@ -153,7 +153,7 @@ See also: :ref:`platforms:``user_projects_dir```
 User public share directory
 ===========================
 
-See also: :ref:`platforms:``user_publicshare_dir```
+See also: :ref:`platforms:\`\`user_publicshare_dir\`\``
 
 .. autofunction:: platformdirs.user_publicshare_dir
 
@@ -162,7 +162,7 @@ See also: :ref:`platforms:``user_publicshare_dir```
 User templates directory
 ========================
 
-See also: :ref:`platforms:``user_templates_dir```
+See also: :ref:`platforms:\`\`user_templates_dir\`\``
 
 .. autofunction:: platformdirs.user_templates_dir
 
@@ -171,7 +171,7 @@ See also: :ref:`platforms:``user_templates_dir```
 User fonts directory
 ====================
 
-See also: :ref:`platforms:``user_fonts_dir```
+See also: :ref:`platforms:\`\`user_fonts_dir\`\``
 
 .. autofunction:: platformdirs.user_fonts_dir
 
@@ -180,7 +180,7 @@ See also: :ref:`platforms:``user_fonts_dir```
 User preference directory
 =========================
 
-See also: :ref:`platforms:``user_preference_dir```
+See also: :ref:`platforms:\`\`user_preference_dir\`\``
 
 .. autofunction:: platformdirs.user_preference_dir
 
@@ -195,7 +195,7 @@ These are system-wide (and, generally, read-only) directories.
 Shared data directory
 =====================
 
-See also: :ref:`platforms:``site_data_dir```
+See also: :ref:`platforms:\`\`site_data_dir\`\``
 
 .. autofunction:: platformdirs.site_data_dir
 
@@ -204,7 +204,7 @@ See also: :ref:`platforms:``site_data_dir```
 Shared config directory
 =======================
 
-See also: :ref:`platforms:``site_config_dir```
+See also: :ref:`platforms:\`\`site_config_dir\`\``
 
 .. autofunction:: platformdirs.site_config_dir
 
@@ -213,7 +213,7 @@ See also: :ref:`platforms:``site_config_dir```
 Shared cache directory
 ======================
 
-See also: :ref:`platforms:``site_cache_dir```
+See also: :ref:`platforms:\`\`site_cache_dir\`\``
 
 .. autofunction:: platformdirs.site_cache_dir
 
@@ -222,7 +222,7 @@ See also: :ref:`platforms:``site_cache_dir```
 Shared state directory
 ======================
 
-See also: :ref:`platforms:``site_state_dir```
+See also: :ref:`platforms:\`\`site_state_dir\`\``
 
 .. autofunction:: platformdirs.site_state_dir
 
@@ -231,7 +231,7 @@ See also: :ref:`platforms:``site_state_dir```
 Shared log directory
 ====================
 
-See also: :ref:`platforms:``site_log_dir```
+See also: :ref:`platforms:\`\`site_log_dir\`\``
 
 .. autofunction:: platformdirs.site_log_dir
 
@@ -240,7 +240,7 @@ See also: :ref:`platforms:``site_log_dir```
 Shared runtime directory
 ========================
 
-See also: :ref:`platforms:``site_runtime_dir```
+See also: :ref:`platforms:\`\`site_runtime_dir\`\``
 
 .. autofunction:: platformdirs.site_runtime_dir
 
@@ -249,7 +249,7 @@ See also: :ref:`platforms:``site_runtime_dir```
 Shared applications directory
 =============================
 
-See also: :ref:`platforms:``site_applications_dir```
+See also: :ref:`platforms:\`\`site_applications_dir\`\``
 
 Where application launchers and shortcuts are registered system-wide — ``.desktop`` files in ``/usr/share/applications``
 on Linux, ``/Applications`` on macOS, or the All Users Start Menu on Windows. Applications installed here are available
@@ -262,7 +262,7 @@ to all users.
 Shared binary directory
 =======================
 
-See also: :ref:`platforms:``site_bin_dir```
+See also: :ref:`platforms:\`\`site_bin_dir\`\``
 
 Where system-wide executables and scripts are placed — ``/usr/local/bin`` on Linux/macOS or ``%ProgramData%\bin`` on
 Windows. Executables here are available to all users.

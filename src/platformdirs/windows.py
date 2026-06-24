@@ -28,7 +28,7 @@ class Windows(PlatformDirsABC):  # noqa: PLR0904
 
     @property
     def user_data_dir(self) -> str:
-        r""":returns: data directory tied to the user, e.g. ``%USERPROFILE%\AppData\Local\$appauthor\$appname`` (not roaming) or ``%USERPROFILE%\AppData\Roaming\$appauthor\$appname`` (roaming)"""
+        r"""Data directory tied to the user, e.g. ``%USERPROFILE%\AppData\Local\$appauthor\$appname`` (not roaming) or ``%USERPROFILE%\AppData\Roaming\$appauthor\$appname`` (roaming)."""
         const = "CSIDL_APPDATA" if self.roaming else "CSIDL_LOCAL_APPDATA"
         path = os.path.normpath(get_win_folder(const))
         return self._append_parts(path)
@@ -50,45 +50,45 @@ class Windows(PlatformDirsABC):  # noqa: PLR0904
 
     @property
     def site_data_dir(self) -> str:
-        r""":returns: data directory shared by users, e.g. ``C:\ProgramData\$appauthor\$appname``"""
+        r"""Data directory shared by users, e.g. ``C:\ProgramData\$appauthor\$appname``."""
         path = os.path.normpath(get_win_folder("CSIDL_COMMON_APPDATA"))
         return self._append_parts(path)
 
     @property
     def user_config_dir(self) -> str:
-        """:returns: config directory tied to the user, same as `user_data_dir`"""
+        """Config directory tied to the user, same as `user_data_dir`."""
         return self.user_data_dir
 
     @property
     def site_config_dir(self) -> str:
-        """:returns: config directory shared by users, same as `site_data_dir`"""
+        """Config directory shared by users, same as `site_data_dir`."""
         return self.site_data_dir
 
     @property
     def user_cache_dir(self) -> str:
-        r""":returns: cache directory tied to the user (if opinionated with ``Cache`` folder within ``$appname``) e.g. ``%USERPROFILE%\AppData\Local\$appauthor\$appname\Cache\$version``"""
+        r"""Cache directory tied to the user (if opinionated with ``Cache`` folder within ``$appname``) e.g. ``%USERPROFILE%\AppData\Local\$appauthor\$appname\Cache\$version``."""
         path = os.path.normpath(get_win_folder("CSIDL_LOCAL_APPDATA"))
         return self._append_parts(path, opinion_value="Cache")
 
     @property
     def site_cache_dir(self) -> str:
-        r""":returns: cache directory shared by users, e.g. ``C:\ProgramData\$appauthor\$appname\Cache\$version``"""
+        r"""Cache directory shared by users, e.g. ``C:\ProgramData\$appauthor\$appname\Cache\$version``."""
         path = os.path.normpath(get_win_folder("CSIDL_COMMON_APPDATA"))
         return self._append_parts(path, opinion_value="Cache")
 
     @property
     def user_state_dir(self) -> str:
-        """:returns: state directory tied to the user, same as `user_data_dir`"""
+        """State directory tied to the user, same as `user_data_dir`."""
         return self.user_data_dir
 
     @property
     def site_state_dir(self) -> str:
-        """:returns: state directory shared by users, same as `site_data_dir`"""
+        """State directory shared by users, same as `site_data_dir`."""
         return self.site_data_dir
 
     @property
     def user_log_dir(self) -> str:
-        """:returns: log directory tied to the user, same as `user_data_dir` if not opinionated else ``Logs`` in it"""
+        """Log directory tied to the user, same as `user_data_dir` if not opinionated else ``Logs`` in it."""
         path = self.user_data_dir
         if self.opinion:
             path = os.path.join(path, "Logs")  # noqa: PTH118
@@ -97,7 +97,7 @@ class Windows(PlatformDirsABC):  # noqa: PLR0904
 
     @property
     def site_log_dir(self) -> str:
-        """:returns: log directory shared by users, same as `site_data_dir` if not opinionated else ``Logs`` in it"""
+        """Log directory shared by users, same as `site_data_dir` if not opinionated else ``Logs`` in it."""
         path = self.site_data_dir
         if self.opinion:
             path = os.path.join(path, "Logs")  # noqa: PTH118
@@ -106,88 +106,88 @@ class Windows(PlatformDirsABC):  # noqa: PLR0904
 
     @property
     def user_documents_dir(self) -> str:
-        r""":returns: documents directory tied to the user e.g. ``%USERPROFILE%\Documents``"""
+        r"""Documents directory tied to the user e.g. ``%USERPROFILE%\Documents``."""
         return os.path.normpath(get_win_folder("CSIDL_PERSONAL"))
 
     @property
     def user_downloads_dir(self) -> str:
-        r""":returns: downloads directory tied to the user e.g. ``%USERPROFILE%\Downloads``"""
+        r"""Downloads directory tied to the user e.g. ``%USERPROFILE%\Downloads``."""
         return os.path.normpath(get_win_folder("CSIDL_DOWNLOADS"))
 
     @property
     def user_pictures_dir(self) -> str:
-        r""":returns: pictures directory tied to the user e.g. ``%USERPROFILE%\Pictures``"""
+        r"""Pictures directory tied to the user e.g. ``%USERPROFILE%\Pictures``."""
         return os.path.normpath(get_win_folder("CSIDL_MYPICTURES"))
 
     @property
     def user_videos_dir(self) -> str:
-        r""":returns: videos directory tied to the user e.g. ``%USERPROFILE%\Videos``"""
+        r"""Videos directory tied to the user e.g. ``%USERPROFILE%\Videos``."""
         return os.path.normpath(get_win_folder("CSIDL_MYVIDEO"))
 
     @property
     def user_music_dir(self) -> str:
-        r""":returns: music directory tied to the user e.g. ``%USERPROFILE%\Music``"""
+        r"""Music directory tied to the user e.g. ``%USERPROFILE%\Music``."""
         return os.path.normpath(get_win_folder("CSIDL_MYMUSIC"))
 
     @property
     def user_desktop_dir(self) -> str:
-        r""":returns: desktop directory tied to the user, e.g. ``%USERPROFILE%\Desktop``"""
+        r"""Desktop directory tied to the user, e.g. ``%USERPROFILE%\Desktop``."""
         return os.path.normpath(get_win_folder("CSIDL_DESKTOPDIRECTORY"))
 
     @property
     def user_projects_dir(self) -> str:
-        r""":returns: projects directory tied to the user, e.g. ``%USERPROFILE%\Projects``"""
+        r"""Projects directory tied to the user, e.g. ``%USERPROFILE%\Projects``."""
         return os.path.normpath(os.path.expanduser("~/Projects"))  # noqa: PTH111
 
     @property
     def user_publicshare_dir(self) -> str:
-        r""":returns: public share directory e.g. ``C:\Users\Public``"""
+        r"""Public share directory e.g. ``C:\Users\Public``."""
         return os.path.normpath(os.environ.get("PUBLIC", str(Path("~").expanduser().parent / "Public")))
 
     @property
     def user_templates_dir(self) -> str:
-        r""":returns: templates directory tied to the user e.g. ``%APPDATA%\Microsoft\Windows\Templates``"""
+        r"""Templates directory tied to the user e.g. ``%APPDATA%\Microsoft\Windows\Templates``."""
         return os.path.normpath(str(Path(get_win_folder("CSIDL_APPDATA")) / "Microsoft" / "Windows" / "Templates"))
 
     @property
     def user_fonts_dir(self) -> str:
-        r""":returns: fonts directory tied to the user e.g. ``%LOCALAPPDATA%\Microsoft\Windows\Fonts``"""
+        r"""Fonts directory tied to the user e.g. ``%LOCALAPPDATA%\Microsoft\Windows\Fonts``."""
         return os.path.normpath(str(Path(get_win_folder("CSIDL_LOCAL_APPDATA")) / "Microsoft" / "Windows" / "Fonts"))
 
     @property
     def user_preference_dir(self) -> str:
-        r""":returns: preference directory tied to the user, same as ``user_config_dir``"""
+        r"""Preference directory tied to the user, same as ``user_config_dir``."""
         return self.user_config_dir
 
     @property
     def user_bin_dir(self) -> str:
-        r""":returns: bin directory tied to the user, e.g. ``%LOCALAPPDATA%\Programs``"""
+        r"""Bin directory tied to the user, e.g. ``%LOCALAPPDATA%\Programs``."""
         return os.path.normpath(os.path.join(get_win_folder("CSIDL_LOCAL_APPDATA"), "Programs"))  # noqa: PTH118
 
     @property
     def site_bin_dir(self) -> str:
-        """:returns: bin directory shared by users, e.g. ``C:\\ProgramData\bin``"""
+        r"""Bin directory shared by users, e.g. ``C:\ProgramData\bin``."""
         return os.path.normpath(os.path.join(get_win_folder("CSIDL_COMMON_APPDATA"), "bin"))  # noqa: PTH118
 
     @property
     def user_applications_dir(self) -> str:
-        r""":returns: applications directory tied to the user, e.g. ``Start Menu\Programs``"""
+        r"""Applications directory tied to the user, e.g. ``Start Menu\Programs``."""
         return os.path.normpath(get_win_folder("CSIDL_PROGRAMS"))
 
     @property
     def site_applications_dir(self) -> str:
-        r""":returns: applications directory shared by users, e.g. ``C:\ProgramData\Microsoft\Windows\Start Menu\Programs``"""
+        r"""Applications directory shared by users, e.g. ``C:\ProgramData\Microsoft\Windows\Start Menu\Programs``."""
         return os.path.normpath(get_win_folder("CSIDL_COMMON_PROGRAMS"))
 
     @property
     def user_runtime_dir(self) -> str:
-        r""":returns: runtime directory tied to the user, e.g. ``%USERPROFILE%\AppData\Local\Temp\$appauthor\$appname``"""
+        r"""Runtime directory tied to the user, e.g. ``%USERPROFILE%\AppData\Local\Temp\$appauthor\$appname``."""
         path = os.path.normpath(os.path.join(get_win_folder("CSIDL_LOCAL_APPDATA"), "Temp"))  # noqa: PTH118
         return self._append_parts(path)
 
     @property
     def site_runtime_dir(self) -> str:
-        """:returns: runtime directory shared by users, same as `user_runtime_dir`"""
+        """Runtime directory shared by users, same as `user_runtime_dir`."""
         return self.user_runtime_dir
 
 
