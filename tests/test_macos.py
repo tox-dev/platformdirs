@@ -29,7 +29,7 @@ _XDG_ENV_VARS = (
 )
 
 
-@pytest.fixture(autouse=True)  # noqa: RUF076
+@pytest.fixture(autouse=True)
 def _fix_os_pathsep(mocker: MockerFixture) -> None:
     """If we're not running on macOS, set `os.pathsep` to what it should be on macOS."""
     if sys.platform != "darwin":  # pragma: darwin no cover

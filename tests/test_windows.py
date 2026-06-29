@@ -42,7 +42,7 @@ _LOCAL = os.path.normpath(_WIN_FOLDERS["CSIDL_LOCAL_APPDATA"])
 _COMMON = os.path.normpath(_WIN_FOLDERS["CSIDL_COMMON_APPDATA"])
 
 
-@pytest.fixture(autouse=True)  # noqa: RUF076
+@pytest.fixture(autouse=True)
 def _mock_get_win_folder(mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.windows.get_win_folder", side_effect=lambda csidl: _WIN_FOLDERS[csidl])
 
