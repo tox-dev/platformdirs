@@ -281,6 +281,28 @@ def test_get_win_folder_via_ctypes_unknown_csidl(mocker: MockerFixture) -> None:
             _cleanup_ctypes_mocks()
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="mock-based call counting only runs on non-Windows")
+def test_get_win_folder_via_ctypes_builds_once(mocker: MockerFixture) -> None:
+    """Repeated calls must reuse one resolver so ctypes pointer types are not leaked (issue #501)."""
+    _setup_ctypes_mocks(mocker)
+
+    win_dll = MagicMock(side_effect=lambda _name: MagicMock())
+    mocker.patch.object(ctypes, "WinDLL", win_dll)
+    mocker.patch("ctypes.byref", side_effect=lambda x: x)
+    mocker.patch("ctypes.wintypes.LPWSTR", return_value=MagicMock(value=r"C:\Users\Test\AppData\Local"))
+
+    try:
+        importlib.reload(windows)
+        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # noqa: PLC0415
+
+        for _ in range(5):
+            fresh_fn("CSIDL_LOCAL_APPDATA")
+    finally:
+        _cleanup_ctypes_mocks()
+
+    assert win_dll.call_count == 3  # ole32, shell32, kernel32 loaded once total, not once per call
+
+
 @pytest.mark.skipif(sys.platform == "win32", reason="cannot force NULL from real SHGetKnownFolderPath")
 def test_get_win_folder_via_ctypes_null_result(mocker: MockerFixture) -> None:
     _setup_ctypes_mocks(mocker)
