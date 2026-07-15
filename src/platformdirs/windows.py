@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import sys
+from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
@@ -302,10 +303,11 @@ _KNOWN_FOLDER_GUIDS: dict[str, str] = {
 }
 
 
-def get_win_folder_via_ctypes(csidl_name: str) -> str:
-    """Get folder via :func:`SHGetKnownFolderPath`.
+@cache
+def _build_get_win_folder_via_ctypes() -> Callable[[str], str]:
+    """Build the resolver once; a fresh ``_GUID`` per call leaks ctypes pointer types.
 
-    See https://learn.microsoft.com/en-us/windows/win32/api/shlobj_core/nf-shlobj_core-shgetknownfolderpath.
+    See https://github.com/tox-dev/platformdirs/issues/501.
 
     """
     if sys.platform != "win32":  # only needed for type checker to know that this code runs only on Windows
@@ -334,29 +336,41 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
     kernel32.GetShortPathNameW.restype = wintypes.DWORD
     kernel32.GetShortPathNameW.argtypes = [wintypes.LPWSTR, wintypes.LPWSTR, wintypes.DWORD]
 
-    folder_guid = _KNOWN_FOLDER_GUIDS.get(csidl_name)
-    if folder_guid is None:
-        msg = f"Unknown CSIDL name: {csidl_name}"
-        raise ValueError(msg)
+    def resolve(csidl_name: str) -> str:
+        folder_guid = _KNOWN_FOLDER_GUIDS.get(csidl_name)
+        if folder_guid is None:
+            msg = f"Unknown CSIDL name: {csidl_name}"
+            raise ValueError(msg)
 
-    guid = _GUID()
-    ole32.CLSIDFromString(folder_guid, byref(guid))
+        guid = _GUID()
+        ole32.CLSIDFromString(folder_guid, byref(guid))
 
-    path_ptr = wintypes.LPWSTR()
-    shell32.SHGetKnownFolderPath(byref(guid), _KF_FLAG_DONT_VERIFY, None, byref(path_ptr))
-    result = path_ptr.value
-    ole32.CoTaskMemFree(path_ptr)
+        path_ptr = wintypes.LPWSTR()
+        shell32.SHGetKnownFolderPath(byref(guid), _KF_FLAG_DONT_VERIFY, None, byref(path_ptr))
+        result = path_ptr.value
+        ole32.CoTaskMemFree(path_ptr)
 
-    if result is None:
-        msg = f"SHGetKnownFolderPath returned NULL for {csidl_name}"
-        raise ValueError(msg)
+        if result is None:
+            msg = f"SHGetKnownFolderPath returned NULL for {csidl_name}"
+            raise ValueError(msg)
 
-    if any(ord(c) > 255 for c in result):  # noqa: PLR2004
-        buf = create_unicode_buffer(1024)
-        if kernel32.GetShortPathNameW(result, buf, 1024):
-            result = buf.value
+        if any(ord(c) > 255 for c in result):  # noqa: PLR2004
+            buf = create_unicode_buffer(1024)
+            if kernel32.GetShortPathNameW(result, buf, 1024):
+                result = buf.value
 
-    return result
+        return result
+
+    return resolve
+
+
+def get_win_folder_via_ctypes(csidl_name: str) -> str:
+    """Get folder via :func:`SHGetKnownFolderPath`.
+
+    See https://learn.microsoft.com/en-us/windows/win32/api/shlobj_core/nf-shlobj_core-shgetknownfolderpath.
+
+    """
+    return _build_get_win_folder_via_ctypes()(csidl_name)
 
 
 def _pick_get_win_folder() -> Callable[[str], str]:
