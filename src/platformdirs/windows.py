@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import sys
+from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
@@ -11,6 +12,7 @@ from .api import PlatformDirsABC
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from ctypes import Structure
 
 # Not exposed by CPython; defined in the Windows SDK (shlobj_core.h)
 _KF_FLAG_DONT_VERIFY: Final[int] = 0x00004000
@@ -302,6 +304,21 @@ _KNOWN_FOLDER_GUIDS: dict[str, str] = {
 }
 
 
+@cache
+def _get_guid_type() -> type[Structure]:
+    from ctypes import Structure, wintypes  # noqa: PLC0415
+
+    class _Guid(Structure):
+        _fields_ = [
+            ("Data1", wintypes.DWORD),
+            ("Data2", wintypes.WORD),
+            ("Data3", wintypes.WORD),
+            ("Data4", wintypes.BYTE * 8),
+        ]
+
+    return _Guid
+
+
 def get_win_folder_via_ctypes(csidl_name: str) -> str:
     """Get folder via :func:`SHGetKnownFolderPath`.
 
@@ -310,25 +327,23 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
     """
     if sys.platform != "win32":  # only needed for type checker to know that this code runs only on Windows
         raise NotImplementedError
-    from ctypes import HRESULT, POINTER, Structure, WinDLL, byref, create_unicode_buffer, wintypes  # noqa: PLC0415
+    from ctypes import HRESULT, POINTER, WinDLL, byref, create_unicode_buffer, wintypes  # noqa: PLC0415
 
-    class _GUID(Structure):
-        _fields_ = [
-            ("Data1", wintypes.DWORD),
-            ("Data2", wintypes.WORD),
-            ("Data3", wintypes.WORD),
-            ("Data4", wintypes.BYTE * 8),
-        ]
-
+    guid_type = _get_guid_type()
     ole32 = WinDLL("ole32")
     ole32.CLSIDFromString.restype = HRESULT
-    ole32.CLSIDFromString.argtypes = [wintypes.LPCOLESTR, POINTER(_GUID)]
+    ole32.CLSIDFromString.argtypes = [wintypes.LPCOLESTR, POINTER(guid_type)]
     ole32.CoTaskMemFree.restype = None
     ole32.CoTaskMemFree.argtypes = [wintypes.LPVOID]
 
     shell32 = WinDLL("shell32")
     shell32.SHGetKnownFolderPath.restype = HRESULT
-    shell32.SHGetKnownFolderPath.argtypes = [POINTER(_GUID), wintypes.DWORD, wintypes.HANDLE, POINTER(wintypes.LPWSTR)]
+    shell32.SHGetKnownFolderPath.argtypes = [
+        POINTER(guid_type),
+        wintypes.DWORD,
+        wintypes.HANDLE,
+        POINTER(wintypes.LPWSTR),
+    ]
 
     kernel32 = WinDLL("kernel32")
     kernel32.GetShortPathNameW.restype = wintypes.DWORD
@@ -339,7 +354,7 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
         msg = f"Unknown CSIDL name: {csidl_name}"
         raise ValueError(msg)
 
-    guid = _GUID()
+    guid = guid_type()
     ole32.CLSIDFromString(folder_guid, byref(guid))
 
     path_ptr = wintypes.LPWSTR()

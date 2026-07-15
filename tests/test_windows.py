@@ -266,6 +266,42 @@ def test_get_win_folder_via_ctypes_passes_dont_verify_flag(mocker: MockerFixture
     assert flags_arg == _KF_FLAG_DONT_VERIFY
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="mock-based type inspection only runs on non-Windows")
+def test_get_win_folder_via_ctypes_reuses_guid_type(mocker: MockerFixture) -> None:
+    _setup_ctypes_mocks(mocker)
+    mock_pointer = mocker.patch("ctypes.POINTER", return_value=MagicMock())
+
+    mock_ole32 = MagicMock()
+    mock_shell32 = MagicMock()
+    mock_kernel32 = MagicMock()
+    mocker.patch.object(
+        ctypes,
+        "WinDLL",
+        MagicMock(
+            side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32, "kernel32": mock_kernel32}[name],
+        ),
+    )
+    mocker.patch("ctypes.byref", side_effect=lambda value: value)
+
+    mock_path_ptr = MagicMock()
+    mock_path_ptr.value = r"C:\Users\Test\AppData\Local"
+    mocker.patch("ctypes.wintypes.LPWSTR", return_value=mock_path_ptr)
+
+    try:
+        importlib.reload(windows)
+        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # noqa: PLC0415
+
+        fresh_fn("CSIDL_LOCAL_APPDATA")
+        guid_type_from_first_call = mock_pointer.call_args_list[-2].args[0]
+        mock_pointer.reset_mock()
+        fresh_fn("CSIDL_LOCAL_APPDATA")
+        guid_type_from_second_call = mock_pointer.call_args_list[-2].args[0]
+    finally:
+        _cleanup_ctypes_mocks()
+
+    assert guid_type_from_first_call is guid_type_from_second_call
+
+
 def test_get_win_folder_via_ctypes_unknown_csidl(mocker: MockerFixture) -> None:
     if sys.platform != "win32":
         _setup_ctypes_mocks(mocker, win_dll=MagicMock(side_effect=lambda _name: MagicMock()))
