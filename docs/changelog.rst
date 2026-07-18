@@ -10,442 +10,399 @@
  4.10.0 (2026-05-28)
 *********************
 
-- ✨ feat: add user_publicshare_dir, user_templates_dir, user_fonts_dir, user_preference_dir :pr:`491`
-- ✨ feat: add user_projects_dir for $XDG_PROJECTS_DIR :pr:`490`
-- chore: improve platformdirs maintenance path :pr:`488` - by :user:`lphuc2250gma`
+- Add :func:`~platformdirs.user_publicshare_dir`, :func:`~platformdirs.user_templates_dir`,
+  :func:`~platformdirs.user_fonts_dir`, and :func:`~platformdirs.user_preference_dir` :pr:`491`
+- Add :func:`~platformdirs.user_projects_dir` backed by ``$XDG_PROJECTS_DIR`` :pr:`490`
+- Return only the first path from :func:`~platformdirs.site_config_path` on macOS when ``multipath`` is set :pr:`488` -
+  by :user:`lphuc2250gma`
 
 ********************
  4.9.6 (2026-04-09)
 ********************
 
-- 🐛 fix(release): use double quotes for tag variable expansion :pr:`477`
-
-********************
- 4.9.5 (2026-04-06)
-********************
-
-- 📝 docs(appauthor): clarify None vs False on Windows :pr:`476`
-- Separates implementations of macOS dirs that share a default :pr:`473` - by :user:`Goddesen`
-- Remove persist-credentials: false from release job :pr:`472`
-- fix: do not duplicate site dirs in Unix.iter_{config,site}_dirs() when use_site_for_root is active :pr:`469` - by
-  :user:`viccie30`
-- 🔧 fix(type): resolve ty 0.0.25 type errors :pr:`468`
-- 🔒 ci(workflows): add zizmor security auditing :pr:`467`
-- 🐛 fix(release): generate docstrfmt-compatible changelog entries :pr:`463`
+- Fix macOS XDG variables leaking across :func:`~platformdirs.user_config_dir`, :func:`~platformdirs.user_data_dir`, and
+  :func:`~platformdirs.user_state_dir` when only some are set :pr:`473` - by :user:`Goddesen`
+- Avoid duplicate site directories in Unix :meth:`~platformdirs.PlatformDirs.iter_config_dirs` and
+  :meth:`~platformdirs.PlatformDirs.iter_data_dirs` when ``use_site_for_root`` is active :pr:`469` - by :user:`viccie30`
 
 ********************
  4.9.4 (2026-03-05)
 ********************
 
-- [pre-commit.ci] pre-commit autoupdate :pr:`461` - by :user:`pre-commit-ci[bot]`
-- Update README.md
-- 📝 docs: add project logo to documentation :pr:`459`
-- Standardize .github files to .yaml suffix
-- build(deps): bump the all group with 2 updates :pr:`457` - by :user:`dependabot[bot]`
-- Move SECURITY.md to .github/SECURITY.md
-- Add permissions to workflows :pr:`455`
-- Add security policy
-- [pre-commit.ci] pre-commit autoupdate :pr:`454` - by :user:`pre-commit-ci[bot]`
+- Respect ``XDG_CONFIG_HOME`` when reading the user-dirs configuration :pr:`453` - by :user:`bysiber`
+- Create the directory in Android :func:`~platformdirs.user_log_dir` and :func:`~platformdirs.user_runtime_dir` when
+  ``ensure_exists`` is set :pr:`452` - by :user:`bysiber`
 
 ********************
  4.9.2 (2026-02-16)
 ********************
 
-- 📝 docs: restructure following Diataxis framework :pr:`448`
-- 📝 docs(platforms): fix RST formatting and TOC hierarchy :pr:`447`
+- No user-facing changes
 
 ********************
  4.9.1 (2026-02-14)
 ********************
 
-- 📝 docs: enhance README, fix issues, and reorganize platforms.rst :pr:`445`
+- No user-facing changes
 
 ********************
  4.9.0 (2026-02-14)
 ********************
 
-- 📚 docs: split usage guide into tutorial, how-to, and reference :pr:`441`
-- ✨ feat(api): add site_bin_dir property :pr:`443`
-- ✨ feat(api): add site_applications_dir property :pr:`442`
-- 🐛 fix(unix): use correct runtime dir path for OpenBSD :pr:`440`
-- 📝 docs(usage): document use_site_for_root parameter :pr:`439`
+- Add :func:`~platformdirs.site_bin_dir` :pr:`443`
+- Add :func:`~platformdirs.site_applications_dir` :pr:`442`
+- Use the correct runtime directory path on OpenBSD :pr:`440`
 
 ********************
  4.8.0 (2026-02-14)
 ********************
 
-- 📝 docs(usage): note that home dir is in stdlib :pr:`431`
-- ✨ feat(api): add user_applications_dir property :pr:`432`
-- ✨ feat(api): add user_bin_dir property :pr:`430`
-- 🐛 fix(macos): yield individual site dirs in iter_*_dirs :pr:`429`
-- ✨ feat(windows): add WIN_PD_OVERRIDE_* env var overrides :pr:`428`
-- ✨ feat(windows): add PLATFORMDIRS_* env var overrides :pr:`427`
-- ✨ feat(api): add use_site_for_root parameter :pr:`426`
-- ✨ feat(api): add site_state_dir for system-wide state :pr:`425`
-- ✨ feat(api): add site_log_dir and document Store Python sandbox :pr:`424`
-- 📝 docs(windows): document Store Python sandbox path behavior :pr:`423`
+- Add ``use_site_for_root`` to redirect ``user_*_dir`` to ``site_*_dir`` for root on Unix :pr:`426`
+- Add :func:`~platformdirs.site_state_dir` for system-wide state :pr:`425`
+- Add :func:`~platformdirs.site_log_dir` :pr:`424`
+- Add :func:`~platformdirs.user_applications_dir` :pr:`432`
+- Add :func:`~platformdirs.user_bin_dir` :pr:`430`
+- Add ``PLATFORMDIRS_*`` environment variable overrides for Windows folder resolution :pr:`427`
+- Add ``WIN_PD_OVERRIDE_*`` environment variable overrides for Windows folder resolution :pr:`428`
+- Yield individual site directories from :meth:`~platformdirs.PlatformDirs.iter_data_dirs` and
+  :meth:`~platformdirs.PlatformDirs.iter_config_dirs` on macOS :pr:`429`
 
 ********************
  4.7.1 (2026-02-13)
 ********************
 
-- 🐛 fix(windows): avoid FileNotFoundError in sandboxed environments :pr:`422`
+- Avoid :exc:`FileNotFoundError` on Windows in sandboxed environments :pr:`422`
 
 ********************
  4.7.0 (2026-02-12)
 ********************
 
-- 🔧 build(release): adopt filelock-style automated workflow :pr:`420`
-- 🐛 fix(unix): fall back to tempdir when runtime dir is not writable :pr:`369` - by :user:`lengau`
-- Replace SHGetFolderPathW with SHGetKnownFolderPath :pr:`380` - by :user:`moi15moi`
-- 📝 docs: restructure and fix cross-references :pr:`419`
+- Fall back to a temp directory when the Unix runtime dir is not writable :pr:`369` - by :user:`lengau`
+- Use ``SHGetKnownFolderPath`` instead of the deprecated ``SHGetFolderPathW`` on Windows :pr:`380` - by :user:`moi15moi`
 
 ********************
  4.6.0 (2026-02-12)
 ********************
 
-- feat(macos): add XDG env var support via shared mixin :pr:`375` - by :user:`Czaki`
-- build: migrate from hatch to tox with ty :pr:`415`
-- Fix docs for ``site_cache_dir`` :pr:`402` - by :user:`brianhelba`
-- Update outdated link and correct function doc :pr:`398` - by :user:`joclement`
+- Honor XDG environment variables on macOS :pr:`375` - by :user:`Czaki`
+- Fix :func:`~platformdirs.site_cache_dir` documentation :pr:`402` - by :user:`brianhelba`
+- Fix an outdated link and correct a function docstring :pr:`398` - by :user:`joclement`
 
 ********************
  4.5.1 (2025-12-05)
 ********************
 
-- Fix no-ctypes fallback on windows :pr:`403` - by :user:`youknowone`
+- Fix no-ctypes fallback on Windows :pr:`403` - by :user:`youknowone`
 
 ********************
  4.5.0 (2025-10-08)
 ********************
 
-- Drop 3.9 support :pr:`389`
-- Update Windows file paths in README :pr:`385` - by :user:`ParadaCarleton`
 - Add support for Python 3.14 :pr:`382` - by :user:`hugovk`
+- Drop support for Python 3.9 :pr:`389`
+- Update Windows file paths in README :pr:`385` - by :user:`ParadaCarleton`
 
 ********************
  4.4.0 (2025-08-26)
 ********************
 
-- feat: improve homebrew path detection :pr:`370` - by :user:`daeho-ro`
+- Improve Homebrew path detection :pr:`370` - by :user:`daeho-ro`
 
 ********************
  4.3.8 (2025-05-07)
 ********************
 
-- Add missing examples and fix order of examples in README :pr:`355` - by :user:`gene1wood`
+- Add missing examples and fix example order in README :pr:`355` - by :user:`gene1wood`
 
 ********************
  4.3.7 (2025-03-19)
 ********************
 
 - Drop support for EOL Python 3.8 :pr:`330` - by :user:`hugovk`
-- Chunk dependabot updates into a single PR :pr:`311` - by :user:`ofek`
 
 ********************
  4.3.6 (2024-09-17)
 ********************
 
-- Fix readme download target :pr:`307`
+- No user-facing changes
 
 ********************
  4.3.5 (2024-09-17)
 ********************
 
-- Split build and publish for release :pr:`306`
+- No user-facing changes
 
 ********************
  4.3.4 (2024-09-17)
 ********************
 
-- Use upstream setup-uv with uv python :pr:`305`
+- No user-facing changes
 
 ********************
  4.3.3 (2024-09-13)
 ********************
 
-- Don't include outdated changelog in docs :pr:`301` - by :user:`cbm755`
-- Update check.yml :pr:`302`
+- No user-facing changes
 
 ********************
  4.3.2 (2024-09-08)
 ********************
 
-- Fix multi-path returned from ``_path`` methods on MacOS :pr:`299` - by :user:`matthewhughes934`
-- Use uv as installer :pr:`300`
+- Fix multi-path returned from ``_path`` methods on macOS :pr:`299` - by :user:`matthewhughes934`
 
 ********************
  4.3.1 (2024-09-07)
 ********************
 
-- Update README
+- No user-facing changes
 
 ********************
  4.3.0 (2024-09-07)
 ********************
 
-- Ensure PlatformDirs is valid superclass type for mypy AND not an abstract class for other checkers :pr:`295` - by
-  :user:`Avasam`
-- Use ``include-hidden-files: true`` to upload coverage artifacts :pr:`298` - by :user:`edgarrmondragon`
-- Test with latest PyPy :pr:`290` - by :user:`edgarrmondragon`
-- Test with Python 3.13 :pr:`289` - by :user:`edgarrmondragon`
-- Speed up Hatch installation :pr:`282` - by :user:`ofek`
+- Make :class:`~platformdirs.PlatformDirs` usable as a mypy superclass without breaking other type checkers :pr:`295` -
+  by :user:`Avasam`
+- Add support for Python 3.13 :pr:`289` - by :user:`edgarrmondragon`
 
 ********************
  4.2.2 (2024-05-15)
 ********************
 
-- Fix android detection when python4android is present :pr:`277` - by :user:`tmolitor-stud-tu`
+- Fix Android detection when ``python-for-android`` is present :pr:`277` - by :user:`tmolitor-stud-tu`
 
 ********************
  4.2.1 (2024-04-23)
 ********************
 
 - Allow working without ctypes :pr:`275` - by :user:`youknowone`
-- Update dead Microsoft's known folders documentation link :pr:`267` - by :user:`deronnax`
-- Various minor fixes :pr:`263` - by :user:`deronnax`
-- Use hatch over tox :pr:`262`
-- Switch to ruff for formatting and use codespell and docformatter :pr:`261`
 
 ********************
  4.2.0 (2024-01-31)
 ********************
 
-- Add convenience methods to ``PlatformDirsAPI`` that allow iterating over both user and site dirs/paths :pr:`258` - by
-  :user:`SpaceshipOperations`
-- Fix 2 typos about ``XDG_DATA_DIR`` :pr:`256` - by :user:`Freed-Wu`
+- Add convenience methods to iterate over both user and site dirs and paths :pr:`258` - by :user:`SpaceshipOperations`
+- Fix two typos referencing ``XDG_DATA_DIR`` :pr:`256` - by :user:`Freed-Wu`
 
 ********************
  4.1.0 (2023-12-04)
 ********************
 
 - Drop support for EOL Python 3.7 :pr:`246` - by :user:`hugovk`
-- Fix Linux ``user_log_dir`` example in README :pr:`245` - by :user:`dbohdan`
-- Update changelog for 4.0.0 :pr:`242` - by :user:`rafalkrupinski`
+- Fix Linux :func:`~platformdirs.user_log_dir` example in README :pr:`245` - by :user:`dbohdan`
 
 ********************
  4.0.0 (2023-11-10)
 ********************
 
-- UNIX: revert ``site_cache_dir`` to use ``/var/cache`` instead of ``/var/tmp`` :pr:`239` - by :user:`andersk`
+- Revert :func:`~platformdirs.site_cache_dir` on UNIX to ``/var/cache`` instead of ``/var/tmp`` :pr:`239` - by
+  :user:`andersk`
 
 *********************
  3.11.0 (2023-10-02)
 *********************
 
-- BSD: provide a fallback for ``user_runtime_dir``
+- Detect Homebrew-installed software on macOS :pr:`232` - by :user:`singingwolfboy`
 
 *********************
  3.10.0 (2023-07-29)
 *********************
 
-- Add missing user media directory docs
+- Add :func:`~platformdirs.site_runtime_dir` :pr:`212` - by :user:`kemzeb`
 
 ********************
  3.9.1 (2023-07-15)
 ********************
 
-- Have ``user_runtime_dir`` return ``/var/run/user/uid`` for \*BSD
+- Optionally create the opinionated ``log`` subdirectory in :func:`~platformdirs.user_log_dir` on Unix :pr:`208` - by
+  :user:`kemzeb`
 
 ********************
  3.9.0 (2023-07-15)
 ********************
 
-- Introduce ``user_downloads_dir``
+- Add :func:`~platformdirs.user_desktop_dir` and :func:`~platformdirs.user_desktop_path` :pr:`200` - by
+  :user:`lukacat10`
 
 ********************
  3.8.1 (2023-07-06)
 ********************
 
-- Use ruff
+- Provide a fallback for :func:`~platformdirs.user_runtime_dir` on BSD :pr:`201` - by :user:`RayyanAnsari`
 
 ********************
  3.8.0 (2023-06-22)
 ********************
 
-- Test with 3.12.0.b1
+- No user-facing changes
 
 ********************
  3.7.0 (2023-06-20)
 ********************
 
-- Introduce ``user_music_dir``
+- Return ``/var/run/user/$uid`` from :func:`~platformdirs.user_runtime_dir` on \*BSD :pr:`194` - by :user:`kemzeb`
 
 ********************
  3.6.0 (2023-06-18)
 ********************
 
-- Introduce ``user_videos_dir``
+- Add :func:`~platformdirs.user_downloads_dir` :pr:`192` - by :user:`cofiem`
 
 ********************
  3.5.3 (2023-06-09)
 ********************
 
-- Introduce ``user_pictures_dir``
+- Add support for Python 3.12
 
 ********************
  3.5.2 (2023-06-09)
 ********************
 
-- Add 3.12 support
-- Add ``tox.ini`` to sdist
-- Removing Windows versions
-- Better handling for UNIX support
+- No user-facing changes
 
 ********************
  3.5.1 (2023-05-11)
 ********************
 
-- Add auto create directories optional
+- Define ``getuid`` on all non-Windows platforms so :func:`~platformdirs.user_runtime_dir` works beyond Linux :pr:`183`
 
 ********************
  3.5.0 (2023-04-27)
 ********************
 
-- ``site_cache_dir`` use ``/var/tmp`` instead of ``/var/cache`` on unix, as the later may be write protected
+- Add :func:`~platformdirs.user_music_dir` :pr:`173` - by :user:`kemzeb`
 
 ********************
  3.4.0 (2023-04-26)
 ********************
 
-- Introduce ``site_cache_dir``
+- Add :func:`~platformdirs.user_videos_dir` :pr:`169` - by :user:`kemzeb`
 
 ********************
  3.3.0 (2023-04-25)
 ********************
 
-- Add ``appdirs`` keyword to package
+- Add :func:`~platformdirs.user_pictures_dir` :pr:`167` - by :user:`kemzeb`
 
 ********************
  3.2.0 (2023-03-25)
 ********************
 
-- **BREAKING** Changed the config directory on macOS to point to ``*/Library/Application Support``
-- macOS: remove erroneous trailing slash from ``user_config_dir`` and ``user_data_dir``
+- Add the ``ensure_exists`` option to create directories when they are missing :pr:`155` - by :user:`smsearcy`
 
 ********************
  3.1.1 (2023-03-10)
 ********************
 
-- Fix missing ``typing-extensions`` dependency
+- Point :func:`~platformdirs.site_cache_dir` at ``/var/tmp`` instead of write-protected ``/var/cache`` on Unix :pr:`148`
+  - by :user:`efiop`
 
 ********************
  3.1.0 (2023-03-03)
 ********************
 
-- Add detection of ``$PREFIX`` for android
-
-********************
- 3.0.1 (2023-03-02)
-********************
-
-- **BREAKING** Correct the log directory on Linux/Unix from ``XDG_CACHE_HOME`` to ``XDG_STATE_HOME`` per the XDG spec
+- Add :func:`~platformdirs.site_cache_dir` :pr:`145` - by :user:`efiop`
 
 ********************
  3.0.0 (2023-02-06)
 ********************
 
-- Fix licensing metadata
-- Support 3.11
-- Bump dependencies
+- **BREAKING** Point macOS :func:`~platformdirs.user_config_dir` and :func:`~platformdirs.site_config_dir` at
+  ``*/Library/Application Support`` to mirror the data dirs, and drop the trailing slash from
+  :func:`~platformdirs.user_config_dir` and :func:`~platformdirs.user_data_dir` :pr:`137` - by :user:`ThomasWaldmann`
 
 ********************
  2.6.2 (2022-12-28)
 ********************
 
-- Fix missing ``typing-extensions`` dependency
+- Add ``typing-extensions`` as a dependency on Python < 3.8 :pr:`123` - by :user:`amacf`
 
 ********************
  2.6.1 (2022-12-29)
 ********************
 
-- Add detection of ``$PREFIX`` for android
+- Detect Termux via ``$PREFIX`` when ``$SHELL`` is unset :pr:`115` - by :user:`Freed-Wu`
 
 ********************
  2.6.0 (2022-12-06)
 ********************
 
-- **BREAKING** Correct the log directory on Linux/Unix from ``XDG_CACHE_HOME`` to ``XDG_STATE_HOME`` per the XDG spec
+- Point :func:`~platformdirs.user_log_dir` at :func:`~platformdirs.user_state_dir` on Linux per the XDG spec :pr:`108` -
+  by :user:`lordwelch`
 
 ********************
  2.5.4 (2022-11-12)
 ********************
 
-- Fix licensing metadata
+- No user-facing changes
 
 ********************
  2.5.3 (2022-11-06)
 ********************
 
-- Support 3.11
-- Bump dependencies
+- Declare support for Python 3.11 :pr:`103` - by :user:`hugovk`
 
 ********************
  2.5.2 (2022-04-18)
 ********************
 
-- Move packaging to hatchling from setuptools
-- Treat android shells as unix
+- Treat Android shells as Unix :pr:`72`
 
 ********************
  2.5.1 (2022-02-19)
 ********************
 
-- Add native support for nuitka
+- Work out of the box under Nuitka standalone builds :pr:`68`
 
 ********************
  2.5.0 (2022-02-09)
 ********************
 
-- Add support for Termux subsystems
+- Support the Termux subsystem :pr:`63` - by :user:`YariKartoshe4ka`
 
 ********************
  2.4.1 (2021-12-26)
 ********************
 
-- Drop python 3.6 support
+- **BREAKING** Drop Python 3.6 support :pr:`52`
 
 ********************
  2.4.0 (2021-09-25)
 ********************
 
-- Add ``user_documents_dir``
+- Add :func:`~platformdirs.user_documents_dir` :pr:`39` - by :user:`JuneStepp`
 
 ********************
  2.3.0 (2021-08-30)
 ********************
 
-- Add ``user_runtime_dir`` and its path-returning equivalent
+- Add :func:`~platformdirs.user_runtime_dir` for ``$XDG_RUNTIME_DIR`` :pr:`37` - by :user:`whonore`
 
 ********************
  2.2.0 (2021-07-29)
 ********************
 
-- Unix: Fallback to default if XDG environment variable is empty
+- Unix: fall back to the default when the ``$XDG_*`` environment variable is empty :pr:`30` - by :user:`papr`
 
 ********************
  2.1.0 (2021-07-25)
 ********************
 
-- Add ``readthedocs.org`` documentation via Sphinx
-- Modernize project layout
-- Drop Python 2.7 and 3.5 support
-- Android support
-- Add type annotations
-- Reorganize project layout to platform specific classes
-- Add ``*_path`` API, returning :class:`~pathlib.Path` objects instead of :class:`str` - by :user:`papr`
+- Add ``pathlib.Path``-returning ``*_path`` API alongside the string variants :pr:`27` - by :user:`papr`
+- Add Android support :pr:`18`
+- Add type annotations :pr:`20` - by :user:`domdfcoding`
+- **BREAKING** Drop Python 2.7 and 3.5 support :pr:`14` - by :user:`domdfcoding`
 
 ********************
  2.0.2 (2021-07-13)
 ********************
 
-- Fix ``__version__`` and ``__version_info__``
+- No user-facing changes
 
 ********************
  2.0.0 (2021-07-12)
 ********************
 
-- **BREAKING** Name change as part of the friendly fork
+- **BREAKING** Rename ``appdirs`` to ``platformdirs`` as part of the friendly fork
 - **BREAKING** Remove support for end-of-life Pythons 2.6, 3.2, and 3.3
-- **BREAKING** Correct the config directory on OSX/macOS
-- Add Python 3.7, 3.8, and 3.9 support
+- **BREAKING** Correct the config directory on macOS
+- Add support for Python 3.7, 3.8, and 3.9
