@@ -6,6 +6,14 @@
 
 .. towncrier release notes start
 
+********************
+ 4.10.1 (2026-07-18)
+********************
+
+- Stop leaking memory on repeated Windows folder lookups. ``get_win_folder_via_ctypes`` defined a fresh ``ctypes``
+  structure on every call, and each one registered a pointer type that was never released; the resolver is now built once
+  and reused. :pr:`507`
+
 *********************
  4.10.0 (2026-05-28)
 *********************
