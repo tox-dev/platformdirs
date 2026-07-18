@@ -1,120 +1,81 @@
-name: Release
+name: 🚀 Release
 on:
-  workflow_dispatch:
-    inputs:
-      release:
-        description: "Release (semver bump)?"
-        required: true
-        default: "no"
-        type: choice
-        options: ["no", patch, minor, major]
   push:
     branches: ["main"]
+    tags: ["[0-9]+.[0-9]+.[0-9]+"]
   pull_request:
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}${{ github.event.inputs.release && github.event.inputs.release != 'no' && '-release' || '' }}
-  cancel-in-progress: ${{ github.event.inputs.release == 'no' || github.event.inputs.release == null }}
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 permissions:
   contents: read
 env:
   dists-artifact-name: python-package-distributions
 jobs:
   build:
-    name: build
+    name: 📦 build
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-      pull-requests: read
-    outputs:
-      version: ${{ steps.v.outputs.version }}
-      changelog: ${{ steps.v.outputs.changelog }}
     steps:
-      - name: Checkout
+      - name: 📥 Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # full history so hatch-vcs derives the version from the tag
           persist-credentials: false
-      - name: Setup uv
+      - name: 📦 Setup uv
         uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
-          enable-cache: true
-          cache-dependency-glob: "tasks/changelog.py"
-      - name: Generate changelog
-        id: v
-        run: uv run tasks/changelog.py "$RELEASE_TYPE" "$EVENT_NUMBER" "$BASE_SHA"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TYPE: ${{ github.event.inputs.release == 'no' || github.event.inputs.release == null && 'patch' || github.event.inputs.release }}
-          EVENT_NUMBER: ${{ github.event.number }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-      - name: Create temporary tag for hatch-vcs
-        if: github.event.inputs.release != 'no' && github.event.inputs.release != null
-        run: git tag "${STEPS_V_OUTPUTS_VERSION}"
-        env:
-          STEPS_V_OUTPUTS_VERSION: ${{ steps.v.outputs.version }}
-      - name: Build package
+          enable-cache: false # this workflow builds the artifact that gets published; no cache to poison
+      - name: 📦 Build package
         run: uv build --python 3.14 --python-preference only-managed --sdist --wheel . --out-dir dist
-      - name: Store the distribution packages
+      - name: 📤 Store the distribution packages
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ${{ env.dists-artifact-name }}
           path: dist/*
-  release:
-    name: release
+  publish:
+    name: 🚀 publish
     needs: [build]
-    if: github.event.inputs.release != 'no' && github.event.inputs.release != null && github.ref == 'refs/heads/main'
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
     environment:
       name: release
-      url: https://pypi.org/project/platformdirs/${{ needs.build.outputs.version }}
+      url: https://pypi.org/project/platformdirs/${{ github.ref_name }}
     permissions:
       id-token: write
       contents: write
     steps:
-      - name: Checkout
+      - name: 📥 Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          token: ${{ secrets.RELEASE_TOKEN }} # zizmor: ignore[artipacked]
-      - name: Commit changelog and tag
+          persist-credentials: false
+      - name: 🛡️ Require a changelog section for this release
         env:
-          CHANGELOG: ${{ needs.build.outputs.changelog }}
-          VERSION: ${{ needs.build.outputs.version }}
+          VERSION: ${{ github.ref_name }}
+        # A tag reaches PyPI only through prepare-release, which builds the changelog first. A tag pushed by hand skips
+        # that, so refuse to publish a version the changelog does not document rather than ship it silently.
         run: |
-          if git ls-remote --tags origin "refs/tags/$VERSION" | grep -q .; then
-            echo "Tag $VERSION already exists, skipping changelog commit"
-            exit 0
+          if ! grep -qE "^ ${VERSION//./\\.} \(" docs/changelog.rst; then
+            echo "::error::docs/changelog.rst has no section for $VERSION; release via the Prepare release workflow"
+            exit 1
           fi
-          git config user.name "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
-          header=" $VERSION ($(date -u +%Y-%m-%d))"
-          separator=$(printf '%0.s*' $(seq 1 $((${#header} + 1))))
-          {
-            head -4 docs/changelog.rst
-            printf '%s\n%s\n%s\n\n%s\n\n' "$separator" "$header" "$separator" "$CHANGELOG"
-            tail -n +5 docs/changelog.rst
-          } > docs/changelog.tmp
-          mv docs/changelog.tmp docs/changelog.rst
-          git add docs/changelog.rst
-          git commit -m "Release $VERSION"
-          git tag "$VERSION"
-          git push origin "$VERSION"
-          git push origin main
-      - name: Download all the dists
+      - name: ⬇️ Download all the dists
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: ${{ env.dists-artifact-name }}
           path: dist/
-      - name: Publish to PyPI
+      - name: 🚀 Publish to PyPI
         uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
         with:
           skip-existing: true
-      - name: Create GitHub release
+      - name: 📢 Create GitHub release
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          VERSION: ${{ needs.build.outputs.version }}
+          VERSION: ${{ github.ref_name }}
         run: |
-          if gh release view "$VERSION" > /dev/null 2>&1; then
+          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
             echo "Release $VERSION already exists, skipping"
           else
-            gh release create "$VERSION" --title="$VERSION" --verify-tag --generate-notes
+            gh release create "$VERSION" --repo "$GITHUB_REPOSITORY" --title="$VERSION" --verify-tag --generate-notes
           fi

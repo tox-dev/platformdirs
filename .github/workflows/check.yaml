@@ -146,3 +146,21 @@ jobs:
         run: tox run --skip-pkg-install -e ${{ matrix.tox_env }}
         env:
           UV_PYTHON_PREFERENCE: only-managed
+  changelog:
+    name: 📝 News fragment
+    runs-on: ubuntu-24.04
+    # A PR must add a docs/changelog/<pr>.<type>.rst fragment; automated dependency and pre-commit bumps are exempt, as
+    # is anything labeled skip news, for changes no user of the library can observe.
+    if: >-
+      github.event_name == 'pull_request' && !contains(fromJSON('["dependabot[bot]", "pre-commit-ci[bot]"]'), github.actor) && !contains(github.event.pull_request.labels.*.name, 'skip news')
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: false
+      - name: Require a news fragment
+        run: uvx towncrier check --compare-with "origin/${GITHUB_BASE_REF}"
