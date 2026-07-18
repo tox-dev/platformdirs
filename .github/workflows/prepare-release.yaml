@@ -1,0 +1,74 @@
+name: 🛠️ Prepare release
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump"
+        required: true
+        default: auto
+        type: choice
+        options: [auto, major, minor, patch]
+permissions:
+  contents: read
+jobs:
+  prepare-release:
+    name: 📝 build changelog and tag
+    runs-on: ubuntu-24.04
+    # RELEASE_TOKEN is an environment-scoped secret; selecting the environment resolves it so the checkout can push.
+    environment:
+      name: release
+    permissions:
+      contents: write
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0 # full history so the version calculation sees the latest tag
+          token: ${{ secrets.RELEASE_TOKEN }} # zizmor: ignore[artipacked]
+      - name: 📦 Setup uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: false
+      - name: 🔢 Compute next version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          current=$(git tag --list --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+          current=${current:-0.0.0}
+          IFS='.' read -r major minor patch <<< "$current"
+          bump="$BUMP"
+          if [ "$bump" = "auto" ]; then
+            if ls docs/changelog/*.breaking.rst >/dev/null 2>&1; then
+              bump=major
+            elif ls docs/changelog/*.feature.rst >/dev/null 2>&1; then
+              bump=minor
+            else
+              bump=patch
+            fi
+          fi
+          case "$bump" in
+            major) next="$((major + 1)).0.0" ;;
+            minor) next="$major.$((minor + 1)).0" ;;
+            patch) next="$major.$minor.$((patch + 1))" ;;
+          esac
+          echo "Bumping $current -> $next ($bump)"
+          echo "version=$next" >> "$GITHUB_OUTPUT"
+      - name: 📝 Build changelog, commit, and tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        # Push the branch first, then the tag. The tag is pushed with RELEASE_TOKEN (a PAT), so it triggers the release
+        # workflow on the tag ref, where the build is verified against the changelog and published to PyPI.
+        run: |
+          if git ls-remote --tags origin "refs/tags/$VERSION" | grep -q .; then
+            echo "::error::Tag $VERSION already exists"
+            exit 1
+          fi
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
+          uvx towncrier build --yes --version "$VERSION"
+          git add docs/changelog docs/changelog.rst
+          git commit -m "Release $VERSION"
+          git tag "$VERSION"
+          git push origin HEAD:main
+          git push origin "$VERSION"

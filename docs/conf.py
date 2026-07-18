@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from pathlib import Path
 
 from platformdirs.version import __version__
 
@@ -24,6 +25,7 @@ extensions = [
     "sphinx_design",
     "sphinx_sitemap",
     "sphinxcontrib.mermaid",
+    "sphinxcontrib.towncrier.ext",  # render unreleased news fragments as a draft "Unreleased" section
     "sphinxext.opengraph",
 ]
 html_theme = "furo"
@@ -51,3 +53,8 @@ sitemap_url_scheme = "{link}"
 ogp_site_url = "https://platformdirs.readthedocs.io/en/latest/"
 ogp_site_name = "platformdirs"
 ogp_enable_meta_description = True
+towncrier_draft_autoversion_mode = "draft"
+towncrier_draft_include_empty = True  # keep the docs build green right after a release, when no fragments remain
+towncrier_draft_working_directory = Path(__file__).parent.parent
+# Towncrier news fragments are rST snippets folded into changelog.rst at release; they are not standalone pages.
+exclude_patterns = ["changelog/*"]
