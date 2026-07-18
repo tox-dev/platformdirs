@@ -81,7 +81,9 @@ docs = [
   "sphinx-design>=0.7",
   "sphinx-sitemap>=2.9",
   "sphinxcontrib-mermaid>=2",
+  "sphinxcontrib-towncrier>=0.5.0a0",
   "sphinxext-opengraph>=0.13",
+  "towncrier>=24.8",
 ]
 coverage = [
   "covdefaults>=2.3",
@@ -97,9 +99,7 @@ pkg-meta = [
   "uv>=0.10.7",
 ]
 release = [
-  "gitpython>=3.1.46",
-  "pygithub>=2.8.1",
-  "pyyaml>=6.0.3",
+  "towncrier>=24.8",
 ]
 
 [tool.hatch]
@@ -129,12 +129,6 @@ lint.ignore = [
   "E501",   # line length handled by ruff format (code) and docstrfmt (docstrings)
   "RUF067", # `__init__` module should only contain docstrings and re-exports
   "S104",   # Possible binding to all interfaces
-]
-lint.per-file-ignores."tasks/**/*.py" = [
-  "D",      # don't care about documentation in tasks scripts
-  "INP001", # no implicit namespace
-  "S603",   # `subprocess` call: check for execution of untrusted input
-  "T201",   # print allowed in scripts
 ]
 lint.per-file-ignores."tests/**/*.py" = [
   "D",       # don't care about documentation in tests
@@ -185,3 +179,18 @@ paths.source = [
 report.fail_under = 76
 html.show_contexts = true
 html.skip_covered = false
+
+[tool.towncrier]
+name = "platformdirs"
+directory = "docs/changelog"
+filename = "docs/changelog.rst"
+template = "docs/changelog/template.jinja2"
+title_format = false
+issue_format = ":pr:`{issue}`"
+type = [
+  { directory = "breaking", name = "Backward incompatible changes", showcontent = true },
+  { directory = "feature", name = "Features", showcontent = true },
+  { directory = "bugfix", name = "Bug fixes", showcontent = true },
+  { directory = "doc", name = "Improved documentation", showcontent = true },
+  { directory = "packaging", name = "Packaging updates", showcontent = true },
+]

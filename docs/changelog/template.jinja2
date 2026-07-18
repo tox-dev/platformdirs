@@ -1,0 +1,13 @@
+{% set header = versiondata.version + " (" + versiondata.date + ")" %}
+{{ "*" * (header | length + 1) }}
+ {{ header }}
+{{ "*" * (header | length + 1) }}
+
+{% for section, _ in sections.items() %}
+{% for category, val in definitions.items() if category in sections[section] %}
+{% for text, values in sections[section][category].items() %}
+- {{ text }}{{ (" " + values | join(", ")) if values else "" }}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+{{ "\n" }}
