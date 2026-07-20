@@ -64,7 +64,7 @@ def test_macos(mocker: MockerFixture, params: dict[str, Any], func: str) -> None
 
     home = str(Path("~").expanduser())
     suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # noqa: PTH118
+    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]
 
     expected_map = {
         "user_data_dir": f"{home}/Library/Application Support{suffix}",
@@ -144,7 +144,7 @@ def test_macos_homebrew(mocker: MockerFixture, params: dict[str, Any], multipath
 
         home = str(Path("~").expanduser())
         suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-        suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # noqa: PTH118
+        suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]
 
         expected_path_map = {
             "site_cache_path": Path(f"{prefix['homebrew_prefix']}/var/cache{suffix}"),
@@ -195,7 +195,7 @@ def test_macos_xdg_env_vars(
     monkeypatch.setenv(env_var, xdg_path)
     result = getattr(MacOS(**params), prop)
     suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # noqa: PTH118
+    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]
     assert result == f"{xdg_path}{suffix}"
 
 

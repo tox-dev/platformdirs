@@ -45,7 +45,7 @@ def test_android(mocker: MockerFixture, params: dict[str, Any], func: str) -> No
         suffix_elements.insert(0, "")
     suffix = "/".join(suffix_elements)
 
-    val = "/tmp"  # noqa: S108
+    val = "/tmp"  # ruff:ignore[hardcoded-temp-file]
     expected_map = {
         "user_data_dir": f"/data/data/com.example/files{suffix}",
         "site_data_dir": f"/data/data/com.example/files{suffix}",
@@ -81,8 +81,8 @@ def test_android(mocker: MockerFixture, params: dict[str, Any], func: str) -> No
 
 
 def test_android_folder_from_jnius(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch) -> None:
-    from platformdirs import PlatformDirs  # noqa: PLC0415
-    from platformdirs.android import _android_folder  # noqa: PLC0415
+    from platformdirs import PlatformDirs  # ruff:ignore[import-outside-top-level]
+    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]
 
     mocker.patch.dict(sys.modules, {"android": MagicMock(side_effect=ModuleNotFoundError)})
     monkeypatch.delitem(__import__("sys").modules, "android")
@@ -90,7 +90,7 @@ def test_android_folder_from_jnius(mocker: MockerFixture, monkeypatch: pytest.Mo
     _android_folder.cache_clear()
 
     if PlatformDirs is Android:
-        import jnius  # pragma: no cover # noqa: PLC0415
+        import jnius  # pragma: no cover # ruff:ignore[import-outside-top-level]
 
         autoclass = mocker.spy(jnius, "autoclass")  # pragma: no cover
     else:
@@ -110,7 +110,7 @@ def test_android_folder_from_jnius(mocker: MockerFixture, monkeypatch: pytest.Mo
 
 
 def test_android_folder_from_p4a(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch) -> None:
-    from platformdirs.android import _android_folder  # noqa: PLC0415
+    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]
 
     mocker.patch.dict(sys.modules, {"jnius": MagicMock(side_effect=ModuleNotFoundError)})
     monkeypatch.delitem(__import__("sys").modules, "jnius")
@@ -146,7 +146,7 @@ def test_android_folder_from_sys_path(mocker: MockerFixture, path: str, monkeypa
     mocker.patch.dict(sys.modules, {"android": MagicMock(side_effect=ModuleNotFoundError)})
     monkeypatch.delitem(__import__("sys").modules, "android")
 
-    from platformdirs.android import _android_folder  # noqa: PLC0415
+    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]
 
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", ["/A", "/B", path])
@@ -158,7 +158,7 @@ def test_android_folder_from_sys_path(mocker: MockerFixture, path: str, monkeypa
 def test_android_folder_not_found(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch) -> None:
     mocker.patch.dict(sys.modules, {"jnius": MagicMock(autoclass=MagicMock(side_effect=ModuleNotFoundError))})
 
-    from platformdirs.android import _android_folder  # noqa: PLC0415
+    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]
 
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", [])
@@ -178,7 +178,7 @@ def test_android_ensure_exists_creates_opinion_subdir(
     prop: str,
     subdir: str,
 ) -> None:
-    from pathlib import Path  # noqa: PLC0415
+    from pathlib import Path  # ruff:ignore[import-outside-top-level]
 
     mocker.patch("platformdirs.android._android_folder", return_value=str(tmp_path), autospec=True)
     cache_dir = tmp_path / "cache"
