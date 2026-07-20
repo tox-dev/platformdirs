@@ -1,4 +1,4 @@
-# noqa: INP001
+# ruff:ignore[implicit-namespace-package]
 """Configuration for Sphinx."""
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ from platformdirs.version import __version__
 
 author = "The platformdirs team"
 project = "platformdirs"
-copyright = "2021, The platformdirs team"  # noqa: A001
+copyright = "2021, The platformdirs team"  # ruff:ignore[builtin-variable-shadowing]
 
 release = __version__
 version = release

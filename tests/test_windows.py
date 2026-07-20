@@ -63,17 +63,17 @@ def test_windows(params: dict[str, Any], func: str) -> None:
         suffix_parts.extend((appname, appname))
         if version := params.get("version"):
             suffix_parts.append(version)
-    local = os.path.join(_LOCAL, *suffix_parts) if suffix_parts else _LOCAL  # noqa: PTH118
-    common = os.path.join(_COMMON, *suffix_parts) if suffix_parts else _COMMON  # noqa: PTH118
-    temp = os.path.join(_LOCAL, "Temp", *suffix_parts) if suffix_parts else os.path.join(_LOCAL, "Temp")  # noqa: PTH118
-    cache_local = os.path.join(  # noqa: PTH118
+    local = os.path.join(_LOCAL, *suffix_parts) if suffix_parts else _LOCAL  # ruff:ignore[os-path-join]
+    common = os.path.join(_COMMON, *suffix_parts) if suffix_parts else _COMMON  # ruff:ignore[os-path-join]
+    temp = os.path.join(_LOCAL, "Temp", *suffix_parts) if suffix_parts else os.path.join(_LOCAL, "Temp")  # ruff:ignore[os-path-join]
+    cache_local = os.path.join(  # ruff:ignore[os-path-join]
         _LOCAL, *suffix_parts[:2], *(["Cache"] if suffix_parts else []), *suffix_parts[2:]
     )
-    cache_common = os.path.join(  # noqa: PTH118
+    cache_common = os.path.join(  # ruff:ignore[os-path-join]
         _COMMON, *suffix_parts[:2], *(["Cache"] if suffix_parts else []), *suffix_parts[2:]
     )
-    log = os.path.join(_LOCAL, *suffix_parts, "Logs")  # noqa: PTH118
-    log_common = os.path.join(_COMMON, *suffix_parts, "Logs")  # noqa: PTH118
+    log = os.path.join(_LOCAL, *suffix_parts, "Logs")  # ruff:ignore[os-path-join]
+    log_common = os.path.join(_COMMON, *suffix_parts, "Logs")  # ruff:ignore[os-path-join]
 
     expected_map = {
         "user_data_dir": local,
@@ -101,8 +101,8 @@ def test_windows(params: dict[str, Any], func: str) -> None:
         ),
         "user_fonts_dir": os.path.normpath(str(Path(_LOCAL) / "Microsoft" / "Windows" / "Fonts")),
         "user_preference_dir": local,
-        "user_bin_dir": os.path.join(_LOCAL, "Programs"),  # noqa: PTH118
-        "site_bin_dir": os.path.join(_COMMON, "bin"),  # noqa: PTH118
+        "user_bin_dir": os.path.join(_LOCAL, "Programs"),  # ruff:ignore[os-path-join]
+        "site_bin_dir": os.path.join(_COMMON, "bin"),  # ruff:ignore[os-path-join]
         "user_applications_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_PROGRAMS"]),
         "site_applications_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_COMMON_PROGRAMS"]),
         "user_runtime_dir": temp,
@@ -125,12 +125,12 @@ def test_non_roaming_uses_local_appdata(mocker: MockerFixture) -> None:
 
 def test_appauthor_false_skips_author() -> None:
     result = Windows(appname="foo", appauthor=False).user_data_dir
-    assert result == os.path.join(_LOCAL, "foo")  # noqa: PTH118
+    assert result == os.path.join(_LOCAL, "foo")  # ruff:ignore[os-path-join]
 
 
 def test_appauthor_explicit() -> None:
     result = Windows(appname="foo", appauthor="bar").user_data_dir
-    assert result == os.path.join(_LOCAL, "bar", "foo")  # noqa: PTH118
+    assert result == os.path.join(_LOCAL, "bar", "foo")  # ruff:ignore[os-path-join]
 
 
 @pytest.mark.parametrize(
@@ -224,7 +224,7 @@ def _cleanup_ctypes_mocks() -> None:
 @pytest.mark.parametrize("csidl_name", list(_KNOWN_FOLDER_GUIDS.keys()), ids=list(_KNOWN_FOLDER_GUIDS.keys()))
 def test_get_win_folder_via_ctypes_real(csidl_name: str) -> None:
     importlib.reload(windows)
-    from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # noqa: PLC0415
+    from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
 
     result = fresh_fn(csidl_name)
     assert isinstance(result, str)
@@ -254,7 +254,7 @@ def test_get_win_folder_via_ctypes_passes_dont_verify_flag(mocker: MockerFixture
 
     try:
         importlib.reload(windows)
-        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # noqa: PLC0415
+        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
 
         result = fresh_fn("CSIDL_LOCAL_APPDATA")
     finally:
@@ -272,7 +272,7 @@ def test_get_win_folder_via_ctypes_unknown_csidl(mocker: MockerFixture) -> None:
 
     try:
         importlib.reload(windows)
-        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # noqa: PLC0415
+        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
 
         with pytest.raises(ValueError, match="Unknown CSIDL name"):
             fresh_fn("CSIDL_BOGUS")
@@ -293,7 +293,7 @@ def test_get_win_folder_via_ctypes_builds_once(mocker: MockerFixture) -> None:
 
     try:
         importlib.reload(windows)
-        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # noqa: PLC0415
+        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
 
         for _ in range(5):
             fresh_fn("CSIDL_LOCAL_APPDATA")
@@ -326,7 +326,7 @@ def test_get_win_folder_via_ctypes_null_result(mocker: MockerFixture) -> None:
 
     try:
         importlib.reload(windows)
-        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # noqa: PLC0415
+        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
 
         with pytest.raises(ValueError, match="SHGetKnownFolderPath returned NULL"):
             fresh_fn("CSIDL_LOCAL_APPDATA")
@@ -357,7 +357,7 @@ def test_pick_get_win_folder_ctypes(mocker: MockerFixture) -> None:
 
     try:
         importlib.reload(windows)
-        assert windows._pick_get_win_folder() is windows.get_win_folder_via_ctypes  # noqa: SLF001
+        assert windows._pick_get_win_folder() is windows.get_win_folder_via_ctypes  # ruff:ignore[private-member-access]
     finally:
         if sys.platform != "win32":
             _cleanup_ctypes_mocks()

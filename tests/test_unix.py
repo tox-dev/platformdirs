@@ -161,7 +161,7 @@ def test_xdg_variable_not_set(monkeypatch: pytest.MonkeyPatch, dirs_instance: Un
 
     monkeypatch.delenv(xdg_variable.name, raising=False)
     result = getattr(dirs_instance, func)
-    assert result == os.path.expanduser(xdg_variable.default_value)  # noqa: PTH111
+    assert result == os.path.expanduser(xdg_variable.default_value)  # ruff:ignore[os-path-expanduser]
 
 
 @pytest.mark.usefixtures("_getuid")
@@ -172,7 +172,7 @@ def test_xdg_variable_empty_value(monkeypatch: pytest.MonkeyPatch, dirs_instance
 
     monkeypatch.setenv(xdg_variable.name, "")
     result = getattr(dirs_instance, func)
-    assert result == os.path.expanduser(xdg_variable.default_value)  # noqa: PTH111
+    assert result == os.path.expanduser(xdg_variable.default_value)  # ruff:ignore[os-path-expanduser]
 
 
 @pytest.mark.usefixtures("_getuid")
@@ -189,12 +189,12 @@ def test_xdg_variable_custom_value(monkeypatch: pytest.MonkeyPatch, dirs_instanc
 @pytest.mark.parametrize("opinion", [True, False])
 def test_site_log_dir_fixed_path(opinion: bool) -> None:
     result = Unix(appname="foo", opinion=opinion).site_log_dir
-    assert result == os.path.join("/var/log", "foo")  # noqa: PTH118
+    assert result == os.path.join("/var/log", "foo")  # ruff:ignore[os-path-join]
 
 
 def test_site_state_dir_fixed_path() -> None:
     result = Unix(appname="foo").site_state_dir
-    assert result == os.path.join("/var/lib", "foo")  # noqa: PTH118
+    assert result == os.path.join("/var/lib", "foo")  # ruff:ignore[os-path-join]
 
 
 @pytest.mark.usefixtures("_getuid")
@@ -224,8 +224,8 @@ def test_freebsd_netbsd_user_runtime_dir_not_writable(
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     mocker.patch("sys.platform", platform)
     mocker.patch("os.access", return_value=False)
-    mocker.patch("tempfile.tempdir", "/tmp")  # noqa: S108
-    assert Unix().user_runtime_dir == "/tmp/runtime-1234"  # noqa: S108
+    mocker.patch("tempfile.tempdir", "/tmp")  # ruff:ignore[hardcoded-temp-file]
+    assert Unix().user_runtime_dir == "/tmp/runtime-1234"  # ruff:ignore[hardcoded-temp-file]
 
 
 @pytest.mark.usefixtures("_getuid")
@@ -240,7 +240,7 @@ def test_openbsd_user_runtime_dir_writable(monkeypatch: pytest.MonkeyPatch, mock
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     mocker.patch("sys.platform", "openbsd")
     mocker.patch("os.access", return_value=True)
-    assert Unix().user_runtime_dir == "/tmp/run/user/1234"  # noqa: S108
+    assert Unix().user_runtime_dir == "/tmp/run/user/1234"  # ruff:ignore[hardcoded-temp-file]
 
 
 @pytest.mark.usefixtures("_getuid")
@@ -248,8 +248,8 @@ def test_openbsd_user_runtime_dir_not_writable(monkeypatch: pytest.MonkeyPatch, 
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     mocker.patch("sys.platform", "openbsd")
     mocker.patch("os.access", return_value=False)
-    mocker.patch("tempfile.tempdir", "/tmp")  # noqa: S108
-    assert Unix().user_runtime_dir == "/tmp/runtime-1234"  # noqa: S108
+    mocker.patch("tempfile.tempdir", "/tmp")  # ruff:ignore[hardcoded-temp-file]
+    assert Unix().user_runtime_dir == "/tmp/runtime-1234"  # ruff:ignore[hardcoded-temp-file]
 
 
 def test_platform_on_win32(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> None:
@@ -259,7 +259,7 @@ def test_platform_on_win32(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixtur
     importlib.reload(unix)
     try:
         with pytest.raises(RuntimeError, match="should only be used on Unix"):
-            unix.Unix().user_runtime_dir  # noqa: B018
+            unix.Unix().user_runtime_dir  # ruff:ignore[useless-expression]
     finally:
         sys.modules["platformdirs.unix"] = prev_unix
 
@@ -296,11 +296,11 @@ def test_xdg_runtime_dir_unset_not_writable(
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     mocker.patch("sys.platform", platform)
     mocker.patch("os.access", return_value=False)
-    mocker.patch("tempfile.tempdir", "/tmp")  # noqa: S108
+    mocker.patch("tempfile.tempdir", "/tmp")  # ruff:ignore[hardcoded-temp-file]
 
     result = Unix().user_runtime_dir
     assert not result.startswith(default_dir)
-    assert result == "/tmp/runtime-1234"  # noqa: S108
+    assert result == "/tmp/runtime-1234"  # ruff:ignore[hardcoded-temp-file]
 
 
 def test_ensure_exists_creates_folder(mocker: MockerFixture, tmp_path: Path) -> None:
@@ -380,14 +380,14 @@ def test_user_dirs_respects_xdg_config_home(tmp_path: Path, monkeypatch: pytest.
 
 
 _SITE_REDIRECT_CASES: list[tuple[str, str]] = [
-    ("user_data_dir", os.path.join("/usr/local/share", "foo")),  # noqa: PTH118
-    ("user_config_dir", os.path.join("/etc/xdg", "foo")),  # noqa: PTH118
-    ("user_cache_dir", os.path.join("/var/cache", "foo")),  # noqa: PTH118
-    ("user_state_dir", os.path.join("/var/lib", "foo")),  # noqa: PTH118
-    ("user_log_dir", os.path.join("/var/log", "foo")),  # noqa: PTH118
+    ("user_data_dir", os.path.join("/usr/local/share", "foo")),  # ruff:ignore[os-path-join]
+    ("user_config_dir", os.path.join("/etc/xdg", "foo")),  # ruff:ignore[os-path-join]
+    ("user_cache_dir", os.path.join("/var/cache", "foo")),  # ruff:ignore[os-path-join]
+    ("user_state_dir", os.path.join("/var/lib", "foo")),  # ruff:ignore[os-path-join]
+    ("user_log_dir", os.path.join("/var/log", "foo")),  # ruff:ignore[os-path-join]
     (
         "user_runtime_dir",
-        os.path.join(  # noqa: PTH118
+        os.path.join(  # ruff:ignore[os-path-join]
             "/var/run" if sys.platform.startswith(("freebsd", "openbsd", "netbsd")) else "/run",
             "foo",
         ),
@@ -433,11 +433,11 @@ def test_use_site_for_root_disabled_as_root(
 @pytest.mark.parametrize(
     ("xdg_var", "prop", "expected_site"),
     [
-        ("XDG_DATA_HOME", "user_data_dir", os.path.join("/usr/local/share", "foo")),  # noqa: PTH118
-        ("XDG_CONFIG_HOME", "user_config_dir", os.path.join("/etc/xdg", "foo")),  # noqa: PTH118
-        ("XDG_CACHE_HOME", "user_cache_dir", os.path.join("/var/cache", "foo")),  # noqa: PTH118
-        ("XDG_STATE_HOME", "user_state_dir", os.path.join("/var/lib", "foo")),  # noqa: PTH118
-        ("XDG_STATE_HOME", "user_log_dir", os.path.join("/var/log", "foo")),  # noqa: PTH118
+        ("XDG_DATA_HOME", "user_data_dir", os.path.join("/usr/local/share", "foo")),  # ruff:ignore[os-path-join]
+        ("XDG_CONFIG_HOME", "user_config_dir", os.path.join("/etc/xdg", "foo")),  # ruff:ignore[os-path-join]
+        ("XDG_CACHE_HOME", "user_cache_dir", os.path.join("/var/cache", "foo")),  # ruff:ignore[os-path-join]
+        ("XDG_STATE_HOME", "user_state_dir", os.path.join("/var/lib", "foo")),  # ruff:ignore[os-path-join]
+        ("XDG_STATE_HOME", "user_log_dir", os.path.join("/var/log", "foo")),  # ruff:ignore[os-path-join]
     ],
 )
 def test_use_site_for_root_bypasses_xdg_user_vars(
@@ -466,4 +466,4 @@ def test_use_site_iter_dirs_no_duplicates(
     mocker.patch("platformdirs.unix.getuid", return_value=0)
     monkeypatch.setenv(xdg_var, "/custom/xdg/path")
     result = func(Unix(appname="foo", use_site_for_root=True))
-    assert list(result) == [os.path.join("/custom/xdg/path", "foo")]  # noqa: PTH118
+    assert list(result) == [os.path.join("/custom/xdg/path", "foo")]  # ruff:ignore[os-path-join]
