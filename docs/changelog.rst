@@ -6,6 +6,12 @@
 
 .. towncrier release notes start
 
+********************
+ 4.11.0 (2026-07-21)
+********************
+
+- Declare support for Python 3.15 and run the test suite against it, currently in beta. :pr:`512`
+
 *********************
  4.10.1 (2026-07-18)
 *********************
