@@ -1,2 +1,0 @@
-Fix :func:`~platformdirs.user_desktop_dir` on Windows builds without ``ctypes``. ``CSIDL_DESKTOPDIRECTORY`` appeared
-only in the ctypes lookup table, so the registry and environment variable resolvers raised ``ValueError`` for it.
