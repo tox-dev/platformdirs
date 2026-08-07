@@ -18,7 +18,9 @@ from platformdirs.windows import (
     Windows,
     get_win_folder,
     get_win_folder_from_env_vars,
+    get_win_folder_from_registry,
     get_win_folder_if_csidl_name_not_env_var,
+    get_win_folder_via_ctypes,
 )
 
 if TYPE_CHECKING:
@@ -154,6 +156,7 @@ _USERPROFILE_CSIDL_PARAMS = [
     pytest.param("CSIDL_MYPICTURES", "Pictures", id="pictures"),
     pytest.param("CSIDL_MYVIDEO", "Videos", id="video"),
     pytest.param("CSIDL_MYMUSIC", "Music", id="music"),
+    pytest.param("CSIDL_DESKTOPDIRECTORY", "Desktop", id="desktop"),
 ]
 
 
@@ -332,6 +335,56 @@ def test_get_win_folder_via_ctypes_null_result(mocker: MockerFixture) -> None:
             fresh_fn("CSIDL_LOCAL_APPDATA")
     finally:
         _cleanup_ctypes_mocks()
+
+
+_REGISTRY_CSIDL_NAMES = (
+    "CSIDL_APPDATA",
+    "CSIDL_COMMON_APPDATA",
+    "CSIDL_LOCAL_APPDATA",
+    "CSIDL_PERSONAL",
+    "CSIDL_DOWNLOADS",
+    "CSIDL_MYPICTURES",
+    "CSIDL_MYVIDEO",
+    "CSIDL_MYMUSIC",
+    "CSIDL_DESKTOPDIRECTORY",
+    "CSIDL_PROGRAMS",
+    "CSIDL_COMMON_PROGRAMS",
+)
+
+
+def test_get_win_folder_from_registry_unknown() -> None:
+    # Rejected before the platform check, so this holds everywhere.
+    with pytest.raises(ValueError, match="Unknown CSIDL name: CSIDL_NOT_A_FOLDER"):
+        get_win_folder_from_registry("CSIDL_NOT_A_FOLDER")
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="real registry test only runs on Windows")
+@pytest.mark.parametrize("csidl_name", _REGISTRY_CSIDL_NAMES, ids=_REGISTRY_CSIDL_NAMES)
+def test_get_win_folder_from_registry_real(csidl_name: str) -> None:
+    result = get_win_folder_from_registry(csidl_name)
+
+    assert isinstance(result, str)
+    assert len(result) > 0
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="real registry test only runs on Windows")
+@pytest.mark.parametrize("csidl_name", _REGISTRY_CSIDL_NAMES, ids=_REGISTRY_CSIDL_NAMES)
+def test_get_win_folder_from_registry_agrees_with_ctypes(csidl_name: str) -> None:
+    # The registry resolver is the fallback for the ctypes one, so the two
+    # should not disagree about where a folder is.
+    assert get_win_folder_from_registry(csidl_name) == get_win_folder_via_ctypes(csidl_name)
+
+
+@pytest.mark.parametrize("csidl_name", sorted(_KNOWN_FOLDER_GUIDS))
+def test_fallback_resolvers_cover_every_known_folder(csidl_name: str) -> None:
+    # Every folder the ctypes resolver can find has to be reachable without
+    # ctypes too, otherwise the fallbacks can't stand in for it. Desktop used
+    # to be missing from both, so Windows().user_desktop_dir raised
+    # ValueError whenever ctypes was unavailable.
+    for resolver in (get_win_folder_from_registry, get_win_folder_from_env_vars):
+        if sys.platform != "win32" and resolver is get_win_folder_from_registry:
+            continue
+        resolver(csidl_name)
 
 
 def test_known_folder_guids_has_all_csidl_names() -> None:
