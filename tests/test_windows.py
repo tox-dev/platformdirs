@@ -18,6 +18,7 @@ from platformdirs.windows import (
     Windows,
     get_win_folder,
     get_win_folder_from_env_vars,
+    get_win_folder_from_registry,
     get_win_folder_if_csidl_name_not_env_var,
 )
 
@@ -111,6 +112,11 @@ def test_windows(params: dict[str, Any], func: str) -> None:
     assert result == expected_map[func]
 
 
+def test_user_desktop_dir() -> None:
+    # The shared PROPS fixture skips this one, so Windows would otherwise never exercise the property.
+    assert Windows().user_desktop_dir == os.path.normpath(_WIN_FOLDERS["CSIDL_DESKTOPDIRECTORY"])
+
+
 def test_roaming_uses_appdata(mocker: MockerFixture) -> None:
     mock = mocker.patch("platformdirs.windows.get_win_folder", side_effect=lambda csidl: _WIN_FOLDERS[csidl])
     _result = Windows(appname="foo", roaming=True).user_data_dir
@@ -154,6 +160,7 @@ _USERPROFILE_CSIDL_PARAMS = [
     pytest.param("CSIDL_MYPICTURES", "Pictures", id="pictures"),
     pytest.param("CSIDL_MYVIDEO", "Videos", id="video"),
     pytest.param("CSIDL_MYMUSIC", "Music", id="music"),
+    pytest.param("CSIDL_DESKTOPDIRECTORY", "Desktop", id="desktop"),
 ]
 
 
@@ -332,6 +339,39 @@ def test_get_win_folder_via_ctypes_null_result(mocker: MockerFixture) -> None:
             fresh_fn("CSIDL_LOCAL_APPDATA")
     finally:
         _cleanup_ctypes_mocks()
+
+
+def test_get_win_folder_from_registry_unknown() -> None:
+    # The lookup table is consulted before the platform guard, so this holds off Windows too.
+    with pytest.raises(ValueError, match="Unknown CSIDL name: CSIDL_NOT_A_FOLDER"):
+        get_win_folder_from_registry("CSIDL_NOT_A_FOLDER")
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="on Windows the resolver reads the registry instead of raising")
+@pytest.mark.parametrize("csidl_name", sorted(_KNOWN_FOLDER_GUIDS))
+def test_get_win_folder_from_registry_knows_every_known_folder(csidl_name: str) -> None:
+    # Reaching the platform guard proves the name is in the lookup table; a missing one raises ValueError instead.
+    with pytest.raises(NotImplementedError):
+        get_win_folder_from_registry(csidl_name)
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="reads the live registry")
+@pytest.mark.parametrize("csidl_name", sorted(_KNOWN_FOLDER_GUIDS))
+def test_get_win_folder_from_registry_real(csidl_name: str) -> None:
+    assert Path(get_win_folder_from_registry(csidl_name)).is_absolute()
+
+
+@pytest.mark.parametrize("csidl_name", sorted(_KNOWN_FOLDER_GUIDS))
+def test_get_win_folder_from_env_vars_knows_every_known_folder(
+    monkeypatch: pytest.MonkeyPatch, csidl_name: str
+) -> None:
+    # Every folder the ctypes resolver finds must also be reachable without it; desktop was missing from both
+    # fallbacks, so user_desktop_dir raised ValueError on a Windows build without ctypes.
+    monkeypatch.setenv("USERPROFILE", r"C:\Users\Test")
+    monkeypatch.setenv("APPDATA", r"C:\Users\Test\AppData\Roaming")
+    monkeypatch.setenv("LOCALAPPDATA", r"C:\Users\Test\AppData\Local")
+    monkeypatch.setenv("ALLUSERSPROFILE", r"C:\ProgramData")
+    assert get_win_folder_from_env_vars(csidl_name).startswith("C:")
 
 
 def test_known_folder_guids_has_all_csidl_names() -> None:

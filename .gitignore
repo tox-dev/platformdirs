@@ -5,3 +5,5 @@
 /src/platformdirs/version.py
 /report
 /docs/build
+/.coverage
+/.coverage.*
