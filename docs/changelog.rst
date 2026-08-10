@@ -6,15 +6,16 @@
 
 .. towncrier release notes start
 
-********************
+*********************
  4.11.2 (2026-08-10)
-********************
+*********************
 
 - Stop :meth:`~platformdirs.PlatformDirs.iter_cache_dirs`, :meth:`~platformdirs.PlatformDirs.iter_state_dirs`,
   :meth:`~platformdirs.PlatformDirs.iter_log_dirs` and :meth:`~platformdirs.PlatformDirs.iter_runtime_dirs` yielding the
   same directory twice on Unix when ``use_site_for_root`` is active - :pr:`469` fixed this for the config and data
   iterators only. On macOS, :meth:`~platformdirs.PlatformDirs.iter_cache_dirs` now yields the Homebrew and
-  ``/Library/Caches`` entries separately rather than one ``os.pathsep``-joined string when ``multipath`` is set. :pr:`520`
+  ``/Library/Caches`` entries separately rather than one ``os.pathsep``-joined string when ``multipath`` is set.
+  :pr:`520`
 
 *********************
  4.11.1 (2026-08-07)
