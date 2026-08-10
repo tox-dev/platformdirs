@@ -467,3 +467,46 @@ def test_use_site_iter_dirs_no_duplicates(
     monkeypatch.setenv(xdg_var, "/custom/xdg/path")
     result = func(Unix(appname="foo", use_site_for_root=True))
     assert list(result) == [os.path.join("/custom/xdg/path", "foo")]  # ruff:ignore[os-path-join]
+
+
+_SINGLE_SITE_ITER_CASES = [
+    (Unix.iter_cache_dirs, os.path.join("/var/cache", "foo")),  # ruff:ignore[os-path-join]
+    (Unix.iter_state_dirs, os.path.join("/var/lib", "foo")),  # ruff:ignore[os-path-join]
+    (Unix.iter_log_dirs, os.path.join("/var/log", "foo")),  # ruff:ignore[os-path-join]
+    (
+        Unix.iter_runtime_dirs,
+        os.path.join(  # ruff:ignore[os-path-join]
+            "/var/run" if sys.platform.startswith(("freebsd", "openbsd", "netbsd")) else "/run",
+            "foo",
+        ),
+    ),
+]
+
+
+@pytest.mark.parametrize(("func", "expected"), _SINGLE_SITE_ITER_CASES)
+def test_use_site_iter_dirs_no_duplicates_single_site_dir(
+    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    func: Callable[[Unix], Iterator[str]],
+    expected: str,
+) -> None:
+    mocker.patch("platformdirs.unix.getuid", return_value=0)
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    result = func(Unix(appname="foo", use_site_for_root=True))
+    assert list(result) == [expected]
+
+
+@pytest.mark.parametrize(("func", "expected"), _SINGLE_SITE_ITER_CASES)
+def test_iter_dirs_as_non_root_keeps_user_dir(
+    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    func: Callable[[Unix], Iterator[str]],
+    expected: str,
+) -> None:
+    mocker.patch("platformdirs.unix.getuid", return_value=1000)
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    mocker.patch("os.access", return_value=True)
+    result = list(func(Unix(appname="foo", use_site_for_root=True)))
+    assert len(result) == 2
+    assert result[0] != expected
+    assert result[1] == expected

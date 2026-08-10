@@ -350,6 +350,23 @@ def test_iter_config_dirs_homebrew(mocker: MockerFixture) -> None:
 
 
 @pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.parametrize("multipath", [True, False])
+def test_iter_cache_dirs_homebrew(mocker: MockerFixture, multipath: bool) -> None:
+    mocker.patch("sys.prefix", "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
+    dirs = list(MacOS(multipath=multipath).iter_cache_dirs())
+    home = str(Path("~").expanduser())
+    assert dirs == [f"{home}/Library/Caches", "/opt/homebrew/var/cache", "/Library/Caches"]
+
+
+@pytest.mark.usefixtures("_clear_xdg_env")
+def test_iter_cache_paths_homebrew_multipath(mocker: MockerFixture) -> None:
+    mocker.patch("sys.prefix", "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
+    paths = list(MacOS(multipath=True).iter_cache_paths())
+    home = str(Path("~").expanduser())
+    assert paths == [Path(f"{home}/Library/Caches"), Path("/opt/homebrew/var/cache"), Path("/Library/Caches")]
+
+
+@pytest.mark.usefixtures("_clear_xdg_env")
 def test_iter_data_dirs_no_homebrew(mocker: MockerFixture) -> None:
     py_version = sys.version_info
     builtin_py_prefix = (
