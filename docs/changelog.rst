@@ -6,12 +6,13 @@
 
 .. towncrier release notes start
 
-********************
+*********************
  4.11.1 (2026-08-07)
-********************
+*********************
 
 - Fix :func:`~platformdirs.user_desktop_dir` on Windows builds without ``ctypes``. ``CSIDL_DESKTOPDIRECTORY`` appeared
-  only in the ctypes lookup table, so the registry and environment variable resolvers raised ``ValueError`` for it. :pr:`519`
+  only in the ctypes lookup table, so the registry and environment variable resolvers raised ``ValueError`` for it.
+  :pr:`519`
 
 *********************
  4.11.0 (2026-07-21)
