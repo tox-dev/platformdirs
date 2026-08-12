@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -15,6 +16,7 @@ copyright = "2021, The platformdirs team"  # ruff:ignore[builtin-variable-shadow
 release = __version__
 version = release
 extensions = [
+    "sphinx_llm.txt",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.extlinks",
@@ -58,3 +60,5 @@ towncrier_draft_include_empty = True  # keep the docs build green right after a 
 towncrier_draft_working_directory = Path(__file__).parent.parent
 # Towncrier news fragments are rST snippets folded into changelog.rst at release; they are not standalone pages.
 exclude_patterns = ["changelog/*"]
+
+markdown_http_base = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
