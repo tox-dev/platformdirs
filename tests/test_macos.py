@@ -43,6 +43,17 @@ def _clear_xdg_env(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv(var, raising=False)
 
 
+@pytest.fixture
+def _builtin_py_prefix(mocker: MockerFixture) -> None:
+    """Keep ``sys.prefix`` off the ``/opt/python`` Homebrew heuristic so directories use the system defaults."""
+    py_version = sys.version_info
+    mocker.patch(
+        "sys.prefix",
+        "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework"
+        f"/Versions/{py_version.major}.{py_version.minor}",
+    )
+
+
 @pytest.mark.parametrize(
     "params",
     [
@@ -51,15 +62,8 @@ def _clear_xdg_env(monkeypatch: pytest.MonkeyPatch) -> None:
         pytest.param({"appname": "foo", "version": "v1.0"}, id="app_name_version"),
     ],
 )
-@pytest.mark.usefixtures("_clear_xdg_env")
-def test_macos(mocker: MockerFixture, params: dict[str, Any], func: str) -> None:
-    py_version = sys.version_info
-    builtin_py_prefix = (
-        "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework"
-        f"/Versions/{py_version.major}.{py_version.minor}"
-    )
-    mocker.patch("sys.prefix", builtin_py_prefix)
-
+@pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
+def test_macos(params: dict[str, Any], func: str) -> None:
     result = getattr(MacOS(**params), func)
 
     home = str(Path("~").expanduser())
@@ -253,16 +257,8 @@ def test_macos_xdg_media_dirs(monkeypatch: pytest.MonkeyPatch, env_var: str, pro
         pytest.param("XDG_DESKTOP_DIR", "user_desktop_dir", id="user_desktop_dir"),
     ],
 )
-@pytest.mark.usefixtures("_clear_xdg_env")
-def test_macos_xdg_empty_falls_back(
-    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, env_var: str, prop: str
-) -> None:
-    py_version = sys.version_info
-    builtin_py_prefix = (
-        "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework"
-        f"/Versions/{py_version.major}.{py_version.minor}"
-    )
-    mocker.patch("sys.prefix", builtin_py_prefix)
+@pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
+def test_macos_xdg_empty_falls_back(monkeypatch: pytest.MonkeyPatch, env_var: str, prop: str) -> None:
     monkeypatch.setenv(env_var, "")
     home = str(Path("~").expanduser())
     expected_map = {
@@ -349,6 +345,29 @@ def test_iter_config_dirs_homebrew(mocker: MockerFixture) -> None:
     assert dirs == [f"{home}/Library/Application Support", "/opt/homebrew/share", "/Library/Application Support"]
 
 
+@pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param(":", id="single"),
+        pytest.param("::", id="double"),
+        pytest.param(" : ", id="padded"),
+        pytest.param(": :", id="spaced"),
+    ],
+)
+@pytest.mark.parametrize("prop", ["site_data_dir", "site_config_dir", "site_applications_dir"])
+def test_site_dirs_fall_back_when_xdg_var_is_all_separators(
+    monkeypatch: pytest.MonkeyPatch, prop: str, value: str
+) -> None:
+    monkeypatch.setenv("XDG_CONFIG_DIRS" if prop == "site_config_dir" else "XDG_DATA_DIRS", value)
+    expected = {
+        "site_data_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]
+        "site_config_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]
+        "site_applications_dir": "/Applications",
+    }[prop]
+    assert getattr(MacOS(appname="foo"), prop) == expected
+
+
 @pytest.mark.usefixtures("_clear_xdg_env")
 @pytest.mark.parametrize("multipath", [True, False])
 def test_iter_cache_dirs_homebrew(mocker: MockerFixture, multipath: bool) -> None:
@@ -366,14 +385,8 @@ def test_iter_cache_paths_homebrew_multipath(mocker: MockerFixture) -> None:
     assert paths == [Path(f"{home}/Library/Caches"), Path("/opt/homebrew/var/cache"), Path("/Library/Caches")]
 
 
-@pytest.mark.usefixtures("_clear_xdg_env")
-def test_iter_data_dirs_no_homebrew(mocker: MockerFixture) -> None:
-    py_version = sys.version_info
-    builtin_py_prefix = (
-        "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework"
-        f"/Versions/{py_version.major}.{py_version.minor}"
-    )
-    mocker.patch("sys.prefix", builtin_py_prefix)
+@pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
+def test_iter_data_dirs_no_homebrew() -> None:
     dirs = list(MacOS().iter_data_dirs())
     home = str(Path("~").expanduser())
     assert dirs == [f"{home}/Library/Application Support", "/Library/Application Support"]
@@ -407,27 +420,15 @@ def test_no_xdg_site_dirs_leak(monkeypatch: pytest.MonkeyPatch) -> None:
     assert data_value not in config_dirs
 
 
-@pytest.mark.usefixtures("_clear_xdg_env")
-def test_macos_site_runtime_path(mocker: MockerFixture) -> None:
-    py_version = sys.version_info
-    builtin_py_prefix = (
-        "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework"
-        f"/Versions/{py_version.major}.{py_version.minor}"
-    )
-    mocker.patch("sys.prefix", builtin_py_prefix)
+@pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
+def test_macos_site_runtime_path() -> None:
     result = MacOS(appname="foo").site_runtime_path
     home = str(Path("~").expanduser())
     assert result == Path(f"{home}/Library/Caches/TemporaryItems/foo")
 
 
-@pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
 def test_macos_ensure_exists_preexisting_dir(mocker: MockerFixture, tmp_path: Path) -> None:
-    py_version = sys.version_info
-    builtin_py_prefix = (
-        "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework"
-        f"/Versions/{py_version.major}.{py_version.minor}"
-    )
-    mocker.patch("sys.prefix", builtin_py_prefix)
     mocker.patch("platformdirs.macos.os.path.expanduser", lambda p: str(tmp_path / p.lstrip("~/")))
     dirs = MacOS(appname="foo", ensure_exists=True)
     first = dirs.user_data_dir

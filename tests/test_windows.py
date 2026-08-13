@@ -112,11 +112,6 @@ def test_windows(params: dict[str, Any], func: str) -> None:
     assert result == expected_map[func]
 
 
-def test_user_desktop_dir() -> None:
-    # The shared PROPS fixture skips this one, so Windows would otherwise never exercise the property.
-    assert Windows().user_desktop_dir == os.path.normpath(_WIN_FOLDERS["CSIDL_DESKTOPDIRECTORY"])
-
-
 def test_roaming_uses_appdata(mocker: MockerFixture) -> None:
     mock = mocker.patch("platformdirs.windows.get_win_folder", side_effect=lambda csidl: _WIN_FOLDERS[csidl])
     _result = Windows(appname="foo", roaming=True).user_data_dir

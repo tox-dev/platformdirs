@@ -186,6 +186,17 @@ def test_xdg_variable_custom_value(monkeypatch: pytest.MonkeyPatch, dirs_instanc
     assert result == "/custom-dir"
 
 
+@pytest.mark.usefixtures("_getuid")
+def test_xdg_variable_padded_value(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
+    xdg_variable = _func_to_path(func)
+    if xdg_variable is None:
+        return
+
+    monkeypatch.setenv(xdg_variable.name, " /custom-dir ")
+    result = getattr(dirs_instance, func)
+    assert result == "/custom-dir"
+
+
 @pytest.mark.parametrize("opinion", [True, False])
 def test_site_log_dir_fixed_path(opinion: bool) -> None:
     result = Unix(appname="foo", opinion=opinion).site_log_dir
@@ -327,6 +338,34 @@ def test_iter_config_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("XDG_CONFIG_DIRS", f"/xdg/etc1{os.pathsep}/xdg/etc2")
     dirs = list(Unix().iter_config_dirs())
     assert dirs == ["/xdg/config", "/xdg/etc1", "/xdg/etc2"]
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param(os.pathsep, id="single"),
+        pytest.param(os.pathsep * 2, id="double"),
+        pytest.param(f" {os.pathsep} ", id="padded"),
+        pytest.param(f"{os.pathsep} {os.pathsep}", id="spaced"),
+    ],
+)
+@pytest.mark.parametrize("prop", ["site_data_dir", "site_config_dir", "site_applications_dir"])
+def test_site_dirs_fall_back_when_xdg_var_is_all_separators(
+    monkeypatch: pytest.MonkeyPatch, prop: str, value: str
+) -> None:
+    monkeypatch.setenv("XDG_CONFIG_DIRS" if prop == "site_config_dir" else "XDG_DATA_DIRS", value)
+    expected = {
+        "site_data_dir": os.path.join("/usr/local/share", "foo"),  # ruff:ignore[os-path-join]
+        "site_config_dir": os.path.join("/etc/xdg", "foo"),  # ruff:ignore[os-path-join]
+        "site_applications_dir": os.path.join("/usr/local/share", "applications"),  # ruff:ignore[os-path-join]
+    }[prop]
+    assert getattr(Unix(appname="foo"), prop) == expected
+
+
+def test_site_data_dir_multipath_falls_back_when_xdg_var_is_all_separators(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("XDG_DATA_DIRS", os.pathsep)
+    dirs = [os.path.join("/usr/local/share", "foo"), os.path.join("/usr/share", "foo")]  # ruff:ignore[os-path-join]
+    assert Unix(appname="foo", multipath=True).site_data_dir == os.pathsep.join(dirs)
 
 
 def test_user_media_dir_from_user_dirs_file(
