@@ -7,6 +7,16 @@ import os
 from .api import PlatformDirsABC
 
 
+def _xdg_dir_list(env_var: str) -> list[str]:
+    """Split a ``$XDG_*_DIRS`` variable into its entries, dropping blank ones.
+
+    Returns an empty list when the variable is unset, empty, or holds nothing but separators and whitespace, so callers
+    can treat all of those the same way as unset and fall back to the platform defaults.
+
+    """
+    return [path for path in os.environ.get(env_var, "").split(os.pathsep) if path.strip()]
+
+
 class XDGMixin(PlatformDirsABC):
     """Mixin that checks XDG environment variables, falling back to platform-specific defaults via ``super()``."""
 
@@ -19,8 +29,8 @@ class XDGMixin(PlatformDirsABC):
 
     @property
     def _site_data_dirs(self) -> list[str]:
-        if xdg_dirs := os.environ.get("XDG_DATA_DIRS", "").strip():
-            return [self._append_app_name_and_version(p) for p in xdg_dirs.split(os.pathsep) if p.strip()]
+        if xdg_dirs := _xdg_dir_list("XDG_DATA_DIRS"):
+            return [self._append_app_name_and_version(p) for p in xdg_dirs]
         return super()._site_data_dirs
 
     @property
@@ -38,8 +48,8 @@ class XDGMixin(PlatformDirsABC):
 
     @property
     def _site_config_dirs(self) -> list[str]:
-        if xdg_dirs := os.environ.get("XDG_CONFIG_DIRS", "").strip():
-            return [self._append_app_name_and_version(p) for p in xdg_dirs.split(os.pathsep) if p.strip()]
+        if xdg_dirs := _xdg_dir_list("XDG_CONFIG_DIRS"):
+            return [self._append_app_name_and_version(p) for p in xdg_dirs]
         return super()._site_config_dirs
 
     @property
@@ -155,8 +165,8 @@ class XDGMixin(PlatformDirsABC):
 
     @property
     def _site_applications_dirs(self) -> list[str]:
-        if xdg_dirs := os.environ.get("XDG_DATA_DIRS", "").strip():
-            return [os.path.join(p, "applications") for p in xdg_dirs.split(os.pathsep) if p.strip()]  # ruff:ignore[os-path-join]
+        if xdg_dirs := _xdg_dir_list("XDG_DATA_DIRS"):
+            return [os.path.join(p, "applications") for p in xdg_dirs]  # ruff:ignore[os-path-join]
         return super()._site_applications_dirs
 
     @property

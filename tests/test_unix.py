@@ -329,6 +329,22 @@ def test_iter_config_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
     assert dirs == ["/xdg/config", "/xdg/etc1", "/xdg/etc2"]
 
 
+@pytest.mark.parametrize("value", [os.pathsep, os.pathsep * 2, f" {os.pathsep} ", f"{os.pathsep} {os.pathsep}"])
+@pytest.mark.parametrize(
+    ("xdg_var", "prop", "expected"),
+    [
+        ("XDG_DATA_DIRS", "site_data_dir", os.path.join("/usr/local/share", "foo")),  # ruff:ignore[os-path-join]
+        ("XDG_CONFIG_DIRS", "site_config_dir", os.path.join("/etc/xdg", "foo")),  # ruff:ignore[os-path-join]
+        ("XDG_DATA_DIRS", "site_applications_dir", os.path.join("/usr/local/share", "applications")),  # ruff:ignore[os-path-join]
+    ],
+)
+def test_site_dirs_fall_back_when_xdg_var_is_all_separators(
+    monkeypatch: pytest.MonkeyPatch, value: str, xdg_var: str, prop: str, expected: str
+) -> None:
+    monkeypatch.setenv(xdg_var, value)
+    assert getattr(Unix(appname="foo"), prop) == expected
+
+
 def test_user_media_dir_from_user_dirs_file(
     mocker: MockerFixture, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -350,6 +350,29 @@ def test_iter_config_dirs_homebrew(mocker: MockerFixture) -> None:
 
 
 @pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.parametrize("value", [":", "::", " : ", ": :"])
+@pytest.mark.parametrize(
+    ("xdg_var", "prop", "expected"),
+    [
+        ("XDG_DATA_DIRS", "site_data_dir", os.path.join("/Library/Application Support", "foo")),  # ruff:ignore[os-path-join]
+        ("XDG_CONFIG_DIRS", "site_config_dir", os.path.join("/Library/Application Support", "foo")),  # ruff:ignore[os-path-join]
+        ("XDG_DATA_DIRS", "site_applications_dir", "/Applications"),
+    ],
+)
+def test_site_dirs_fall_back_when_xdg_var_is_all_separators(  # ruff:ignore[too-many-arguments]
+    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, value: str, xdg_var: str, prop: str, expected: str
+) -> None:
+    py_version = sys.version_info
+    mocker.patch(
+        "sys.prefix",
+        "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework"
+        f"/Versions/{py_version.major}.{py_version.minor}",
+    )
+    monkeypatch.setenv(xdg_var, value)
+    assert getattr(MacOS(appname="foo"), prop) == expected
+
+
+@pytest.mark.usefixtures("_clear_xdg_env")
 @pytest.mark.parametrize("multipath", [True, False])
 def test_iter_cache_dirs_homebrew(mocker: MockerFixture, multipath: bool) -> None:
     mocker.patch("sys.prefix", "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
