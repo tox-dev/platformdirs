@@ -6,6 +6,17 @@
 
 .. towncrier release notes start
 
+********************
+ 4.11.3 (2026-08-13)
+********************
+
+- ``python -m platformdirs`` now lists :func:`~platformdirs.user_desktop_dir`, which was missing from the properties it
+  prints. :pr:`523`
+- Stop :func:`~platformdirs.site_data_dir`, :func:`~platformdirs.site_config_dir` and
+  :func:`~platformdirs.site_applications_dir` raising ``IndexError`` on Unix and macOS when ``$XDG_DATA_DIRS`` or
+  ``$XDG_CONFIG_DIRS`` holds only separators and whitespace, such as ``":"``. These values now fall back to the platform
+  defaults, and each entry is stripped of surrounding whitespace. :pr:`523`
+
 *********************
  4.11.2 (2026-08-10)
 *********************
