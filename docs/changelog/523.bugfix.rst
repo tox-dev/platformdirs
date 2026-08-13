@@ -1,6 +1,4 @@
 Stop :func:`~platformdirs.site_data_dir`, :func:`~platformdirs.site_config_dir` and
 :func:`~platformdirs.site_applications_dir` raising ``IndexError`` on Unix and macOS when ``$XDG_DATA_DIRS`` or
-``$XDG_CONFIG_DIRS`` holds only separators and whitespace, for example ``":"``. These values now fall back to the
-platform defaults, as unset and whitespace-only ones already did, and with ``multipath`` enabled no longer yield an
-empty string. Each entry is also stripped of surrounding whitespace. ``python -m platformdirs`` now also lists
-:func:`~platformdirs.user_desktop_dir`, which was missing from the properties it prints.
+``$XDG_CONFIG_DIRS`` holds only separators and whitespace, such as ``":"``. These values now fall back to the platform
+defaults, and each entry is stripped of surrounding whitespace.
