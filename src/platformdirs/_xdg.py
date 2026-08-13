@@ -7,16 +7,6 @@ import os
 from .api import PlatformDirsABC
 
 
-def _xdg_dir_list(env_var: str) -> list[str]:
-    """Split a ``$XDG_*_DIRS`` variable into its entries, dropping blank ones.
-
-    Returns an empty list when the variable is unset, empty, or holds nothing but separators and whitespace, so callers
-    can treat all of those the same way as unset and fall back to the platform defaults.
-
-    """
-    return [path for path in os.environ.get(env_var, "").split(os.pathsep) if path.strip()]
-
-
 class XDGMixin(PlatformDirsABC):
     """Mixin that checks XDG environment variables, falling back to platform-specific defaults via ``super()``."""
 
@@ -174,6 +164,11 @@ class XDGMixin(PlatformDirsABC):
         """Applications directories shared by users, from ``$XDG_DATA_DIRS`` if set, else platform default."""
         dirs = self._site_applications_dirs
         return os.pathsep.join(dirs) if self.multipath else dirs[0]
+
+
+def _xdg_dir_list(env_var: str) -> list[str]:
+    """Stripped non-blank entries of ``env_var``, so a value of only separators and whitespace falls back like unset."""
+    return [stripped for path in os.environ.get(env_var, "").split(os.pathsep) if (stripped := path.strip())]
 
 
 __all__ = [
