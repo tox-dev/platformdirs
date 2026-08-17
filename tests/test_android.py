@@ -190,3 +190,21 @@ def test_android_ensure_exists_creates_opinion_subdir(
     expected = str(cache_dir / "myapp" / subdir)
     assert result == expected
     assert Path(result).is_dir()
+
+
+@pytest.mark.parametrize(
+    ("func", "expected"),
+    [
+        ("iter_config_dirs", "/data/data/com.example/shared_prefs/foo"),
+        ("iter_data_dirs", "/data/data/com.example/files/foo"),
+        ("iter_cache_dirs", "/data/data/com.example/cache/foo"),
+        ("iter_state_dirs", "/data/data/com.example/files/foo"),
+        ("iter_log_dirs", "/data/data/com.example/cache/foo/log"),
+        ("iter_runtime_dirs", "/data/data/com.example/cache/foo/tmp"),
+    ],
+)
+def test_android_iter_dirs_no_duplicates(mocker: MockerFixture, func: str, expected: str) -> None:
+    mocker.patch("platformdirs.android._android_folder", return_value="/data/data/com.example", autospec=True)
+    mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
+    # Every site_*_dir on Android is defined as its user_*_dir, so each iterator has a single directory to yield.
+    assert list(getattr(Android(appname="foo"), func)()) == [expected]

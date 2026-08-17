@@ -549,3 +549,10 @@ def test_iter_dirs_as_non_root_keeps_user_dir(
     assert len(result) == 2
     assert result[0] != expected
     assert result[1] == expected
+
+
+def test_iter_runtime_dirs_xdg_runtime_dir(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch) -> None:
+    mocker.patch("platformdirs.unix.getuid", return_value=1000)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", "/run/user/1000")
+    # $XDG_RUNTIME_DIR backs both the user and the site runtime directory, so there is only one to yield.
+    assert list(Unix(appname="foo").iter_runtime_dirs()) == [os.path.join("/run/user/1000", "foo")]  # ruff:ignore[os-path-join]
