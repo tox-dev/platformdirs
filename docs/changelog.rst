@@ -6,9 +6,9 @@
 
 .. towncrier release notes start
 
-********************
+*********************
  4.11.3 (2026-08-13)
-********************
+*********************
 
 - ``python -m platformdirs`` now lists :func:`~platformdirs.user_desktop_dir`, which was missing from the properties it
   prints. :pr:`523`
