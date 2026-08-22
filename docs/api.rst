@@ -277,7 +277,8 @@ Windows. Executables here are available to all users.
 
 These methods are available on :class:`~platformdirs.PlatformDirs` instances. They yield both user and site directories
 for a given type, enabling configuration merging and fallback patterns. See :ref:`howto:Merging config from multiple
-sources` for a practical example.
+sources` for a practical example. Each directory is yielded once, so platforms and configurations where a site directory
+resolves to its user equivalent produce a shorter list rather than a repeated entry.
 
 - :meth:`~platformdirs.api.PlatformDirsABC.iter_data_dirs` / :meth:`~platformdirs.api.PlatformDirsABC.iter_data_paths`
 - :meth:`~platformdirs.api.PlatformDirsABC.iter_config_dirs` /
