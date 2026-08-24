@@ -141,3 +141,10 @@ def test_mypy_subclassing() -> None:
     class PlatformDirsSubclass(platformdirs.PlatformDirs): ...
 
     class AppDirsSubclass(platformdirs.AppDirs): ...
+
+
+@pytest.mark.parametrize("kind", ["config", "data", "cache", "state", "log", "runtime"])
+def test_iter_dirs_yields_user_before_site(kind: str) -> None:
+    # docs/howto.rst merges config in reverse of this order so the user directory wins.
+    dirs = platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0")
+    assert next(getattr(dirs, f"iter_{kind}_dirs")()) == getattr(dirs, f"user_{kind}_dir")
