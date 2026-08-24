@@ -436,3 +436,9 @@ def test_get_win_folder_override_strips_whitespace(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda csidl: _WIN_FOLDERS[csidl])
     monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", "  X:\\custom  ")
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == r"X:\custom"
+
+
+def test_windows_iter_runtime_dirs_no_duplicate() -> None:
+    # site_runtime_dir is defined as user_runtime_dir.
+    expected = os.path.join(_LOCAL, "Temp", "bar", "foo")  # ruff:ignore[os-path-join]
+    assert list(Windows(appname="foo", appauthor="bar").iter_runtime_dirs()) == [expected]

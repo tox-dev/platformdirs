@@ -44,6 +44,16 @@ def _clear_xdg_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture
+def home() -> str:
+    return str(Path("~").expanduser())
+
+
+@pytest.fixture
+def _homebrew_py_prefix(mocker: MockerFixture) -> None:
+    mocker.patch("sys.prefix", "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
+
+
+@pytest.fixture
 def _builtin_py_prefix(mocker: MockerFixture) -> None:
     """Keep ``sys.prefix`` off the ``/opt/python`` Homebrew heuristic so directories use the system defaults."""
     py_version = sys.version_info
@@ -63,10 +73,9 @@ def _builtin_py_prefix(mocker: MockerFixture) -> None:
     ],
 )
 @pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
-def test_macos(params: dict[str, Any], func: str) -> None:
+def test_macos(home: str, params: dict[str, Any], func: str) -> None:
     result = getattr(MacOS(**params), func)
 
-    home = str(Path("~").expanduser())
     suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
     suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]
 
@@ -126,7 +135,9 @@ def test_macos(params: dict[str, Any], func: str) -> None:
 )
 @pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="singlepath")])
 @pytest.mark.usefixtures("_clear_xdg_env")
-def test_macos_homebrew(mocker: MockerFixture, params: dict[str, Any], multipath: bool, site_func: str) -> None:
+def test_macos_homebrew(
+    mocker: MockerFixture, home: str, params: dict[str, Any], multipath: bool, site_func: str
+) -> None:
     test_data = [
         {
             "sys_prefix": "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13",
@@ -146,7 +157,6 @@ def test_macos_homebrew(mocker: MockerFixture, params: dict[str, Any], multipath
 
         result = getattr(MacOS(multipath=multipath, **params), site_func)
 
-        home = str(Path("~").expanduser())
         suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
         suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]
 
@@ -258,9 +268,8 @@ def test_macos_xdg_media_dirs(monkeypatch: pytest.MonkeyPatch, env_var: str, pro
     ],
 )
 @pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
-def test_macos_xdg_empty_falls_back(monkeypatch: pytest.MonkeyPatch, env_var: str, prop: str) -> None:
+def test_macos_xdg_empty_falls_back(monkeypatch: pytest.MonkeyPatch, home: str, env_var: str, prop: str) -> None:
     monkeypatch.setenv(env_var, "")
-    home = str(Path("~").expanduser())
     expected_map = {
         "user_data_dir": f"{home}/Library/Application Support",
         "user_config_dir": f"{home}/Library/Application Support",
@@ -329,19 +338,15 @@ def test_iter_config_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
     assert dirs == ["/xdg/config", "/xdg/etc1", "/xdg/etc2"]
 
 
-@pytest.mark.usefixtures("_clear_xdg_env")
-def test_iter_data_dirs_homebrew(mocker: MockerFixture) -> None:
-    mocker.patch("sys.prefix", "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
+@pytest.mark.usefixtures("_clear_xdg_env", "_homebrew_py_prefix")
+def test_iter_data_dirs_homebrew(home: str) -> None:
     dirs = list(MacOS().iter_data_dirs())
-    home = str(Path("~").expanduser())
     assert dirs == [f"{home}/Library/Application Support", "/opt/homebrew/share", "/Library/Application Support"]
 
 
-@pytest.mark.usefixtures("_clear_xdg_env")
-def test_iter_config_dirs_homebrew(mocker: MockerFixture) -> None:
-    mocker.patch("sys.prefix", "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
+@pytest.mark.usefixtures("_clear_xdg_env", "_homebrew_py_prefix")
+def test_iter_config_dirs_homebrew(home: str) -> None:
     dirs = list(MacOS().iter_config_dirs())
-    home = str(Path("~").expanduser())
     assert dirs == [f"{home}/Library/Application Support", "/opt/homebrew/share", "/Library/Application Support"]
 
 
@@ -368,27 +373,22 @@ def test_site_dirs_fall_back_when_xdg_var_is_all_separators(
     assert getattr(MacOS(appname="foo"), prop) == expected
 
 
-@pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.usefixtures("_clear_xdg_env", "_homebrew_py_prefix")
 @pytest.mark.parametrize("multipath", [True, False])
-def test_iter_cache_dirs_homebrew(mocker: MockerFixture, multipath: bool) -> None:
-    mocker.patch("sys.prefix", "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
+def test_iter_cache_dirs_homebrew(home: str, multipath: bool) -> None:
     dirs = list(MacOS(multipath=multipath).iter_cache_dirs())
-    home = str(Path("~").expanduser())
     assert dirs == [f"{home}/Library/Caches", "/opt/homebrew/var/cache", "/Library/Caches"]
 
 
-@pytest.mark.usefixtures("_clear_xdg_env")
-def test_iter_cache_paths_homebrew_multipath(mocker: MockerFixture) -> None:
-    mocker.patch("sys.prefix", "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
+@pytest.mark.usefixtures("_clear_xdg_env", "_homebrew_py_prefix")
+def test_iter_cache_paths_homebrew_multipath(home: str) -> None:
     paths = list(MacOS(multipath=True).iter_cache_paths())
-    home = str(Path("~").expanduser())
     assert paths == [Path(f"{home}/Library/Caches"), Path("/opt/homebrew/var/cache"), Path("/Library/Caches")]
 
 
 @pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
-def test_iter_data_dirs_no_homebrew() -> None:
+def test_iter_data_dirs_no_homebrew(home: str) -> None:
     dirs = list(MacOS().iter_data_dirs())
-    home = str(Path("~").expanduser())
     assert dirs == [f"{home}/Library/Application Support", "/Library/Application Support"]
 
 
@@ -421,9 +421,8 @@ def test_no_xdg_site_dirs_leak(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
-def test_macos_site_runtime_path() -> None:
+def test_macos_site_runtime_path(home: str) -> None:
     result = MacOS(appname="foo").site_runtime_path
-    home = str(Path("~").expanduser())
     assert result == Path(f"{home}/Library/Caches/TemporaryItems/foo")
 
 
@@ -436,3 +435,10 @@ def test_macos_ensure_exists_preexisting_dir(mocker: MockerFixture, tmp_path: Pa
     # Calling again with an already-existing directory must not raise.
     second = dirs.user_data_dir
     assert first == second
+
+
+@pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
+def test_macos_iter_runtime_dirs_no_duplicate(home: str) -> None:
+    # site_runtime_dir is defined as user_runtime_dir.
+    expected = os.path.join(f"{home}/Library/Caches/TemporaryItems", "foo")  # ruff:ignore[os-path-join]
+    assert list(MacOS(appname="foo").iter_runtime_dirs()) == [expected]

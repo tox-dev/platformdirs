@@ -14,6 +14,12 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
+@pytest.fixture
+def _example_android_folder(mocker: MockerFixture) -> None:
+    mocker.patch("platformdirs.android._android_folder", return_value="/data/data/com.example", autospec=True)
+    mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
+
+
 @pytest.mark.parametrize(
     "params",
     [
@@ -31,9 +37,8 @@ if TYPE_CHECKING:
         "app_name_author_version_false_opinion",
     ],
 )
-def test_android(mocker: MockerFixture, params: dict[str, Any], func: str) -> None:
-    mocker.patch("platformdirs.android._android_folder", return_value="/data/data/com.example", autospec=True)
-    mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
+@pytest.mark.usefixtures("_example_android_folder")
+def test_android(params: dict[str, Any], func: str) -> None:
     result = getattr(Android(**params), func)
 
     suffix_elements = []
@@ -190,3 +195,20 @@ def test_android_ensure_exists_creates_opinion_subdir(
     expected = str(cache_dir / "myapp" / subdir)
     assert result == expected
     assert Path(result).is_dir()
+
+
+@pytest.mark.parametrize(
+    ("func", "expected"),
+    [
+        pytest.param("iter_config_dirs", "/data/data/com.example/shared_prefs/foo", id="config"),
+        pytest.param("iter_data_dirs", "/data/data/com.example/files/foo", id="data"),
+        pytest.param("iter_cache_dirs", "/data/data/com.example/cache/foo", id="cache"),
+        pytest.param("iter_state_dirs", "/data/data/com.example/files/foo", id="state"),
+        pytest.param("iter_log_dirs", "/data/data/com.example/cache/foo/log", id="log"),
+        pytest.param("iter_runtime_dirs", "/data/data/com.example/cache/foo/tmp", id="runtime"),
+    ],
+)
+@pytest.mark.usefixtures("_example_android_folder")
+def test_android_iter_dirs_no_duplicates(func: str, expected: str) -> None:
+    # Every site_*_dir on Android is defined as its user_*_dir.
+    assert list(getattr(Android(appname="foo"), func)()) == [expected]
