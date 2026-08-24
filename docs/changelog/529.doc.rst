@@ -1,0 +1,2 @@
+Fix the config merging example in the how-to guide. ``iter_config_paths`` yields the user directory first, so the
+``config.update`` loop let the site defaults override the user's config instead of the other way round.

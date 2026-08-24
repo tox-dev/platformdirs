@@ -143,8 +143,8 @@ user-specific overrides:
     dirs = PlatformDirs("MyApp")
     config = {}
 
-    # Iterate from least specific (site) to most specific (user)
-    for config_dir in dirs.iter_config_paths():
+    # The iterators yield the user directory first, so apply them in reverse to let it win
+    for config_dir in reversed(list(dirs.iter_config_paths())):
         config_file = config_dir / "config.json"
         if config_file.exists():
             config.update(json.loads(config_file.read_text()))
