@@ -6,6 +6,17 @@
 
 .. towncrier release notes start
 
+********************
+ 4.11.4 (2026-08-24)
+********************
+
+- Stop the ``iter_*_dirs`` methods yielding the same directory twice when a site directory resolves to its user equivalent
+  - :pr:`520` covered only Unix with ``use_site_for_root``. It also hit
+  :meth:`~platformdirs.PlatformDirs.iter_runtime_dirs` on Unix with ``$XDG_RUNTIME_DIR`` set, on Windows and macOS, and
+  all six iterators on Android. :pr:`524`
+- Fix the config merging example in the how-to guide. ``iter_config_paths`` yields the user directory first, so the
+  ``config.update`` loop let the site defaults override the user's config instead of the other way round. :pr:`529`
+
 *********************
  4.11.3 (2026-08-13)
 *********************
