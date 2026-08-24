@@ -441,6 +441,6 @@ def test_macos_ensure_exists_preexisting_dir(mocker: MockerFixture, tmp_path: Pa
 @pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
 def test_macos_iter_runtime_dirs_no_duplicate() -> None:
     home = str(Path("~").expanduser())
+    # site_runtime_dir is defined as user_runtime_dir.
     expected = os.path.join(f"{home}/Library/Caches/TemporaryItems", "foo")  # ruff:ignore[os-path-join]
-    # site_runtime_dir is defined as user_runtime_dir, so the iterator has a single directory to yield.
     assert list(MacOS(appname="foo").iter_runtime_dirs()) == [expected]

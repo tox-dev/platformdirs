@@ -195,16 +195,16 @@ def test_android_ensure_exists_creates_opinion_subdir(
 @pytest.mark.parametrize(
     ("func", "expected"),
     [
-        ("iter_config_dirs", "/data/data/com.example/shared_prefs/foo"),
-        ("iter_data_dirs", "/data/data/com.example/files/foo"),
-        ("iter_cache_dirs", "/data/data/com.example/cache/foo"),
-        ("iter_state_dirs", "/data/data/com.example/files/foo"),
-        ("iter_log_dirs", "/data/data/com.example/cache/foo/log"),
-        ("iter_runtime_dirs", "/data/data/com.example/cache/foo/tmp"),
+        pytest.param("iter_config_dirs", "/data/data/com.example/shared_prefs/foo", id="config"),
+        pytest.param("iter_data_dirs", "/data/data/com.example/files/foo", id="data"),
+        pytest.param("iter_cache_dirs", "/data/data/com.example/cache/foo", id="cache"),
+        pytest.param("iter_state_dirs", "/data/data/com.example/files/foo", id="state"),
+        pytest.param("iter_log_dirs", "/data/data/com.example/cache/foo/log", id="log"),
+        pytest.param("iter_runtime_dirs", "/data/data/com.example/cache/foo/tmp", id="runtime"),
     ],
 )
 def test_android_iter_dirs_no_duplicates(mocker: MockerFixture, func: str, expected: str) -> None:
     mocker.patch("platformdirs.android._android_folder", return_value="/data/data/com.example", autospec=True)
     mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
-    # Every site_*_dir on Android is defined as its user_*_dir, so each iterator has a single directory to yield.
+    # Every site_*_dir on Android is defined as its user_*_dir.
     assert list(getattr(Android(appname="foo"), func)()) == [expected]

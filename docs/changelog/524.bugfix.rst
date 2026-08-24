@@ -1,5 +1,4 @@
-Stop the ``iter_*_dirs`` methods yielding the same directory twice when a site directory resolves to its user
-equivalent. :pr:`520` fixed this for Unix when ``use_site_for_root`` is active, but it also happened on Unix for
-:meth:`~platformdirs.PlatformDirs.iter_runtime_dirs` whenever ``$XDG_RUNTIME_DIR`` is set, on Windows and macOS for
-:meth:`~platformdirs.PlatformDirs.iter_runtime_dirs`, and on Android for all six iterators. Each directory is now
-yielded once, so these cases return a shorter list rather than a repeated entry.
+Stop the ``iter_*_dirs`` methods yielding the same directory twice when a site directory resolves to its user equivalent
+- :pr:`520` fixed this only for Unix with ``use_site_for_root``. The duplicate also showed up in
+:meth:`~platformdirs.PlatformDirs.iter_runtime_dirs` on Unix with ``$XDG_RUNTIME_DIR`` set, on Windows and on macOS, and
+in all six iterators on Android. Callers that merge the yielded directories no longer read the same file twice.
