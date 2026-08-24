@@ -340,6 +340,13 @@ def test_iter_config_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
     assert dirs == ["/xdg/config", "/xdg/etc1", "/xdg/etc2"]
 
 
+def test_iter_data_dirs_creates_only_the_consumed_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "user"))
+    monkeypatch.setenv("XDG_DATA_DIRS", str(tmp_path / "site"))
+    next(Unix(ensure_exists=True).iter_data_dirs())
+    assert not (tmp_path / "site").exists()
+
+
 @pytest.mark.parametrize(
     "value",
     [
@@ -549,6 +556,16 @@ def test_iter_dirs_as_non_root_keeps_user_dir(
     assert len(result) == 2
     assert result[0] != expected
     assert result[1] == expected
+
+
+def test_iter_config_dirs_as_root_with_multipath_skips_joined_user_dir(
+    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mocker.patch("platformdirs.unix.getuid", return_value=0)
+    monkeypatch.setenv("XDG_CONFIG_DIRS", f"/xdg/etc1{os.pathsep}/xdg/etc2")
+    dirs = Unix(multipath=True, use_site_for_root=True)
+    assert list(dirs.iter_config_dirs()) == ["/xdg/etc1", "/xdg/etc2"]
 
 
 def test_iter_runtime_dirs_no_duplicate_with_xdg_runtime_dir(monkeypatch: pytest.MonkeyPatch) -> None:
