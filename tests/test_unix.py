@@ -24,6 +24,26 @@ def _reload_after_test() -> typing.Iterator[None]:
     importlib.reload(unix)
 
 
+@pytest.fixture
+def _as_root(mocker: MockerFixture) -> None:
+    mocker.patch("platformdirs.unix.getuid", return_value=0)
+
+
+@pytest.fixture
+def _as_non_root(mocker: MockerFixture) -> None:
+    mocker.patch("platformdirs.unix.getuid", return_value=1000)
+
+
+@pytest.fixture
+def _writable_runtime_dir(mocker: MockerFixture) -> None:
+    mocker.patch("os.access", return_value=True)
+
+
+@pytest.fixture
+def _no_xdg_runtime_dir(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+
+
 @pytest.mark.parametrize(
     "prop",
     [
@@ -442,40 +462,30 @@ _SITE_REDIRECT_CASES: list[tuple[str, str]] = [
 ]
 
 
+@pytest.mark.usefixtures("_as_root", "_no_xdg_runtime_dir")
 @pytest.mark.parametrize(("prop", "expected"), _SITE_REDIRECT_CASES)
-def test_use_site_for_root_as_root(
-    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, prop: str, expected: str
-) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=0)
-    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+def test_use_site_for_root_as_root(prop: str, expected: str) -> None:
     result = getattr(Unix(appname="foo", use_site_for_root=True), prop)
     assert result == expected
 
 
+@pytest.mark.usefixtures("_as_non_root", "_no_xdg_runtime_dir", "_writable_runtime_dir")
 @pytest.mark.parametrize(("prop", "expected"), _SITE_REDIRECT_CASES)
-def test_use_site_for_root_as_non_root(
-    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, prop: str, expected: str
-) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=1000)
-    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
-    mocker.patch("os.access", return_value=True)
+def test_use_site_for_root_as_non_root(prop: str, expected: str) -> None:
     dirs = Unix(appname="foo", use_site_for_root=True)
     result = getattr(dirs, prop)
     assert result != expected
 
 
+@pytest.mark.usefixtures("_as_root", "_no_xdg_runtime_dir", "_writable_runtime_dir")
 @pytest.mark.parametrize(("prop", "expected"), _SITE_REDIRECT_CASES)
-def test_use_site_for_root_disabled_as_root(
-    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, prop: str, expected: str
-) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=0)
-    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
-    mocker.patch("os.access", return_value=True)
+def test_use_site_for_root_disabled_as_root(prop: str, expected: str) -> None:
     dirs = Unix(appname="foo", use_site_for_root=False)
     result = getattr(dirs, prop)
     assert result != expected
 
 
+@pytest.mark.usefixtures("_as_root")
 @pytest.mark.parametrize(
     ("xdg_var", "prop", "expected_site"),
     [
@@ -487,15 +497,15 @@ def test_use_site_for_root_disabled_as_root(
     ],
 )
 def test_use_site_for_root_bypasses_xdg_user_vars(
-    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, xdg_var: str, prop: str, expected_site: str
+    monkeypatch: pytest.MonkeyPatch, xdg_var: str, prop: str, expected_site: str
 ) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=0)
     monkeypatch.setenv(xdg_var, "/custom/xdg/path")
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     result = getattr(Unix(appname="foo", use_site_for_root=True), prop)
     assert result == expected_site
 
 
+@pytest.mark.usefixtures("_as_root")
 @pytest.mark.parametrize(
     ("xdg_var", "func"),
     [
@@ -504,12 +514,10 @@ def test_use_site_for_root_bypasses_xdg_user_vars(
     ],
 )
 def test_use_site_iter_dirs_no_duplicates(
-    mocker: MockerFixture,
     monkeypatch: pytest.MonkeyPatch,
     xdg_var: str,
     func: Callable[[Unix], Iterator[str]],
 ) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=0)
     monkeypatch.setenv(xdg_var, "/custom/xdg/path")
     result = func(Unix(appname="foo", use_site_for_root=True))
     assert list(result) == [os.path.join("/custom/xdg/path", "foo")]  # ruff:ignore[os-path-join]
@@ -529,43 +537,44 @@ _SINGLE_SITE_ITER_CASES = [
 ]
 
 
+@pytest.mark.usefixtures("_as_root", "_no_xdg_runtime_dir")
 @pytest.mark.parametrize(("func", "expected"), _SINGLE_SITE_ITER_CASES)
 def test_use_site_iter_dirs_no_duplicates_single_site_dir(
-    mocker: MockerFixture,
-    monkeypatch: pytest.MonkeyPatch,
     func: Callable[[Unix], Iterator[str]],
     expected: str,
 ) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=0)
-    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     result = func(Unix(appname="foo", use_site_for_root=True))
     assert list(result) == [expected]
 
 
+@pytest.mark.usefixtures("_as_non_root", "_no_xdg_runtime_dir", "_writable_runtime_dir")
 @pytest.mark.parametrize(("func", "expected"), _SINGLE_SITE_ITER_CASES)
 def test_iter_dirs_as_non_root_keeps_user_dir(
-    mocker: MockerFixture,
-    monkeypatch: pytest.MonkeyPatch,
     func: Callable[[Unix], Iterator[str]],
     expected: str,
 ) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=1000)
-    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
-    mocker.patch("os.access", return_value=True)
     result = list(func(Unix(appname="foo", use_site_for_root=True)))
     assert len(result) == 2
     assert result[0] != expected
     assert result[1] == expected
 
 
-def test_iter_config_dirs_as_root_with_multipath_skips_joined_user_dir(
-    mocker: MockerFixture,
+@pytest.mark.usefixtures("_as_root")
+@pytest.mark.parametrize(
+    ("xdg_var", "func"),
+    [
+        ("XDG_CONFIG_DIRS", Unix.iter_config_dirs),
+        ("XDG_DATA_DIRS", Unix.iter_data_dirs),
+    ],
+)
+def test_iter_dirs_as_root_with_multipath_skips_joined_user_dir(
     monkeypatch: pytest.MonkeyPatch,
+    xdg_var: str,
+    func: Callable[[Unix], Iterator[str]],
 ) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=0)
-    monkeypatch.setenv("XDG_CONFIG_DIRS", f"/xdg/etc1{os.pathsep}/xdg/etc2")
-    dirs = Unix(multipath=True, use_site_for_root=True)
-    assert list(dirs.iter_config_dirs()) == ["/xdg/etc1", "/xdg/etc2"]
+    monkeypatch.setenv(xdg_var, f"/xdg/a{os.pathsep}/xdg/b")
+    # Under multipath the user dir is the joined string, which equals no single site entry for the dedupe to drop.
+    assert list(func(Unix(multipath=True, use_site_for_root=True))) == ["/xdg/a", "/xdg/b"]
 
 
 def test_iter_runtime_dirs_no_duplicate_with_xdg_runtime_dir(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -14,6 +14,12 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
+@pytest.fixture
+def _example_android_folder(mocker: MockerFixture) -> None:
+    mocker.patch("platformdirs.android._android_folder", return_value="/data/data/com.example", autospec=True)
+    mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
+
+
 @pytest.mark.parametrize(
     "params",
     [
@@ -31,9 +37,8 @@ if TYPE_CHECKING:
         "app_name_author_version_false_opinion",
     ],
 )
-def test_android(mocker: MockerFixture, params: dict[str, Any], func: str) -> None:
-    mocker.patch("platformdirs.android._android_folder", return_value="/data/data/com.example", autospec=True)
-    mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
+@pytest.mark.usefixtures("_example_android_folder")
+def test_android(params: dict[str, Any], func: str) -> None:
     result = getattr(Android(**params), func)
 
     suffix_elements = []
@@ -203,8 +208,7 @@ def test_android_ensure_exists_creates_opinion_subdir(
         pytest.param("iter_runtime_dirs", "/data/data/com.example/cache/foo/tmp", id="runtime"),
     ],
 )
-def test_android_iter_dirs_no_duplicates(mocker: MockerFixture, func: str, expected: str) -> None:
-    mocker.patch("platformdirs.android._android_folder", return_value="/data/data/com.example", autospec=True)
-    mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
+@pytest.mark.usefixtures("_example_android_folder")
+def test_android_iter_dirs_no_duplicates(func: str, expected: str) -> None:
     # Every site_*_dir on Android is defined as its user_*_dir.
     assert list(getattr(Android(appname="foo"), func)()) == [expected]
