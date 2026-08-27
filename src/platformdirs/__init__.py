@@ -364,13 +364,14 @@ def user_fonts_dir() -> str:
     return PlatformDirs().user_fonts_dir
 
 
-def user_preference_dir(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]
+def user_preference_dir(  # ruff:ignore[too-many-arguments]
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
+    *,
+    roaming: bool = False,
+    ensure_exists: bool = False,
+    use_site_for_root: bool = False,
 ) -> str:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -818,13 +819,14 @@ def user_fonts_path() -> Path:
     return PlatformDirs().user_fonts_path
 
 
-def user_preference_path(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]
+def user_preference_path(  # ruff:ignore[too-many-arguments]
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
+    *,
+    roaming: bool = False,
+    ensure_exists: bool = False,
+    use_site_for_root: bool = False,
 ) -> Path:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
