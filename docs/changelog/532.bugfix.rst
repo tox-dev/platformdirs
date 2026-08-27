@@ -1,2 +1,3 @@
-Make :func:`~platformdirs.site_applications_path` return the first site applications path when ``multipath=True``
-instead of treating the joined directory list as one path.
+Make :func:`~platformdirs.site_applications_path` return the first entry on Unix when ``multipath=True``, matching
+:func:`~platformdirs.site_data_path`. It passed the whole ``$XDG_DATA_DIRS`` list to :class:`~pathlib.Path`, giving one
+unusable path such as ``/first/applications:/second/applications``.

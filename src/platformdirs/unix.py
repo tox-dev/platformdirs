@@ -226,6 +226,11 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         """Cache path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
         return self._first_item_as_path_if_multipath(self.site_cache_dir)
 
+    @property
+    def site_applications_path(self) -> Path:
+        """Applications path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
+        return self._first_item_as_path_if_multipath(self.site_applications_dir)
+
     def _iter_config_dirs(self) -> Iterator[str]:
         # Under multipath the user dir is an os.pathsep-joined string that equals no single site entry, so the
         # deduplication in iter_config_dirs cannot drop it. Skip it here instead.
