@@ -364,9 +364,33 @@ def user_fonts_dir() -> str:
     return PlatformDirs().user_fonts_dir
 
 
-def user_preference_dir() -> str:
-    """:returns: preference directory tied to the user"""
-    return PlatformDirs().user_preference_dir
+def user_preference_dir(  # ruff:ignore[too-many-arguments]
+    appname: str | None = None,
+    appauthor: str | Literal[False] | None = None,
+    version: str | None = None,
+    *,
+    roaming: bool = False,
+    ensure_exists: bool = False,
+    use_site_for_root: bool = False,
+) -> str:
+    """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param roaming: See `roaming <platformdirs.api.PlatformDirsABC.roaming>`.
+    :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param use_site_for_root: See `use_site_for_root <platformdirs.api.PlatformDirsABC.use_site_for_root>`.
+
+    :returns: preference directory tied to the user
+
+    """
+    return PlatformDirs(
+        appname=appname,
+        appauthor=appauthor,
+        version=version,
+        roaming=roaming,
+        ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
+    ).user_preference_dir
 
 
 def user_bin_dir() -> str:
@@ -796,9 +820,33 @@ def user_fonts_path() -> Path:
     return PlatformDirs().user_fonts_path
 
 
-def user_preference_path() -> Path:
-    """:returns: preference path tied to the user"""
-    return PlatformDirs().user_preference_path
+def user_preference_path(  # ruff:ignore[too-many-arguments]
+    appname: str | None = None,
+    appauthor: str | Literal[False] | None = None,
+    version: str | None = None,
+    *,
+    roaming: bool = False,
+    ensure_exists: bool = False,
+    use_site_for_root: bool = False,
+) -> Path:
+    """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
+    :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
+    :param roaming: See `roaming <platformdirs.api.PlatformDirsABC.roaming>`.
+    :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param use_site_for_root: See `use_site_for_root <platformdirs.api.PlatformDirsABC.use_site_for_root>`.
+
+    :returns: preference path tied to the user
+
+    """
+    return PlatformDirs(
+        appname=appname,
+        appauthor=appauthor,
+        version=version,
+        roaming=roaming,
+        ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
+    ).user_preference_path
 
 
 def user_bin_path() -> Path:

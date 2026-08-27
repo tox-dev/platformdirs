@@ -75,6 +75,18 @@ def test_site_applications_function_keeps_multipath_positional(func: str) -> Non
     assert positional == ["multipath", "ensure_exists"]
 
 
+def test_function_matches_its_property_for_app_arguments(func: str) -> None:
+    function = getattr(platformdirs, func)
+    scoped = getattr(platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0"), func)
+    if {"appname", "version"} <= inspect.Signature.from_callable(function).parameters.keys():
+        assert function(appname="MyApp", appauthor="MyCompany", version="1.0") == scoped
+    else:
+        # A function without the app arguments can only ever return the unscoped base directory, so a property that
+        # is app-scoped on any platform is out of its reach. Only one direction holds: a function may have to take
+        # arguments this platform ignores because another platform scopes the same property.
+        assert scoped == getattr(platformdirs.PlatformDirs(), func)
+
+
 @pytest.mark.parametrize("root", ["A", "/system", None])
 @pytest.mark.parametrize("data", ["D", "/data", None])
 @pytest.mark.parametrize("path", ["/data/data/a/files", "/C"])

@@ -1,0 +1,3 @@
+Give :func:`~platformdirs.user_preference_dir` and :func:`~platformdirs.user_preference_path` the same arguments as
+:func:`~platformdirs.user_config_dir`. Added without arguments in :pr:`491`, they could only return the unscoped base
+directory even though the property they wrap appends the app name and version.
