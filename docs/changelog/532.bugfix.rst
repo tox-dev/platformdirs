@@ -1,3 +1,0 @@
-Make :func:`~platformdirs.site_applications_path` return the first entry when ``multipath=True``, matching
-:func:`~platformdirs.site_data_path`. On Unix and macOS it passed the whole ``$XDG_DATA_DIRS`` list to
-:class:`~pathlib.Path`, giving one unusable path such as ``/first/applications:/second/applications``.

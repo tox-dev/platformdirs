@@ -6,6 +6,24 @@
 
 .. towncrier release notes start
 
+********************
+ 4.11.5 (2026-08-27)
+********************
+
+- Give :func:`~platformdirs.user_preference_dir` and :func:`~platformdirs.user_preference_path` the same arguments as
+  :func:`~platformdirs.user_config_dir`. Added without arguments in :pr:`491`, they could only return the unscoped base
+  directory even though the property they wrap appends the app name and version. :pr:`531`
+- Make :func:`~platformdirs.site_applications_path` return the first entry when ``multipath=True``, matching
+  :func:`~platformdirs.site_data_path`. On Unix and macOS it passed the whole ``$XDG_DATA_DIRS`` list to
+  :class:`~pathlib.Path`, giving one unusable path such as ``/first/applications:/second/applications``. :pr:`532`
+- Give :func:`~platformdirs.user_applications_dir`, :func:`~platformdirs.user_applications_path`,
+  :func:`~platformdirs.site_applications_dir` and :func:`~platformdirs.site_applications_path` the app arguments. Android
+  scopes both applications directories to the app, so without them the functions could only return the unscoped base
+  directory there. On the two site functions they are keyword-only, keeping ``multipath`` first positional as it has been
+  since 4.9.0; the two user functions take their boolean options keyword-only. :pr:`534`
+- Correct the ordering note on the iterator methods. ``use_site_for_root`` drops the user directory entirely, so the
+  iterators are documented as yielding the most specific directory first rather than always yielding the user one. :pr:`533`
+
 *********************
  4.11.4 (2026-08-24)
 *********************
