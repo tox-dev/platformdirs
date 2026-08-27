@@ -277,8 +277,7 @@ Windows. Executables here are available to all users.
 
 These methods are available on :class:`~platformdirs.PlatformDirs` instances. They yield both user and site directories
 for a given type, enabling configuration merging and fallback patterns. See :ref:`howto:Merging config from multiple
-sources` for a practical example. User directories come first, then site directories, and each distinct directory
-appears once.
+sources` for a practical example. The most specific directory comes first, and each distinct directory appears once.
 
 - :meth:`~platformdirs.api.PlatformDirsABC.iter_data_dirs` / :meth:`~platformdirs.api.PlatformDirsABC.iter_data_paths`
 - :meth:`~platformdirs.api.PlatformDirsABC.iter_config_dirs` /

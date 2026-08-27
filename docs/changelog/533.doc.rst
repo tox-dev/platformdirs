@@ -1,0 +1,2 @@
+Correct the ordering note on the iterator methods. ``use_site_for_root`` drops the user directory entirely, so the
+iterators are documented as yielding the most specific directory first rather than always yielding the user one.
