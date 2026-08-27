@@ -1,4 +1,5 @@
 Give :func:`~platformdirs.user_applications_dir`, :func:`~platformdirs.user_applications_path`,
 :func:`~platformdirs.site_applications_dir` and :func:`~platformdirs.site_applications_path` the app arguments. Android
 scopes both applications directories to the app, so without them the functions could only return the unscoped base
-directory there.
+directory there. On the two site functions they are keyword-only, keeping ``multipath`` first positional as it has been
+since 4.9.0.

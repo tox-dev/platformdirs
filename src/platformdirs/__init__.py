@@ -405,17 +405,18 @@ def user_applications_dir(
 
 
 def site_applications_dir(
+    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
+    *,
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
 ) -> str:
-    """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    """:param multipath: See `multipath <platformdirs.api.PlatformDirsABC.multipath>`.
+    :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
-    :param multipath: See `multipath <platformdirs.api.PlatformDirsABC.multipath>`.
-    :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
 
     :returns: applications directory shared by users
 
@@ -835,17 +836,18 @@ def user_applications_path(
 
 
 def site_applications_path(
+    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
+    *,
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
 ) -> Path:
-    """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
+    """:param multipath: See `multipath <platformdirs.api.PlatformDirsABC.multipath>`.
+    :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
+    :param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
     :param version: See `version <platformdirs.api.PlatformDirsABC.version>`.
-    :param multipath: See `multipath <platformdirs.api.PlatformDirsABC.multipath>`.
-    :param ensure_exists: See `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`.
 
     :returns: applications path shared by users
 
