@@ -1,0 +1,4 @@
+Give :func:`~platformdirs.user_applications_dir`, :func:`~platformdirs.user_applications_path`,
+:func:`~platformdirs.site_applications_dir` and :func:`~platformdirs.site_applications_path` the app arguments. Android
+scopes both applications directories to the app, so without them the functions could only return the unscoped base
+directory there.

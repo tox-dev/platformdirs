@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+import platformdirs
 from platformdirs.android import Android
 
 if TYPE_CHECKING:
@@ -212,3 +213,14 @@ def test_android_ensure_exists_creates_opinion_subdir(
 def test_android_iter_dirs_no_duplicates(func: str, expected: str) -> None:
     # Every site_*_dir on Android is defined as its user_*_dir.
     assert list(getattr(Android(appname="foo"), func)()) == [expected]
+
+
+@pytest.mark.parametrize(
+    "func",
+    ["user_applications_dir", "user_applications_path", "site_applications_dir", "site_applications_path"],
+)
+@pytest.mark.usefixtures("_example_android_folder")
+def test_android_applications_function_takes_app_arguments(mocker: MockerFixture, func: str) -> None:
+    mocker.patch("platformdirs.PlatformDirs", Android)
+    # Android scopes both applications directories to the app, so the function has to forward the name and version.
+    assert str(getattr(platformdirs, func)("foo", version="1.0")) == "/data/data/com.example/files/foo/1.0"
