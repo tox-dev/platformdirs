@@ -1,4 +1,3 @@
 Give :func:`~platformdirs.user_preference_dir` and :func:`~platformdirs.user_preference_path` the same arguments as
-:func:`~platformdirs.user_config_dir`, the property they resolve to on Unix, Windows and Android. :pr:`491` added them
-next to the app-independent helpers such as :func:`~platformdirs.user_fonts_dir`, so they took no arguments and could
-only ever return the unscoped base directory even though the property they wrap appends the app name and version.
+:func:`~platformdirs.user_config_dir`. Added without arguments in :pr:`491`, they could only return the unscoped base
+directory even though the property they wrap appends the app name and version.
