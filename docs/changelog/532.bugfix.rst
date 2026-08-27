@@ -1,0 +1,1 @@
+Make :func:`~platformdirs.site_applications_path` return the first site applications path when ``multipath=True`` instead of treating the joined directory list as one path.
