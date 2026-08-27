@@ -4,6 +4,7 @@ import importlib
 import os
 import sys
 import typing
+from pathlib import Path
 from tempfile import gettempdir
 
 import pytest
@@ -13,7 +14,6 @@ from platformdirs.unix import Unix
 
 if typing.TYPE_CHECKING:
     from collections.abc import Callable, Iterator
-    from pathlib import Path
 
     from pytest_mock import MockerFixture
 
@@ -393,6 +393,11 @@ def test_site_data_dir_multipath_falls_back_when_xdg_var_is_all_separators(monke
     monkeypatch.setenv("XDG_DATA_DIRS", os.pathsep)
     dirs = [os.path.join("/usr/local/share", "foo"), os.path.join("/usr/share", "foo")]  # ruff:ignore[os-path-join]
     assert Unix(appname="foo", multipath=True).site_data_dir == os.pathsep.join(dirs)
+
+
+def test_site_applications_path_multipath_returns_first_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("XDG_DATA_DIRS", f"/custom/first{os.pathsep}/custom/second")
+    assert Unix(multipath=True).site_applications_path == Path("/custom/first/applications")
 
 
 def test_user_media_dir_from_user_dirs_file(

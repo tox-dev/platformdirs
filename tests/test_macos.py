@@ -350,6 +350,12 @@ def test_iter_config_dirs_homebrew(home: str) -> None:
     assert dirs == [f"{home}/Library/Application Support", "/opt/homebrew/share", "/Library/Application Support"]
 
 
+@pytest.mark.usefixtures("_clear_xdg_env")
+def test_site_applications_path_multipath_returns_first_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("XDG_DATA_DIRS", f"/custom/first{os.pathsep}/custom/second")
+    assert MacOS(multipath=True).site_applications_path == Path("/custom/first/applications")
+
+
 @pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
 @pytest.mark.parametrize(
     "value",
