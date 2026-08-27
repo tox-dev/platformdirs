@@ -59,6 +59,14 @@ def test_function_interface_is_in_sync(func: str) -> None:
     assert function_dir_signature.parameters == function_path_signature.parameters
 
 
+@pytest.mark.parametrize("func", ["user_applications_dir", "user_applications_path"])
+def test_user_applications_function_boolean_options_are_keyword_only(func: str) -> None:
+    # These options have not shipped yet, so they can be keyword-only without breaking any caller.
+    parameters = inspect.Signature.from_callable(getattr(platformdirs, func)).parameters
+    positional = [name for name, param in parameters.items() if param.kind is param.POSITIONAL_OR_KEYWORD]
+    assert positional == ["appname", "appauthor", "version"]
+
+
 @pytest.mark.parametrize("func", ["site_applications_dir", "site_applications_path"])
 def test_site_applications_function_keeps_multipath_positional(func: str) -> None:
     # multipath has been the first positional argument since 4.9.0, so the app arguments are keyword-only.

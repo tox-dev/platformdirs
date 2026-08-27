@@ -383,8 +383,9 @@ def user_applications_dir(
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
+    *,
+    ensure_exists: bool = False,
+    use_site_for_root: bool = False,
 ) -> str:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -814,8 +815,9 @@ def user_applications_path(
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
+    *,
+    ensure_exists: bool = False,
+    use_site_for_root: bool = False,
 ) -> Path:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
