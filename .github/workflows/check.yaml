@@ -154,7 +154,7 @@ jobs:
     # A PR must add a docs/changelog/<pr>.<type>.rst fragment; automated dependency and pre-commit bumps are exempt, as
     # is anything labeled skip news, for changes no user of the library can observe.
     if: >-
-      github.event_name == 'pull_request' && !contains(fromJSON('["dependabot[bot]", "pre-commit-ci[bot]"]'), github.actor) && !contains(github.event.pull_request.labels.*.name, 'skip news')
+      github.event_name == 'pull_request' && !contains(fromJSON('["dependabot[bot]", "pre-commit-ci[bot]"]'), github.event.pull_request.user.login) && !contains(github.event.pull_request.labels.*.name, 'skip news')
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
