@@ -6,6 +6,13 @@
 
 .. towncrier release notes start
 
+********************
+ 4.11.6 (2026-09-01)
+********************
+
+- Give :func:`~platformdirs.user_bin_dir` and :func:`~platformdirs.user_bin_path` the ``use_site_for_root`` argument. They
+  took none, so neither could reach the Unix redirect of root to :func:`~platformdirs.site_bin_dir`. :pr:`537`
+
 *********************
  4.11.5 (2026-08-27)
 *********************
