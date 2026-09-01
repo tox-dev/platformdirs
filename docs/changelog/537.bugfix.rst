@@ -1,0 +1,3 @@
+Give :func:`~platformdirs.user_bin_dir` and :func:`~platformdirs.user_bin_path` the ``use_site_for_root`` argument. On
+Unix the property redirects root to :func:`~platformdirs.site_bin_dir` when it is set, but the module-level functions
+took no arguments, so the redirect was unreachable through them.
