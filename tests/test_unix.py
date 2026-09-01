@@ -466,6 +466,7 @@ _SITE_REDIRECT_CASES: list[tuple[str, str]] = [
         ),
     ),
     ("user_bin_dir", "/usr/local/bin"),
+    ("user_applications_dir", f"/usr/local/share{os.sep}applications"),
 ]
 
 
@@ -485,21 +486,17 @@ def test_use_site_for_root_as_non_root(prop: str, expected: str) -> None:
 
 
 @pytest.mark.usefixtures("_as_root", "_no_xdg_runtime_dir")
-@pytest.mark.parametrize("variant", ["dir", "path"])
+@pytest.mark.parametrize("suffix", ["dir", "path"])
 @pytest.mark.parametrize(("prop", "expected"), _SITE_REDIRECT_CASES)
 def test_use_site_for_root_reaches_the_module_function(
-    mocker: MockerFixture,
-    prop: str,
-    expected: str,
-    variant: str,
+    mocker: MockerFixture, prop: str, expected: str, suffix: str
 ) -> None:
-    # Every property the site redirect touches has to be reachable through the module-level function too.
+    # The module-level functions have to reach every property the site redirect touches.
     mocker.patch("platformdirs.PlatformDirs", Unix)
-    function = getattr(platformdirs, prop.replace("_dir", f"_{variant}"))
-    kwargs: dict[str, bool | str] = {"use_site_for_root": True}
-    if "appname" in inspect.Signature.from_callable(function).parameters:
-        kwargs["appname"] = "foo"
-    assert Path(function(**kwargs)) == Path(expected)
+    function = getattr(platformdirs, prop.removesuffix("dir") + suffix)
+    accepted = inspect.Signature.from_callable(function).parameters
+    options = {"use_site_for_root": True, "appname": "foo"}
+    assert Path(function(**{k: v for k, v in options.items() if k in accepted})) == Path(expected)
 
 
 @pytest.mark.usefixtures("_as_root", "_no_xdg_runtime_dir", "_writable_runtime_dir")
