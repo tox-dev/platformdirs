@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import inspect
 import os
 import sys
 import typing
@@ -9,6 +10,7 @@ from tempfile import gettempdir
 
 import pytest
 
+import platformdirs
 from platformdirs import unix
 from platformdirs.unix import Unix
 
@@ -480,6 +482,24 @@ def test_use_site_for_root_as_non_root(prop: str, expected: str) -> None:
     dirs = Unix(appname="foo", use_site_for_root=True)
     result = getattr(dirs, prop)
     assert result != expected
+
+
+@pytest.mark.usefixtures("_as_root", "_no_xdg_runtime_dir")
+@pytest.mark.parametrize("variant", ["dir", "path"])
+@pytest.mark.parametrize(("prop", "expected"), _SITE_REDIRECT_CASES)
+def test_use_site_for_root_reaches_the_module_function(
+    mocker: MockerFixture,
+    prop: str,
+    expected: str,
+    variant: str,
+) -> None:
+    # Every property the site redirect touches has to be reachable through the module-level function too.
+    mocker.patch("platformdirs.PlatformDirs", Unix)
+    function = getattr(platformdirs, prop.replace("_dir", f"_{variant}"))
+    kwargs: dict[str, bool | str] = {"use_site_for_root": True}
+    if "appname" in inspect.Signature.from_callable(function).parameters:
+        kwargs["appname"] = "foo"
+    assert Path(function(**kwargs)) == Path(expected)
 
 
 @pytest.mark.usefixtures("_as_root", "_no_xdg_runtime_dir", "_writable_runtime_dir")
