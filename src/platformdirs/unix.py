@@ -310,6 +310,26 @@ class Unix(XDGMixin, _UnixDefaults):
         """Bin directory tied to the user, or site equivalent when root with ``use_site_for_root``."""
         return self.site_bin_dir if self._use_site else super().user_bin_dir
 
+    @property
+    def user_data_path(self) -> Path:
+        """Data path tied to the user, or the first site entry when root with ``use_site_for_root``."""
+        return self.site_data_path if self._use_site else super().user_data_path
+
+    @property
+    def user_config_path(self) -> Path:
+        """Config path tied to the user, or the first site entry when root with ``use_site_for_root``."""
+        return self.site_config_path if self._use_site else super().user_config_path
+
+    @property
+    def user_preference_path(self) -> Path:
+        """Preference path tied to the user, or the first site config entry when root with ``use_site_for_root``."""
+        return self.site_config_path if self._use_site else super().user_preference_path
+
+    @property
+    def user_applications_path(self) -> Path:
+        """Applications path tied to the user, or the first site entry when root with ``use_site_for_root``."""
+        return self.site_applications_path if self._use_site else super().user_applications_path
+
 
 def _get_user_media_dir(env_var: str, fallback_tilde_path: str) -> str:
     if media_dir := _get_user_dirs_folder(env_var):

@@ -592,6 +592,40 @@ def test_iter_dirs_as_root_with_multipath_skips_joined_user_dir(
     assert list(func(Unix(multipath=True, use_site_for_root=True))) == ["/xdg/a", "/xdg/b"]
 
 
+_ROOT_MULTIPATH_PATH_CASES: list[tuple[str, str, str, Path]] = [
+    ("XDG_DATA_DIRS", "user_data_path", "site_data_path", Path("/xdg/a/foo")),
+    ("XDG_CONFIG_DIRS", "user_config_path", "site_config_path", Path("/xdg/a/foo")),
+    ("XDG_CONFIG_DIRS", "user_preference_path", "site_config_path", Path("/xdg/a/foo")),
+    ("XDG_DATA_DIRS", "user_applications_path", "site_applications_path", Path("/xdg/a/applications")),
+]
+
+
+@pytest.mark.usefixtures("_as_root")
+@pytest.mark.parametrize(("xdg_var", "prop", "site_prop", "expected"), _ROOT_MULTIPATH_PATH_CASES)
+def test_user_path_as_root_with_multipath_returns_first_site_path(
+    monkeypatch: pytest.MonkeyPatch, xdg_var: str, prop: str, site_prop: str, expected: Path
+) -> None:
+    monkeypatch.setenv(xdg_var, f"/xdg/a{os.pathsep}/xdg/b")
+    dirs = Unix(appname="foo", multipath=True, use_site_for_root=True)
+    # The redirect hands user_*_dir the joined string; the path twin has to pick one entry like site_*_path does.
+    result = getattr(dirs, prop)
+    assert result == expected
+    assert result == getattr(dirs, site_prop)
+
+
+@pytest.mark.usefixtures("_as_non_root")
+@pytest.mark.parametrize(("xdg_var", "prop", "site_prop", "expected"), _ROOT_MULTIPATH_PATH_CASES)
+def test_user_path_as_non_root_with_multipath_is_not_redirected(
+    monkeypatch: pytest.MonkeyPatch, xdg_var: str, prop: str, site_prop: str, expected: Path
+) -> None:
+    monkeypatch.setenv(xdg_var, f"/xdg/a{os.pathsep}/xdg/b")
+    dirs = Unix(appname="foo", multipath=True, use_site_for_root=True)
+    result = getattr(dirs, prop)
+    assert result == Path(getattr(dirs, prop.removesuffix("_path") + "_dir"))
+    assert result != expected
+    assert result != getattr(dirs, site_prop)
+
+
 def test_iter_runtime_dirs_no_duplicate_with_xdg_runtime_dir(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("XDG_RUNTIME_DIR", "/run/user/1000")
     # $XDG_RUNTIME_DIR backs both the user and the site runtime directory.
