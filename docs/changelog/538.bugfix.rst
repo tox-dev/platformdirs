@@ -1,0 +1,5 @@
+Make :func:`~platformdirs.user_data_path`, :func:`~platformdirs.user_config_path`,
+:func:`~platformdirs.user_preference_path` and :func:`~platformdirs.user_applications_path` return the first site entry
+when root is redirected by ``use_site_for_root`` under ``multipath``, matching their ``site_*_path`` twins. They passed
+the whole joined list to :class:`~pathlib.Path`, giving one unusable path such as ``/xdg/a/foo:/xdg/b/foo`` - by
+:user:`darrenhuai`.
