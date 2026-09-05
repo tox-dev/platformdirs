@@ -132,6 +132,25 @@ def test_user_fonts_dir_xdg_data_home(mocker: MockerFixture) -> None:
     assert Unix().user_fonts_dir == "/custom/data/fonts"
 
 
+def test_user_fonts_dir_xdg_data_home_relative(mocker: MockerFixture) -> None:
+    mocker.patch.dict(
+        os.environ, {"XDG_DATA_HOME": "relative/data", "HOME": "/home/example", "USERPROFILE": "/home/example"}
+    )
+    assert Unix().user_fonts_dir == "/home/example/.local/share/fonts"
+
+
+def test_user_applications_dir_xdg_data_home(mocker: MockerFixture) -> None:
+    mocker.patch.dict(os.environ, {"XDG_DATA_HOME": "/custom/data"})
+    assert Unix().user_applications_dir == "/custom/data/applications"
+
+
+def test_user_applications_dir_xdg_data_home_relative(mocker: MockerFixture) -> None:
+    mocker.patch.dict(
+        os.environ, {"XDG_DATA_HOME": "relative/data", "HOME": "/home/example", "USERPROFILE": "/home/example"}
+    )
+    assert Unix().user_applications_dir == "/home/example/.local/share/applications"
+
+
 def test_user_preference_dir_is_config_dir() -> None:
     dirs = Unix(appname="MyApp", version="1.0")
     assert dirs.user_preference_dir == dirs.user_config_dir
@@ -217,6 +236,17 @@ def test_xdg_variable_padded_value(monkeypatch: pytest.MonkeyPatch, dirs_instanc
     monkeypatch.setenv(xdg_variable.name, " /custom-dir ")
     result = getattr(dirs_instance, func)
     assert result == "/custom-dir"
+
+
+@pytest.mark.usefixtures("_getuid")
+def test_xdg_variable_relative_value(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
+    xdg_variable = _func_to_path(func)
+    if xdg_variable is None:
+        return
+
+    monkeypatch.setenv(xdg_variable.name, "relative-dir")
+    result = getattr(dirs_instance, func)
+    assert result == os.path.expanduser(xdg_variable.default_value)  # ruff:ignore[os-path-expanduser]
 
 
 @pytest.mark.parametrize("opinion", [True, False])
@@ -397,6 +427,23 @@ def test_site_data_dir_multipath_falls_back_when_xdg_var_is_all_separators(monke
     assert Unix(appname="foo", multipath=True).site_data_dir == os.pathsep.join(dirs)
 
 
+def test_site_dirs_filter_relative_entries(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("XDG_DATA_DIRS", f"relative/dir{os.pathsep}/custom/share{os.pathsep}another/relative")
+    monkeypatch.setenv("XDG_CONFIG_DIRS", f"relative/cfg{os.pathsep}/custom/etc")
+    assert Unix(appname="foo").site_data_dir == os.path.join("/custom/share", "foo")  # ruff:ignore[os-path-join]
+    assert Unix(appname="foo").site_config_dir == os.path.join("/custom/etc", "foo")  # ruff:ignore[os-path-join]
+    assert Unix().site_applications_dir == os.path.join("/custom/share", "applications")  # ruff:ignore[os-path-join]
+
+
+def test_site_dirs_mixed_relative_and_absolute_multipath(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(
+        "XDG_DATA_DIRS",
+        f"relative/dir{os.pathsep}/custom/share1{os.pathsep}another/relative{os.pathsep}/custom/share2",
+    )
+    dirs = [os.path.join("/custom/share1", "foo"), os.path.join("/custom/share2", "foo")]  # ruff:ignore[os-path-join]
+    assert Unix(appname="foo", multipath=True).site_data_dir == os.pathsep.join(dirs)
+
+
 def test_site_applications_path_multipath_returns_first_path(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("XDG_DATA_DIRS", f"/custom/first{os.pathsep}/custom/second")
     assert Unix(multipath=True).site_applications_path == Path("/custom/first/applications")
@@ -450,6 +497,23 @@ def test_user_dirs_respects_xdg_config_home(tmp_path: Path, monkeypatch: pytest.
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(custom_config))
     assert Unix().user_documents_dir == f"{tmp_path}/CustomDocs"
+
+
+def test_user_dirs_ignores_relative_xdg_config_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    monkeypatch.chdir(tmp_path)
+    home_config = tmp_path / ".config"
+    home_config.mkdir()
+    (home_config / "user-dirs.dirs").write_text('XDG_DOCUMENTS_DIR="$HOME/HomeDocs"\n')
+    rel_config = tmp_path / "relative_config"
+    rel_config.mkdir()
+    (rel_config / "user-dirs.dirs").write_text('XDG_DOCUMENTS_DIR="$HOME/RelativeDocs"\n')
+
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setenv("XDG_CONFIG_HOME", "relative_config")
+
+    assert Unix().user_documents_dir == f"{tmp_path}/HomeDocs"
 
 
 _SITE_REDIRECT_CASES: list[tuple[str, str]] = [
