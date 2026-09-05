@@ -295,6 +295,29 @@ def test_macos_xdg_empty_falls_back(monkeypatch: pytest.MonkeyPatch, home: str, 
 
 
 @pytest.mark.parametrize(
+    ("env_var", "prop"),
+    [
+        pytest.param("XDG_DATA_HOME", "user_data_dir", id="user_data_dir"),
+        pytest.param("XDG_CONFIG_HOME", "user_config_dir", id="user_config_dir"),
+        pytest.param("XDG_CACHE_HOME", "user_cache_dir", id="user_cache_dir"),
+        pytest.param("XDG_STATE_HOME", "user_state_dir", id="user_state_dir"),
+        pytest.param("XDG_RUNTIME_DIR", "user_runtime_dir", id="user_runtime_dir"),
+    ],
+)
+@pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
+def test_macos_xdg_relative_falls_back(monkeypatch: pytest.MonkeyPatch, home: str, env_var: str, prop: str) -> None:
+    monkeypatch.setenv(env_var, "relative/dir")
+    expected_map = {
+        "user_data_dir": f"{home}/Library/Application Support",
+        "user_config_dir": f"{home}/Library/Application Support",
+        "user_cache_dir": f"{home}/Library/Caches",
+        "user_state_dir": f"{home}/Library/Application Support",
+        "user_runtime_dir": f"{home}/Library/Caches/TemporaryItems",
+    }
+    assert getattr(MacOS(), prop) == expected_map[prop]
+
+
+@pytest.mark.parametrize(
     ("env_var_1", "prop_1", "env_var_2", "prop_2"),
     [
         pytest.param("XDG_DATA_HOME", "user_data_dir", "XDG_CONFIG_HOME", "user_config_dir", id="data/config"),
@@ -377,6 +400,15 @@ def test_site_dirs_fall_back_when_xdg_var_is_all_separators(
         "site_applications_dir": "/Applications",
     }[prop]
     assert getattr(MacOS(appname="foo"), prop) == expected
+
+
+@pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
+def test_site_dirs_filter_relative_entries(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("XDG_DATA_DIRS", f"relative/share{os.pathsep}/custom/share{os.pathsep}another/relative")
+    monkeypatch.setenv("XDG_CONFIG_DIRS", f"relative/cfg{os.pathsep}/custom/etc")
+    assert MacOS(appname="foo").site_data_dir == os.path.join("/custom/share", "foo")  # ruff:ignore[os-path-join]
+    assert MacOS(appname="foo").site_config_dir == os.path.join("/custom/etc", "foo")  # ruff:ignore[os-path-join]
+    assert MacOS().site_applications_dir == "/custom/share/applications"
 
 
 @pytest.mark.usefixtures("_clear_xdg_env", "_homebrew_py_prefix")

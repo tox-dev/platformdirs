@@ -10,7 +10,7 @@ from pathlib import Path
 from tempfile import gettempdir
 from typing import TYPE_CHECKING, NoReturn
 
-from ._xdg import XDGMixin
+from ._xdg import XDGMixin, _xdg_dir
 from .api import PlatformDirsABC
 
 if TYPE_CHECKING:
@@ -323,7 +323,7 @@ def _get_user_dirs_folder(key: str) -> str | None:
     See https://freedesktop.org/wiki/Software/xdg-user-dirs/.
 
     """
-    config_home = os.environ.get("XDG_CONFIG_HOME", "").strip() or os.path.expanduser("~/.config")  # ruff:ignore[os-path-expanduser]
+    config_home = _xdg_dir("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")  # ruff:ignore[os-path-expanduser]
     user_dirs_config_path = Path(config_home) / "user-dirs.dirs"
     if user_dirs_config_path.exists():
         parser = ConfigParser()
