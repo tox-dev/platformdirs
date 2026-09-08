@@ -569,6 +569,9 @@ On all other platforms, this aliases ``user_config_dir``.
 
 These are system-wide (and, generally, read-only) directories.
 
+On macOS, the Homebrew base Python installation determines shared data, config, cache and state locations. Activating a
+virtual environment preserves those locations.
+
 ``site_data_dir``
 =================
 
