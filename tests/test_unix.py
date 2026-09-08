@@ -12,6 +12,7 @@ import pytest
 
 import platformdirs
 from platformdirs import unix
+from platformdirs.macos import MacOS
 from platformdirs.unix import Unix
 
 if typing.TYPE_CHECKING:
@@ -437,6 +438,22 @@ def test_site_dirs_fall_back_when_xdg_var_has_no_absolute_paths(
         "site_applications_dir": os.path.join("/usr/local/share", "applications"),  # ruff:ignore[os-path-join]
     }[prop]
     assert getattr(Unix(appname="foo"), prop) == expected
+
+
+@pytest.mark.parametrize("dirs_class", [pytest.param(Unix, id="unix"), pytest.param(MacOS, id="macos")])
+@pytest.mark.parametrize("prop", ["site_data_dir", "site_config_dir", "site_applications_dir"])
+@pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="singlepath")])
+def test_site_dirs_filter_relative_entries(
+    monkeypatch: pytest.MonkeyPatch, dirs_class: type[Unix | MacOS], prop: str, multipath: bool
+) -> None:
+    value: typing.Final = os.pathsep.join(("relative", "/custom/first", "", "~/relative", " /custom/second "))
+    monkeypatch.setenv("XDG_DATA_DIRS", value)
+    monkeypatch.setenv("XDG_CONFIG_DIRS", value)
+    suffix: typing.Final = "applications" if prop == "site_applications_dir" else "foo"
+    expected: typing.Final = [f"/custom/{name}{os.sep}{suffix}" for name in ("first", "second")]
+    assert getattr(dirs_class(appname="foo", multipath=multipath), prop) == (
+        os.pathsep.join(expected) if multipath else expected[0]
+    )
 
 
 def test_site_data_dir_multipath_falls_back_when_xdg_var_is_all_separators(monkeypatch: pytest.MonkeyPatch) -> None:
