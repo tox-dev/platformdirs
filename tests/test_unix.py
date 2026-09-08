@@ -592,38 +592,33 @@ def test_iter_dirs_as_root_with_multipath_skips_joined_user_dir(
     assert list(func(Unix(multipath=True, use_site_for_root=True))) == ["/xdg/a", "/xdg/b"]
 
 
-_ROOT_MULTIPATH_PATH_CASES: list[tuple[str, str, str, Path]] = [
-    ("XDG_DATA_DIRS", "user_data_path", "site_data_path", Path("/xdg/a/foo")),
-    ("XDG_CONFIG_DIRS", "user_config_path", "site_config_path", Path("/xdg/a/foo")),
-    ("XDG_CONFIG_DIRS", "user_preference_path", "site_config_path", Path("/xdg/a/foo")),
-    ("XDG_DATA_DIRS", "user_applications_path", "site_applications_path", Path("/xdg/a/applications")),
-]
-
-
-@pytest.mark.usefixtures("_as_root")
-@pytest.mark.parametrize(("xdg_var", "prop", "site_prop", "expected"), _ROOT_MULTIPATH_PATH_CASES)
-def test_user_path_as_root_with_multipath_returns_first_site_path(
-    monkeypatch: pytest.MonkeyPatch, xdg_var: str, prop: str, site_prop: str, expected: Path
+@pytest.mark.parametrize("uid", [pytest.param(0, id="root"), pytest.param(1000, id="user")], indirect=True)
+@pytest.mark.parametrize("use_site_for_root", [pytest.param(True, id="redirect"), pytest.param(False, id="user-dirs")])
+@pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="singlepath")])
+@pytest.mark.parametrize(
+    "prop", ["user_data_path", "user_config_path", "user_preference_path", "user_applications_path"]
+)
+def test_user_path_site_redirect(
+    monkeypatch: pytest.MonkeyPatch,
+    uid: int,
+    use_site_for_root: bool,
+    multipath: bool,
+    prop: str,
 ) -> None:
-    monkeypatch.setenv(xdg_var, f"/xdg/a{os.pathsep}/xdg/b")
-    dirs = Unix(appname="foo", multipath=True, use_site_for_root=True)
-    # The redirect hands user_*_dir the joined string; the path twin has to pick one entry like site_*_path does.
-    result = getattr(dirs, prop)
-    assert result == expected
-    assert result == getattr(dirs, site_prop)
+    monkeypatch.setenv("XDG_DATA_DIRS", f"/xdg/a{os.pathsep}/xdg/b")
+    monkeypatch.setenv("XDG_CONFIG_DIRS", f"/xdg/a{os.pathsep}/xdg/b")
+    monkeypatch.setenv("XDG_DATA_HOME", f"/user/with{os.pathsep}separator")
+    monkeypatch.setenv("XDG_CONFIG_HOME", f"/user/with{os.pathsep}separator")
+    dirs: typing.Final = Unix(appname="foo", version="1.0", multipath=multipath, use_site_for_root=use_site_for_root)
+    base: typing.Final = "/xdg/a" if uid == 0 and use_site_for_root else f"/user/with{os.pathsep}separator"
+    assert getattr(dirs, prop) == Path(base) / ("applications" if prop == "user_applications_path" else "foo/1.0")
 
 
-@pytest.mark.usefixtures("_as_non_root")
-@pytest.mark.parametrize(("xdg_var", "prop", "site_prop", "expected"), _ROOT_MULTIPATH_PATH_CASES)
-def test_user_path_as_non_root_with_multipath_is_not_redirected(
-    monkeypatch: pytest.MonkeyPatch, xdg_var: str, prop: str, site_prop: str, expected: Path
-) -> None:
-    monkeypatch.setenv(xdg_var, f"/xdg/a{os.pathsep}/xdg/b")
-    dirs = Unix(appname="foo", multipath=True, use_site_for_root=True)
-    result = getattr(dirs, prop)
-    assert result == Path(getattr(dirs, prop.removesuffix("_path") + "_dir"))
-    assert result != expected
-    assert result != getattr(dirs, site_prop)
+@pytest.fixture
+def uid(request: pytest.FixtureRequest, mocker: MockerFixture) -> int:
+    value: typing.Final = typing.cast("int", request.param)
+    mocker.patch("platformdirs.unix.getuid", return_value=value)
+    return value
 
 
 def test_iter_runtime_dirs_no_duplicate_with_xdg_runtime_dir(monkeypatch: pytest.MonkeyPatch) -> None:
