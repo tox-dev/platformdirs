@@ -295,6 +295,40 @@ def test_macos_xdg_empty_falls_back(monkeypatch: pytest.MonkeyPatch, home: str, 
 
 
 @pytest.mark.parametrize(
+    ("env_var", "prop"),
+    [
+        pytest.param("XDG_DATA_HOME", "user_data_dir", id="user_data_dir"),
+        pytest.param("XDG_CONFIG_HOME", "user_config_dir", id="user_config_dir"),
+        pytest.param("XDG_CACHE_HOME", "user_cache_dir", id="user_cache_dir"),
+        pytest.param("XDG_STATE_HOME", "user_state_dir", id="user_state_dir"),
+        pytest.param("XDG_RUNTIME_DIR", "user_runtime_dir", id="user_runtime_dir"),
+    ],
+)
+@pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param("relative/dir", id="relative"),
+        pytest.param("~/dir", id="tilde"),
+        pytest.param("$HOME/dir", id="unexpanded-home"),
+        pytest.param("C:/dir", id="windows-drive"),
+    ],
+)
+def test_macos_xdg_relative_falls_back(
+    monkeypatch: pytest.MonkeyPatch, home: str, env_var: str, prop: str, value: str
+) -> None:
+    monkeypatch.setenv(env_var, value)
+    expected_map = {
+        "user_data_dir": f"{home}/Library/Application Support",
+        "user_config_dir": f"{home}/Library/Application Support",
+        "user_cache_dir": f"{home}/Library/Caches",
+        "user_state_dir": f"{home}/Library/Application Support",
+        "user_runtime_dir": f"{home}/Library/Caches/TemporaryItems",
+    }
+    assert getattr(MacOS(), prop) == expected_map[prop]
+
+
+@pytest.mark.parametrize(
     ("env_var_1", "prop_1", "env_var_2", "prop_2"),
     [
         pytest.param("XDG_DATA_HOME", "user_data_dir", "XDG_CONFIG_HOME", "user_config_dir", id="data/config"),
@@ -364,10 +398,12 @@ def test_site_applications_path_multipath_returns_first_path(monkeypatch: pytest
         pytest.param("::", id="double"),
         pytest.param(" : ", id="padded"),
         pytest.param(": :", id="spaced"),
+        pytest.param("relative/dir", id="relative"),
+        pytest.param("relative/dir:another/dir", id="all-relative"),
     ],
 )
 @pytest.mark.parametrize("prop", ["site_data_dir", "site_config_dir", "site_applications_dir"])
-def test_site_dirs_fall_back_when_xdg_var_is_all_separators(
+def test_site_dirs_fall_back_when_xdg_var_has_no_absolute_paths(
     monkeypatch: pytest.MonkeyPatch, prop: str, value: str
 ) -> None:
     monkeypatch.setenv("XDG_CONFIG_DIRS" if prop == "site_config_dir" else "XDG_DATA_DIRS", value)

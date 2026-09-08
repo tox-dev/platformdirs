@@ -12,6 +12,7 @@ import pytest
 
 import platformdirs
 from platformdirs import unix
+from platformdirs.macos import MacOS
 from platformdirs.unix import Unix
 
 if typing.TYPE_CHECKING:
@@ -127,9 +128,27 @@ def test_user_fonts_dir_default(mocker: MockerFixture) -> None:
     assert Unix().user_fonts_dir == "/home/example/.local/share/fonts"
 
 
-def test_user_fonts_dir_xdg_data_home(mocker: MockerFixture) -> None:
-    mocker.patch.dict(os.environ, {"XDG_DATA_HOME": "/custom/data"})
-    assert Unix().user_fonts_dir == "/custom/data/fonts"
+@pytest.mark.parametrize(
+    ("prop", "suffix"),
+    [
+        pytest.param("user_fonts_path", "fonts", id="fonts"),
+        pytest.param("user_applications_path", "applications", id="applications"),
+    ],
+)
+@pytest.mark.parametrize(
+    ("value", "base"),
+    [
+        pytest.param("/custom/data", "/custom/data", id="absolute"),
+        pytest.param("relative/data", "/home/example/.local/share", id="relative"),
+    ],
+)
+def test_user_data_home_derived_path(
+    monkeypatch: pytest.MonkeyPatch, prop: str, suffix: str, value: str, base: str
+) -> None:
+    monkeypatch.setenv("XDG_DATA_HOME", value)
+    monkeypatch.setenv("HOME", "/home/example")
+    monkeypatch.setenv("USERPROFILE", "/home/example")
+    assert getattr(Unix(), prop) == Path(base) / suffix
 
 
 def test_user_preference_dir_is_config_dir() -> None:
@@ -217,6 +236,34 @@ def test_xdg_variable_padded_value(monkeypatch: pytest.MonkeyPatch, dirs_instanc
     monkeypatch.setenv(xdg_variable.name, " /custom-dir ")
     result = getattr(dirs_instance, func)
     assert result == "/custom-dir"
+
+
+@pytest.mark.usefixtures("_getuid")
+@pytest.mark.parametrize(
+    ("env_var", "prop", "default"),
+    [
+        pytest.param("XDG_DATA_HOME", "user_data_dir", "~/.local/share", id="data"),
+        pytest.param("XDG_CONFIG_HOME", "user_config_dir", "~/.config", id="config"),
+        pytest.param("XDG_CACHE_HOME", "user_cache_dir", "~/.cache", id="cache"),
+        pytest.param("XDG_STATE_HOME", "user_state_dir", "~/.local/state", id="state"),
+        pytest.param("XDG_STATE_HOME", "user_log_dir", "~/.local/state", id="log"),
+        pytest.param("XDG_CONFIG_HOME", "user_preference_dir", "~/.config", id="preference"),
+    ],
+)
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param("relative/dir", id="relative"),
+        pytest.param("~/dir", id="tilde"),
+        pytest.param("$HOME/dir", id="unexpanded-home"),
+        pytest.param("C:/dir", id="windows-drive"),
+    ],
+)
+def test_xdg_variable_relative_value(
+    monkeypatch: pytest.MonkeyPatch, env_var: str, prop: str, default: str, value: str
+) -> None:
+    monkeypatch.setenv(env_var, value)
+    assert Path(getattr(Unix(opinion=False), prop)) == Path(default).expanduser()
 
 
 @pytest.mark.parametrize("opinion", [True, False])
@@ -336,16 +383,16 @@ def test_xdg_runtime_dir_unset_not_writable(
     assert result == "/tmp/runtime-1234"  # ruff:ignore[hardcoded-temp-file]
 
 
-def test_ensure_exists_creates_folder(mocker: MockerFixture, tmp_path: Path) -> None:
-    mocker.patch.dict(os.environ, {"XDG_DATA_HOME": str(tmp_path)})
-    data_path = Unix(appname="acme", ensure_exists=True).user_data_path
-    assert data_path.exists()
+def test_ensure_exists_creates_folder(monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str) -> None:
+    monkeypatch.setenv("XDG_DATA_HOME", posix_tmp_path)
+    assert Unix(appname="acme", ensure_exists=True).user_data_path == Path(posix_tmp_path) / "acme"
+    assert (Path(posix_tmp_path) / "acme").is_dir()
 
 
-def test_folder_not_created_without_ensure_exists(mocker: MockerFixture, tmp_path: Path) -> None:
-    mocker.patch.dict(os.environ, {"XDG_DATA_HOME": str(tmp_path)})
-    data_path = Unix(appname="acme", ensure_exists=False).user_data_path
-    assert not data_path.exists()
+def test_folder_not_created_without_ensure_exists(monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str) -> None:
+    monkeypatch.setenv("XDG_DATA_HOME", posix_tmp_path)
+    assert Unix(appname="acme", ensure_exists=False).user_data_path == Path(posix_tmp_path) / "acme"
+    assert not (Path(posix_tmp_path) / "acme").exists()
 
 
 def test_iter_data_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -362,11 +409,11 @@ def test_iter_config_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
     assert dirs == ["/xdg/config", "/xdg/etc1", "/xdg/etc2"]
 
 
-def test_iter_data_dirs_creates_only_the_consumed_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "user"))
-    monkeypatch.setenv("XDG_DATA_DIRS", str(tmp_path / "site"))
-    next(Unix(ensure_exists=True).iter_data_dirs())
-    assert not (tmp_path / "site").exists()
+def test_iter_data_dirs_creates_only_the_consumed_dir(monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str) -> None:
+    monkeypatch.setenv("XDG_DATA_HOME", f"{posix_tmp_path}/user")
+    monkeypatch.setenv("XDG_DATA_DIRS", f"{posix_tmp_path}/site")
+    assert Path(next(Unix(ensure_exists=True).iter_data_dirs())) == Path(posix_tmp_path) / "user"
+    assert {p.name for p in Path(posix_tmp_path).iterdir()} == {"user"}
 
 
 @pytest.mark.parametrize(
@@ -376,10 +423,12 @@ def test_iter_data_dirs_creates_only_the_consumed_dir(monkeypatch: pytest.Monkey
         pytest.param(os.pathsep * 2, id="double"),
         pytest.param(f" {os.pathsep} ", id="padded"),
         pytest.param(f"{os.pathsep} {os.pathsep}", id="spaced"),
+        pytest.param("relative/dir", id="relative"),
+        pytest.param(f"relative/dir{os.pathsep}another/dir", id="all-relative"),
     ],
 )
 @pytest.mark.parametrize("prop", ["site_data_dir", "site_config_dir", "site_applications_dir"])
-def test_site_dirs_fall_back_when_xdg_var_is_all_separators(
+def test_site_dirs_fall_back_when_xdg_var_has_no_absolute_paths(
     monkeypatch: pytest.MonkeyPatch, prop: str, value: str
 ) -> None:
     monkeypatch.setenv("XDG_CONFIG_DIRS" if prop == "site_config_dir" else "XDG_DATA_DIRS", value)
@@ -391,10 +440,36 @@ def test_site_dirs_fall_back_when_xdg_var_is_all_separators(
     assert getattr(Unix(appname="foo"), prop) == expected
 
 
+@pytest.mark.parametrize("dirs_class", [pytest.param(Unix, id="unix"), pytest.param(MacOS, id="macos")])
+@pytest.mark.parametrize("prop", ["site_data_dir", "site_config_dir", "site_applications_dir"])
+@pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="singlepath")])
+def test_site_dirs_filter_relative_entries(
+    monkeypatch: pytest.MonkeyPatch, dirs_class: type[Unix | MacOS], prop: str, multipath: bool
+) -> None:
+    value: typing.Final = os.pathsep.join(("relative", "/custom/first", "", "~/relative", " /custom/second "))
+    monkeypatch.setenv("XDG_DATA_DIRS", value)
+    monkeypatch.setenv("XDG_CONFIG_DIRS", value)
+    suffix: typing.Final = "applications" if prop == "site_applications_dir" else "foo"
+    expected: typing.Final = [f"/custom/{name}{os.sep}{suffix}" for name in ("first", "second")]
+    assert getattr(dirs_class(appname="foo", multipath=multipath), prop) == (
+        os.pathsep.join(expected) if multipath else expected[0]
+    )
+
+
 def test_site_data_dir_multipath_falls_back_when_xdg_var_is_all_separators(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("XDG_DATA_DIRS", os.pathsep)
     dirs = [os.path.join("/usr/local/share", "foo"), os.path.join("/usr/share", "foo")]  # ruff:ignore[os-path-join]
     assert Unix(appname="foo", multipath=True).site_data_dir == os.pathsep.join(dirs)
+
+
+@pytest.mark.usefixtures("_getuid")
+@pytest.mark.parametrize("prop", ["user_runtime_dir", "site_runtime_dir"])
+def test_runtime_dir_rejects_relative_value(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, prop: str) -> None:
+    monkeypatch.setenv("XDG_RUNTIME_DIR", "relative/runtime")
+    mocker.patch("sys.platform", "linux")
+    mocker.patch("os.access", return_value=False)
+    expected: typing.Final = Path(gettempdir()) / "runtime-1234" if prop == "user_runtime_dir" else Path("/run")
+    assert Path(getattr(Unix(), prop)) == expected
 
 
 def test_site_applications_path_multipath_returns_first_path(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -440,16 +515,40 @@ def test_user_media_dir_no_user_dirs_file(
     assert Unix().user_documents_dir == "/nonexistent/path/Documents"
 
 
-def test_user_dirs_respects_xdg_config_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_user_dirs_respects_xdg_config_home(posix_tmp_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
-    custom_config = tmp_path / "custom_config"
+    custom_config: typing.Final = Path(posix_tmp_path) / "custom_config"
     custom_config.mkdir()
     user_dirs_file = custom_config / "user-dirs.dirs"
     user_dirs_file.write_text('XDG_DOCUMENTS_DIR="$HOME/CustomDocs"\n')
+    monkeypatch.setenv("HOME", posix_tmp_path)
+    monkeypatch.setenv("USERPROFILE", posix_tmp_path)
+    monkeypatch.setenv("XDG_CONFIG_HOME", custom_config.as_posix())
+    assert Unix().user_documents_path == Path(posix_tmp_path) / "CustomDocs"
+
+
+@pytest.fixture
+def posix_tmp_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> str:
+    # Unix paths in Windows tests need the temporary directory's drive as the current drive.
+    monkeypatch.chdir(tmp_path)
+    return tmp_path.as_posix().removeprefix(tmp_path.drive)
+
+
+def test_user_dirs_ignores_relative_xdg_config_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    monkeypatch.chdir(tmp_path)
+    home_config = tmp_path / ".config"
+    home_config.mkdir()
+    (home_config / "user-dirs.dirs").write_text('XDG_DOCUMENTS_DIR="$HOME/HomeDocs"\n')
+    rel_config = tmp_path / "relative_config"
+    rel_config.mkdir()
+    (rel_config / "user-dirs.dirs").write_text('XDG_DOCUMENTS_DIR="$HOME/RelativeDocs"\n')
+
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    monkeypatch.setenv("XDG_CONFIG_HOME", str(custom_config))
-    assert Unix().user_documents_dir == f"{tmp_path}/CustomDocs"
+    monkeypatch.setenv("XDG_CONFIG_HOME", "relative_config")
+
+    assert Unix().user_documents_dir == f"{tmp_path}/HomeDocs"
 
 
 _SITE_REDIRECT_CASES: list[tuple[str, str]] = [

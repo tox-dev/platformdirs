@@ -1,0 +1,2 @@
+Ignore relative paths in XDG Base Directory environment variables and use the existing platform fallback. Relative
+entries in ``$XDG_DATA_DIRS`` and ``$XDG_CONFIG_DIRS`` are skipped.
