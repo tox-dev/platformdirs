@@ -7,9 +7,6 @@ default paths for each platform and any platform-specific behavior.
 
 All examples below assume ``appname="SuperApp"`` and ``appauthor="Acme"`` unless stated otherwise.
 
-On macOS, Homebrew site directories are determined from the base Python installation, so activating a virtual
-environment keeps the same shared data and cache locations.
-
 ******************
  User directories
 ******************
@@ -569,6 +566,9 @@ On all other platforms, this aliases ``user_config_dir``.
 ********************
 
 These are system-wide (and, generally, read-only) directories.
+
+On macOS, the Homebrew base Python installation determines shared data, config, cache and state locations. Activating a
+virtual environment preserves those locations.
 
 ``site_data_dir``
 =================

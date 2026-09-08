@@ -155,8 +155,6 @@ def mock_import(func: Callable[..., None]) -> Callable[..., None]:
 def test_no_ctypes(func: str) -> None:
     import platformdirs  # ruff:ignore[import-outside-top-level]
 
-    assert platformdirs
-
     dirs = platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0")
     result = getattr(dirs, func)
     assert isinstance(result, str)

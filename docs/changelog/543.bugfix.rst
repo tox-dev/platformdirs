@@ -1,0 +1,2 @@
+Use the base Python installation to locate Homebrew site directories on macOS, preserving shared data, config, cache and
+state paths inside virtual environments.

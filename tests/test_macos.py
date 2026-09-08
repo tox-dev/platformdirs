@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 import pytest
 
@@ -451,19 +451,57 @@ def test_macos_iter_runtime_dirs_no_duplicate(home: str) -> None:
 
 
 @pytest.mark.usefixtures("_clear_xdg_env")
-@pytest.mark.parametrize("homebrew_prefix", ["/opt/homebrew", "/usr/local"])
 @pytest.mark.parametrize(
-    ("prop", "suffix"),
+    "homebrew_prefix",
     [
-        ("site_data_dir", "share"),
-        ("site_config_dir", "share"),
-        ("site_cache_dir", "var/cache"),
-        ("site_state_dir", "share"),
+        pytest.param("/opt/homebrew", id="apple-silicon"),
+        pytest.param("/usr/local", id="intel"),
+        pytest.param("/custom/brew", id="custom-prefix"),
+    ],
+)
+@pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="singlepath")])
+@pytest.mark.parametrize(
+    "prop",
+    [
+        "site_data_dir",
+        "site_config_dir",
+        "site_cache_dir",
+        "site_state_dir",
+        "site_data_path",
+        "site_config_path",
+        "site_cache_path",
+        "site_state_path",
     ],
 )
 def test_homebrew_virtual_environment(
-    mocker: MockerFixture, tmp_path: Path, homebrew_prefix: str, prop: str, suffix: str
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, homebrew_prefix: str, prop: str, multipath: bool
 ) -> None:
-    mocker.patch("sys.prefix", str(tmp_path / ".venv"))
-    mocker.patch("sys.base_prefix", f"{homebrew_prefix}/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
-    assert getattr(MacOS(appname="Example"), prop) == f"{homebrew_prefix}/{suffix}/Example"
+    monkeypatch.setattr(sys, "prefix", str(tmp_path / ".venv"))
+    monkeypatch.setattr(
+        sys, "base_prefix", f"{homebrew_prefix}/opt/python@3.13/Frameworks/Python.framework/Versions/3.13"
+    )
+    suffix: Final = "var/cache" if "cache" in prop else "share"
+    expected: str | Path = f"{homebrew_prefix}/{suffix}{os.sep}Example{os.sep}1.0"
+    if prop.endswith("_path"):
+        expected = Path(expected)
+    elif multipath and prop != "site_state_dir":
+        fallback: Final = "Caches" if "cache" in prop else "Application Support"
+        expected += f":/Library/{fallback}{os.sep}Example{os.sep}1.0"
+    assert getattr(MacOS(appname="Example", version="1.0", multipath=multipath), prop) == expected
+
+
+@pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
+@pytest.mark.parametrize(
+    ("prop", "expected"),
+    [
+        pytest.param("site_data_dir", "/Library/Application Support", id="data"),
+        pytest.param("site_config_dir", "/Library/Application Support", id="config"),
+        pytest.param("site_cache_dir", "/Library/Caches", id="cache"),
+        pytest.param("site_state_dir", "/Library/Application Support", id="state"),
+    ],
+)
+def test_non_homebrew_base_ignores_virtual_environment_name(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, prop: str, expected: str
+) -> None:
+    monkeypatch.setattr(sys, "prefix", (tmp_path / "opt/python/.venv").as_posix())
+    assert getattr(MacOS(), prop) == expected
