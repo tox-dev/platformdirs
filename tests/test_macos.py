@@ -461,7 +461,9 @@ def test_macos_iter_runtime_dirs_no_duplicate(home: str) -> None:
         ("site_state_dir", "share"),
     ],
 )
-def test_homebrew_virtual_environment(mocker: MockerFixture, homebrew_prefix: str, prop: str, suffix: str) -> None:
-    mocker.patch("sys.prefix", "/tmp/project/.venv")
+def test_homebrew_virtual_environment(
+    mocker: MockerFixture, tmp_path: Path, homebrew_prefix: str, prop: str, suffix: str
+) -> None:
+    mocker.patch("sys.prefix", str(tmp_path / ".venv"))
     mocker.patch("sys.base_prefix", f"{homebrew_prefix}/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
     assert getattr(MacOS(appname="Example"), prop) == f"{homebrew_prefix}/{suffix}/Example"
