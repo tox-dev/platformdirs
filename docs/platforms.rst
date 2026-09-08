@@ -7,6 +7,9 @@ default paths for each platform and any platform-specific behavior.
 
 All examples below assume ``appname="SuperApp"`` and ``appauthor="Acme"`` unless stated otherwise.
 
+On Unix, percent signs in paths configured in ``user-dirs.dirs`` are literal characters; they do not perform INI-style
+interpolation.
+
 ******************
  User directories
 ******************
@@ -799,3 +802,6 @@ See also: :ref:`api:Shared binary directory`
 .. seealso::
 
     For platform-specific conventions and behavior details, see :doc:`explanation`.
+
+On Unix, percent signs in paths configured in ``user-dirs.dirs`` are literal characters; they do not perform INI-style
+interpolation.

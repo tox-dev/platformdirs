@@ -596,3 +596,13 @@ def test_iter_runtime_dirs_no_duplicate_with_xdg_runtime_dir(monkeypatch: pytest
     monkeypatch.setenv("XDG_RUNTIME_DIR", "/run/user/1000")
     # $XDG_RUNTIME_DIR backs both the user and the site runtime directory.
     assert list(Unix(appname="foo").iter_runtime_dirs()) == [os.path.join("/run/user/1000", "foo")]  # ruff:ignore[os-path-join]
+
+
+@pytest.mark.parametrize("folder", ["100% complete", "%(XDG_DESKTOP_DIR)s", "100%%"])
+def test_user_dirs_preserves_percent_signs(folder: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    (tmp_path / "user-dirs.dirs").write_text(f'XDG_DOCUMENTS_DIR="$HOME/{folder}"\nXDG_DESKTOP_DIR="Desktop"\n')
+    assert Unix().user_documents_dir == f"{tmp_path}/{folder}"

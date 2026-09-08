@@ -326,7 +326,7 @@ def _get_user_dirs_folder(key: str) -> str | None:
     config_home = os.environ.get("XDG_CONFIG_HOME", "").strip() or os.path.expanduser("~/.config")  # ruff:ignore[os-path-expanduser]
     user_dirs_config_path = Path(config_home) / "user-dirs.dirs"
     if user_dirs_config_path.exists():
-        parser = ConfigParser()
+        parser = ConfigParser(interpolation=None)
 
         with user_dirs_config_path.open() as stream:
             parser.read_string(f"[top]\n{stream.read()}")
