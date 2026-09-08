@@ -50,15 +50,15 @@ def home() -> str:
 
 @pytest.fixture
 def _homebrew_py_prefix(mocker: MockerFixture) -> None:
-    mocker.patch("sys.prefix", "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
+    mocker.patch("sys.base_prefix", "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
 
 
 @pytest.fixture
 def _builtin_py_prefix(mocker: MockerFixture) -> None:
-    """Keep ``sys.prefix`` off the ``/opt/python`` Homebrew heuristic so directories use the system defaults."""
+    """Keep ``sys.base_prefix`` off the ``/opt/python`` Homebrew heuristic so directories use the system defaults."""
     py_version = sys.version_info
     mocker.patch(
-        "sys.prefix",
+        "sys.base_prefix",
         "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework"
         f"/Versions/{py_version.major}.{py_version.minor}",
     )
@@ -153,7 +153,7 @@ def test_macos_homebrew(
         },
     ]
     for prefix in test_data:
-        mocker.patch("sys.prefix", prefix["sys_prefix"])
+        mocker.patch("sys.base_prefix", prefix["sys_prefix"])
 
         result = getattr(MacOS(multipath=multipath, **params), site_func)
 
@@ -448,3 +448,20 @@ def test_macos_iter_runtime_dirs_no_duplicate(home: str) -> None:
     # site_runtime_dir is defined as user_runtime_dir.
     expected = os.path.join(f"{home}/Library/Caches/TemporaryItems", "foo")  # ruff:ignore[os-path-join]
     assert list(MacOS(appname="foo").iter_runtime_dirs()) == [expected]
+
+
+@pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.parametrize("homebrew_prefix", ["/opt/homebrew", "/usr/local"])
+@pytest.mark.parametrize(
+    ("prop", "suffix"),
+    [
+        ("site_data_dir", "share"),
+        ("site_config_dir", "share"),
+        ("site_cache_dir", "var/cache"),
+        ("site_state_dir", "share"),
+    ],
+)
+def test_homebrew_virtual_environment(mocker: MockerFixture, homebrew_prefix: str, prop: str, suffix: str) -> None:
+    mocker.patch("sys.prefix", "/tmp/project/.venv")
+    mocker.patch("sys.base_prefix", f"{homebrew_prefix}/opt/python@3.13/Frameworks/Python.framework/Versions/3.13")
+    assert getattr(MacOS(appname="Example"), prop) == f"{homebrew_prefix}/{suffix}/Example"
