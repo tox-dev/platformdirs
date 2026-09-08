@@ -1,2 +1,0 @@
-Preserve literal percent signs in Unix ``user-dirs.dirs`` paths, including ``100% complete``, ``100%%`` and
-``%(XDG_DESKTOP_DIR)s``. Continue to expand ``$HOME``.

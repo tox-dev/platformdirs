@@ -6,6 +6,22 @@
 
 .. towncrier release notes start
 
+********************
+ 4.11.8 (2026-09-08)
+********************
+
+- Make :func:`~platformdirs.user_data_path`, :func:`~platformdirs.user_config_path`,
+  :func:`~platformdirs.user_preference_path` and :func:`~platformdirs.user_applications_path` return the first site entry
+  when root is redirected by ``use_site_for_root`` under ``multipath``, matching their ``site_*_path`` twins. They passed
+  the whole joined list to :class:`~pathlib.Path`, giving one unusable path such as ``/xdg/a/foo:/xdg/b/foo`` - by
+  :user:`darrenhuai`. :pr:`538`
+- Ignore relative paths in XDG Base Directory environment variables and use the existing platform fallback. Relative
+  entries in ``$XDG_DATA_DIRS`` and ``$XDG_CONFIG_DIRS`` are skipped. :pr:`540`
+- Preserve literal percent signs in Unix ``user-dirs.dirs`` paths, including ``100% complete``, ``100%%`` and
+  ``%(XDG_DESKTOP_DIR)s``. Continue to expand ``$HOME``. :pr:`542`
+- Use the base Python installation to locate Homebrew site directories on macOS, preserving shared data, config, cache and
+  state paths inside virtual environments. :pr:`543`
+
 *********************
  4.11.7 (2026-09-01)
 *********************
