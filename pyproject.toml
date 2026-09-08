@@ -120,28 +120,28 @@ lint.select = [
   "ALL",
 ]
 lint.ignore = [
-  "CPY",                               # no copyright notices
-  "DOC",                               # no support for restructuredtext
-  "escape-sequence-in-docstring",      # Use `r"""` if any backslashes in a docstring
-  "hardcoded-bind-all-interfaces",     # Possible binding to all interfaces
-  "incorrect-blank-line-before-class", # `one-blank-line-before-class` (D203) and `no-blank-line-before-class` (D211) are incompatible
-  "line-too-long",                     # line length handled by ruff format (code) and docstrfmt (docstrings)
-  "missing-blank-line-after-summary",  # 1 blank line required between summary line and description
-  "missing-trailing-comma",            # conflict
-  "multi-line-summary-second-line",    # `multi-line-summary-second-line` (D213) conflicts with docstrfmt which uses D212 style
-  "non-empty-init-module",             # `__init__` module should only contain docstrings and re-exports
-  "non-imperative-mood",               # The first line of docstring should be in imperative mood
+  "COM812", # conflict
+  "CPY",    # no copyright notices
+  "D203",   # `one-blank-line-before-class` (D203) and `no-blank-line-before-class` (D211) are incompatible
+  "D205",   # 1 blank line required between summary line and description
+  "D213",   # `multi-line-summary-second-line` (D213) conflicts with docstrfmt which uses D212 style
+  "D301",   # Use `r"""` if any backslashes in a docstring
+  "D401",   # The first line of docstring should be in imperative mood
+  "DOC",    # no support for restructuredtext
+  "E501",   # line length handled by ruff format (code) and docstrfmt (docstrings)
+  "RUF067", # `__init__` module should only contain docstrings and re-exports
+  "S104",   # Possible binding to all interfaces
 ]
 lint.per-file-ignores."tests/**/*.py" = [
-  "assert",                               # asserts allowed in tests
-  "D",                                    # don't care about documentation in tests
-  "FBT",                                  # don't care about booleans as positional arguments in tests
-  "implicit-namespace-package",           # no implicit namespace
-  "import-private-name",                  # Private name import
-  "magic-value-comparison",               # Magic value used in comparison, consider replacing with a constant variable
-  "pytest-fixture-autouse",               # shared setup fixtures are meant to apply to every test
-  "subprocess-without-shell-equals-true", # `subprocess` call: check for execution of untrusted input
-  "too-many-positional-arguments",        # Too many positional arguments
+  "D",                      # don't care about documentation in tests
+  "FBT",                    # don't care about booleans as positional arguments in tests
+  "INP001",                 # no implicit namespace
+  "PLC2701",                # Private name import
+  "PLR0917",                # Too many positional arguments
+  "PLR2004",                # Magic value used in comparison, consider replacing with a constant variable
+  "pytest-fixture-autouse", # shared setup fixtures are meant to apply to every test
+  "S101",                   # asserts allowed in tests
+  "S603",                   # `subprocess` call: check for execution of untrusted input
 ]
 lint.isort = { known-first-party = [
   "platformdirs",
