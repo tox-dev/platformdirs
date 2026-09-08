@@ -305,8 +305,19 @@ def test_macos_xdg_empty_falls_back(monkeypatch: pytest.MonkeyPatch, home: str, 
     ],
 )
 @pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
-def test_macos_xdg_relative_falls_back(monkeypatch: pytest.MonkeyPatch, home: str, env_var: str, prop: str) -> None:
-    monkeypatch.setenv(env_var, "relative/dir")
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param("relative/dir", id="relative"),
+        pytest.param("~/dir", id="tilde"),
+        pytest.param("$HOME/dir", id="unexpanded-home"),
+        pytest.param("C:/dir", id="windows-drive"),
+    ],
+)
+def test_macos_xdg_relative_falls_back(
+    monkeypatch: pytest.MonkeyPatch, home: str, env_var: str, prop: str, value: str
+) -> None:
+    monkeypatch.setenv(env_var, value)
     expected_map = {
         "user_data_dir": f"{home}/Library/Application Support",
         "user_config_dir": f"{home}/Library/Application Support",
@@ -387,10 +398,12 @@ def test_site_applications_path_multipath_returns_first_path(monkeypatch: pytest
         pytest.param("::", id="double"),
         pytest.param(" : ", id="padded"),
         pytest.param(": :", id="spaced"),
+        pytest.param("relative/dir", id="relative"),
+        pytest.param("relative/dir:another/dir", id="all-relative"),
     ],
 )
 @pytest.mark.parametrize("prop", ["site_data_dir", "site_config_dir", "site_applications_dir"])
-def test_site_dirs_fall_back_when_xdg_var_is_all_separators(
+def test_site_dirs_fall_back_when_xdg_var_has_no_absolute_paths(
     monkeypatch: pytest.MonkeyPatch, prop: str, value: str
 ) -> None:
     monkeypatch.setenv("XDG_CONFIG_DIRS" if prop == "site_config_dir" else "XDG_DATA_DIRS", value)
@@ -400,15 +413,6 @@ def test_site_dirs_fall_back_when_xdg_var_is_all_separators(
         "site_applications_dir": "/Applications",
     }[prop]
     assert getattr(MacOS(appname="foo"), prop) == expected
-
-
-@pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
-def test_site_dirs_filter_relative_entries(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("XDG_DATA_DIRS", f"relative/share{os.pathsep}/custom/share{os.pathsep}another/relative")
-    monkeypatch.setenv("XDG_CONFIG_DIRS", f"relative/cfg{os.pathsep}/custom/etc")
-    assert MacOS(appname="foo").site_data_dir == os.path.join("/custom/share", "foo")  # ruff:ignore[os-path-join]
-    assert MacOS(appname="foo").site_config_dir == os.path.join("/custom/etc", "foo")  # ruff:ignore[os-path-join]
-    assert MacOS().site_applications_dir == "/custom/share/applications"
 
 
 @pytest.mark.usefixtures("_clear_xdg_env", "_homebrew_py_prefix")

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import posixpath
+from typing import Final
 
 from .api import PlatformDirsABC
 
@@ -168,20 +169,17 @@ class XDGMixin(PlatformDirsABC):
 
 
 def _xdg_dir(env_var: str) -> str | None:
-    """Return stripped value of ``env_var`` if non-empty and an absolute POSIX path, else None."""
-    val = os.environ.get(env_var, "").strip()
-    return val if posixpath.isabs(val) else None
+    path: Final = os.environ.get(env_var, "").strip()
+    return path if posixpath.isabs(path) else None
 
 
 def _xdg_dir_list(env_var: str) -> list[str]:
-    """Stripped non-blank, absolute POSIX entries of ``env_var``, so invalid values fall back like unset."""
     return [
-        stripped
-        for path in os.environ.get(env_var, "").split(os.pathsep)
-        if (stripped := path.strip()) and posixpath.isabs(stripped)
+        stripped for path in os.environ.get(env_var, "").split(os.pathsep) if posixpath.isabs(stripped := path.strip())
     ]
 
 
 __all__ = [
     "XDGMixin",
+    "_xdg_dir",
 ]
