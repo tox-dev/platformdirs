@@ -244,6 +244,8 @@ See also: :ref:`api:User binary directory`
 
 See also: :ref:`api:User documents directory`
 
+On Unix, use percent signs as literal characters in ``user-dirs.dirs`` paths, for example ``$HOME/100% complete``.
+
 .. tab-set::
 
     .. tab-item:: Linux
