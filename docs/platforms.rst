@@ -7,9 +7,6 @@ default paths for each platform and any platform-specific behavior.
 
 All examples below assume ``appname="SuperApp"`` and ``appauthor="Acme"`` unless stated otherwise.
 
-On Unix, percent signs in paths configured in ``user-dirs.dirs`` are literal characters; they do not perform INI-style
-interpolation.
-
 ******************
  User directories
 ******************
@@ -246,6 +243,8 @@ See also: :ref:`api:User binary directory`
 ======================
 
 See also: :ref:`api:User documents directory`
+
+On Unix, use percent signs as literal characters in ``user-dirs.dirs`` paths, for example ``$HOME/100% complete``.
 
 .. tab-set::
 
@@ -802,6 +801,3 @@ See also: :ref:`api:Shared binary directory`
 .. seealso::
 
     For platform-specific conventions and behavior details, see :doc:`explanation`.
-
-On Unix, percent signs in paths configured in ``user-dirs.dirs`` are literal characters; they do not perform INI-style
-interpolation.

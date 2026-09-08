@@ -598,11 +598,24 @@ def test_iter_runtime_dirs_no_duplicate_with_xdg_runtime_dir(monkeypatch: pytest
     assert list(Unix(appname="foo").iter_runtime_dirs()) == [os.path.join("/run/user/1000", "foo")]  # ruff:ignore[os-path-join]
 
 
-@pytest.mark.parametrize("folder", ["100% complete", "%(XDG_DESKTOP_DIR)s", "100%%"])
-def test_user_dirs_preserves_percent_signs(folder: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize(
+    "folder",
+    [
+        pytest.param("100% complete", id="percent"),
+        pytest.param("%(XDG_DESKTOP_DIR)s", id="interpolation-key"),
+        pytest.param("100%%", id="double-percent"),
+    ],
+)
+@pytest.mark.parametrize("base", [pytest.param("$HOME", id="home"), pytest.param("/absolute", id="absolute")])
+def test_user_dirs_preserves_percent_signs(
+    folder: str, base: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
-    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    monkeypatch.setenv("XDG_CONFIG_HOME", "")
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    (tmp_path / "user-dirs.dirs").write_text(f'XDG_DOCUMENTS_DIR="$HOME/{folder}"\nXDG_DESKTOP_DIR="Desktop"\n')
-    assert Unix().user_documents_dir == f"{tmp_path}/{folder}"
+    (tmp_path / ".config").mkdir()
+    (tmp_path / ".config" / "user-dirs.dirs").write_text(
+        f'XDG_DOCUMENTS_DIR="{base}/{folder}"\nXDG_DESKTOP_DIR="$HOME/Desktop"\n', encoding="utf-8"
+    )
+    assert Unix().user_documents_path == Path(tmp_path if base == "$HOME" else base) / folder
