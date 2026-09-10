@@ -1,0 +1,3 @@
+Give :func:`~platformdirs.site_cache_dir` and :func:`~platformdirs.site_cache_path` the ``multipath`` argument. They
+took none, so the Homebrew cache prefix that :attr:`~platformdirs.macos.MacOS.site_cache_dir` returns under
+``multipath`` was unreachable from the function API - by :user:`darrenhuai`.
