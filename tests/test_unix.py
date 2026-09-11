@@ -747,3 +747,46 @@ def test_user_dirs_preserves_percent_signs(
         f'XDG_DOCUMENTS_DIR="{base}/{folder}"\nXDG_DESKTOP_DIR="$HOME/Desktop"\n', encoding="utf-8"
     )
     assert Unix().user_documents_path == Path(tmp_path if base == "$HOME" else base) / folder
+
+
+@pytest.mark.parametrize(
+    ("content", "expected"),
+    [
+        pytest.param(
+            'XDG_DOCUMENTS_DIR="$HOME/Old"\nXDG_DOCUMENTS_DIR="$HOME/New"\n', "~/New", id="last-assignment-wins"
+        ),
+        pytest.param(
+            'XDG_DESKTOP_DIR="$HOME/A"\nXDG_DESKTOP_DIR="$HOME/B"\nXDG_DOCUMENTS_DIR="$HOME/Docs"\n',
+            "~/Docs",
+            id="other-key-assigned-twice",
+        ),
+        pytest.param('XDG_DOCUMENTS_DIR="$HOME/Docs"\nnot an assignment\n', "~/Docs", id="stray-line"),
+        pytest.param('XDG_DESKTOP_DIR="$HOME/Desktop"\n  XDG_DOCUMENTS_DIR="$HOME/Docs"\n', "~/Docs", id="indented"),
+        pytest.param('XDG_DOCUMENTS_DIR="$HOME/Docs" # was "$HOME/Old"\n', "~/Docs", id="trailing-comment"),
+        pytest.param(
+            'XDG_DOCUMENTS_DIR="$HOME/My \\"Docs\\" \\$1 \\`x\\` a\\\\b"\n',
+            r'~/My "Docs" $1 `x` a\b',
+            id="shell-escapes",
+        ),
+        pytest.param('XDG_DOCUMENTS_DIR="/data/$HOMEWORK"\n', "/data/$HOMEWORK", id="home-only-as-prefix"),
+        pytest.param('XDG_DOCUMENTS_DIR="$HOMEWORK/Docs"\n', "~/Documents", id="home-prefix-needs-slash"),
+        pytest.param('XDG_DOCUMENTS_DIR="$HOME"\n', "~", id="home-itself"),
+        pytest.param('XDG_DOCUMENTS_DIR="Docs"\n', "~/Documents", id="relative-ignored"),
+        pytest.param(
+            'XDG_DOCUMENTS_DIR="$HOME/Docs"\nXDG_DOCUMENTS_DIR="Docs"\n', "~/Docs", id="relative-reassignment-ignored"
+        ),
+        pytest.param('XDG_DOCUMENTS_DIR="$HOME/Docs\n', "~/Documents", id="unterminated-ignored"),
+        pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs\n", "~/Docs", id="unquoted"),
+    ],
+)
+def test_user_dirs_read_like_xdg_user_dir(
+    content: str, expected: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # user-dirs.dirs is shell, not INI: xdg-user-dir-lookup.c is the reference reader.
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    monkeypatch.setenv("XDG_CONFIG_HOME", "")
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    (tmp_path / ".config").mkdir()
+    (tmp_path / ".config" / "user-dirs.dirs").write_text(content, encoding="utf-8")
+    assert Unix().user_documents_dir == expected.replace("~", str(tmp_path), 1)

@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import os
+import re
 import sys
-from configparser import ConfigParser
 from functools import cached_property
 from pathlib import Path
 from tempfile import gettempdir
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, Final, NoReturn
 
 from ._xdg import XDGMixin, _xdg_dir
 from .api import PlatformDirsABC
@@ -337,27 +337,45 @@ def _get_user_media_dir(env_var: str, fallback_tilde_path: str) -> str:
     return os.path.expanduser(fallback_tilde_path)  # ruff:ignore[os-path-expanduser]
 
 
+_USER_DIRS_LINE: Final = re.compile(
+    r'[ \t]*(?P<key>\w+)[ \t]*=[ \t]*(?:"(?P<quoted>(?:[^"\\]|\\.)*)"|(?P<bare>[^"\s].*?)[ \t]*$)'
+)
+
+
 def _get_user_dirs_folder(key: str) -> str | None:
     """Return directory from user-dirs.dirs config file.
+
+    The file holds shell assignments, not INI, so it is read line by line the way ``xdg-user-dir`` reads it: the last
+    assignment to ``key`` wins, backslash escapes inside the quotes are undone, text after the closing quote is ignored,
+    and lines that do not parse or whose value is neither ``$HOME``-relative nor absolute are skipped.
 
     See https://freedesktop.org/wiki/Software/xdg-user-dirs/.
 
     """
     config_home = _xdg_dir("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")  # ruff:ignore[os-path-expanduser]
     user_dirs_config_path = Path(config_home) / "user-dirs.dirs"
-    if user_dirs_config_path.exists():
-        parser = ConfigParser(interpolation=None)
+    if not user_dirs_config_path.exists():
+        return None
+    folder = None
+    with user_dirs_config_path.open() as stream:
+        for line in stream:
+            if (entry := _USER_DIRS_LINE.match(line)) and entry["key"] == key:
+                folder = _resolve_user_dirs_value(entry) or folder
+    return folder
 
-        with user_dirs_config_path.open() as stream:
-            parser.read_string(f"[top]\n{stream.read()}")
 
-        if key not in parser["top"]:
-            return None
-
-        path = parser["top"][key].strip('"')
-        return path.replace("$HOME", os.path.expanduser("~"))  # ruff:ignore[os-path-expanduser]
-
-    return None
+def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
+    value: str = entry["bare"] if entry["quoted"] is None else entry["quoted"]
+    if value == "$HOME" or value.startswith("$HOME/"):
+        prefix, value = os.path.expanduser("~"), value.removeprefix("$HOME")  # ruff:ignore[os-path-expanduser]
+    elif value.startswith("/"):
+        prefix = ""
+    else:
+        return None
+    if entry["quoted"] is not None:
+        # xdg-user-dirs-update backslash-escapes $, `, " and \ inside the quotes.
+        value = re.sub(r"\\(.)", r"\1", value)
+    return prefix + value
 
 
 __all__ = [
