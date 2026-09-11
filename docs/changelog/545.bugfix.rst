@@ -1,0 +1,4 @@
+Read Unix ``user-dirs.dirs`` the way ``xdg-user-dir`` does: the last assignment to a directory wins, backslash escapes
+inside the quotes are undone, text after the closing quote is ignored, and values that are neither ``$HOME``-relative nor
+absolute are skipped. It was parsed as INI, so a repeated or stray line raised an exception and comments and escapes
+ended up in :func:`~platformdirs.user_documents_dir` and the other media directories - by :user:`darrenhuai`.
