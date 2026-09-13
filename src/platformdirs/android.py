@@ -218,8 +218,9 @@ def _android_folder() -> str | None:  # ruff:ignore[complex-structure]
 def _require_android_folder() -> str:
     """Base folder for the Android OS.
 
-    :raises RuntimeError: if the base folder cannot be found (e.g. neither python4android nor pyjnius is available
-        and no Android app folder can be located on the ``sys.path``).
+    :raises RuntimeError: if the base folder cannot be found (e.g. neither python4android nor pyjnius is available and
+        no Android app folder can be located on the ``sys.path``).
+
     """
     folder = _android_folder()
     if folder is None:
