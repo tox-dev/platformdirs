@@ -1,0 +1,5 @@
+Raise a descriptive ``RuntimeError`` when the Android app storage folder cannot be detected, instead of crashing
+with ``TypeError: expected str, bytes or os.PathLike object, not NoneType``. The ``_android_folder`` helper is
+documented to return ``None`` when it cannot find the base folder, but every directory property blindly passed
+that value to path joining, producing an opaque error. Callers now get an actionable message and can catch the
+``RuntimeError`` to fall back (e.g. to the Unix implementation).
