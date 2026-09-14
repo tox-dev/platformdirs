@@ -445,6 +445,40 @@ def test_iter_data_dirs_no_homebrew(home: str) -> None:
     assert dirs == [f"{home}/Library/Application Support", "/Library/Application Support"]
 
 
+@pytest.mark.usefixtures("_clear_xdg_env", "_homebrew_py_prefix")
+@pytest.mark.parametrize(
+    ("prop", "multipath", "created"),
+    [
+        pytest.param("site_data_dir", False, ["/opt/homebrew/share/foo"], id="data"),
+        pytest.param("site_config_dir", False, ["/opt/homebrew/share/foo"], id="config"),
+        pytest.param("site_state_dir", False, ["/opt/homebrew/share/foo"], id="state"),
+        pytest.param("site_cache_dir", False, ["/opt/homebrew/var/cache/foo"], id="cache"),
+        pytest.param(
+            "site_data_dir", True, ["/opt/homebrew/share/foo", "/Library/Application Support/foo"], id="data-multipath"
+        ),
+        pytest.param("site_state_dir", True, ["/opt/homebrew/share/foo"], id="state-multipath"),
+        pytest.param(
+            "site_cache_dir", True, ["/opt/homebrew/var/cache/foo", "/Library/Caches/foo"], id="cache-multipath"
+        ),
+    ],
+)
+def test_homebrew_site_dir_ensure_exists_creates_only_the_returned_entries(
+    mocker: MockerFixture, prop: str, multipath: bool, created: list[str]
+) -> None:
+    mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
+    getattr(MacOS(appname="foo", multipath=multipath, ensure_exists=True), prop)
+    assert [c.args[0] for c in mkdir.call_args_list] == [Path(p) for p in created]
+
+
+@pytest.mark.usefixtures("_clear_xdg_env", "_homebrew_py_prefix")
+@pytest.mark.parametrize("method", ["iter_data_dirs", "iter_config_dirs", "iter_cache_dirs"])
+def test_homebrew_iter_dirs_create_site_dirs_only_as_consumed(mocker: MockerFixture, method: str) -> None:
+    mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
+    dirs = getattr(MacOS(appname="foo", ensure_exists=True), method)()
+    user, site = next(dirs), next(dirs)
+    assert [c.args[0] for c in mkdir.call_args_list] == [Path(user), Path(site)]
+
+
 @pytest.mark.usefixtures("_clear_xdg_env")
 def test_no_xdg_site_dirs_leak(monkeypatch: pytest.MonkeyPatch) -> None:
     data_value, config_value = ("/foo/bar/data", "/xyz/jkl/config")

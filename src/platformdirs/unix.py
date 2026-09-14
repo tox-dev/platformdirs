@@ -44,7 +44,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def _site_data_dirs(self) -> list[str]:
-        return [self._append_app_name_and_version("/usr/local/share"), self._append_app_name_and_version("/usr/share")]
+        return [self._join_app_name_and_version("/usr/local/share"), self._join_app_name_and_version("/usr/share")]
 
     @property
     def user_config_dir(self) -> str:
@@ -53,7 +53,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def _site_config_dirs(self) -> list[str]:
-        return [self._append_app_name_and_version("/etc/xdg")]
+        return [self._join_app_name_and_version("/etc/xdg")]
 
     @property
     def user_cache_dir(self) -> str:
@@ -231,12 +231,12 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         # dedupe in iter_config_dirs cannot drop it. Skip it here instead.
         if not self._use_site:
             yield self.user_config_dir
-        yield from self._site_config_dirs
+        yield from self._create_as_yielded(self._site_config_dirs)
 
     def _iter_data_dirs(self) -> Iterator[str]:
         if not self._use_site:
             yield self.user_data_dir
-        yield from self._site_data_dirs
+        yield from self._create_as_yielded(self._site_data_dirs)
 
     def _iter_cache_dirs(self) -> Iterator[str]:
         if not self._use_site:

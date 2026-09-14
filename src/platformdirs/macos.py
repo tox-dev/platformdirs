@@ -31,8 +31,8 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     def _base_site_dirs(self) -> list[str]:
         is_homebrew = "/opt/python" in sys.base_prefix
         homebrew_prefix = sys.base_prefix.split("/opt/python")[0] if is_homebrew else ""
-        path_list = [self._append_app_name_and_version(f"{homebrew_prefix}/share")] if is_homebrew else []
-        path_list.append(self._append_app_name_and_version("/Library/Application Support"))
+        path_list = [self._join_app_name_and_version(f"{homebrew_prefix}/share")] if is_homebrew else []
+        path_list.append(self._join_app_name_and_version("/Library/Application Support"))
         return path_list
 
     @property
@@ -72,15 +72,14 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     def _site_cache_dirs(self) -> list[str]:
         is_homebrew = "/opt/python" in sys.base_prefix
         homebrew_prefix = sys.base_prefix.split("/opt/python")[0] if is_homebrew else ""
-        path_list = [self._append_app_name_and_version(f"{homebrew_prefix}/var/cache")] if is_homebrew else []
-        path_list.append(self._append_app_name_and_version("/Library/Caches"))
+        path_list = [self._join_app_name_and_version(f"{homebrew_prefix}/var/cache")] if is_homebrew else []
+        path_list.append(self._join_app_name_and_version("/Library/Caches"))
         return path_list
 
     @property
     def site_cache_dir(self) -> str:
         """Cache directory shared by users, e.g. ``/Library/Caches/$appname/$version``. If we're using a Python binary managed by `Homebrew <https://brew.sh>`_, the directory will be under the Homebrew prefix, e.g. ``$homebrew_prefix/var/cache/$appname/$version``. If `multipath <platformdirs.api.PlatformDirsABC.multipath>` is enabled, and we're in Homebrew, the response is a multi-path string separated by ":", e.g. ``$homebrew_prefix/var/cache/$appname/$version:/Library/Caches/$appname/$version``."""
-        dirs = self._site_cache_dirs
-        return os.pathsep.join(dirs) if self.multipath else dirs[0]
+        return self._select_site_dirs(self._site_cache_dirs)
 
     @property
     def site_cache_path(self) -> Path:
@@ -95,7 +94,9 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def site_state_dir(self) -> str:
         """State directory shared by users, same as `site_data_dir`."""
-        return self._base_site_dirs()[0]
+        path = self._base_site_dirs()[0]
+        self._optionally_create_directory(path)
+        return path
 
     @property
     def user_log_dir(self) -> str:
@@ -199,15 +200,15 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     def _iter_config_dirs(self) -> Iterator[str]:
         yield self.user_config_dir
-        yield from self._site_config_dirs
+        yield from self._create_as_yielded(self._site_config_dirs)
 
     def _iter_data_dirs(self) -> Iterator[str]:
         yield self.user_data_dir
-        yield from self._site_data_dirs
+        yield from self._create_as_yielded(self._site_data_dirs)
 
     def _iter_cache_dirs(self) -> Iterator[str]:
         yield self.user_cache_dir
-        yield from self._site_cache_dirs
+        yield from self._create_as_yielded(self._site_cache_dirs)
 
 
 class MacOS(XDGMixin, _MacOSDefaults):
