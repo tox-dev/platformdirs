@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-import pytest
+from typing import TYPE_CHECKING
 
 import platformdirs.unix
 from platformdirs.unix import Unix
+
+if TYPE_CHECKING:
+    import pytest
 
 
 def test_user_log_dir_respects_opinion_when_use_site(monkeypatch: pytest.MonkeyPatch) -> None:
