@@ -293,7 +293,12 @@ class Unix(XDGMixin, _UnixDefaults):
     @property
     def user_log_dir(self) -> str:
         """Log directory tied to the user, or site equivalent when root with ``use_site_for_root``."""
-        return self.site_log_dir if self._use_site else super().user_log_dir
+        if self._use_site:
+            # When running as root, use site directories
+            # With opinion=True, use the dedicated site log directory (/var/log/...)
+            # With opinion=False, use site state directory (log_dir == state_dir when opinion=False)
+            return self.site_log_dir if self.opinion else self.site_state_dir
+        return super().user_log_dir
 
     @property
     def user_applications_dir(self) -> str:
