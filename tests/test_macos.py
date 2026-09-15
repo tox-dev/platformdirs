@@ -185,7 +185,6 @@ def test_macos_homebrew(
 @pytest.mark.parametrize("suffix", ["dir", "path"])
 @pytest.mark.parametrize("name", ["site_data", "site_config", "site_cache", "site_applications"])
 def test_multipath_reaches_the_module_function(mocker: MockerFixture, name: str, suffix: str) -> None:
-    # The module-level functions have to reach every site directory that multipath changes.
     mocker.patch("platformdirs.PlatformDirs", MacOS)
     function = getattr(platformdirs, f"{name}_{suffix}")
     expected = getattr(MacOS(appname="foo", multipath=True), f"{name}_{suffix}")
