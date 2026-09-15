@@ -143,8 +143,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_publicshare_dir(self) -> str:
         r"""Public share directory e.g. ``C:\Users\Public``."""
-        path = os.environ.get("PUBLIC")
-        if path is None:
+        if (path := os.environ.get("PUBLIC")) is None:
             path = str(Path("~").expanduser().parent / "Public")
         return os.path.normpath(path)
 
