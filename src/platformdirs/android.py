@@ -167,6 +167,13 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         return self.user_runtime_dir
 
 
+def _require_android_folder() -> str:
+    if (folder := _android_folder()) is None:
+        msg = "cannot find the Android app folder: python4android and pyjnius failed and no app folder is on sys.path"
+        raise RuntimeError(msg)
+    return folder
+
+
 @lru_cache(maxsize=1)
 def _android_folder() -> str | None:  # ruff:ignore[complex-structure]
     """:returns: base folder for the Android OS or None if it cannot be found"""
@@ -213,23 +220,6 @@ def _android_folder() -> str | None:  # ruff:ignore[complex-structure]
         else:
             result = None
     return result
-
-
-def _require_android_folder() -> str:
-    """Base folder for the Android OS.
-
-    :raises RuntimeError: if the base folder cannot be found (e.g. neither python4android nor pyjnius is available and
-        no Android app folder can be located on the ``sys.path``).
-
-    """
-    folder = _android_folder()
-    if folder is None:
-        msg = (
-            "Cannot determine the base Android app folder - not running inside an Android app environment "
-            "(python4android or pyjnius unavailable and no Android app folder found on sys.path)"
-        )
-        raise RuntimeError(msg)
-    return folder
 
 
 @lru_cache(maxsize=1)
