@@ -1,0 +1,4 @@
+Parse Unix ``user-dirs.dirs`` line by line like ``xdg-user-dir``. The INI parser raised on a repeated key or a line
+without ``=``, and returned trailing comments and backslash escapes inside :func:`~platformdirs.user_documents_dir` and
+the other media directories. The last valid assignment now wins, and platformdirs unescapes the quoted value and ignores
+text after the closing quote - by :user:`darrenhuai`.
