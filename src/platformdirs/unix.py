@@ -345,9 +345,8 @@ _USER_DIRS_LINE: Final = re.compile(
 def _get_user_dirs_folder(key: str) -> str | None:
     """Return directory from user-dirs.dirs config file.
 
-    The file holds shell assignments, not INI, so it is read line by line the way ``xdg-user-dir`` reads it: the last
-    assignment to ``key`` wins, backslash escapes inside the quotes are undone, text after the closing quote is ignored,
-    and lines that do not parse or whose value is neither ``$HOME``-relative nor absolute are skipped.
+    ``xdg-user-dirs-update`` writes shell assignments, so match each line like ``xdg-user-dir`` does and keep the last
+    valid assignment to ``key``.
 
     See https://freedesktop.org/wiki/Software/xdg-user-dirs/.
 
@@ -365,7 +364,7 @@ def _get_user_dirs_folder(key: str) -> str | None:
 
 
 def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
-    value: str = entry["bare"] if entry["quoted"] is None else entry["quoted"]
+    value = entry["bare"] if entry["quoted"] is None else entry["quoted"]
     if value == "$HOME" or value.startswith("$HOME/"):
         prefix, value = os.path.expanduser("~"), value.removeprefix("$HOME")  # ruff:ignore[os-path-expanduser]
     elif value.startswith("/"):

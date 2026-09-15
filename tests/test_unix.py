@@ -735,15 +735,8 @@ def test_iter_runtime_dirs_no_duplicate_with_xdg_runtime_dir(monkeypatch: pytest
     ],
 )
 @pytest.mark.parametrize("base", [pytest.param("$HOME", id="home"), pytest.param("/absolute", id="absolute")])
-def test_user_dirs_preserves_percent_signs(
-    folder: str, base: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
-    monkeypatch.setenv("XDG_CONFIG_HOME", "")
-    monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    (tmp_path / ".config").mkdir()
-    (tmp_path / ".config" / "user-dirs.dirs").write_text(
+def test_user_dirs_preserves_percent_signs(folder: str, base: str, tmp_path: Path, user_dirs_file: Path) -> None:
+    user_dirs_file.write_text(
         f'XDG_DOCUMENTS_DIR="{base}/{folder}"\nXDG_DESKTOP_DIR="$HOME/Desktop"\n', encoding="utf-8"
     )
     assert Unix().user_documents_path == Path(tmp_path if base == "$HOME" else base) / folder
@@ -779,14 +772,16 @@ def test_user_dirs_preserves_percent_signs(
         pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs\n", "~/Docs", id="unquoted"),
     ],
 )
-def test_user_dirs_read_like_xdg_user_dir(
-    content: str, expected: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    # user-dirs.dirs is shell, not INI: xdg-user-dir-lookup.c is the reference reader.
+def test_user_dirs_read_like_xdg_user_dir(content: str, expected: str, tmp_path: Path, user_dirs_file: Path) -> None:
+    user_dirs_file.write_text(content, encoding="utf-8")
+    assert Unix().user_documents_dir == expected.replace("~", str(tmp_path), 1)
+
+
+@pytest.fixture
+def user_dirs_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
     monkeypatch.setenv("XDG_CONFIG_HOME", "")
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    (tmp_path / ".config").mkdir()
-    (tmp_path / ".config" / "user-dirs.dirs").write_text(content, encoding="utf-8")
-    assert Unix().user_documents_dir == expected.replace("~", str(tmp_path), 1)
+    (config := tmp_path / ".config").mkdir()
+    return config / "user-dirs.dirs"

@@ -244,9 +244,9 @@ See also: :ref:`api:User binary directory`
 
 See also: :ref:`api:User documents directory`
 
-On Unix, use percent signs as literal characters in ``user-dirs.dirs`` paths, for example ``$HOME/100% complete``. The
-file is read the way ``xdg-user-dir`` reads it: the last line for a directory wins, shell escapes such as ``\"`` inside
-the quotes are undone, and values that are neither ``$HOME``-relative nor absolute are ignored.
+On Unix, use percent signs as literal characters in ``user-dirs.dirs`` paths, for example ``$HOME/100% complete``. Lines
+follow ``xdg-user-dir`` rules: the last valid line for a directory wins, ``\"`` and other shell escapes inside the
+quotes resolve to the escaped character, and platformdirs skips values that are neither ``$HOME``-relative nor absolute.
 
 .. tab-set::
 
