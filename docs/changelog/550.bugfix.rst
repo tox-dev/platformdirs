@@ -1,0 +1,3 @@
+With ``ensure_exists``, the ``site_*_dir`` properties and ``iter_*_dirs`` iterators only create the site directories they
+return or yield. Before, they created every entry in the site list, so on Homebrew Python on macOS they raised
+``PermissionError`` for ``/Library`` - by :user:`darrenhuai`.
