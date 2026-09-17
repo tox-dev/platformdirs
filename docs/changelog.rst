@@ -6,19 +6,20 @@
 
 .. towncrier release notes start
 
-********************
+*********************
  4.11.9 (2026-09-16)
-********************
+*********************
 
-- Accept ``multipath`` in :func:`~platformdirs.site_cache_dir` and :func:`~platformdirs.site_cache_path`. Without it, the
-  function API could not return the Homebrew cache prefix that :attr:`~platformdirs.macos.MacOS.site_cache_dir` adds under
-  ``multipath`` - by :user:`darrenhuai`. :pr:`544`
+- Accept ``multipath`` in :func:`~platformdirs.site_cache_dir` and :func:`~platformdirs.site_cache_path`. Without it,
+  the function API could not return the Homebrew cache prefix that :attr:`~platformdirs.macos.MacOS.site_cache_dir` adds
+  under ``multipath`` - by :user:`darrenhuai`. :pr:`544`
 - Parse Unix ``user-dirs.dirs`` line by line like ``xdg-user-dir``. The INI parser raised on a repeated key or a line
-  without ``=``, and returned trailing comments and backslash escapes inside :func:`~platformdirs.user_documents_dir` and
-  the other media directories. The last valid assignment now wins, and platformdirs unescapes the quoted value and ignores
-  text after the closing quote - by :user:`darrenhuai`. :pr:`545`
+  without ``=``, and returned trailing comments and backslash escapes inside :func:`~platformdirs.user_documents_dir`
+  and the other media directories. The last valid assignment now wins, and platformdirs unescapes the quoted value and
+  ignores text after the closing quote - by :user:`darrenhuai`. :pr:`545`
 - Read ``PUBLIC`` before the home directory in :func:`~platformdirs.user_publicshare_dir` on Windows, so it no longer
-  raises ``RuntimeError`` when ``PUBLIC`` is set and the home directory cannot be determined - by :user:`emme1t`. :pr:`546`
+  raises ``RuntimeError`` when ``PUBLIC`` is set and the home directory cannot be determined - by :user:`emme1t`.
+  :pr:`546`
 - Raise ``RuntimeError`` from :class:`~platformdirs.android.Android` directories when the app folder cannot be found,
   instead of ``TypeError: expected str, bytes or os.PathLike object, not NoneType`` - by :user:`Str0k`. :pr:`547`
 
