@@ -12,6 +12,22 @@ if TYPE_CHECKING:
     from typing import Literal
 
 
+
+def _validate_path_component(value: str | None | bool, *, what: str) -> None:
+    """Reject ``appname`` / ``appauthor`` / ``version`` values that escape the base dir.
+
+    Nested segments (``foo/bar``) are allowed for namespacing, but a ``..`` segment
+    would let ``ensure_exists=True`` create directories outside the platform base
+    (e.g. ``~/.local/share/../evil``).
+    """
+    if value is None or value is False or not isinstance(value, str):
+        return
+    for part in value.replace("\\", "/").split("/"):
+        if part == "..":
+            msg = f"{what} must not contain parent-directory components: {value!r}"
+            raise ValueError(msg)
+
+
 class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
     """Abstract base class defining all platform directory properties, their :class:`~pathlib.Path` variants, and iterators.
 
@@ -99,6 +115,10 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         variables (e.g. ``XDG_DATA_HOME``) are bypassed for the redirected directories.
 
         """
+        _validate_path_component(self.appname, what="appname")
+        if isinstance(self.appauthor, str):
+            _validate_path_component(self.appauthor, what="appauthor")
+        _validate_path_component(self.version, what="version")
 
     def _append_app_name_and_version(self, *base: str) -> str:
         params = list(base[1:])
