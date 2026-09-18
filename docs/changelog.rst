@@ -6,6 +6,14 @@
 
 .. towncrier release notes start
 
+**********************
+ 4.11.10 (2026-09-18)
+**********************
+
+- With ``ensure_exists``, the ``site_*_dir`` and ``site_*_path`` properties and the ``iter_*_dirs`` iterators only
+  create the site directories they return or yield, instead of every entry in the site list - by :user:`darrenhuai`.
+  :pr:`550`
+
 *********************
  4.11.9 (2026-09-16)
 *********************
