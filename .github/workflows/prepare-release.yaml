@@ -67,6 +67,9 @@ jobs:
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
           uvx towncrier build --yes --version "$VERSION"
+          # towncrier's headers and wrapping don't match docstrfmt, so the next PR pre-commit.ci touches would
+          # otherwise carry an unrelated changelog reformat. Pre-commit exits non-zero when it rewrites a file.
+          uvx --from pre-commit --with pre-commit-uv pre-commit run docstrfmt --files docs/changelog.rst || true
           git add docs/changelog docs/changelog.rst
           git commit -m "Release $VERSION"
           git tag "$VERSION"
