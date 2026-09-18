@@ -12,13 +12,12 @@ if TYPE_CHECKING:
     from typing import Literal
 
 
-
-def _validate_path_component(value: str | None | bool, *, what: str) -> None:
+def _validate_path_component(value: str | bool | None, *, what: str) -> None:
     """Reject ``appname`` / ``appauthor`` / ``version`` values that escape the base dir.
 
-    Nested segments (``foo/bar``) are allowed for namespacing, but a ``..`` segment
-    would let ``ensure_exists=True`` create directories outside the platform base
-    (e.g. ``~/.local/share/../evil``).
+    Nested segments (``foo/bar``) are allowed for namespacing, but a ``..`` segment would let ``ensure_exists=True``
+    create directories outside the platform base (e.g. ``~/.local/share/../evil``).
+
     """
     if value is None or value is False or not isinstance(value, str):
         return

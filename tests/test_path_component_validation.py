@@ -5,12 +5,15 @@ import pytest
 from platformdirs import PlatformDirs
 
 
-@pytest.mark.parametrize("kwargs", [
-    {"appname": "../evil"},
-    {"appname": "safe", "version": "../evil"},
-    {"appname": "safe", "appauthor": "acme/../evil"},
-    {"appname": "foo/../../etc"},
-])
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"appname": "../evil"},
+        {"appname": "safe", "version": "../evil"},
+        {"appname": "safe", "appauthor": "acme/../evil"},
+        {"appname": "foo/../../etc"},
+    ],
+)
 def test_rejects_parent_directory_components(kwargs: dict[str, str]) -> None:
     with pytest.raises(ValueError, match="parent-directory"):
         PlatformDirs(**kwargs)
