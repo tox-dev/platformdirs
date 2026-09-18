@@ -416,7 +416,10 @@ def test_iter_data_dirs_creates_only_the_consumed_dir(monkeypatch: pytest.Monkey
     assert {p.name for p in Path(posix_tmp_path).iterdir()} == {"user"}
 
 
-@pytest.mark.parametrize(("multipath", "created"), [(False, {"first"}), (True, {"first", "second"})])
+@pytest.mark.parametrize(
+    ("multipath", "created"),
+    [pytest.param(False, {"first"}, id="single"), pytest.param(True, {"first", "second"}, id="multipath")],
+)
 @pytest.mark.parametrize(
     ("prop", "env_var"), [("site_data_dir", "XDG_DATA_DIRS"), ("site_config_dir", "XDG_CONFIG_DIRS")]
 )
@@ -426,6 +429,18 @@ def test_site_dir_ensure_exists_creates_only_the_returned_entries(  # ruff:ignor
     monkeypatch.setenv(env_var, f"{posix_tmp_path}/first{os.pathsep}{posix_tmp_path}/second")
     getattr(Unix(appname="acme", multipath=multipath, ensure_exists=True), prop)
     assert {p.name for p in Path(posix_tmp_path).iterdir()} == created
+
+
+@pytest.mark.parametrize(
+    ("prop", "env_var"), [("site_data_path", "XDG_DATA_DIRS"), ("site_config_path", "XDG_CONFIG_DIRS")]
+)
+def test_site_path_ensure_exists_ignores_multipath(
+    monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str, prop: str, env_var: str
+) -> None:
+    monkeypatch.setenv(env_var, f"{posix_tmp_path}/first{os.pathsep}{posix_tmp_path}/second")
+    result = getattr(Unix(appname="acme", multipath=True, ensure_exists=True), prop)
+    assert result == Path(posix_tmp_path) / "first" / "acme"
+    assert {p.name for p in Path(posix_tmp_path).iterdir()} == {"first"}
 
 
 @pytest.mark.parametrize(

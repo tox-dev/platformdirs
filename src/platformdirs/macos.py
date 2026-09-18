@@ -47,12 +47,12 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def site_data_path(self) -> Path:
         """Data path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
-        return self._first_item_as_path_if_multipath(self.site_data_dir)
+        return self._first_site_dir_as_path(self._site_data_dirs)
 
     @property
     def site_config_path(self) -> Path:
         """Config path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
-        return self._first_item_as_path_if_multipath(self.site_config_dir)
+        return self._first_site_dir_as_path(self._site_config_dirs)
 
     @property
     def user_config_dir(self) -> str:
@@ -84,7 +84,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def site_cache_path(self) -> Path:
         """Cache path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
-        return self._first_item_as_path_if_multipath(self.site_cache_dir)
+        return self._first_site_dir_as_path(self._site_cache_dirs)
 
     @property
     def user_state_dir(self) -> str:
@@ -93,7 +93,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def site_state_dir(self) -> str:
-        """State directory shared by users, same as `site_data_dir`."""
+        """State directory shared by users, same as `site_data_dir`, but ignoring `multipath <platformdirs.api.PlatformDirsABC.multipath>`."""
         path = self._base_site_dirs()[0]
         self._optionally_create_directory(path)
         return path

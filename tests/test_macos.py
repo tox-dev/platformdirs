@@ -471,6 +471,22 @@ def test_homebrew_site_dir_ensure_exists_creates_only_the_returned_entries(
 
 
 @pytest.mark.usefixtures("_clear_xdg_env", "_homebrew_py_prefix")
+@pytest.mark.parametrize(
+    ("prop", "created"),
+    [
+        pytest.param("site_data_path", "/opt/homebrew/share/foo", id="data"),
+        pytest.param("site_config_path", "/opt/homebrew/share/foo", id="config"),
+        pytest.param("site_cache_path", "/opt/homebrew/var/cache/foo", id="cache"),
+    ],
+)
+def test_homebrew_site_path_ensure_exists_ignores_multipath(mocker: MockerFixture, prop: str, created: str) -> None:
+    mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
+    result = getattr(MacOS(appname="foo", multipath=True, ensure_exists=True), prop)
+    assert result == Path(created)
+    assert [c.args[0] for c in mkdir.call_args_list] == [Path(created)]
+
+
+@pytest.mark.usefixtures("_clear_xdg_env", "_homebrew_py_prefix")
 @pytest.mark.parametrize("method", ["iter_data_dirs", "iter_config_dirs", "iter_cache_dirs"])
 def test_homebrew_iter_dirs_create_site_dirs_only_as_consumed(mocker: MockerFixture, method: str) -> None:
     mkdir = mocker.patch.object(Path, "mkdir", autospec=True)

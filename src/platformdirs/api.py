@@ -129,6 +129,12 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
             self._optionally_create_directory(path)
             yield path
 
+    def _first_site_dir_as_path(self, dirs: list[str]) -> Path:
+        # A *_path property always returns the first entry, regardless of multipath, so only that entry is created.
+        path = dirs[0]
+        self._optionally_create_directory(path)
+        return Path(path)
+
     def _first_item_as_path_if_multipath(self, directory: str) -> Path:
         if self.multipath:
             # If multipath is True, the first path is returned.

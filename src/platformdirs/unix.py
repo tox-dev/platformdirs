@@ -214,12 +214,12 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def site_data_path(self) -> Path:
         """Data path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
-        return self._first_item_as_path_if_multipath(self.site_data_dir)
+        return self._first_site_dir_as_path(self._site_data_dirs)
 
     @property
     def site_config_path(self) -> Path:
         """Config path shared by users, returns the first item, even if ``multipath`` is set to ``True``."""
-        return self._first_item_as_path_if_multipath(self.site_config_dir)
+        return self._first_site_dir_as_path(self._site_config_dirs)
 
     @property
     def site_cache_path(self) -> Path:
