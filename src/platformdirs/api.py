@@ -100,7 +100,11 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
         """
         for name, value in (("appname", appname), ("appauthor", appauthor), ("version", version)):
-            if value and _escapes_base(value):
+            if not value:
+                continue
+            # os.path.join discards the base when a later component has a root or a drive, and ``..`` climbs out of it.
+            drive, tail = os.path.splitdrive(value)
+            if drive or tail.startswith(("/", "\\")) or ".." in tail.replace("\\", "/").split("/"):
                 msg = f"{name} must stay inside the base directory, got {value!r}"
                 raise ValueError(msg)
 
@@ -483,12 +487,6 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         """:yield: all user and site runtime paths."""
         for path in self.iter_runtime_dirs():
             yield Path(path)
-
-
-def _escapes_base(component: str) -> bool:
-    # os.path.join discards the base when a later component has a root or a drive, and ``..`` climbs out of it.
-    drive, tail = os.path.splitdrive(component)
-    return bool(drive) or tail.startswith(("/", "\\")) or ".." in tail.replace("\\", "/").split("/")
 
 
 def _unique(dirs: Iterable[str]) -> Iterator[str]:
