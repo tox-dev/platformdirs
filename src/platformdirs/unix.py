@@ -44,7 +44,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def _site_data_dirs(self) -> list[str]:
-        return [self._append_app_name_and_version("/usr/local/share"), self._append_app_name_and_version("/usr/share")]
+        return [self._join_app_name_and_version("/usr/local/share"), self._join_app_name_and_version("/usr/share")]
 
     @property
     def user_config_dir(self) -> str:
@@ -53,7 +53,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def _site_config_dirs(self) -> list[str]:
-        return [self._append_app_name_and_version("/etc/xdg")]
+        return [self._join_app_name_and_version("/etc/xdg")]
 
     @property
     def user_cache_dir(self) -> str:
@@ -214,12 +214,12 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def site_data_path(self) -> Path:
         """Data path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
-        return self._first_item_as_path_if_multipath(self.site_data_dir)
+        return self._first_site_dir_as_path(self._site_data_dirs)
 
     @property
     def site_config_path(self) -> Path:
         """Config path shared by users, returns the first item, even if ``multipath`` is set to ``True``."""
-        return self._first_item_as_path_if_multipath(self.site_config_dir)
+        return self._first_site_dir_as_path(self._site_config_dirs)
 
     @property
     def site_cache_path(self) -> Path:
@@ -231,12 +231,12 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         # dedupe in iter_config_dirs cannot drop it. Skip it here instead.
         if not self._use_site:
             yield self.user_config_dir
-        yield from self._site_config_dirs
+        yield from self._create_as_yielded(self._site_config_dirs)
 
     def _iter_data_dirs(self) -> Iterator[str]:
         if not self._use_site:
             yield self.user_data_dir
-        yield from self._site_data_dirs
+        yield from self._create_as_yielded(self._site_data_dirs)
 
     def _iter_cache_dirs(self) -> Iterator[str]:
         if not self._use_site:

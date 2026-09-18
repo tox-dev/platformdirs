@@ -417,6 +417,57 @@ def test_iter_data_dirs_creates_only_the_consumed_dir(monkeypatch: pytest.Monkey
 
 
 @pytest.mark.parametrize(
+    ("multipath", "created"),
+    [pytest.param(False, {"first"}, id="single"), pytest.param(True, {"first", "second"}, id="multipath")],
+)
+@pytest.mark.parametrize(
+    ("prop", "env_var"), [("site_data_dir", "XDG_DATA_DIRS"), ("site_config_dir", "XDG_CONFIG_DIRS")]
+)
+def test_site_dir_ensure_exists_creates_only_the_returned_entries(  # ruff:ignore[too-many-arguments]
+    monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str, prop: str, env_var: str, multipath: bool, created: set[str]
+) -> None:
+    monkeypatch.setenv(env_var, f"{posix_tmp_path}/first{os.pathsep}{posix_tmp_path}/second")
+    getattr(Unix(appname="acme", multipath=multipath, ensure_exists=True), prop)
+    assert {p.name for p in Path(posix_tmp_path).iterdir()} == created
+
+
+@pytest.mark.parametrize(
+    ("prop", "env_var"), [("site_data_path", "XDG_DATA_DIRS"), ("site_config_path", "XDG_CONFIG_DIRS")]
+)
+def test_site_path_ensure_exists_ignores_multipath(
+    monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str, prop: str, env_var: str
+) -> None:
+    monkeypatch.setenv(env_var, f"{posix_tmp_path}/first{os.pathsep}{posix_tmp_path}/second")
+    result = getattr(Unix(appname="acme", multipath=True, ensure_exists=True), prop)
+    assert result == Path(posix_tmp_path) / "first" / "acme"
+    assert {p.name for p in Path(posix_tmp_path).iterdir()} == {"first"}
+
+
+@pytest.mark.parametrize(
+    ("method", "home_var", "dirs_var"),
+    [("iter_data_dirs", "XDG_DATA_HOME", "XDG_DATA_DIRS"), ("iter_config_dirs", "XDG_CONFIG_HOME", "XDG_CONFIG_DIRS")],
+)
+def test_iter_dirs_create_site_dirs_only_as_consumed(
+    monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str, method: str, home_var: str, dirs_var: str
+) -> None:
+    monkeypatch.setenv(home_var, f"{posix_tmp_path}/user")
+    monkeypatch.setenv(dirs_var, f"{posix_tmp_path}/first{os.pathsep}{posix_tmp_path}/second")
+    dirs = getattr(Unix(ensure_exists=True), method)()
+    assert [Path(next(dirs)), Path(next(dirs))] == [Path(posix_tmp_path) / "user", Path(posix_tmp_path) / "first"]
+    assert {p.name for p in Path(posix_tmp_path).iterdir()} == {"user", "first"}
+
+
+def test_site_data_dir_default_ensure_exists_creates_only_the_first_entry(
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
+) -> None:
+    monkeypatch.delenv("XDG_DATA_DIRS", raising=False)
+    mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
+    result = Unix(appname="acme", ensure_exists=True).site_data_dir
+    assert Path(result) == Path("/usr/local/share/acme")
+    assert [c.args[0] for c in mkdir.call_args_list] == [Path("/usr/local/share/acme")]
+
+
+@pytest.mark.parametrize(
     "value",
     [
         pytest.param(os.pathsep, id="single"),

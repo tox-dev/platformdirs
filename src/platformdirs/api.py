@@ -101,18 +101,39 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         """
 
     def _append_app_name_and_version(self, *base: str) -> str:
+        path = self._join_app_name_and_version(*base)
+        self._optionally_create_directory(path)
+        return path
+
+    def _join_app_name_and_version(self, *base: str) -> str:
         params = list(base[1:])
         if self.appname:
             params.append(self.appname)
             if self.version:
                 params.append(self.version)
-        path = os.path.join(base[0], *params)  # ruff:ignore[os-path-join]
-        self._optionally_create_directory(path)
-        return path
+        return os.path.join(base[0], *params)  # ruff:ignore[os-path-join]
 
     def _optionally_create_directory(self, path: str) -> None:
         if self.ensure_exists:
             Path(path).mkdir(parents=True, exist_ok=True)
+
+    def _select_site_dirs(self, dirs: list[str]) -> str:
+        # Site lists are built without touching the disk, so ensure_exists only creates what the caller gets back.
+        selected = dirs if self.multipath else dirs[:1]
+        for path in selected:
+            self._optionally_create_directory(path)
+        return os.pathsep.join(selected)
+
+    def _create_as_yielded(self, dirs: Iterable[str]) -> Iterator[str]:
+        for path in dirs:
+            self._optionally_create_directory(path)
+            yield path
+
+    def _first_site_dir_as_path(self, dirs: list[str]) -> Path:
+        # A *_path property always returns the first entry, regardless of multipath, so only that entry is created.
+        path = dirs[0]
+        self._optionally_create_directory(path)
+        return Path(path)
 
     def _first_item_as_path_if_multipath(self, directory: str) -> Path:
         if self.multipath:
