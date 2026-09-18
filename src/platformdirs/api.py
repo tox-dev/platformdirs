@@ -12,21 +12,6 @@ if TYPE_CHECKING:
     from typing import Literal
 
 
-def _validate_path_component(value: str | bool | None, *, what: str) -> None:
-    """Reject ``appname`` / ``appauthor`` / ``version`` values that escape the base dir.
-
-    Nested segments (``foo/bar``) are allowed for namespacing, but a ``..`` segment would let ``ensure_exists=True``
-    create directories outside the platform base (e.g. ``~/.local/share/../evil``).
-
-    """
-    if value is None or value is False or not isinstance(value, str):
-        return
-    for part in value.replace("\\", "/").split("/"):
-        if part == "..":
-            msg = f"{what} must not contain parent-directory components: {value!r}"
-            raise ValueError(msg)
-
-
 class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
     """Abstract base class defining all platform directory properties, their :class:`~pathlib.Path` variants, and iterators.
 
@@ -114,10 +99,10 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         variables (e.g. ``XDG_DATA_HOME``) are bypassed for the redirected directories.
 
         """
-        _validate_path_component(self.appname, what="appname")
-        if isinstance(self.appauthor, str):
-            _validate_path_component(self.appauthor, what="appauthor")
-        _validate_path_component(self.version, what="version")
+        for name, value in (("appname", appname), ("appauthor", appauthor), ("version", version)):
+            if value and _escapes_base(value):
+                msg = f"{name} must stay inside the base directory, got {value!r}"
+                raise ValueError(msg)
 
     def _append_app_name_and_version(self, *base: str) -> str:
         params = list(base[1:])
@@ -498,6 +483,12 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         """:yield: all user and site runtime paths."""
         for path in self.iter_runtime_dirs():
             yield Path(path)
+
+
+def _escapes_base(component: str) -> bool:
+    # os.path.join discards the base when a later component has a root or a drive, and ``..`` climbs out of it.
+    drive, tail = os.path.splitdrive(component)
+    return bool(drive) or tail.startswith(("/", "\\")) or ".." in tail.replace("\\", "/").split("/")
 
 
 def _unique(dirs: Iterable[str]) -> Iterator[str]:
