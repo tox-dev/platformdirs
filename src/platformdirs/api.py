@@ -99,6 +99,14 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         variables (e.g. ``XDG_DATA_HOME``) are bypassed for the redirected directories.
 
         """
+        for name, value in (("appname", appname), ("appauthor", appauthor), ("version", version)):
+            if not value:
+                continue
+            # os.path.join discards the base when a later component has a root or a drive, and ``..`` climbs out of it.
+            drive, tail = os.path.splitdrive(value)
+            if drive or tail.startswith(("/", "\\")) or ".." in tail.replace("\\", "/").split("/"):
+                msg = f"{name} must stay inside the base directory, got {value!r}"
+                raise ValueError(msg)
 
     def _append_app_name_and_version(self, *base: str) -> str:
         path = self._join_app_name_and_version(*base)

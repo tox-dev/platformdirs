@@ -3,6 +3,7 @@ from __future__ import annotations
 import builtins
 import functools
 import inspect
+import re
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -174,3 +175,40 @@ def test_iter_dirs_yields_user_before_site(kind: str) -> None:
     # docs/howto.rst merges config in reverse of this order so the user directory wins.
     dirs = platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0")
     assert next(getattr(dirs, f"iter_{kind}_dirs")()) == getattr(dirs, f"user_{kind}_dir")
+
+
+@pytest.mark.parametrize("field", ["appname", "appauthor", "version"])
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param("../evil", id="parent"),
+        pytest.param("nested/../../evil", id="nested-parent"),
+        pytest.param("..\\evil", id="backslash-parent"),
+        pytest.param("/evil", id="rooted"),
+        pytest.param("\\evil", id="backslash-rooted"),
+        pytest.param("//server/share/evil", id="unc"),
+        pytest.param(
+            "C:/evil",
+            marks=pytest.mark.skipif(sys.platform != "win32", reason="drive letters only exist on Windows"),
+            id="drive",
+        ),
+    ],
+)
+def test_app_argument_escaping_base_is_rejected(field: str, value: str) -> None:
+    args = {"appname": "app", "appauthor": "author", "version": "1.0"} | {field: value}
+    with pytest.raises(
+        ValueError, match=rf"^{field} must stay inside the base directory, got {re.escape(repr(value))}$"
+    ):
+        platformdirs.PlatformDirs(args["appname"], args["appauthor"], args["version"])
+
+
+@pytest.mark.parametrize(
+    "appname",
+    [
+        pytest.param("Company/App", id="nested"),
+        pytest.param("..app", id="leading-dots"),
+        pytest.param("app..", id="trailing-dots"),
+    ],
+)
+def test_appname_within_base_is_accepted(appname: str) -> None:
+    assert platformdirs.PlatformDirs(appname).user_data_dir.endswith(appname)
