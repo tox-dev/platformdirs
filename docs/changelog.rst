@@ -7,6 +7,14 @@
 .. towncrier release notes start
 
 **********************
+ 4.11.11 (2026-09-19)
+**********************
+
+- Reject ``appname``, ``appauthor`` and ``version`` values that leave the platform base directory (a ``..`` segment, a
+  leading separator, a drive or a UNC share) with ``ValueError``, so ``ensure_exists`` cannot create directories outside
+  it - by :user:`Pitchfork-and-Torch`. :pr:`552`
+
+**********************
  4.11.10 (2026-09-18)
 **********************
 
