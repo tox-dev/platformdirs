@@ -125,9 +125,7 @@ When using the ``version`` parameter, handle migration between versions:
 
     if not current_dir.exists() and previous_dir.exists():
         # Migrate data from previous version
-        current_dir.mkdir(parents=True, exist_ok=True)
-        for item in previous_dir.iterdir():
-            shutil.copy2(item, current_dir / item.name)
+        shutil.copytree(previous_dir, current_dir)
 
 Merging config from multiple sources
 ====================================
