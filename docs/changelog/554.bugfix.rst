@@ -1,0 +1,4 @@
+Ignore relative paths in the XDG user directory environment variables, so ``XDG_DOCUMENTS_DIR=Documents`` no longer
+makes :func:`~platformdirs.user_documents_dir` and the other media directories return a path relative to the working
+directory. They now fall back to the platform default like the XDG Base Directory variables, and like the same keys read
+from ``user-dirs.dirs`` - by :user:`darrenhuai`.
