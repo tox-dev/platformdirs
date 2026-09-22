@@ -1,0 +1,1 @@
+Exclude sphinx-llm 1.1.0 from documentation dependencies because its Markdown builder emits unknown-node warnings.
