@@ -123,6 +123,41 @@ def test_user_media_dir_default(mocker: MockerFixture, env_var: str, prop: str, 
     assert getattr(Unix(), prop) == default_abs_path
 
 
+@pytest.mark.parametrize(
+    ("env_var", "prop", "default_abs_path"),
+    [
+        pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", "/home/example/Documents", id="user_documents_dir"),
+        pytest.param("XDG_DOWNLOAD_DIR", "user_downloads_dir", "/home/example/Downloads", id="user_downloads_dir"),
+        pytest.param("XDG_PICTURES_DIR", "user_pictures_dir", "/home/example/Pictures", id="user_pictures_dir"),
+        pytest.param("XDG_VIDEOS_DIR", "user_videos_dir", "/home/example/Videos", id="user_videos_dir"),
+        pytest.param("XDG_MUSIC_DIR", "user_music_dir", "/home/example/Music", id="user_music_dir"),
+        pytest.param("XDG_DESKTOP_DIR", "user_desktop_dir", "/home/example/Desktop", id="user_desktop_dir"),
+        pytest.param("XDG_PROJECTS_DIR", "user_projects_dir", "/home/example/Projects", id="user_projects_dir"),
+        pytest.param("XDG_PUBLICSHARE_DIR", "user_publicshare_dir", "/home/example/Public", id="user_publicshare_dir"),
+        pytest.param("XDG_TEMPLATES_DIR", "user_templates_dir", "/home/example/Templates", id="user_templates_dir"),
+    ],
+)
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param("relative/dir", id="relative"),
+        pytest.param("~/dir", id="tilde"),
+        pytest.param("$HOME/dir", id="unexpanded-home"),
+        pytest.param("C:/dir", id="windows-drive"),
+    ],
+)
+def test_user_media_dir_relative_env_var_falls_back(
+    mocker: MockerFixture, env_var: str, prop: str, default_abs_path: str, value: str
+) -> None:
+    # Mock media dir not being in user-dirs.dirs file
+    mock = mocker.patch("platformdirs.unix._get_user_dirs_folder")
+    mock.return_value = None
+
+    mocker.patch.dict(os.environ, {env_var: value, "HOME": "/home/example", "USERPROFILE": "/home/example"})
+
+    assert getattr(Unix(), prop) == default_abs_path
+
+
 def test_user_fonts_dir_default(mocker: MockerFixture) -> None:
     mocker.patch.dict(os.environ, {"XDG_DATA_HOME": "", "HOME": "/home/example", "USERPROFILE": "/home/example"})
     assert Unix().user_fonts_dir == "/home/example/.local/share/fonts"

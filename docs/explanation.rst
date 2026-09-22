@@ -208,8 +208,8 @@ The distinction matters:
 On Linux, media dirs are defined by the `XDG user-dirs specification
 <https://www.freedesktop.org/wiki/Software/xdg-user-dirs/>`_ and stored in ``~/.config/user-dirs.dirs``. The
 ``xdg-user-dirs`` tool lets users relocate them. Set the corresponding environment variable (``XDG_DOCUMENTS_DIR``,
-``XDG_DOWNLOAD_DIR``, etc.) to override on a per-session basis. On macOS and Windows, ``platformdirs`` returns the
-platform-conventional location.
+``XDG_DOWNLOAD_DIR``, etc.) to override on a per-session basis; like the XDG base directory variables, the value has to
+be an absolute path or it is ignored. On macOS and Windows, ``platformdirs`` returns the platform-conventional location.
 
 Media and user-facing directories
 =================================

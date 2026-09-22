@@ -27,6 +27,9 @@ _XDG_ENV_VARS = (
     "XDG_VIDEOS_DIR",
     "XDG_MUSIC_DIR",
     "XDG_DESKTOP_DIR",
+    "XDG_PROJECTS_DIR",
+    "XDG_PUBLICSHARE_DIR",
+    "XDG_TEMPLATES_DIR",
 )
 
 
@@ -255,6 +258,9 @@ def test_macos_xdg_site_dirs(
         pytest.param("XDG_VIDEOS_DIR", "user_videos_dir", id="user_videos_dir"),
         pytest.param("XDG_MUSIC_DIR", "user_music_dir", id="user_music_dir"),
         pytest.param("XDG_DESKTOP_DIR", "user_desktop_dir", id="user_desktop_dir"),
+        pytest.param("XDG_PROJECTS_DIR", "user_projects_dir", id="user_projects_dir"),
+        pytest.param("XDG_PUBLICSHARE_DIR", "user_publicshare_dir", id="user_publicshare_dir"),
+        pytest.param("XDG_TEMPLATES_DIR", "user_templates_dir", id="user_templates_dir"),
     ],
 )
 def test_macos_xdg_media_dirs(monkeypatch: pytest.MonkeyPatch, env_var: str, prop: str) -> None:
@@ -313,6 +319,15 @@ def test_macos_xdg_empty_falls_back(monkeypatch: pytest.MonkeyPatch, home: str, 
         pytest.param("XDG_CACHE_HOME", "user_cache_dir", id="user_cache_dir"),
         pytest.param("XDG_STATE_HOME", "user_state_dir", id="user_state_dir"),
         pytest.param("XDG_RUNTIME_DIR", "user_runtime_dir", id="user_runtime_dir"),
+        pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", id="user_documents_dir"),
+        pytest.param("XDG_DOWNLOAD_DIR", "user_downloads_dir", id="user_downloads_dir"),
+        pytest.param("XDG_PICTURES_DIR", "user_pictures_dir", id="user_pictures_dir"),
+        pytest.param("XDG_VIDEOS_DIR", "user_videos_dir", id="user_videos_dir"),
+        pytest.param("XDG_MUSIC_DIR", "user_music_dir", id="user_music_dir"),
+        pytest.param("XDG_DESKTOP_DIR", "user_desktop_dir", id="user_desktop_dir"),
+        pytest.param("XDG_PROJECTS_DIR", "user_projects_dir", id="user_projects_dir"),
+        pytest.param("XDG_PUBLICSHARE_DIR", "user_publicshare_dir", id="user_publicshare_dir"),
+        pytest.param("XDG_TEMPLATES_DIR", "user_templates_dir", id="user_templates_dir"),
     ],
 )
 @pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
@@ -335,6 +350,15 @@ def test_macos_xdg_relative_falls_back(
         "user_cache_dir": f"{home}/Library/Caches",
         "user_state_dir": f"{home}/Library/Application Support",
         "user_runtime_dir": f"{home}/Library/Caches/TemporaryItems",
+        "user_documents_dir": f"{home}/Documents",
+        "user_downloads_dir": f"{home}/Downloads",
+        "user_pictures_dir": f"{home}/Pictures",
+        "user_videos_dir": f"{home}/Movies",
+        "user_music_dir": f"{home}/Music",
+        "user_desktop_dir": f"{home}/Desktop",
+        "user_projects_dir": f"{home}/Projects",
+        "user_publicshare_dir": f"{home}/Public",
+        "user_templates_dir": f"{home}/Templates",
     }
     assert getattr(MacOS(), prop) == expected_map[prop]
 
