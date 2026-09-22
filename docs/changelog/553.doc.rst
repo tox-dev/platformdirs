@@ -1,1 +1,0 @@
-Copy nested directories in the versioned data migration recipe.

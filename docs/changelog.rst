@@ -7,6 +7,18 @@
 .. towncrier release notes start
 
 **********************
+ 4.11.12 (2026-09-22)
+**********************
+
+- Ignore relative paths in the XDG user directory environment variables, so ``XDG_DOCUMENTS_DIR=Documents`` no longer
+  makes :func:`~platformdirs.user_documents_dir` and the other media directories return a path relative to the working
+  directory. They now fall back to the platform default like the XDG Base Directory variables, and like the same keys
+  read from ``user-dirs.dirs`` - by :user:`darrenhuai`. :pr:`554`
+- Copy nested directories in the versioned data migration recipe. :pr:`553`
+- Exclude sphinx-llm 1.1.0 from documentation dependencies because its Markdown builder emits unknown-node warnings.
+  :pr:`556`
+
+**********************
  4.11.11 (2026-09-19)
 **********************
 
