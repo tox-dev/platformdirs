@@ -93,50 +93,55 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         """
         return self._append_app_name_and_version("/var/log")
 
+    def _user_media_dir(self, env_var: str, fallback_tilde_path: str) -> str:
+        path = _get_user_media_dir(env_var, fallback_tilde_path)
+        self._optionally_create_directory(path)
+        return path
+
     @property
     def user_documents_dir(self) -> str:
         """Documents directory tied to the user, e.g. ``~/Documents``."""
-        return _get_user_media_dir("XDG_DOCUMENTS_DIR", "~/Documents")
+        return self._user_media_dir("XDG_DOCUMENTS_DIR", "~/Documents")
 
     @property
     def user_downloads_dir(self) -> str:
         """Downloads directory tied to the user, e.g. ``~/Downloads``."""
-        return _get_user_media_dir("XDG_DOWNLOAD_DIR", "~/Downloads")
+        return self._user_media_dir("XDG_DOWNLOAD_DIR", "~/Downloads")
 
     @property
     def user_pictures_dir(self) -> str:
         """Pictures directory tied to the user, e.g. ``~/Pictures``."""
-        return _get_user_media_dir("XDG_PICTURES_DIR", "~/Pictures")
+        return self._user_media_dir("XDG_PICTURES_DIR", "~/Pictures")
 
     @property
     def user_videos_dir(self) -> str:
         """Videos directory tied to the user, e.g. ``~/Videos``."""
-        return _get_user_media_dir("XDG_VIDEOS_DIR", "~/Videos")
+        return self._user_media_dir("XDG_VIDEOS_DIR", "~/Videos")
 
     @property
     def user_music_dir(self) -> str:
         """Music directory tied to the user, e.g. ``~/Music``."""
-        return _get_user_media_dir("XDG_MUSIC_DIR", "~/Music")
+        return self._user_media_dir("XDG_MUSIC_DIR", "~/Music")
 
     @property
     def user_desktop_dir(self) -> str:
         """Desktop directory tied to the user, e.g. ``~/Desktop``."""
-        return _get_user_media_dir("XDG_DESKTOP_DIR", "~/Desktop")
+        return self._user_media_dir("XDG_DESKTOP_DIR", "~/Desktop")
 
     @property
     def user_projects_dir(self) -> str:
         """Projects directory tied to the user, e.g. ``~/Projects``."""
-        return _get_user_media_dir("XDG_PROJECTS_DIR", "~/Projects")
+        return self._user_media_dir("XDG_PROJECTS_DIR", "~/Projects")
 
     @property
     def user_publicshare_dir(self) -> str:
         """Public share directory tied to the user, e.g. ``~/Public``."""
-        return _get_user_media_dir("XDG_PUBLICSHARE_DIR", "~/Public")
+        return self._user_media_dir("XDG_PUBLICSHARE_DIR", "~/Public")
 
     @property
     def user_templates_dir(self) -> str:
         """Templates directory tied to the user, e.g. ``~/Templates``."""
-        return _get_user_media_dir("XDG_TEMPLATES_DIR", "~/Templates")
+        return self._user_media_dir("XDG_TEMPLATES_DIR", "~/Templates")
 
     @property
     def user_fonts_dir(self) -> str:

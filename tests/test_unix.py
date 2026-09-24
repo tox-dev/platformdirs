@@ -430,6 +430,47 @@ def test_folder_not_created_without_ensure_exists(monkeypatch: pytest.MonkeyPatc
     assert not (Path(posix_tmp_path) / "acme").exists()
 
 
+@pytest.mark.parametrize(
+    ("env_var", "prop"),
+    [
+        pytest.param("XDG_DOCUMENTS_DIR", "user_documents_path", id="user_documents_path"),
+        pytest.param("XDG_DOWNLOAD_DIR", "user_downloads_path", id="user_downloads_path"),
+        pytest.param("XDG_PICTURES_DIR", "user_pictures_path", id="user_pictures_path"),
+    ],
+)
+def test_ensure_exists_creates_xdg_media_dir(
+    monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str, env_var: str, prop: str
+) -> None:
+    media = Path(posix_tmp_path) / "parent" / "Media"
+    monkeypatch.setenv(env_var, media.as_posix())
+    result = getattr(Unix(ensure_exists=True), prop)
+    assert result == media
+    assert media.is_dir()
+
+
+def test_xdg_media_dir_not_created_without_ensure_exists(monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str) -> None:
+    media = Path(posix_tmp_path) / "parent" / "Documents"
+    monkeypatch.setenv("XDG_DOCUMENTS_DIR", media.as_posix())
+    result = Unix(ensure_exists=False).user_documents_path
+    assert result == media
+    assert not media.exists()
+
+
+def test_ensure_exists_creates_user_dirs_media_dir(
+    mocker: MockerFixture, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    config_dir = tmp_path / ".config"
+    config_dir.mkdir()
+    (config_dir / "user-dirs.dirs").write_text('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n')
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    mocker.patch.dict(os.environ, {"XDG_CONFIG_HOME": ""})
+    docs = tmp_path / "MyDocs"
+    assert Unix(ensure_exists=True).user_documents_path == docs
+    assert docs.is_dir()
+
+
 def test_iter_data_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("XDG_DATA_HOME", "/xdg/data")
     monkeypatch.setenv("XDG_DATA_DIRS", f"/xdg/share1{os.pathsep}/xdg/share2")

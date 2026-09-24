@@ -268,6 +268,13 @@ def test_macos_xdg_media_dirs(monkeypatch: pytest.MonkeyPatch, env_var: str, pro
     assert getattr(MacOS(), prop) == "/custom/media"
 
 
+def test_macos_ensure_exists_creates_xdg_media_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    media = tmp_path / "parent" / "Documents"
+    monkeypatch.setenv("XDG_DOCUMENTS_DIR", media.as_posix())
+    assert MacOS(ensure_exists=True).user_documents_path == media
+    assert media.is_dir()
+
+
 @pytest.mark.parametrize(
     ("env_var", "prop"),
     [
