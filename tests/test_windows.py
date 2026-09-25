@@ -118,8 +118,10 @@ def test_publicshare_dir_with_unavailable_home(monkeypatch: pytest.MonkeyPatch, 
     assert Windows().user_publicshare_dir == os.path.normpath(r"C:\Users\Shared")
 
 
-def test_publicshare_dir_fallback(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> None:
+@pytest.mark.parametrize("env", [pytest.param({}, id="unset"), pytest.param({"PUBLIC": ""}, id="empty")])
+def test_publicshare_dir_fallback(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, env: dict[str, str]) -> None:
     monkeypatch.delenv("PUBLIC", raising=False)
+    mocker.patch.dict(os.environ, env)
     mocker.patch.object(Path, "expanduser", return_value=Path("C:/Users/Test"))
     assert Windows().user_publicshare_dir == os.path.normpath("C:/Users/Public")
 
@@ -190,10 +192,45 @@ def test_get_win_folder_from_env_vars_unknown() -> None:
         get_win_folder_from_env_vars("CSIDL_BOGUS")
 
 
-def test_get_win_folder_from_env_vars_unset(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("env", [pytest.param({}, id="unset"), pytest.param({"APPDATA": ""}, id="empty")])
+def test_get_win_folder_from_env_vars_unset(
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, env: dict[str, str]
+) -> None:
     monkeypatch.delenv("APPDATA", raising=False)
+    mocker.patch.dict(os.environ, env)
     with pytest.raises(ValueError, match="Unset environment variable"):
         get_win_folder_from_env_vars("CSIDL_APPDATA")
+
+
+@pytest.mark.parametrize(
+    ("csidl_name", "env_var"),
+    [
+        pytest.param("CSIDL_PERSONAL", "USERPROFILE", id="documents"),
+        pytest.param("CSIDL_PROGRAMS", "APPDATA", id="programs"),
+    ],
+)
+def test_get_win_folder_from_env_vars_empty_base(
+    monkeypatch: pytest.MonkeyPatch, csidl_name: str, env_var: str
+) -> None:
+    monkeypatch.setenv(env_var, "")
+    with pytest.raises(KeyError, match=env_var):
+        get_win_folder_from_env_vars(csidl_name)
+
+
+@pytest.mark.parametrize(
+    ("all_users_profile", "expected_base"),
+    [
+        pytest.param(r"D:\ProgramData", r"D:\ProgramData", id="all_users_profile"),
+        pytest.param("", r"C:\ProgramData", id="default"),
+    ],
+)
+def test_get_win_folder_from_env_vars_common_programs_empty_programdata(
+    monkeypatch: pytest.MonkeyPatch, all_users_profile: str, expected_base: str
+) -> None:
+    monkeypatch.setenv("PROGRAMDATA", "")
+    monkeypatch.setenv("ALLUSERSPROFILE", all_users_profile)
+    expected = os.path.join(expected_base, "Microsoft", "Windows", "Start Menu", "Programs")  # ruff:ignore[os-path-join]
+    assert get_win_folder_from_env_vars("CSIDL_COMMON_PROGRAMS") == expected
 
 
 def test_get_win_folder_if_csidl_name_not_env_var_returns_none() -> None:
