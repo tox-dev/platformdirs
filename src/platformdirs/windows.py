@@ -324,7 +324,6 @@ def _build_get_win_folder_via_ctypes() -> Callable[[str], str]:
         Structure,
         WinDLL,
         byref,
-        create_unicode_buffer,
         wintypes,
     )
 
@@ -346,10 +345,6 @@ def _build_get_win_folder_via_ctypes() -> Callable[[str], str]:
     shell32.SHGetKnownFolderPath.restype = HRESULT
     shell32.SHGetKnownFolderPath.argtypes = [POINTER(_GUID), wintypes.DWORD, wintypes.HANDLE, POINTER(wintypes.LPWSTR)]
 
-    kernel32 = WinDLL("kernel32")
-    kernel32.GetShortPathNameW.restype = wintypes.DWORD
-    kernel32.GetShortPathNameW.argtypes = [wintypes.LPWSTR, wintypes.LPWSTR, wintypes.DWORD]
-
     def resolve(csidl_name: str) -> str:
         folder_guid = _KNOWN_FOLDER_GUIDS.get(csidl_name)
         if folder_guid is None:
@@ -367,11 +362,6 @@ def _build_get_win_folder_via_ctypes() -> Callable[[str], str]:
         if result is None:
             msg = f"SHGetKnownFolderPath returned NULL for {csidl_name}"
             raise ValueError(msg)
-
-        if any(ord(c) > 255 for c in result):  # ruff:ignore[magic-value-comparison]
-            buf = create_unicode_buffer(1024)
-            if kernel32.GetShortPathNameW(result, buf, 1024):
-                result = buf.value
 
         return result
 

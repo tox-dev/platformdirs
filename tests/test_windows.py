@@ -24,6 +24,8 @@ from platformdirs.windows import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from pytest_mock import MockerFixture
 
 _WIN_FOLDERS: dict[str, str] = {
@@ -259,13 +261,10 @@ def test_get_win_folder_via_ctypes_passes_dont_verify_flag(mocker: MockerFixture
 
     mock_ole32 = MagicMock()
     mock_shell32 = MagicMock()
-    mock_kernel32 = MagicMock()
     mocker.patch.object(
         ctypes,
         "WinDLL",
-        MagicMock(
-            side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32, "kernel32": mock_kernel32}[name],
-        ),
+        MagicMock(side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32}[name]),
     )
 
     mocker.patch("ctypes.byref", side_effect=lambda x: x)
@@ -322,7 +321,7 @@ def test_get_win_folder_via_ctypes_builds_once(mocker: MockerFixture) -> None:
     finally:
         _cleanup_ctypes_mocks()
 
-    assert win_dll.call_count == 3  # ole32, shell32, kernel32 loaded once total, not once per call
+    assert win_dll.call_count == 2  # ole32 and shell32 loaded once total, not once per call
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="cannot force NULL from real SHGetKnownFolderPath")
@@ -331,13 +330,10 @@ def test_get_win_folder_via_ctypes_null_result(mocker: MockerFixture) -> None:
 
     mock_ole32 = MagicMock()
     mock_shell32 = MagicMock()
-    mock_kernel32 = MagicMock()
     mocker.patch.object(
         ctypes,
         "WinDLL",
-        MagicMock(
-            side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32, "kernel32": mock_kernel32}[name],
-        ),
+        MagicMock(side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32}[name]),
     )
 
     mocker.patch("ctypes.byref", side_effect=lambda x: x)
@@ -354,6 +350,43 @@ def test_get_win_folder_via_ctypes_null_result(mocker: MockerFixture) -> None:
             fresh_fn("CSIDL_LOCAL_APPDATA")
     finally:
         _cleanup_ctypes_mocks()
+
+
+def _short_name(_long: str, buf: ctypes.Array[ctypes.c_wchar], _size: int) -> int:
+    buf.value = r"C:\Users\UKASZ~1\AppData\Local"
+    return len(buf.value)
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="needs a mocked GetShortPathNameW")
+@pytest.mark.parametrize(
+    "get_short_path_name",
+    [
+        pytest.param(_short_name, id="short_name_available"),
+        pytest.param(lambda _long, _buf, _size: 2048, id="short_name_exceeds_buffer"),
+    ],
+)
+def test_get_win_folder_via_ctypes_keeps_non_latin1_path(
+    mocker: MockerFixture, get_short_path_name: Callable[[str, ctypes.Array[ctypes.c_wchar], int], int]
+) -> None:
+    _setup_ctypes_mocks(mocker)
+    dlls = {
+        "ole32": MagicMock(),
+        "shell32": MagicMock(),
+        "kernel32": MagicMock(GetShortPathNameW=MagicMock(side_effect=get_short_path_name)),
+    }
+    mocker.patch.object(ctypes, "WinDLL", MagicMock(side_effect=dlls.__getitem__))
+    mocker.patch("ctypes.byref", side_effect=lambda x: x)
+    mocker.patch("ctypes.wintypes.LPWSTR", return_value=MagicMock(value=r"C:\Users\Łukasz\AppData\Local"))
+
+    try:
+        importlib.reload(windows)
+        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
+
+        result = fresh_fn("CSIDL_LOCAL_APPDATA")
+    finally:
+        _cleanup_ctypes_mocks()
+
+    assert result == r"C:\Users\Łukasz\AppData\Local"
 
 
 def test_get_win_folder_from_registry_unknown() -> None:
