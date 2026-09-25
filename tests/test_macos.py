@@ -33,6 +33,19 @@ _XDG_ENV_VARS = (
 )
 
 
+_MEDIA_DIRS: Final = [
+    pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", id="user_documents_dir"),
+    pytest.param("XDG_DOWNLOAD_DIR", "user_downloads_dir", id="user_downloads_dir"),
+    pytest.param("XDG_PICTURES_DIR", "user_pictures_dir", id="user_pictures_dir"),
+    pytest.param("XDG_VIDEOS_DIR", "user_videos_dir", id="user_videos_dir"),
+    pytest.param("XDG_MUSIC_DIR", "user_music_dir", id="user_music_dir"),
+    pytest.param("XDG_DESKTOP_DIR", "user_desktop_dir", id="user_desktop_dir"),
+    pytest.param("XDG_PROJECTS_DIR", "user_projects_dir", id="user_projects_dir"),
+    pytest.param("XDG_PUBLICSHARE_DIR", "user_publicshare_dir", id="user_publicshare_dir"),
+    pytest.param("XDG_TEMPLATES_DIR", "user_templates_dir", id="user_templates_dir"),
+]
+
+
 @pytest.fixture(autouse=True)
 def _fix_os_pathsep(mocker: MockerFixture) -> None:
     """If we're not running on macOS, set `os.pathsep` to what it should be on macOS."""
@@ -249,33 +262,29 @@ def test_macos_xdg_site_dirs(
         assert result == "/custom/first"
 
 
-@pytest.mark.parametrize(
-    ("env_var", "prop"),
-    [
-        pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", id="user_documents_dir"),
-        pytest.param("XDG_DOWNLOAD_DIR", "user_downloads_dir", id="user_downloads_dir"),
-        pytest.param("XDG_PICTURES_DIR", "user_pictures_dir", id="user_pictures_dir"),
-        pytest.param("XDG_VIDEOS_DIR", "user_videos_dir", id="user_videos_dir"),
-        pytest.param("XDG_MUSIC_DIR", "user_music_dir", id="user_music_dir"),
-        pytest.param("XDG_DESKTOP_DIR", "user_desktop_dir", id="user_desktop_dir"),
-        pytest.param("XDG_PROJECTS_DIR", "user_projects_dir", id="user_projects_dir"),
-        pytest.param("XDG_PUBLICSHARE_DIR", "user_publicshare_dir", id="user_publicshare_dir"),
-        pytest.param("XDG_TEMPLATES_DIR", "user_templates_dir", id="user_templates_dir"),
-    ],
-)
+@pytest.mark.parametrize(("env_var", "prop"), _MEDIA_DIRS)
 def test_macos_xdg_media_dirs(monkeypatch: pytest.MonkeyPatch, env_var: str, prop: str) -> None:
     monkeypatch.setenv(env_var, "/custom/media")
     assert getattr(MacOS(), prop) == "/custom/media"
 
 
-@pytest.mark.parametrize("ensure_exists", [True, False], ids=["created", "not-created"])
-def test_macos_xdg_media_dir_ensure_exists(
-    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, ensure_exists: bool
+@pytest.mark.parametrize(("xdg_value", "created"), [("/custom/media", True), (None, False)], ids=["xdg", "default"])
+@pytest.mark.parametrize(("env_var", "prop"), _MEDIA_DIRS)
+def test_macos_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[too-many-arguments]
+    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    env_var: str,
+    prop: str,
+    xdg_value: str | None,
+    created: bool,
 ) -> None:
-    monkeypatch.setenv("XDG_DOCUMENTS_DIR", "/custom/media")
+    if xdg_value is None:
+        monkeypatch.delenv(env_var, raising=False)
+    else:
+        monkeypatch.setenv(env_var, xdg_value)
     mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
-    assert MacOS(ensure_exists=ensure_exists).user_documents_dir == "/custom/media"
-    assert [call.args[0] for call in mkdir.call_args_list] == ([Path("/custom/media")] if ensure_exists else [])
+    getattr(MacOS(ensure_exists=True), prop)
+    assert [call.args[0] for call in mkdir.call_args_list] == ([Path("/custom/media")] if created else [])
 
 
 @pytest.mark.parametrize(

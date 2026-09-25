@@ -123,7 +123,7 @@ class XDGMixin(PlatformDirsABC):
 
     def _xdg_media_dir(self, env_var: str) -> str | None:
         if path := _xdg_dir(env_var):
-            self._optionally_create_directory(path)
+            self._optionally_create_media_directory(path)
         return path
 
     @property

@@ -430,44 +430,71 @@ def test_folder_not_created_without_ensure_exists(monkeypatch: pytest.MonkeyPatc
     assert not (Path(posix_tmp_path) / "acme").exists()
 
 
-@pytest.mark.parametrize("ensure_exists", [True, False], ids=["created", "not-created"])
 @pytest.mark.parametrize(
-    ("env_var", "prop"),
+    ("source", "ensure_exists", "created"),
+    [
+        pytest.param("env", True, True, id="env"),
+        pytest.param("user-dirs", True, True, id="user-dirs"),
+        pytest.param("default", True, False, id="default"),
+        pytest.param("env", False, False, id="env-off"),
+        pytest.param("user-dirs", False, False, id="user-dirs-off"),
+    ],
+)
+@pytest.mark.parametrize(
+    ("key", "prop", "default"),
+    [
+        pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", "Documents", id="user_documents_dir"),
+        pytest.param("XDG_DOWNLOAD_DIR", "user_downloads_dir", "Downloads", id="user_downloads_dir"),
+        pytest.param("XDG_PICTURES_DIR", "user_pictures_dir", "Pictures", id="user_pictures_dir"),
+        pytest.param("XDG_VIDEOS_DIR", "user_videos_dir", "Videos", id="user_videos_dir"),
+        pytest.param("XDG_MUSIC_DIR", "user_music_dir", "Music", id="user_music_dir"),
+        pytest.param("XDG_DESKTOP_DIR", "user_desktop_dir", "Desktop", id="user_desktop_dir"),
+        pytest.param("XDG_PROJECTS_DIR", "user_projects_dir", "Projects", id="user_projects_dir"),
+        pytest.param("XDG_PUBLICSHARE_DIR", "user_publicshare_dir", "Public", id="user_publicshare_dir"),
+        pytest.param("XDG_TEMPLATES_DIR", "user_templates_dir", "Templates", id="user_templates_dir"),
+    ],
+)
+def test_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[too-many-arguments]
+    monkeypatch: pytest.MonkeyPatch,
+    user_dirs_file: Path,
+    tmp_path: Path,
+    posix_tmp_path: str,
+    key: str,
+    prop: str,
+    default: str,
+    source: str,
+    ensure_exists: bool,
+    created: bool,
+) -> None:
+    monkeypatch.delenv(key, raising=False)
+    user_dirs_file.write_text(f'{key}="$HOME/parent/media"\n' if source == "user-dirs" else "", encoding="utf-8")
+    if source == "env":
+        monkeypatch.setenv(key, f"{posix_tmp_path}/parent/media")
+    result = Path(getattr(Unix(ensure_exists=ensure_exists), prop)).absolute()
+    assert result == tmp_path / ("parent/media" if source != "default" else default)
+    made = sorted(path.relative_to(tmp_path).as_posix() for path in tmp_path.rglob("*") if ".config" not in path.parts)
+    assert made == (["parent", "parent/media"] if created else [])
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="creating symlinks needs elevated rights on Windows")
+@pytest.mark.parametrize(
+    ("key", "prop"),
     [
         pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", id="user_documents_dir"),
-        pytest.param("XDG_DOWNLOAD_DIR", "user_downloads_dir", id="user_downloads_dir"),
-        pytest.param("XDG_PICTURES_DIR", "user_pictures_dir", id="user_pictures_dir"),
-        pytest.param("XDG_VIDEOS_DIR", "user_videos_dir", id="user_videos_dir"),
         pytest.param("XDG_MUSIC_DIR", "user_music_dir", id="user_music_dir"),
-        pytest.param("XDG_DESKTOP_DIR", "user_desktop_dir", id="user_desktop_dir"),
-        pytest.param("XDG_PROJECTS_DIR", "user_projects_dir", id="user_projects_dir"),
-        pytest.param("XDG_PUBLICSHARE_DIR", "user_publicshare_dir", id="user_publicshare_dir"),
-        pytest.param("XDG_TEMPLATES_DIR", "user_templates_dir", id="user_templates_dir"),
     ],
 )
-def test_xdg_media_dir_ensure_exists(
-    monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str, env_var: str, prop: str, ensure_exists: bool
+@pytest.mark.parametrize("source", ["env", "user-dirs"])
+def test_ensure_exists_returns_dangling_media_symlink(  # ruff:ignore[too-many-arguments]
+    monkeypatch: pytest.MonkeyPatch, user_dirs_file: Path, tmp_path: Path, key: str, prop: str, source: str
 ) -> None:
-    media = f"{posix_tmp_path}/parent/media"
-    monkeypatch.setenv(env_var, media)
-    assert getattr(Unix(ensure_exists=ensure_exists), prop) == media
-    assert Path(media).is_dir() is ensure_exists
-
-
-@pytest.mark.parametrize("ensure_exists", [True, False], ids=["created", "not-created"])
-@pytest.mark.parametrize(
-    ("user_dirs", "name"),
-    [
-        pytest.param('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n', "MyDocs", id="user-dirs"),
-        pytest.param("", "Documents", id="default"),
-    ],
-)
-def test_user_dirs_media_dir_ensure_exists(
-    user_dirs_file: Path, tmp_path: Path, user_dirs: str, name: str, ensure_exists: bool
-) -> None:
-    user_dirs_file.write_text(user_dirs, encoding="utf-8")
-    assert Unix(ensure_exists=ensure_exists).user_documents_path == tmp_path / name
-    assert (tmp_path / name).is_dir() is ensure_exists
+    (link := tmp_path / "media").symlink_to(tmp_path / "unmounted")
+    monkeypatch.delenv(key, raising=False)
+    user_dirs_file.write_text(f'{key}="$HOME/media"\n' if source == "user-dirs" else "", encoding="utf-8")
+    if source == "env":
+        monkeypatch.setenv(key, str(link))
+    assert getattr(Unix(ensure_exists=True), prop) == str(link)
+    assert not link.exists()
 
 
 def test_iter_data_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
