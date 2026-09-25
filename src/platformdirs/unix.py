@@ -356,7 +356,8 @@ def _get_user_dirs_folder(key: str) -> str | None:
     if not user_dirs_config_path.exists():
         return None
     folder = None
-    with user_dirs_config_path.open() as stream:
+    # the file holds raw path bytes, and surrogateescape round-trips undecodable ones like os.fsdecode
+    with user_dirs_config_path.open(encoding=sys.getfilesystemencoding(), errors="surrogateescape") as stream:
         for line in stream:
             if (entry := _USER_DIRS_LINE.match(line)) and entry["key"] == key:
                 folder = _resolve_user_dirs_value(entry) or folder
