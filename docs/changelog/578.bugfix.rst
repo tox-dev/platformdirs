@@ -1,0 +1,1 @@
+Raise ``RuntimeError`` in place of creating a literal ``~`` directory when ``ensure_exists`` finds no home.
