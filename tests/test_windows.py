@@ -432,10 +432,36 @@ def test_get_win_folder_override(monkeypatch: pytest.MonkeyPatch, csidl_name: st
     assert get_win_folder(csidl_name) == override_path
 
 
-def test_get_win_folder_override_whitespace_only_ignored(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param("   ", id="whitespace_only"),
+        pytest.param("appdata", id="relative"),
+        pytest.param(r"..\shared", id="parent_relative"),
+        pytest.param("D:", id="drive_only"),
+        pytest.param(r"D:appdata", id="drive_relative"),
+        pytest.param(r"\shared", id="rooted_without_drive"),
+    ],
+)
+def test_get_win_folder_override_ignored(monkeypatch: pytest.MonkeyPatch, value: str) -> None:
     monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda csidl: _WIN_FOLDERS[csidl])
-    monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", "   ")
+    monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", value)
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == _WIN_FOLDERS["CSIDL_LOCAL_APPDATA"]
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param(r"X:\appdata", id="drive_backslash"),
+        pytest.param("X:/appdata", id="drive_slash"),
+        pytest.param(r"\\server\share", id="unc_share"),
+        pytest.param(r"\\server\share\appdata", id="unc_share_folder"),
+    ],
+)
+def test_get_win_folder_override_absolute(monkeypatch: pytest.MonkeyPatch, value: str) -> None:
+    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda csidl: _WIN_FOLDERS[csidl])
+    monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", value)
+    assert get_win_folder("CSIDL_LOCAL_APPDATA") == value
 
 
 def test_get_win_folder_override_not_set_falls_back(monkeypatch: pytest.MonkeyPatch) -> None:
