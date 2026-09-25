@@ -202,20 +202,39 @@ def _android_folder() -> str | None:  # ruff:ignore[complex-structure]
     if result is None:
         # and if that fails, too, find an android folder looking at path on the sys.path
         # warning: only works for apps installed under /data, not adopted storage etc.
-        pattern = re.compile(r"/data/(data|user/\d+)/(.+)/files")
+        pattern = re.compile(
+            r"""
+            (?P<folder>
+                /data/(?:data|user/\d+)  # internal storage of the primary user or of user N
+                /[^/]+                   # package name, one path segment
+            )
+            /files                       # the files directory the interpreter runs from
+            """,
+            re.VERBOSE,
+        )
         for path in sys.path:
-            if pattern.match(path):
-                result = path.split("/files")[0]
+            if match := pattern.match(path):
+                result = match["folder"]
                 break
         else:
             result = None
     if result is None:
         # one last try: find an android folder looking at path on the sys.path taking adopted storage paths into
         # account
-        pattern = re.compile(r"/mnt/expand/[a-fA-F0-9-]{36}/(data|user/\d+)/(.+)/files")
+        pattern = re.compile(
+            r"""
+            (?P<folder>
+                /mnt/expand/[a-fA-F0-9-]{36}  # adopted storage volume, named by its UUID
+                /(?:data|user/\d+)             # the primary user or user N
+                /[^/]+                         # package name, one path segment
+            )
+            /files                             # the files directory the interpreter runs from
+            """,
+            re.VERBOSE,
+        )
         for path in sys.path:
-            if pattern.match(path):
-                result = path.split("/files")[0]
+            if match := pattern.match(path):
+                result = match["folder"]
                 break
         else:
             result = None

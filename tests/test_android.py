@@ -138,14 +138,27 @@ def test_android_folder_from_p4a(mocker: MockerFixture, monkeypatch: pytest.Monk
 
 
 @pytest.mark.parametrize(
-    "path",
+    ("path", "expected"),
     [
-        "/data/user/1/a/files",
-        "/data/data/a/files",
-        "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user/1/a/files",
+        pytest.param("/data/user/1/a/files", "/data/user/1/a", id="user"),
+        pytest.param("/data/data/a/files", "/data/data/a", id="data"),
+        pytest.param(
+            "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user/1/a/files",
+            "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user/1/a",
+            id="adopted",
+        ),
+        pytest.param("/data/data/filesync.app/files/app", "/data/data/filesync.app", id="data-files-prefix"),
+        pytest.param(
+            "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user/0/filesync.app/files/app",
+            "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user/0/filesync.app",
+            id="adopted-files-prefix",
+        ),
+        pytest.param("/data/data/a/files/app/lib/files", "/data/data/a", id="nested-files"),
     ],
 )
-def test_android_folder_from_sys_path(mocker: MockerFixture, path: str, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_android_folder_from_sys_path(
+    mocker: MockerFixture, path: str, expected: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
     mocker.patch.dict(sys.modules, {"jnius": MagicMock(side_effect=ModuleNotFoundError)})
     monkeypatch.delitem(__import__("sys").modules, "jnius")
     mocker.patch.dict(sys.modules, {"android": MagicMock(side_effect=ModuleNotFoundError)})
@@ -156,8 +169,7 @@ def test_android_folder_from_sys_path(mocker: MockerFixture, path: str, monkeypa
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", ["/A", "/B", path])
 
-    result = _android_folder()
-    assert result == path[: -len("/files")]
+    assert Android().user_data_path == Path(expected, "files")
 
 
 def test_android_folder_not_found(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch) -> None:
