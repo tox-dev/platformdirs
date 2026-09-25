@@ -297,7 +297,7 @@ See also: :ref:`api:User downloads directory`
     .. tab-item:: Android
        :sync: android
 
-       ``/storage/emulated/0/Downloads``
+       ``/storage/emulated/0/Download``
 
 ``user_pictures_dir``
 =====================

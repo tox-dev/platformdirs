@@ -84,7 +84,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def user_downloads_dir(self) -> str:
-        """Downloads directory tied to the user e.g. ``/storage/emulated/0/Downloads``."""
+        """Downloads directory tied to the user e.g. ``/storage/emulated/0/Download``."""
         return _android_downloads_folder()
 
     @property
@@ -268,7 +268,7 @@ def _android_downloads_folder() -> str:
         environment = autoclass("android.os.Environment")
         downloads_dir: str = context.getExternalFilesDir(environment.DIRECTORY_DOWNLOADS).getAbsolutePath()
     except Exception:  # ruff:ignore[blind-except]
-        downloads_dir = "/storage/emulated/0/Downloads"
+        downloads_dir = "/storage/emulated/0/Download"
 
     return downloads_dir
 

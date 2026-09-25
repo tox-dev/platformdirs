@@ -63,7 +63,7 @@ def test_android(params: dict[str, Any], func: str) -> None:
         "user_log_dir": f"/data/data/com.example/cache{suffix}{'' if params.get('opinion', True) is False else '/log'}",
         "site_log_dir": f"/data/data/com.example/cache{suffix}{'' if params.get('opinion', True) is False else '/log'}",
         "user_documents_dir": "/storage/emulated/0/Documents",
-        "user_downloads_dir": "/storage/emulated/0/Downloads",
+        "user_downloads_dir": "/storage/emulated/0/Download",
         "user_pictures_dir": "/storage/emulated/0/Pictures",
         "user_videos_dir": "/storage/emulated/0/DCIM/Camera",
         "user_music_dir": "/storage/emulated/0/Music",
