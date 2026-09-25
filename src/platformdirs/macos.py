@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import os.path
+import re
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -29,9 +30,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         return self._append_app_name_and_version(os.path.expanduser("~/Library/Application Support"))  # ruff:ignore[os-path-expanduser]
 
     def _base_site_dirs(self) -> list[str]:
-        is_homebrew = "/opt/python" in sys.base_prefix
-        homebrew_prefix = sys.base_prefix.split("/opt/python")[0] if is_homebrew else ""
-        path_list = [self._join_app_name_and_version(f"{homebrew_prefix}/share")] if is_homebrew else []
+        path_list = [self._join_app_name_and_version(f"{prefix}/share")] if (prefix := _homebrew_prefix()) else []
         path_list.append(self._join_app_name_and_version("/Library/Application Support"))
         return path_list
 
@@ -70,9 +69,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def _site_cache_dirs(self) -> list[str]:
-        is_homebrew = "/opt/python" in sys.base_prefix
-        homebrew_prefix = sys.base_prefix.split("/opt/python")[0] if is_homebrew else ""
-        path_list = [self._join_app_name_and_version(f"{homebrew_prefix}/var/cache")] if is_homebrew else []
+        path_list = [self._join_app_name_and_version(f"{prefix}/var/cache")] if (prefix := _homebrew_prefix()) else []
         path_list.append(self._join_app_name_and_version("/Library/Caches"))
         return path_list
 
@@ -222,6 +219,24 @@ class MacOS(XDGMixin, _MacOSDefaults):
     XDG environment variables (e.g. ``$XDG_DATA_HOME``) are supported and take precedence over macOS defaults.
 
     """
+
+
+# Homebrew links each Python formula as a framework build, and a virtual environment keeps it as sys.base_prefix.
+_HOMEBREW_PYTHON: Final = re.compile(
+    r"""
+    (?P<prefix>.+)                 # $HOMEBREW_PREFIX, such as /opt/homebrew or /usr/local
+    /opt/python[^/]*               # formula link: python, python3 or python@3.13
+    /Frameworks/Python\.framework  # framework build
+    /Versions/[^/]+                # interpreter version, such as 3.13
+    """,
+    re.VERBOSE,
+)
+
+
+def _homebrew_prefix() -> str | None:
+    if match := _HOMEBREW_PYTHON.fullmatch(sys.base_prefix):
+        return match["prefix"]
+    return None
 
 
 __all__ = [

@@ -46,7 +46,7 @@ def _homebrew_py_prefix(mocker: MockerFixture) -> None:
 
 @pytest.fixture
 def _builtin_py_prefix(mocker: MockerFixture) -> None:
-    """Keep ``sys.base_prefix`` off the ``/opt/python`` Homebrew heuristic so directories use the system defaults."""
+    """Keep ``sys.base_prefix`` off the Homebrew Python layout so directories use the system defaults."""
     py_version = sys.version_info
     mocker.patch(
         "sys.base_prefix",
@@ -619,3 +619,26 @@ def test_non_homebrew_base_ignores_virtual_environment_name(
 ) -> None:
     monkeypatch.setattr(sys, "prefix", (tmp_path / "opt/python/.venv").as_posix())
     assert getattr(MacOS(), prop) == expected
+
+
+@pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.parametrize(
+    "base_prefix",
+    [
+        pytest.param("/opt/python/3.12.4", id="opt-python-at-root"),
+        pytest.param("/opt/python3.12", id="opt-python-versioned-dir"),
+        pytest.param("/srv/opt/python/3.12.4", id="opt-python-nested"),
+    ],
+)
+@pytest.mark.parametrize(
+    ("prop", "expected"),
+    [
+        pytest.param("site_data_dir", "/Library/Application Support", id="data"),
+        pytest.param("site_cache_dir", "/Library/Caches", id="cache"),
+    ],
+)
+def test_non_homebrew_opt_python_uses_system_site_dirs(
+    mocker: MockerFixture, base_prefix: str, prop: str, expected: str
+) -> None:
+    mocker.patch("sys.base_prefix", base_prefix)
+    assert getattr(MacOS(multipath=True), prop) == expected
