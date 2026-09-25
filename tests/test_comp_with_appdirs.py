@@ -49,6 +49,7 @@ def test_has_all_properties() -> None:
         "app_name_author_version",
     ],
 )
+@pytest.mark.usefixtures("_clear_xdg_env")
 def test_compatibility(params: dict[str, Any], func: str, monkeypatch: pytest.MonkeyPatch) -> None:
     # Compare system defaults here; appdirs has no Homebrew-specific locations.
     monkeypatch.setattr(sys, "base_prefix", "/usr")

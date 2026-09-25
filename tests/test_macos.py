@@ -13,26 +13,6 @@ from platformdirs.macos import MacOS
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
-_XDG_ENV_VARS = (
-    "XDG_DATA_HOME",
-    "XDG_DATA_DIRS",
-    "XDG_CONFIG_HOME",
-    "XDG_CONFIG_DIRS",
-    "XDG_CACHE_HOME",
-    "XDG_STATE_HOME",
-    "XDG_RUNTIME_DIR",
-    "XDG_DOCUMENTS_DIR",
-    "XDG_DOWNLOAD_DIR",
-    "XDG_PICTURES_DIR",
-    "XDG_VIDEOS_DIR",
-    "XDG_MUSIC_DIR",
-    "XDG_DESKTOP_DIR",
-    "XDG_PROJECTS_DIR",
-    "XDG_PUBLICSHARE_DIR",
-    "XDG_TEMPLATES_DIR",
-)
-
-
 _MEDIA_DIRS: Final = [
     pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", id="user_documents_dir"),
     pytest.param("XDG_DOWNLOAD_DIR", "user_downloads_dir", id="user_downloads_dir"),
@@ -52,12 +32,6 @@ def _fix_os_pathsep(mocker: MockerFixture) -> None:
     if sys.platform != "darwin":  # pragma: darwin no cover
         mocker.patch("os.pathsep", ":")
         mocker.patch("os.path.pathsep", ":")
-
-
-@pytest.fixture
-def _clear_xdg_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    for var in _XDG_ENV_VARS:
-        monkeypatch.delenv(var, raising=False)
 
 
 @pytest.fixture
