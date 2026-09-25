@@ -430,6 +430,46 @@ def test_folder_not_created_without_ensure_exists(monkeypatch: pytest.MonkeyPatc
     assert not (Path(posix_tmp_path) / "acme").exists()
 
 
+@pytest.mark.parametrize("ensure_exists", [True, False], ids=["created", "not-created"])
+@pytest.mark.parametrize(
+    ("env_var", "prop"),
+    [
+        pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", id="user_documents_dir"),
+        pytest.param("XDG_DOWNLOAD_DIR", "user_downloads_dir", id="user_downloads_dir"),
+        pytest.param("XDG_PICTURES_DIR", "user_pictures_dir", id="user_pictures_dir"),
+        pytest.param("XDG_VIDEOS_DIR", "user_videos_dir", id="user_videos_dir"),
+        pytest.param("XDG_MUSIC_DIR", "user_music_dir", id="user_music_dir"),
+        pytest.param("XDG_DESKTOP_DIR", "user_desktop_dir", id="user_desktop_dir"),
+        pytest.param("XDG_PROJECTS_DIR", "user_projects_dir", id="user_projects_dir"),
+        pytest.param("XDG_PUBLICSHARE_DIR", "user_publicshare_dir", id="user_publicshare_dir"),
+        pytest.param("XDG_TEMPLATES_DIR", "user_templates_dir", id="user_templates_dir"),
+    ],
+)
+def test_xdg_media_dir_ensure_exists(
+    monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str, env_var: str, prop: str, ensure_exists: bool
+) -> None:
+    media = f"{posix_tmp_path}/parent/media"
+    monkeypatch.setenv(env_var, media)
+    assert getattr(Unix(ensure_exists=ensure_exists), prop) == media
+    assert Path(media).is_dir() is ensure_exists
+
+
+@pytest.mark.parametrize("ensure_exists", [True, False], ids=["created", "not-created"])
+@pytest.mark.parametrize(
+    ("user_dirs", "name"),
+    [
+        pytest.param('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n', "MyDocs", id="user-dirs"),
+        pytest.param("", "Documents", id="default"),
+    ],
+)
+def test_user_dirs_media_dir_ensure_exists(
+    user_dirs_file: Path, tmp_path: Path, user_dirs: str, name: str, ensure_exists: bool
+) -> None:
+    user_dirs_file.write_text(user_dirs, encoding="utf-8")
+    assert Unix(ensure_exists=ensure_exists).user_documents_path == tmp_path / name
+    assert (tmp_path / name).is_dir() is ensure_exists
+
+
 def test_iter_data_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("XDG_DATA_HOME", "/xdg/data")
     monkeypatch.setenv("XDG_DATA_DIRS", f"/xdg/share1{os.pathsep}/xdg/share2")

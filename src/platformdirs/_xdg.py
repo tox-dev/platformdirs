@@ -79,65 +79,52 @@ class XDGMixin(PlatformDirsABC):
     @property
     def user_documents_dir(self) -> str:
         """Documents directory tied to the user, from ``$XDG_DOCUMENTS_DIR`` if set, else platform default."""
-        if path := _xdg_dir("XDG_DOCUMENTS_DIR"):
-            return path
-        return super().user_documents_dir
+        return self._xdg_media_dir("XDG_DOCUMENTS_DIR") or super().user_documents_dir
 
     @property
     def user_downloads_dir(self) -> str:
         """Downloads directory tied to the user, from ``$XDG_DOWNLOAD_DIR`` if set, else platform default."""
-        if path := _xdg_dir("XDG_DOWNLOAD_DIR"):
-            return path
-        return super().user_downloads_dir
+        return self._xdg_media_dir("XDG_DOWNLOAD_DIR") or super().user_downloads_dir
 
     @property
     def user_pictures_dir(self) -> str:
         """Pictures directory tied to the user, from ``$XDG_PICTURES_DIR`` if set, else platform default."""
-        if path := _xdg_dir("XDG_PICTURES_DIR"):
-            return path
-        return super().user_pictures_dir
+        return self._xdg_media_dir("XDG_PICTURES_DIR") or super().user_pictures_dir
 
     @property
     def user_videos_dir(self) -> str:
         """Videos directory tied to the user, from ``$XDG_VIDEOS_DIR`` if set, else platform default."""
-        if path := _xdg_dir("XDG_VIDEOS_DIR"):
-            return path
-        return super().user_videos_dir
+        return self._xdg_media_dir("XDG_VIDEOS_DIR") or super().user_videos_dir
 
     @property
     def user_music_dir(self) -> str:
         """Music directory tied to the user, from ``$XDG_MUSIC_DIR`` if set, else platform default."""
-        if path := _xdg_dir("XDG_MUSIC_DIR"):
-            return path
-        return super().user_music_dir
+        return self._xdg_media_dir("XDG_MUSIC_DIR") or super().user_music_dir
 
     @property
     def user_desktop_dir(self) -> str:
         """Desktop directory tied to the user, from ``$XDG_DESKTOP_DIR`` if set, else platform default."""
-        if path := _xdg_dir("XDG_DESKTOP_DIR"):
-            return path
-        return super().user_desktop_dir
+        return self._xdg_media_dir("XDG_DESKTOP_DIR") or super().user_desktop_dir
 
     @property
     def user_projects_dir(self) -> str:
         """Projects directory tied to the user, from ``$XDG_PROJECTS_DIR`` if set, else platform default."""
-        if path := _xdg_dir("XDG_PROJECTS_DIR"):
-            return path
-        return super().user_projects_dir
+        return self._xdg_media_dir("XDG_PROJECTS_DIR") or super().user_projects_dir
 
     @property
     def user_publicshare_dir(self) -> str:
         """Public share directory tied to the user, from ``$XDG_PUBLICSHARE_DIR`` if set, else platform default."""
-        if path := _xdg_dir("XDG_PUBLICSHARE_DIR"):
-            return path
-        return super().user_publicshare_dir
+        return self._xdg_media_dir("XDG_PUBLICSHARE_DIR") or super().user_publicshare_dir
 
     @property
     def user_templates_dir(self) -> str:
         """Templates directory tied to the user, from ``$XDG_TEMPLATES_DIR`` if set, else platform default."""
-        if path := _xdg_dir("XDG_TEMPLATES_DIR"):
-            return path
-        return super().user_templates_dir
+        return self._xdg_media_dir("XDG_TEMPLATES_DIR") or super().user_templates_dir
+
+    def _xdg_media_dir(self, env_var: str) -> str | None:
+        if path := _xdg_dir(env_var):
+            self._optionally_create_directory(path)
+        return path
 
     @property
     def user_fonts_dir(self) -> str:

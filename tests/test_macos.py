@@ -268,6 +268,16 @@ def test_macos_xdg_media_dirs(monkeypatch: pytest.MonkeyPatch, env_var: str, pro
     assert getattr(MacOS(), prop) == "/custom/media"
 
 
+@pytest.mark.parametrize("ensure_exists", [True, False], ids=["created", "not-created"])
+def test_macos_xdg_media_dir_ensure_exists(
+    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, ensure_exists: bool
+) -> None:
+    monkeypatch.setenv("XDG_DOCUMENTS_DIR", "/custom/media")
+    mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
+    assert MacOS(ensure_exists=ensure_exists).user_documents_dir == "/custom/media"
+    assert [call.args[0] for call in mkdir.call_args_list] == ([Path("/custom/media")] if ensure_exists else [])
+
+
 @pytest.mark.parametrize(
     ("env_var", "prop"),
     [
