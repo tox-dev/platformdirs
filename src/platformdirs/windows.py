@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ntpath
 import os
 import sys
 from functools import cache
@@ -403,9 +404,15 @@ def get_win_folder(csidl_name: str) -> str:
 
     """
     env_var = f"WIN_PD_OVERRIDE_{csidl_name.removeprefix('CSIDL_')}"
-    if override := os.environ.get(env_var, "").strip():
+    if _is_fully_qualified(override := os.environ.get(env_var, "").strip()):
         return override
     return _resolve_win_folder(csidl_name)
+
+
+def _is_fully_qualified(path: str) -> bool:
+    # ntpath.isabs changed for rooted paths without a drive in 3.13 and for a bare UNC share in 3.11
+    drive, tail = ntpath.splitdrive(path)
+    return drive.startswith(("\\", "/")) or (bool(drive) and tail.startswith(("\\", "/")))
 
 
 __all__ = [

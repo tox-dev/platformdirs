@@ -1,0 +1,1 @@
+Ignore ``WIN_PD_OVERRIDE_*`` values that lack a drive or a root.
