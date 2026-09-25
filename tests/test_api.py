@@ -125,6 +125,28 @@ def test_android_active(  # ruff:ignore[too-many-arguments]
         assert platformdirs._set_platform_dir_class() is not Android  # ruff:ignore[private-member-access]
 
 
+@pytest.mark.parametrize(
+    ("prefix", "expected"),
+    [
+        pytest.param(None, Android, id="cleared-environment"),
+        pytest.param("/data/data/com.termux/files/usr", platformdirs._Result, id="termux"),  # ruff:ignore[private-member-access]
+    ],
+)
+def test_android_build_detected_without_environment(
+    monkeypatch: pytest.MonkeyPatch, prefix: str | None, expected: type[platformdirs.PlatformDirsABC]
+) -> None:
+    for env_var in ("ANDROID_DATA", "ANDROID_ROOT", "SHELL", "PREFIX"):
+        monkeypatch.delenv(env_var, raising=False)
+    if prefix is not None:
+        monkeypatch.setenv("PREFIX", prefix)
+    monkeypatch.setattr(sys, "getandroidapilevel", lambda: 34, raising=False)
+    monkeypatch.setattr(sys, "path", ["/data/user/0/org.example.app/files/app"])
+    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]
+
+    _android_folder.cache_clear()
+    assert platformdirs._set_platform_dir_class() is expected  # ruff:ignore[private-member-access]
+
+
 def _fake_import(
     name: str,
     globals: Mapping[str, object] | None = None,  # ruff:ignore[builtin-argument-shadowing]

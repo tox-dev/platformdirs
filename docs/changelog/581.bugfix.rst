@@ -1,0 +1,1 @@
+Detect Android from ``sys.getandroidapilevel`` when ``ANDROID_DATA`` and ``ANDROID_ROOT`` are unset.
