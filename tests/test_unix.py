@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib
 import inspect
 import os
+import stat
 import sys
 import typing
 from pathlib import Path
@@ -416,6 +417,38 @@ def test_xdg_runtime_dir_unset_not_writable(
     result = Unix().user_runtime_dir
     assert not result.startswith(default_dir)
     assert result == "/tmp/runtime-1234"  # ruff:ignore[hardcoded-temp-file]
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
+@pytest.mark.parametrize(
+    ("existing_mode", "ensure_exists", "expected_mode"),
+    [
+        pytest.param(None, True, 0o700, id="created-private"),
+        pytest.param(0o755, True, 0o700, id="loose-mode-tightened"),
+        pytest.param(0o755, False, 0o755, id="loose-mode-untouched-without-ensure-exists"),
+    ],
+)
+def test_user_runtime_dir_temp_fallback_mode(
+    mocker: MockerFixture, runtime_temp_dir: Path, existing_mode: int | None, ensure_exists: bool, expected_mode: int
+) -> None:
+    mocker.patch("platformdirs.unix.getuid", return_value=(uid := runtime_temp_dir.stat().st_uid))
+    base: typing.Final = runtime_temp_dir / f"runtime-{uid}"
+    if existing_mode is not None:
+        base.mkdir()
+        base.chmod(existing_mode)
+    Unix(appname="foo", ensure_exists=ensure_exists).user_runtime_dir  # ruff:ignore[useless-expression]
+    assert stat.S_IMODE(base.stat().st_mode) == expected_mode
+
+
+@pytest.mark.parametrize("ensure_exists", [pytest.param(True, id="ensure-exists"), pytest.param(False, id="lookup")])
+def test_user_runtime_dir_temp_fallback_rejects_other_owner(
+    mocker: MockerFixture, runtime_temp_dir: Path, ensure_exists: bool
+) -> None:
+    owner: typing.Final = runtime_temp_dir.stat().st_uid
+    (runtime_temp_dir / f"runtime-{owner + 1}").mkdir()
+    mocker.patch("platformdirs.unix.getuid", return_value=owner + 1)
+    with pytest.raises(PermissionError, match=f"owned by uid {owner},"):
+        Unix(appname="foo", ensure_exists=ensure_exists).user_runtime_dir  # ruff:ignore[useless-expression]
 
 
 def test_ensure_exists_creates_folder(monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str) -> None:
