@@ -1,0 +1,1 @@
+Reject an ``appname``, ``appauthor`` or ``version`` that leaves the base directory when set after construction.
