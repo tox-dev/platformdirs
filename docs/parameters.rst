@@ -191,6 +191,8 @@ variable or ``user-dirs.dirs``, and returns a dangling symlink there unchanged. 
 as ``~/Documents``, or the fonts, bin and applications directories, because the desktop session or the system owns them.
 On Android the applications directory is the data directory, so platformdirs creates it too.
 
+Without a resolvable home directory, ``ensure_exists`` raises ``RuntimeError`` for a path that would start with ``~``.
+
 .. code-block:: python
 
     from platformdirs import PlatformDirs

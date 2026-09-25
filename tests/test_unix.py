@@ -430,6 +430,67 @@ def test_folder_not_created_without_ensure_exists(monkeypatch: pytest.MonkeyPatc
     assert not (Path(posix_tmp_path) / "acme").exists()
 
 
+@pytest.fixture
+def _unknown_home(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    # expanduser leaves "~" as is without HOME and a passwd entry
+    pwd = pytest.importorskip("pwd")
+    monkeypatch.delenv("HOME", raising=False)
+    mocker.patch.object(pwd, "getpwuid", side_effect=KeyError("getpwuid(): uid not found"))
+    for var in ("XDG_DATA_HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_STATE_HOME"):
+        monkeypatch.delenv(var, raising=False)
+    monkeypatch.chdir(tmp_path)
+
+
+_HOME_APP_DIRS: typing.Final = [
+    pytest.param(prop, id=prop)
+    for prop in (
+        "user_data_dir",
+        "user_config_dir",
+        "user_cache_dir",
+        "user_state_dir",
+        "user_log_dir",
+        "user_preference_dir",
+    )
+]
+_HOME_DIRS_CLASSES: typing.Final = [pytest.param(Unix, id="unix"), pytest.param(MacOS, id="macos")]
+
+
+@pytest.mark.usefixtures("_unknown_home")
+@pytest.mark.parametrize("dirs_class", _HOME_DIRS_CLASSES)
+@pytest.mark.parametrize("prop", _HOME_APP_DIRS)
+def test_ensure_exists_without_home_raises(dirs_class: type[Unix | MacOS], prop: str) -> None:
+    with pytest.raises(RuntimeError, match=r"^could not determine the home directory, refusing to create '~/"):
+        getattr(dirs_class(appname="app", ensure_exists=True), prop)
+
+
+@pytest.mark.usefixtures("_unknown_home")
+@pytest.mark.parametrize("dirs_class", _HOME_DIRS_CLASSES)
+@pytest.mark.parametrize("prop", _HOME_APP_DIRS)
+def test_without_home_returns_unexpanded_path(dirs_class: type[Unix | MacOS], prop: str) -> None:
+    assert Path(getattr(dirs_class(appname="app"), prop)).parts[0] == "~"
+
+
+@pytest.fixture
+def _home_relative_user_dirs(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    (config := tmp_path / "config").mkdir()
+    (config / "user-dirs.dirs").write_text('XDG_DOCUMENTS_DIR="$HOME/Documents"\n', encoding="utf-8")
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(config))
+
+
+@pytest.mark.usefixtures("_unknown_home", "_home_relative_user_dirs")
+def test_ensure_exists_without_home_raises_for_configured_media_dir() -> None:
+    with pytest.raises(
+        RuntimeError, match=r"^could not determine the home directory, refusing to create '~/Documents'$"
+    ):
+        _ = Unix(ensure_exists=True).user_documents_dir
+
+
+@pytest.mark.usefixtures("_unknown_home", "_home_relative_user_dirs")
+def test_without_home_returns_unexpanded_configured_media_dir() -> None:
+    assert Unix().user_documents_dir == "~/Documents"
+
+
 @pytest.mark.parametrize(
     ("source", "ensure_exists", "created"),
     [

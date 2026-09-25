@@ -124,15 +124,19 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         return os.path.join(base[0], *params)  # ruff:ignore[os-path-join]
 
     def _optionally_create_directory(self, path: str) -> None:
-        if self.ensure_exists:
-            Path(path).mkdir(parents=True, exist_ok=True)
+        if not self.ensure_exists:
+            return
+        # expanduser leaves "~" when the home is unknown, and creating it would make a "~" directory in the cwd.
+        if path.startswith("~"):
+            msg = f"could not determine the home directory, refusing to create {path!r}"
+            raise RuntimeError(msg)
+        Path(path).mkdir(parents=True, exist_ok=True)
 
     def _optionally_create_media_directory(self, path: str) -> None:
         # Only called for a media directory the user configured. Media directories are often symlinks to removable or
         # network storage, so a dangling link is returned as-is, like before ensure_exists covered them.
-        if self.ensure_exists:
-            with suppress(FileExistsError):
-                Path(path).mkdir(parents=True, exist_ok=True)
+        with suppress(FileExistsError):
+            self._optionally_create_directory(path)
 
     def _select_site_dirs(self, dirs: list[str]) -> str:
         # Site lists are built without touching the disk, so ensure_exists only creates what the caller gets back.
