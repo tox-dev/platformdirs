@@ -7,6 +7,13 @@
 .. towncrier release notes start
 
 **********************
+ 4.11.13 (2026-09-25)
+**********************
+
+- With ``ensure_exists``, the media directories such as ``user_documents_dir`` are created on Unix, and on macOS when an
+  XDG variable sets them - by :user:`ekanshul`. :pr:`560`
+
+**********************
  4.11.12 (2026-09-22)
 **********************
 

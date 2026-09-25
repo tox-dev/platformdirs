@@ -1,2 +1,0 @@
-With ``ensure_exists``, the media directories such as ``user_documents_dir`` are created on Unix, and on macOS when an
-XDG variable sets them - by :user:`ekanshul`.
