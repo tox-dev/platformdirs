@@ -88,12 +88,12 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def user_state_dir(self) -> str:
-        """State directory tied to the user, same as `user_data_dir`."""
+        """State directory tied to the user, same as `user_data_dir` without ``$XDG_DATA_HOME``, e.g. ``~/Library/Application Support/$appname/$version``."""
         return self._base_user_app_support_dir()
 
     @property
     def site_state_dir(self) -> str:
-        """State directory shared by users, same as `site_data_dir`, but ignoring `multipath <platformdirs.api.PlatformDirsABC.multipath>`."""
+        """State directory shared by users, the first entry of `site_data_dir` without ``$XDG_DATA_DIRS``, ignoring `multipath <platformdirs.api.PlatformDirsABC.multipath>`."""
         path = self._base_site_dirs()[0]
         self._optionally_create_directory(path)
         return path
