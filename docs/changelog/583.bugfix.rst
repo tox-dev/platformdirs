@@ -1,0 +1,1 @@
+Move Android videos to ``Movies`` and the five non-standard media folders, such as ``Desktop``, into ``Documents``.

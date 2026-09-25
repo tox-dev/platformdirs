@@ -94,7 +94,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def user_videos_dir(self) -> str:
-        """Videos directory tied to the user e.g. ``/storage/emulated/0/DCIM/Camera``."""
+        """Videos directory tied to the user e.g. ``/storage/emulated/0/Movies``."""
         return _android_videos_folder()
 
     @property
@@ -102,30 +102,31 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         """Music directory tied to the user e.g. ``/storage/emulated/0/Music``."""
         return _android_music_folder()
 
+    # Android lets apps create top-level shared folders only from its standard list, so these live in Documents.
     @property
     def user_desktop_dir(self) -> str:
-        """Desktop directory tied to the user e.g. ``/storage/emulated/0/Desktop``."""
-        return f"{_shared_storage()}/Desktop"
+        """Desktop directory tied to the user e.g. ``/storage/emulated/0/Documents/Desktop``."""
+        return f"{_shared_storage()}/Documents/Desktop"
 
     @property
     def user_projects_dir(self) -> str:
-        """Projects directory tied to the user e.g. ``/storage/emulated/0/Projects``."""
-        return f"{_shared_storage()}/Projects"
+        """Projects directory tied to the user e.g. ``/storage/emulated/0/Documents/Projects``."""
+        return f"{_shared_storage()}/Documents/Projects"
 
     @property
     def user_publicshare_dir(self) -> str:
-        """Public share directory tied to the user e.g. ``/storage/emulated/0/Public``."""
-        return f"{_shared_storage()}/Public"
+        """Public share directory tied to the user e.g. ``/storage/emulated/0/Documents/Public``."""
+        return f"{_shared_storage()}/Documents/Public"
 
     @property
     def user_templates_dir(self) -> str:
-        """Templates directory tied to the user e.g. ``/storage/emulated/0/Templates``."""
-        return f"{_shared_storage()}/Templates"
+        """Templates directory tied to the user e.g. ``/storage/emulated/0/Documents/Templates``."""
+        return f"{_shared_storage()}/Documents/Templates"
 
     @property
     def user_fonts_dir(self) -> str:
-        """Fonts directory tied to the user e.g. ``/storage/emulated/0/fonts``."""
-        return f"{_shared_storage()}/fonts"
+        """Fonts directory tied to the user e.g. ``/storage/emulated/0/Documents/fonts``."""
+        return f"{_shared_storage()}/Documents/fonts"
 
     @property
     def user_preference_dir(self) -> str:
@@ -316,7 +317,7 @@ def _android_videos_folder() -> str:
         environment = autoclass("android.os.Environment")
         videos_dir: str = context.getExternalFilesDir(environment.DIRECTORY_DCIM).getAbsolutePath()
     except Exception:  # ruff:ignore[blind-except]
-        videos_dir = f"{_shared_storage()}/DCIM/Camera"
+        videos_dir = f"{_shared_storage()}/Movies"
 
     return videos_dir
 
