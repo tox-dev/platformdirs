@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from abc import ABC, abstractmethod
+from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -87,9 +88,10 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
         """
         self.ensure_exists = ensure_exists
-        """Optionally create the directory (and any missing parents) upon access if it does not exist.
+        """Create the directory a property returns, with missing parents, each time the property is read.
 
-        By default, no directories are created.
+        Media directories qualify only when the user set them through XDG. platformdirs never creates fonts, bin,
+        applications or default media directories. Off by default.
 
         """
         self.use_site_for_root = use_site_for_root
@@ -124,6 +126,13 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
     def _optionally_create_directory(self, path: str) -> None:
         if self.ensure_exists:
             Path(path).mkdir(parents=True, exist_ok=True)
+
+    def _optionally_create_media_directory(self, path: str) -> None:
+        # Only called for a media directory the user configured. Media directories are often symlinks to removable or
+        # network storage, so a dangling link is returned as-is, like before ensure_exists covered them.
+        if self.ensure_exists:
+            with suppress(FileExistsError):
+                Path(path).mkdir(parents=True, exist_ok=True)
 
     def _select_site_dirs(self, dirs: list[str]) -> str:
         # Site lists are built without touching the disk, so ensure_exists only creates what the caller gets back.

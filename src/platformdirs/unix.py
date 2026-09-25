@@ -138,10 +138,11 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         """Templates directory tied to the user, e.g. ``~/Templates``."""
         return self._user_media_dir("XDG_TEMPLATES_DIR", "~/Templates")
 
-    def _user_media_dir(self, env_var: str, fallback_tilde_path: str) -> str:
-        path = _get_user_media_dir(env_var, fallback_tilde_path)
-        self._optionally_create_directory(path)
-        return path
+    def _user_media_dir(self, key: str, default: str) -> str:
+        if path := _get_user_dirs_folder(key):
+            self._optionally_create_media_directory(path)
+            return path
+        return os.path.expanduser(default)  # ruff:ignore[os-path-expanduser]
 
     @property
     def user_fonts_dir(self) -> str:
@@ -334,12 +335,6 @@ class Unix(XDGMixin, _UnixDefaults):
     def user_applications_path(self) -> Path:
         """Applications path tied to the user, or the first site entry when root with ``use_site_for_root``."""
         return self.site_applications_path if self._use_site else super().user_applications_path
-
-
-def _get_user_media_dir(env_var: str, fallback_tilde_path: str) -> str:
-    if media_dir := _get_user_dirs_folder(env_var):
-        return media_dir
-    return os.path.expanduser(fallback_tilde_path)  # ruff:ignore[os-path-expanduser]
 
 
 _USER_DIRS_LINE: Final = re.compile(

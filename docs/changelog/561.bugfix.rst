@@ -1,0 +1,4 @@
+With ``ensure_exists``, create a media directory such as ``user_documents_dir`` only when the user set it through an
+``XDG_*_DIR`` variable or ``user-dirs.dirs``, and return a dangling symlink there instead of raising
+``FileExistsError``. 4.11.13 also created the platform defaults, which filled headless home directories with folders
+such as ``~/Templates`` and made a literal ``~`` directory when ``HOME`` was unset.
