@@ -312,6 +312,12 @@ def test_site_state_dir_fixed_path() -> None:
     assert result == os.path.join("/var/lib", "foo")  # ruff:ignore[os-path-join]
 
 
+def test_site_cache_path_multipath_keeps_path_separator_in_app_arguments() -> None:
+    # Debian epoch versions such as 1:2 contain os.pathsep
+    dirs = Unix(appname=f"org{os.pathsep}app", version=f"1{os.pathsep}2", multipath=True)
+    assert dirs.site_cache_path == Path("/var/cache", f"org{os.pathsep}app", f"1{os.pathsep}2")
+
+
 @pytest.mark.usefixtures("_getuid")
 @pytest.mark.parametrize("platform", [pytest.param("freebsd", id="freebsd"), pytest.param("netbsd", id="netbsd")])
 def test_freebsd_netbsd_site_runtime_dir(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, platform: str) -> None:
