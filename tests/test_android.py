@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 
 import platformdirs
+from platformdirs import android
 from platformdirs.android import Android
 
 if TYPE_CHECKING:
@@ -170,6 +171,50 @@ def test_android_folder_from_sys_path(
     monkeypatch.setattr(sys, "path", ["/A", "/B", path])
 
     assert Android().user_data_path == Path(expected, "files")
+
+
+@pytest.fixture
+def _clear_android_caches() -> None:
+    for cached in vars(android).values():
+        if hasattr(cached, "cache_clear"):
+            cached.cache_clear()
+
+
+@pytest.mark.usefixtures("_clear_android_caches")
+@pytest.mark.parametrize(
+    ("app_folder", "storage"),
+    [
+        pytest.param("/data/data/org.example.app", "/storage/emulated/0", id="owner"),
+        pytest.param("/data/user/10/org.example.app", "/storage/emulated/10", id="secondary-user"),
+        pytest.param(
+            "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user/11/org.example.app",
+            "/storage/emulated/11",
+            id="adopted",
+        ),
+        pytest.param(None, "/storage/emulated/0", id="unknown"),
+    ],
+)
+@pytest.mark.parametrize(
+    ("prop", "folder"),
+    [
+        pytest.param("user_documents_dir", "Documents", id="documents"),
+        pytest.param("user_downloads_dir", "Download", id="downloads"),
+        pytest.param("user_pictures_dir", "Pictures", id="pictures"),
+        pytest.param("user_videos_dir", "DCIM/Camera", id="videos"),
+        pytest.param("user_music_dir", "Music", id="music"),
+        pytest.param("user_desktop_dir", "Desktop", id="desktop"),
+        pytest.param("user_projects_dir", "Projects", id="projects"),
+        pytest.param("user_publicshare_dir", "Public", id="publicshare"),
+        pytest.param("user_templates_dir", "Templates", id="templates"),
+        pytest.param("user_fonts_dir", "fonts", id="fonts"),
+    ],
+)
+def test_android_shared_storage_follows_user(
+    mocker: MockerFixture, app_folder: str | None, storage: str, prop: str, folder: str
+) -> None:
+    mocker.patch.dict(sys.modules, {"jnius": None})
+    mocker.patch("platformdirs.android._android_folder", return_value=app_folder, autospec=True)
+    assert getattr(Android(), prop) == f"{storage}/{folder}"
 
 
 def test_android_folder_not_found(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch) -> None:

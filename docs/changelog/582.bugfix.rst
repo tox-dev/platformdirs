@@ -1,0 +1,1 @@
+Put Android shared-storage directories under the current user's /storage/emulated/<user id>, not user 0's.

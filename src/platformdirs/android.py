@@ -6,7 +6,7 @@ import os
 import re
 import sys
 from functools import lru_cache
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Final, cast
 
 from .api import PlatformDirsABC
 
@@ -105,27 +105,27 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_desktop_dir(self) -> str:
         """Desktop directory tied to the user e.g. ``/storage/emulated/0/Desktop``."""
-        return "/storage/emulated/0/Desktop"
+        return f"{_shared_storage()}/Desktop"
 
     @property
     def user_projects_dir(self) -> str:
         """Projects directory tied to the user e.g. ``/storage/emulated/0/Projects``."""
-        return "/storage/emulated/0/Projects"
+        return f"{_shared_storage()}/Projects"
 
     @property
     def user_publicshare_dir(self) -> str:
         """Public share directory tied to the user e.g. ``/storage/emulated/0/Public``."""
-        return "/storage/emulated/0/Public"
+        return f"{_shared_storage()}/Public"
 
     @property
     def user_templates_dir(self) -> str:
         """Templates directory tied to the user e.g. ``/storage/emulated/0/Templates``."""
-        return "/storage/emulated/0/Templates"
+        return f"{_shared_storage()}/Templates"
 
     @property
     def user_fonts_dir(self) -> str:
         """Fonts directory tied to the user e.g. ``/storage/emulated/0/fonts``."""
-        return "/storage/emulated/0/fonts"
+        return f"{_shared_storage()}/fonts"
 
     @property
     def user_preference_dir(self) -> str:
@@ -241,6 +241,22 @@ def _android_folder() -> str | None:  # ruff:ignore[complex-structure]
     return result
 
 
+_USER_ID: Final = re.compile(
+    r"""
+    /user/         # the per-user data root, under /data or an adopted /mnt/expand volume
+    (?P<user>\d+)  # the Android user id
+    /              # followed by the package folder
+    """,
+    re.VERBOSE,
+)
+
+
+def _shared_storage() -> str:
+    # Android mounts each user's shared storage at /storage/emulated/<user id>, and an app sees only its own user's.
+    user = match["user"] if (match := _USER_ID.search(_android_folder() or "")) else "0"
+    return f"/storage/emulated/{user}"
+
+
 @lru_cache(maxsize=1)
 def _android_documents_folder() -> str:
     """:returns: documents folder for the Android OS"""
@@ -252,7 +268,7 @@ def _android_documents_folder() -> str:
         environment = autoclass("android.os.Environment")
         documents_dir: str = context.getExternalFilesDir(environment.DIRECTORY_DOCUMENTS).getAbsolutePath()
     except Exception:  # ruff:ignore[blind-except]
-        documents_dir = "/storage/emulated/0/Documents"
+        documents_dir = f"{_shared_storage()}/Documents"
 
     return documents_dir
 
@@ -268,7 +284,7 @@ def _android_downloads_folder() -> str:
         environment = autoclass("android.os.Environment")
         downloads_dir: str = context.getExternalFilesDir(environment.DIRECTORY_DOWNLOADS).getAbsolutePath()
     except Exception:  # ruff:ignore[blind-except]
-        downloads_dir = "/storage/emulated/0/Download"
+        downloads_dir = f"{_shared_storage()}/Download"
 
     return downloads_dir
 
@@ -284,7 +300,7 @@ def _android_pictures_folder() -> str:
         environment = autoclass("android.os.Environment")
         pictures_dir: str = context.getExternalFilesDir(environment.DIRECTORY_PICTURES).getAbsolutePath()
     except Exception:  # ruff:ignore[blind-except]
-        pictures_dir = "/storage/emulated/0/Pictures"
+        pictures_dir = f"{_shared_storage()}/Pictures"
 
     return pictures_dir
 
@@ -300,7 +316,7 @@ def _android_videos_folder() -> str:
         environment = autoclass("android.os.Environment")
         videos_dir: str = context.getExternalFilesDir(environment.DIRECTORY_DCIM).getAbsolutePath()
     except Exception:  # ruff:ignore[blind-except]
-        videos_dir = "/storage/emulated/0/DCIM/Camera"
+        videos_dir = f"{_shared_storage()}/DCIM/Camera"
 
     return videos_dir
 
@@ -316,7 +332,7 @@ def _android_music_folder() -> str:
         environment = autoclass("android.os.Environment")
         music_dir: str = context.getExternalFilesDir(environment.DIRECTORY_MUSIC).getAbsolutePath()
     except Exception:  # ruff:ignore[blind-except]
-        music_dir = "/storage/emulated/0/Music"
+        music_dir = f"{_shared_storage()}/Music"
 
     return music_dir
 
