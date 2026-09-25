@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import re
+import stat
 import sys
 from pathlib import Path
 from tempfile import gettempdir
@@ -184,7 +185,9 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
         If ``$XDG_RUNTIME_DIR`` is unset, tries the platform default (``/tmp/run/user/$(id -u)`` on OpenBSD,
         ``/var/run/user/$(id -u)`` on FreeBSD/NetBSD, ``/run/user/$(id -u)`` otherwise). If the default is not writable,
-        falls back to a temporary directory.
+        falls back to ``runtime-$(id -u)`` in the temporary directory, with mode ``0700`` under ``ensure_exists``.
+
+        :raises PermissionError: if another user owns the temporary fallback directory.
 
         """
         if sys.platform.startswith("openbsd"):
@@ -194,8 +197,25 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         else:
             path = f"/run/user/{getuid()}"
         if not os.access(path, os.W_OK):
-            path = f"{gettempdir()}/runtime-{getuid()}"
+            path = self._temp_runtime_dir()
         return self._append_app_name_and_version(path)
+
+    def _temp_runtime_dir(self) -> str:
+        # Another user can pre-create this predictable name, and XDG requires an owned runtime dir with mode 0700.
+        path = f"{gettempdir()}/runtime-{(uid := getuid())}"
+        if self.ensure_exists:
+            Path(path).mkdir(mode=0o700, exist_ok=True)
+        try:
+            info = Path(path).lstat()
+        except FileNotFoundError:
+            return path
+        if info.st_uid != uid:
+            msg = f"runtime directory {path} is owned by uid {info.st_uid}, not {uid}; set XDG_RUNTIME_DIR instead"
+            raise PermissionError(msg)
+        # Earlier releases created this directory with the default 0755.
+        if self.ensure_exists and stat.S_IMODE(info.st_mode) & 0o077:
+            Path(path).chmod(0o700)
+        return path
 
     @property
     def site_runtime_dir(self) -> str:

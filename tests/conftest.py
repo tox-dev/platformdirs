@@ -5,7 +5,10 @@ from typing import TYPE_CHECKING, Final, cast
 import pytest
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from _pytest.fixtures import SubRequest
+    from pytest_mock import MockerFixture
 
 PROPS = (
     "user_data_dir",
@@ -78,3 +81,11 @@ _XDG_ENV_VARS: Final[tuple[str, ...]] = (
 def _clear_xdg_env(monkeypatch: pytest.MonkeyPatch) -> None:
     for var in _XDG_ENV_VARS:
         monkeypatch.delenv(var, raising=False)
+
+
+@pytest.fixture
+def runtime_temp_dir(tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch) -> Path:
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    mocker.patch("os.access", return_value=False)
+    mocker.patch("tempfile.tempdir", str(tmp_path))
+    return tmp_path
