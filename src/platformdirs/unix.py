@@ -260,9 +260,9 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         yield self.site_log_dir
 
     def _iter_runtime_dirs(self) -> Iterator[str]:
+        yield self.user_runtime_dir
         if not self._use_site:
-            yield self.user_runtime_dir
-        yield self.site_runtime_dir
+            yield self.site_runtime_dir
 
 
 class Unix(XDGMixin, _UnixDefaults):
@@ -309,7 +309,8 @@ class Unix(XDGMixin, _UnixDefaults):
     @property
     def user_runtime_dir(self) -> str:
         """Runtime directory tied to the user, or site equivalent when root with ``use_site_for_root``."""
-        return self.site_runtime_dir if self._use_site else super().user_runtime_dir
+        # XDGMixin.site_runtime_dir reads $XDG_RUNTIME_DIR, which belongs to the user who started the root process.
+        return super(XDGMixin, self).site_runtime_dir if self._use_site else super().user_runtime_dir
 
     @property
     def user_bin_dir(self) -> str:

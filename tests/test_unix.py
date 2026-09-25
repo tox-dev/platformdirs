@@ -720,6 +720,7 @@ _SITE_REDIRECT_CASES: list[tuple[str, str]] = [
     ("user_bin_dir", "/usr/local/bin"),
     ("user_applications_dir", f"/usr/local/share{os.sep}applications"),
 ]
+_SITE_RUNTIME_DIR: typing.Final = dict(_SITE_REDIRECT_CASES)["user_runtime_dir"]
 
 
 @pytest.mark.usefixtures("_as_root", "_no_xdg_runtime_dir")
@@ -768,6 +769,7 @@ def test_use_site_for_root_disabled_as_root(prop: str, expected: str) -> None:
         ("XDG_CACHE_HOME", "user_cache_dir", os.path.join("/var/cache", "foo")),  # ruff:ignore[os-path-join]
         ("XDG_STATE_HOME", "user_state_dir", os.path.join("/var/lib", "foo")),  # ruff:ignore[os-path-join]
         ("XDG_STATE_HOME", "user_log_dir", os.path.join("/var/log", "foo")),  # ruff:ignore[os-path-join]
+        pytest.param("XDG_RUNTIME_DIR", "user_runtime_dir", _SITE_RUNTIME_DIR, id="XDG_RUNTIME_DIR-user_runtime_dir"),
     ],
 )
 def test_use_site_for_root_bypasses_xdg_user_vars(
@@ -815,6 +817,22 @@ _SINGLE_SITE_ITER_CASES = [
 def test_use_site_iter_dirs_no_duplicates_single_site_dir(func: Callable[[Unix], Iterator[str]], expected: str) -> None:
     result = func(Unix(appname="foo", use_site_for_root=True))
     assert list(result) == [expected]
+
+
+@pytest.mark.usefixtures("_as_root", "_inherited_xdg_runtime_dir")
+def test_use_site_iter_runtime_dirs_bypasses_xdg_runtime_dir() -> None:
+    assert list(Unix(appname="foo", use_site_for_root=True).iter_runtime_dirs()) == [_SITE_RUNTIME_DIR]
+
+
+@pytest.mark.usefixtures("_as_root", "_inherited_xdg_runtime_dir")
+def test_use_site_keeps_xdg_runtime_dir_for_site_runtime_dir() -> None:
+    expected: typing.Final = os.path.join("/run/user/1000", "foo")  # ruff:ignore[os-path-join]
+    assert Unix(appname="foo", use_site_for_root=True).site_runtime_dir == expected
+
+
+@pytest.fixture
+def _inherited_xdg_runtime_dir(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("XDG_RUNTIME_DIR", "/run/user/1000")
 
 
 @pytest.mark.usefixtures("_as_non_root", "_no_xdg_runtime_dir", "_writable_runtime_dir")
