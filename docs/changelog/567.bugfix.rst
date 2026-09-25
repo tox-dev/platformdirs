@@ -1,1 +1,0 @@
-Apply a changed ``use_site_for_root`` on the next read.

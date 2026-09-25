@@ -1,1 +1,0 @@
-Ignore ``$XDG_RUNTIME_DIR`` in ``user_runtime_dir`` when ``use_site_for_root`` redirects root.

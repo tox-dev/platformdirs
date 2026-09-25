@@ -1,1 +1,0 @@
-Treat empty Windows folder variables, such as ``PUBLIC`` or ``LOCALAPPDATA``, as unset.

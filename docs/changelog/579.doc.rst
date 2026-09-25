@@ -1,1 +1,0 @@
-Document that the macOS ``user_state_dir`` and ``site_state_dir`` ignore the ``XDG_DATA_*`` variables.

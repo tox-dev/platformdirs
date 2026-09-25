@@ -1,1 +1,0 @@
-Stop raising ``UnicodeDecodeError`` on ``user-dirs.dirs`` bytes the locale encoding cannot decode.

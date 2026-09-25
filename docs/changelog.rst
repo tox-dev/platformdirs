@@ -7,6 +7,33 @@
 .. towncrier release notes start
 
 **********************
+ 4.11.14 (2026-09-25)
+**********************
+
+- With ``ensure_exists``, create a media directory such as ``user_documents_dir`` only when the user set it through an
+  ``XDG_*_DIR`` variable or ``user-dirs.dirs``, and return a dangling symlink there instead of raising
+  ``FileExistsError``. 4.11.13 also created the platform defaults, which filled headless home directories with folders
+  such as ``~/Templates`` and made a literal ``~`` directory when ``HOME`` was unset. :pr:`561`
+- Ignore ``$XDG_RUNTIME_DIR`` in ``user_runtime_dir`` when ``use_site_for_root`` redirects root. :pr:`562`
+- Return ``/storage/emulated/0/Download`` from the Android :func:`~platformdirs.user_downloads_dir` fallback. :pr:`563`
+- Ignore ``WIN_PD_OVERRIDE_*`` values that lack a drive or a root. :pr:`564`
+- Find the Android app folder for package names that start with ``files``. :pr:`565`
+- Reject an ``appname``, ``appauthor`` or ``version`` that leaves the base directory when set after construction.
+  :pr:`566`
+- Apply a changed ``use_site_for_root`` on the next read. :pr:`567`
+- Stop raising ``UnicodeDecodeError`` on ``user-dirs.dirs`` bytes the locale encoding cannot decode. :pr:`568`
+- Drop a trailing ``# comment`` from unquoted ``user-dirs.dirs`` values. :pr:`569`
+- Treat empty Windows folder variables, such as ``PUBLIC`` or ``LOCALAPPDATA``, as unset. :pr:`571`
+- Accept ``roaming`` in :func:`~platformdirs.user_log_dir` and :func:`~platformdirs.user_log_path`. :pr:`572`
+- Detect Homebrew Python on macOS by its ``opt/python*/Frameworks`` layout. :pr:`573`
+- Keep colons in the Unix ``site_cache_path`` under ``multipath``. :pr:`574`
+- Return long Windows folder paths in place of 8.3 short names. :pr:`575`
+- Create the Unix ``runtime-<uid>`` temporary fallback with mode ``0700`` and reject one another user owns. :pr:`576`
+- Raise ``RuntimeError`` in place of creating a literal ``~`` directory when ``ensure_exists`` finds no home. :pr:`578`
+- Fix the Windows ``user_preference_dir`` path in the platform docs. :pr:`577`
+- Document that the macOS ``user_state_dir`` and ``site_state_dir`` ignore the ``XDG_DATA_*`` variables. :pr:`579`
+
+**********************
  4.11.13 (2026-09-25)
 **********************
 

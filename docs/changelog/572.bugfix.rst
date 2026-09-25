@@ -1,1 +1,0 @@
-Accept ``roaming`` in :func:`~platformdirs.user_log_dir` and :func:`~platformdirs.user_log_path`.

@@ -1,1 +1,0 @@
-Drop a trailing ``# comment`` from unquoted ``user-dirs.dirs`` values.

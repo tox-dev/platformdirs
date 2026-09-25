@@ -1,1 +1,0 @@
-Keep colons in the Unix ``site_cache_path`` under ``multipath``.
