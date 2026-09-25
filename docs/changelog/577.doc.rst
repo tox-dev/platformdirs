@@ -1,0 +1,1 @@
+Fix the Windows ``user_preference_dir`` path in the platform docs.

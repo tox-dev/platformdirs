@@ -560,7 +560,7 @@ On all other platforms, this aliases ``user_config_dir``.
     .. tab-item:: Windows
        :sync: windows
 
-       Same as ``user_config_dir`` (``%APPDATA%\AppName``)
+       Same as ``user_config_dir`` (``%LOCALAPPDATA%\Acme\SuperApp``)
 
     .. tab-item:: Android
        :sync: android
