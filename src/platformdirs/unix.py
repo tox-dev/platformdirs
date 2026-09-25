@@ -353,7 +353,15 @@ class Unix(XDGMixin, _UnixDefaults):
 
 
 _USER_DIRS_LINE: Final = re.compile(
-    r'[ \t]*(?P<key>\w+)[ \t]*=[ \t]*(?:"(?P<quoted>(?:[^"\\]|\\.)*)"|(?P<bare>[^"\s].*?)[ \t]*$)'
+    r"""
+    [ \t]*(?P<key>\w+)[ \t]*=[ \t]*  # KEY=, blanks allowed around the key and after the =
+    (?:
+        "(?P<quoted>(?:[^"\\]|\\.)*)"  # a double-quoted value with backslash escapes, text after it ignored
+        |(?P<bare>[^"\s].*?)          # or an unquoted value, up to
+        (?:[ \t]+\#.*|[ \t]*)$         # a comment, which sh starts at a word-initial #, or the line end
+    )
+    """,
+    re.VERBOSE,
 )
 
 
