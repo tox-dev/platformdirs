@@ -11,6 +11,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+import platformdirs
 from platformdirs import windows
 from platformdirs.windows import (
     _KF_FLAG_DONT_VERIFY,
@@ -134,6 +135,13 @@ def test_non_roaming_uses_local_appdata(mocker: MockerFixture) -> None:
     mock = mocker.patch("platformdirs.windows.get_win_folder", side_effect=lambda csidl: _WIN_FOLDERS[csidl])
     _result = Windows(appname="foo", roaming=False).user_data_dir
     mock.assert_called_with("CSIDL_LOCAL_APPDATA")
+
+
+@pytest.mark.parametrize("suffix", [pytest.param("dir", id="dir"), pytest.param("path", id="path")])
+def test_user_log_function_forwards_roaming(mocker: MockerFixture, suffix: str) -> None:
+    mocker.patch("platformdirs.PlatformDirs", Windows)
+    result = getattr(platformdirs, f"user_log_{suffix}")("foo", roaming=True)
+    assert Path(result) == Path(os.path.normpath(_WIN_FOLDERS["CSIDL_APPDATA"]), "foo", "foo", "Logs")
 
 
 def test_appauthor_false_skips_author() -> None:
