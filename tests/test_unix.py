@@ -930,6 +930,18 @@ def test_user_dirs_read_like_xdg_user_dir(content: str, expected: str, tmp_path:
     assert Unix().user_documents_dir == expected.replace("~", str(tmp_path), 1)
 
 
+@pytest.mark.parametrize(
+    ("content", "expected"),
+    [
+        pytest.param(b'XDG_MUSIC_DIR="$HOME/M\xfasica"\nXDG_DOCUMENTS_DIR="$HOME/Docs"\n', "~/Docs", id="other-entry"),
+        pytest.param(b'XDG_DOCUMENTS_DIR="$HOME/Dok\xfament"\n', "~/Dok\udcfament", id="requested-entry"),
+    ],
+)
+def test_user_dirs_undecodable_bytes(content: bytes, expected: str, tmp_path: Path, user_dirs_file: Path) -> None:
+    user_dirs_file.write_bytes(content)
+    assert Unix().user_documents_dir == expected.replace("~", str(tmp_path), 1)
+
+
 @pytest.fixture
 def user_dirs_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
