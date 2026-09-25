@@ -5,8 +5,9 @@ from __future__ import annotations
 import os
 import re
 import sys
-from functools import lru_cache
-from typing import TYPE_CHECKING, Final, cast
+from contextlib import suppress
+from functools import cache, lru_cache
+from typing import Final
 
 from .api import PlatformDirsABC
 
@@ -80,27 +81,27 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_documents_dir(self) -> str:
         """Documents directory tied to the user e.g. ``/storage/emulated/0/Documents``."""
-        return _android_documents_folder()
+        return _android_public_folder("Documents")
 
     @property
     def user_downloads_dir(self) -> str:
         """Downloads directory tied to the user e.g. ``/storage/emulated/0/Download``."""
-        return _android_downloads_folder()
+        return _android_public_folder("Download")
 
     @property
     def user_pictures_dir(self) -> str:
         """Pictures directory tied to the user e.g. ``/storage/emulated/0/Pictures``."""
-        return _android_pictures_folder()
+        return _android_public_folder("Pictures")
 
     @property
     def user_videos_dir(self) -> str:
         """Videos directory tied to the user e.g. ``/storage/emulated/0/Movies``."""
-        return _android_videos_folder()
+        return _android_public_folder("Movies")
 
     @property
     def user_music_dir(self) -> str:
         """Music directory tied to the user e.g. ``/storage/emulated/0/Music``."""
-        return _android_music_folder()
+        return _android_public_folder("Music")
 
     # Android lets apps create top-level shared folders only from its standard list, so these live in Documents.
     @property
@@ -176,30 +177,9 @@ def _require_android_folder() -> str:
 
 
 @lru_cache(maxsize=1)
-def _android_folder() -> str | None:  # ruff:ignore[complex-structure]
+def _android_folder() -> str | None:
     """:returns: base folder for the Android OS or None if it cannot be found"""
-    result: str | None = None
-    # type checker isn't happy with our "import android", just don't do this when type checking see
-    # https://stackoverflow.com/a/61394121
-    if not TYPE_CHECKING:
-        try:
-            # First try to get a path to android app using python4android (if available)...
-            from android import mActivity  # ruff:ignore[import-outside-top-level]
-
-            context = cast("android.content.Context", mActivity.getApplicationContext())  # ruff:ignore[undefined-name]
-            result = context.getFilesDir().getParentFile().getAbsolutePath()
-        except Exception:  # ruff:ignore[blind-except]
-            result = None
-    if result is None:
-        try:
-            # ...and fall back to using plain pyjnius, if python4android isn't available or doesn't deliver any useful
-            # result...
-            from jnius import autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[unresolved-import]
-
-            context = autoclass("android.content.Context")
-            result = context.getFilesDir().getParentFile().getAbsolutePath()
-        except Exception:  # ruff:ignore[blind-except]
-            result = None
+    result = _python_for_android_folder()
     if result is None:
         # and if that fails, too, find an android folder looking at path on the sys.path
         # warning: only works for apps installed under /data, not adopted storage etc.
@@ -258,84 +238,27 @@ def _shared_storage() -> str:
     return f"/storage/emulated/{user}"
 
 
-@lru_cache(maxsize=1)
-def _android_documents_folder() -> str:
-    """:returns: documents folder for the Android OS"""
-    # Get directories with pyjnius
-    try:
-        from jnius import autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[unresolved-import]
+def _python_for_android_folder() -> str | None:
+    with suppress(ImportError):
+        from jnius import JavaException, autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[unresolved-import]
 
-        context = autoclass("android.content.Context")
-        environment = autoclass("android.os.Environment")
-        documents_dir: str = context.getExternalFilesDir(environment.DIRECTORY_DOCUMENTS).getAbsolutePath()
-    except Exception:  # ruff:ignore[blind-except]
-        documents_dir = f"{_shared_storage()}/Documents"
-
-    return documents_dir
+        with suppress(JavaException):
+            # A python-for-android service runs in its own process, where the activity is null.
+            if (context := autoclass("org.kivy.android.PythonActivity").mActivity) is None:
+                context = autoclass("org.kivy.android.PythonService").mService
+            if context is not None:
+                return context.getFilesDir().getParentFile().getAbsolutePath()
+    return None
 
 
-@lru_cache(maxsize=1)
-def _android_downloads_folder() -> str:
-    """:returns: downloads folder for the Android OS"""
-    # Get directories with pyjnius
-    try:
-        from jnius import autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[unresolved-import]
+@cache
+def _android_public_folder(name: str) -> str:
+    with suppress(ImportError):
+        from jnius import JavaException, autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[unresolved-import]
 
-        context = autoclass("android.content.Context")
-        environment = autoclass("android.os.Environment")
-        downloads_dir: str = context.getExternalFilesDir(environment.DIRECTORY_DOWNLOADS).getAbsolutePath()
-    except Exception:  # ruff:ignore[blind-except]
-        downloads_dir = f"{_shared_storage()}/Download"
-
-    return downloads_dir
-
-
-@lru_cache(maxsize=1)
-def _android_pictures_folder() -> str:
-    """:returns: pictures folder for the Android OS"""
-    # Get directories with pyjnius
-    try:
-        from jnius import autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[unresolved-import]
-
-        context = autoclass("android.content.Context")
-        environment = autoclass("android.os.Environment")
-        pictures_dir: str = context.getExternalFilesDir(environment.DIRECTORY_PICTURES).getAbsolutePath()
-    except Exception:  # ruff:ignore[blind-except]
-        pictures_dir = f"{_shared_storage()}/Pictures"
-
-    return pictures_dir
-
-
-@lru_cache(maxsize=1)
-def _android_videos_folder() -> str:
-    """:returns: videos folder for the Android OS"""
-    # Get directories with pyjnius
-    try:
-        from jnius import autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[unresolved-import]
-
-        context = autoclass("android.content.Context")
-        environment = autoclass("android.os.Environment")
-        videos_dir: str = context.getExternalFilesDir(environment.DIRECTORY_DCIM).getAbsolutePath()
-    except Exception:  # ruff:ignore[blind-except]
-        videos_dir = f"{_shared_storage()}/Movies"
-
-    return videos_dir
-
-
-@lru_cache(maxsize=1)
-def _android_music_folder() -> str:
-    """:returns: music folder for the Android OS"""
-    # Get directories with pyjnius
-    try:
-        from jnius import autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[unresolved-import]
-
-        context = autoclass("android.content.Context")
-        environment = autoclass("android.os.Environment")
-        music_dir: str = context.getExternalFilesDir(environment.DIRECTORY_MUSIC).getAbsolutePath()
-    except Exception:  # ruff:ignore[blind-except]
-        music_dir = f"{_shared_storage()}/Music"
-
-    return music_dir
+        with suppress(JavaException):
+            return autoclass("android.os.Environment").getExternalStoragePublicDirectory(name).getAbsolutePath()
+    return f"{_shared_storage()}/{name}"
 
 
 __all__ = [
