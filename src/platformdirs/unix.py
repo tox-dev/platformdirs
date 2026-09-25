@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 import re
 import sys
-from functools import cached_property
 from pathlib import Path
 from tempfile import gettempdir
 from typing import TYPE_CHECKING, Final, NoReturn
@@ -33,7 +32,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     """
 
-    @cached_property
+    @property
     def _use_site(self) -> bool:
         return self.use_site_for_root and getuid() == 0
 

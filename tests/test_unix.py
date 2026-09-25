@@ -751,6 +751,24 @@ def test_use_site_for_root_reaches_the_module_function(
     assert Path(function(**{k: v for k, v in options.items() if k in accepted})) == Path(expected)
 
 
+@pytest.mark.usefixtures("_as_root")
+@pytest.mark.parametrize(
+    ("use_site_for_root", "base"),
+    [
+        pytest.param(True, "/usr/local/share", id="enable"),
+        pytest.param(False, "/home/alice/.local/share", id="disable"),
+    ],
+)
+def test_use_site_for_root_follows_attribute_change(
+    monkeypatch: pytest.MonkeyPatch, use_site_for_root: bool, base: str
+) -> None:
+    monkeypatch.setenv("XDG_DATA_HOME", "/home/alice/.local/share")
+    dirs: typing.Final = Unix(appname="foo", use_site_for_root=not use_site_for_root)
+    dirs.user_data_dir  # ruff:ignore[useless-expression]
+    dirs.use_site_for_root = use_site_for_root
+    assert dirs.user_data_dir == os.path.join(base, "foo")  # ruff:ignore[os-path-join]
+
+
 @pytest.mark.usefixtures("_as_root", "_no_xdg_runtime_dir", "_writable_runtime_dir")
 @pytest.mark.parametrize(("prop", "expected"), _SITE_REDIRECT_CASES)
 def test_use_site_for_root_disabled_as_root(prop: str, expected: str) -> None:
