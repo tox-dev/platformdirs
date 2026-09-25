@@ -76,12 +76,6 @@ class XDGMixin(PlatformDirsABC):
             return self._append_app_name_and_version(path)
         return super().site_runtime_dir
 
-    def _xdg_media_dir(self, env_var: str) -> str | None:
-        if path := _xdg_dir(env_var):
-            self._optionally_create_directory(path)
-            return path
-        return None
-
     @property
     def user_documents_dir(self) -> str:
         """Documents directory tied to the user, from ``$XDG_DOCUMENTS_DIR`` if set, else platform default."""
@@ -126,6 +120,11 @@ class XDGMixin(PlatformDirsABC):
     def user_templates_dir(self) -> str:
         """Templates directory tied to the user, from ``$XDG_TEMPLATES_DIR`` if set, else platform default."""
         return self._xdg_media_dir("XDG_TEMPLATES_DIR") or super().user_templates_dir
+
+    def _xdg_media_dir(self, env_var: str) -> str | None:
+        if path := _xdg_dir(env_var):
+            self._optionally_create_directory(path)
+        return path
 
     @property
     def user_fonts_dir(self) -> str:

@@ -93,11 +93,6 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         """
         return self._append_app_name_and_version("/var/log")
 
-    def _user_media_dir(self, env_var: str, fallback_tilde_path: str) -> str:
-        path = _get_user_media_dir(env_var, fallback_tilde_path)
-        self._optionally_create_directory(path)
-        return path
-
     @property
     def user_documents_dir(self) -> str:
         """Documents directory tied to the user, e.g. ``~/Documents``."""
@@ -142,6 +137,11 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     def user_templates_dir(self) -> str:
         """Templates directory tied to the user, e.g. ``~/Templates``."""
         return self._user_media_dir("XDG_TEMPLATES_DIR", "~/Templates")
+
+    def _user_media_dir(self, env_var: str, fallback_tilde_path: str) -> str:
+        path = _get_user_media_dir(env_var, fallback_tilde_path)
+        self._optionally_create_directory(path)
+        return path
 
     @property
     def user_fonts_dir(self) -> str:
