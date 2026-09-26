@@ -1,0 +1,1 @@
+Read ``user_templates_dir``, ``user_publicshare_dir`` and ``user_bin_dir`` on Windows from their known folders.

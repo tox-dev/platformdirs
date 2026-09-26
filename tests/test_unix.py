@@ -730,9 +730,7 @@ def test_site_applications_path_multipath_returns_first_path(monkeypatch: pytest
     assert Unix(multipath=True).site_applications_path == Path("/custom/first/applications")
 
 
-def test_user_media_dir_from_user_dirs_file(
-    mocker: MockerFixture, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_user_media_dir_from_user_dirs_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
     config_dir = tmp_path / ".config"
     config_dir.mkdir()
@@ -740,13 +738,11 @@ def test_user_media_dir_from_user_dirs_file(
     user_dirs_file.write_text('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n')
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    mocker.patch.dict(os.environ, {"XDG_CONFIG_HOME": ""})
+    monkeypatch.setenv("XDG_CONFIG_HOME", "")
     assert Unix().user_documents_dir == f"{tmp_path}/MyDocs"
 
 
-def test_user_media_dir_missing_key_in_user_dirs_file(
-    mocker: MockerFixture, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_user_media_dir_missing_key_in_user_dirs_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
     config_dir = tmp_path / ".config"
     config_dir.mkdir()
@@ -754,7 +750,7 @@ def test_user_media_dir_missing_key_in_user_dirs_file(
     user_dirs_file.write_text('XDG_DESKTOP_DIR="$HOME/Desktop"\n')
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    mocker.patch.dict(os.environ, {"XDG_CONFIG_HOME": ""})
+    monkeypatch.setenv("XDG_CONFIG_HOME", "")
     assert Unix().user_documents_dir == f"{tmp_path}/Documents"
 
 
