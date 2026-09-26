@@ -175,7 +175,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def site_applications_dir(self) -> str:
-        """Applications directory shared by users, e.g. ``/usr/share/applications``."""
+        """Applications directory shared by users, e.g. ``/usr/local/share/applications``."""
         dirs = self._site_applications_dirs
         return os.pathsep.join(dirs) if self.multipath else dirs[0]
 

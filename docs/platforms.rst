@@ -748,7 +748,7 @@ See also: :ref:`api:Shared applications directory`
     .. tab-item:: Linux
        :sync: linux
 
-       ``/usr/share/applications``
+       ``/usr/local/share/applications``
 
     .. tab-item:: macOS
        :sync: macos

@@ -1,0 +1,1 @@
+Document ``/usr/local/share/applications`` as the Linux ``site_applications_dir`` default.
