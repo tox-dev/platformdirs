@@ -1101,3 +1101,90 @@ def user_dirs_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
     (config := tmp_path / ".config").mkdir()
     return config / "user-dirs.dirs"
+
+
+_APP_COMPONENTS: typing.Final = ["home", "home/base", "home/base/app", "home/base/app/1.0"]
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
+@pytest.mark.usefixtures("_umask")
+@pytest.mark.parametrize(
+    ("prop", "env_var"),
+    [
+        pytest.param("user_data_dir", "XDG_DATA_HOME", id="data"),
+        pytest.param("user_config_dir", "XDG_CONFIG_HOME", id="config"),
+        pytest.param("user_cache_dir", "XDG_CACHE_HOME", id="cache"),
+        pytest.param("user_state_dir", "XDG_STATE_HOME", id="state"),
+        pytest.param("user_runtime_dir", "XDG_RUNTIME_DIR", id="runtime"),
+        pytest.param("user_preference_dir", "XDG_CONFIG_HOME", id="preference"),
+    ],
+)
+def test_unix_user_dir_creates_missing_components_private(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, modes: Callable[[Path], dict[str, int]], prop: str, env_var: str
+) -> None:
+    monkeypatch.setenv(env_var, str(tmp_path / "home" / "base"))
+    getattr(Unix(appname="app", version="1.0", ensure_exists=True), prop)
+    assert modes(tmp_path) == dict.fromkeys(_APP_COMPONENTS, 0o700)
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
+@pytest.mark.usefixtures("_umask")
+def test_unix_user_log_dir_creates_missing_components_private(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, modes: Callable[[Path], dict[str, int]]
+) -> None:
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "home" / "base"))
+    _ = Unix(appname="app", version="1.0", ensure_exists=True).user_log_dir
+    assert modes(tmp_path) == dict.fromkeys([*_APP_COMPONENTS, "home/base/app/1.0/log"], 0o700)
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
+@pytest.mark.usefixtures("_clear_xdg_env", "_umask")
+def test_unix_default_config_dir_creates_dot_config_private(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, modes: Callable[[Path], dict[str, int]]
+) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path))
+    _ = Unix(appname="app", ensure_exists=True).user_config_dir
+    assert modes(tmp_path) == {".config": 0o700, ".config/app": 0o700}
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
+@pytest.mark.usefixtures("_umask")
+@pytest.mark.parametrize(
+    ("prop", "env_var"),
+    [
+        pytest.param("site_data_dir", "XDG_DATA_DIRS", id="site-data"),
+        pytest.param("site_config_dir", "XDG_CONFIG_DIRS", id="site-config"),
+        pytest.param("site_runtime_dir", "XDG_RUNTIME_DIR", id="site-runtime"),
+        pytest.param("user_documents_dir", "XDG_DOCUMENTS_DIR", id="media"),
+    ],
+)
+def test_unix_shared_dir_keeps_default_mode(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, modes: Callable[[Path], dict[str, int]], prop: str, env_var: str
+) -> None:
+    monkeypatch.setenv(env_var, str(tmp_path / "shared"))
+    getattr(Unix(ensure_exists=True), prop)
+    assert modes(tmp_path) == {"shared": 0o755}
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
+@pytest.mark.usefixtures("_umask")
+@pytest.mark.parametrize(
+    ("existing", "expected"),
+    [
+        pytest.param(["base"], {"base": 0o751, "base/app": 0o700}, id="existing-base"),
+        pytest.param(["base", "base/app"], {"base": 0o751, "base/app": 0o751}, id="existing-app-dir"),
+    ],
+)
+def test_unix_user_dir_leaves_existing_mode(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    modes: Callable[[Path], dict[str, int]],
+    existing: list[str],
+    expected: dict[str, int],
+) -> None:
+    for name in existing:
+        (path := tmp_path / name).mkdir()
+        path.chmod(0o751)
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "base"))
+    _ = Unix(appname="app", ensure_exists=True).user_data_dir
+    assert modes(tmp_path) == expected

@@ -27,7 +27,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_data_dir(self) -> str:
         """Data directory tied to the user, e.g. ``/data/user/<userid>/<packagename>/files/<AppName>``."""
-        return self._append_app_name_and_version(_require_android_folder(), "files")
+        return self._append_app_name_and_version(_require_android_folder(), "files", private=True)
 
     @property
     def site_data_dir(self) -> str:
@@ -37,7 +37,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_config_dir(self) -> str:
         """Config directory tied to the user, e.g. ``/data/user/<userid>/<packagename>/shared_prefs/<AppName>``."""
-        return self._append_app_name_and_version(_require_android_folder(), "shared_prefs")
+        return self._append_app_name_and_version(_require_android_folder(), "shared_prefs", private=True)
 
     @property
     def site_config_dir(self) -> str:
@@ -47,7 +47,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_cache_dir(self) -> str:
         """Cache directory tied to the user, e.g.,``/data/user/<userid>/<packagename>/cache/<AppName>``."""
-        return self._append_app_name_and_version(_require_android_folder(), "cache")
+        return self._append_app_name_and_version(_require_android_folder(), "cache", private=True)
 
     @property
     def site_cache_dir(self) -> str:
@@ -70,7 +70,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         path = self.user_cache_dir
         if self.opinion:
             path = os.path.join(path, "log")  # ruff:ignore[os-path-join]
-            self._optionally_create_directory(path)
+            self._optionally_create_directory(path, private=True)
         return path
 
     @property
@@ -160,7 +160,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         path = self.user_cache_dir
         if self.opinion:
             path = os.path.join(path, "tmp")  # ruff:ignore[os-path-join]
-            self._optionally_create_directory(path)
+            self._optionally_create_directory(path, private=True)
         return path
 
     @property

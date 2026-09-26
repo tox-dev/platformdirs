@@ -47,7 +47,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
             if self.version:
                 params.append(self.version)
         path = os.path.join(path, *params)  # ruff:ignore[os-path-join]
-        self._optionally_create_directory(path)
+        self._optionally_create_directory(path, private=False)
         return path
 
     @property
@@ -94,7 +94,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         path = self.user_data_dir
         if self.opinion:
             path = os.path.join(path, "Logs")  # ruff:ignore[os-path-join]
-            self._optionally_create_directory(path)
+            self._optionally_create_directory(path, private=False)
         return path
 
     @property
@@ -103,7 +103,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         path = self.site_data_dir
         if self.opinion:
             path = os.path.join(path, "Logs")  # ruff:ignore[os-path-join]
-            self._optionally_create_directory(path)
+            self._optionally_create_directory(path, private=False)
         return path
 
     @property

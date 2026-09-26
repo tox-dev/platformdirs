@@ -16,7 +16,7 @@ class XDGMixin(PlatformDirsABC):
     def user_data_dir(self) -> str:
         """Data directory tied to the user, from ``$XDG_DATA_HOME`` if set, else platform default."""
         if path := _xdg_dir("XDG_DATA_HOME"):
-            return self._append_app_name_and_version(path)
+            return self._append_app_name_and_version(path, private=True)
         return super().user_data_dir
 
     @property
@@ -34,7 +34,7 @@ class XDGMixin(PlatformDirsABC):
     def user_config_dir(self) -> str:
         """Config directory tied to the user, from ``$XDG_CONFIG_HOME`` if set, else platform default."""
         if path := _xdg_dir("XDG_CONFIG_HOME"):
-            return self._append_app_name_and_version(path)
+            return self._append_app_name_and_version(path, private=True)
         return super().user_config_dir
 
     @property
@@ -52,28 +52,28 @@ class XDGMixin(PlatformDirsABC):
     def user_cache_dir(self) -> str:
         """Cache directory tied to the user, from ``$XDG_CACHE_HOME`` if set, else platform default."""
         if path := _xdg_dir("XDG_CACHE_HOME"):
-            return self._append_app_name_and_version(path)
+            return self._append_app_name_and_version(path, private=True)
         return super().user_cache_dir
 
     @property
     def user_state_dir(self) -> str:
         """State directory tied to the user, from ``$XDG_STATE_HOME`` if set, else platform default."""
         if path := _xdg_dir("XDG_STATE_HOME"):
-            return self._append_app_name_and_version(path)
+            return self._append_app_name_and_version(path, private=True)
         return super().user_state_dir
 
     @property
     def user_runtime_dir(self) -> str:
         """Runtime directory tied to the user, from ``$XDG_RUNTIME_DIR`` if set, else platform default."""
         if path := _xdg_dir("XDG_RUNTIME_DIR"):
-            return self._append_app_name_and_version(path)
+            return self._append_app_name_and_version(path, private=True)
         return super().user_runtime_dir
 
     @property
     def site_runtime_dir(self) -> str:
         """Runtime directory shared by users, from ``$XDG_RUNTIME_DIR`` if set, else platform default."""
         if path := _xdg_dir("XDG_RUNTIME_DIR"):
-            return self._append_app_name_and_version(path)
+            return self._append_app_name_and_version(path, private=False)
         return super().site_runtime_dir
 
     @property

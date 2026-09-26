@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
@@ -11,6 +12,8 @@ from platformdirs.android import Android
 from platformdirs.testing import isolated_dirs
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from pytest_mock import MockerFixture
 
 
@@ -106,6 +109,19 @@ def test_isolated_dirs_layout(tmp_path: Path, kind: str, expected: str) -> None:
 def test_isolated_dirs_ensure_exists_creates_under_root(tmp_path: Path) -> None:
     with isolated_dirs(tmp_path):
         assert platformdirs.PlatformDirs("app", ensure_exists=True).user_cache_path.is_dir()
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
+@pytest.mark.usefixtures("_umask")
+@pytest.mark.parametrize(
+    ("kind", "mode"), [pytest.param("user_cache", 0o700, id="user"), pytest.param("site_cache", 0o755, id="site")]
+)
+def test_isolated_dirs_ensure_exists_mode(
+    tmp_path: Path, modes: Callable[[Path], dict[str, int]], kind: str, mode: int
+) -> None:
+    with isolated_dirs(tmp_path):
+        getattr(platformdirs.PlatformDirs("app", ensure_exists=True), f"{kind}_dir")
+    assert modes(tmp_path) == {kind: mode, f"{kind}/app": mode}
 
 
 def test_isolated_dirs_restores_on_exit(tmp_path: Path) -> None:

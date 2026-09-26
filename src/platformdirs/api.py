@@ -131,9 +131,9 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         _ensure_inside_base("version", value)
         self._version = value
 
-    def _append_app_name_and_version(self, *base: str) -> str:
+    def _append_app_name_and_version(self, *base: str, private: bool) -> str:
         path = self._join_app_name_and_version(*base)
-        self._optionally_create_directory(path)
+        self._optionally_create_directory(path, private=private)
         return path
 
     def _join_app_name_and_version(self, *base: str) -> str:
@@ -144,34 +144,37 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
                 params.append(self.version)
         return os.path.join(base[0], *params)  # ruff:ignore[os-path-join]
 
-    def _optionally_create_directory(self, path: str) -> None:
+    def _optionally_create_directory(self, path: str, *, private: bool) -> None:
         if not self.ensure_exists:
             return
         _ensure_home_known(path)
-        Path(path).mkdir(parents=True, exist_ok=True)
+        if private:
+            _make_private_directories(Path(path))
+        else:
+            Path(path).mkdir(parents=True, exist_ok=True)
 
     def _optionally_create_media_directory(self, path: str) -> None:
         # Only called for a media directory the user configured. Media directories are often symlinks to removable or
         # network storage, so a dangling link is returned as-is, like before ensure_exists covered them.
         with suppress(FileExistsError):
-            self._optionally_create_directory(path)
+            self._optionally_create_directory(path, private=False)
 
     def _select_site_dirs(self, dirs: list[str]) -> str:
         # Site lists are built without touching the disk, so ensure_exists only creates what the caller gets back.
         selected = dirs if self.multipath else dirs[:1]
         for path in selected:
-            self._optionally_create_directory(path)
+            self._optionally_create_directory(path, private=False)
         return os.pathsep.join(selected)
 
     def _create_as_yielded(self, dirs: Iterable[str]) -> Iterator[str]:
         for path in dirs:
-            self._optionally_create_directory(path)
+            self._optionally_create_directory(path, private=False)
             yield path
 
     def _first_site_dir_as_path(self, dirs: list[str]) -> Path:
         # A *_path property always returns the first entry, regardless of multipath, so only that entry is created.
         path = dirs[0]
-        self._optionally_create_directory(path)
+        self._optionally_create_directory(path, private=False)
         return Path(path)
 
     def _first_item_as_path_if_multipath(self, directory: str) -> Path:
@@ -692,7 +695,8 @@ def _unique(dirs: Iterable[str]) -> Iterator[str]:
 
 def _make_private_directories(path: Path) -> None:
     # XDG asks for 0o700 on each directory created on the way, while Path.mkdir(parents=True) applies it to the last.
-    if path.exists():
-        return
-    _make_private_directories(path.parent)
-    path.mkdir(mode=0o700, exist_ok=True)
+    try:
+        path.mkdir(mode=0o700, exist_ok=True)
+    except FileNotFoundError:
+        _make_private_directories(path.parent)
+        path.mkdir(mode=0o700, exist_ok=True)

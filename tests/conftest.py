@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import os
+import stat
 from typing import TYPE_CHECKING, Final, cast
 
 import pytest
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Iterator
     from pathlib import Path
 
     from _pytest.fixtures import SubRequest
@@ -89,3 +92,18 @@ def runtime_temp_dir(tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.
     mocker.patch("os.access", return_value=False)
     mocker.patch("tempfile.tempdir", str(tmp_path))
     return tmp_path
+
+
+@pytest.fixture
+def _umask() -> Iterator[None]:
+    previous = os.umask(0o022)
+    yield
+    os.umask(previous)
+
+
+@pytest.fixture
+def modes() -> Callable[[Path], dict[str, int]]:
+    def collect(root: Path) -> dict[str, int]:
+        return {path.relative_to(root).as_posix(): stat.S_IMODE(path.stat().st_mode) for path in root.rglob("*")}
+
+    return collect

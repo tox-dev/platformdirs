@@ -12,6 +12,8 @@ from platformdirs import android
 from platformdirs.android import Android
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from pytest_mock import MockerFixture
 
 
@@ -320,3 +322,14 @@ def test_android_applications_dir_function_takes_app_arguments(mocker: MockerFix
 def test_android_applications_path_function_takes_app_arguments(mocker: MockerFixture, func: str) -> None:
     mocker.patch("platformdirs.PlatformDirs", Android)
     assert getattr(platformdirs, func)(appname="foo", version="1.0") == Path(_SCOPED_APPLICATIONS_DIR)
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
+@pytest.mark.usefixtures("_umask")
+@pytest.mark.parametrize("prop", ["user_log_dir", "user_runtime_dir"])
+def test_android_opinion_subdir_created_private(
+    mocker: MockerFixture, tmp_path: Path, modes: Callable[[Path], dict[str, int]], prop: str
+) -> None:
+    mocker.patch("platformdirs.android._android_folder", return_value=str(tmp_path), autospec=True)
+    subdir = Path(getattr(Android(appname="app", ensure_exists=True), prop)).name
+    assert modes(tmp_path) == {"cache": 0o700, "cache/app": 0o700, f"cache/app/{subdir}": 0o700}

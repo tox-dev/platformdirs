@@ -14,6 +14,7 @@ import pytest
 
 import platformdirs
 from platformdirs.android import Android
+from platformdirs.macos import MacOS
 from platformdirs.unix import Unix
 from platformdirs.windows import Windows
 
@@ -503,3 +504,24 @@ def test_find_rejects_name_escaping_the_directory(dirs: Unix, name: str | Path, 
         ValueError, match=rf"^name must stay inside the base directory, got {re.escape(repr(os.fspath(name)))}$"
     ):
         getattr(dirs, f"find_config_{suffix}")(name)
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("_clear_xdg_env", "_umask")
+@pytest.mark.parametrize(
+    ("dirs_class", "prop", "created"),
+    [
+        pytest.param(Unix, "site_cache_dir", "/var/cache/app", id="unix-cache"),
+        pytest.param(Unix, "site_state_dir", "/var/lib/app", id="unix-state"),
+        pytest.param(Unix, "site_log_dir", "/var/log/app", id="unix-log"),
+        pytest.param(Unix, "site_runtime_dir", "/run/app", id="unix-runtime"),
+        pytest.param(MacOS, "site_log_dir", "/Library/Logs/app", id="macos-log"),
+    ],
+)
+def test_system_site_dir_keeps_default_mode(
+    mocker: MockerFixture, dirs_class: type[Unix | MacOS], prop: str, created: str
+) -> None:
+    mocker.patch("sys.platform", "linux")
+    mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
+    getattr(dirs_class(appname="app", ensure_exists=True), prop)
+    assert mkdir.call_args_list == [mocker.call(Path(created), parents=True, exist_ok=True)]
