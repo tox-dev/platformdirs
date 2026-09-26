@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import os
 import posixpath
+import sys
+from contextlib import suppress
 from typing import Final
 
 from .api import PlatformDirsABC
@@ -164,7 +166,35 @@ def _xdg_dir_list(env_var: str) -> list[str]:
     ]
 
 
+def _expand_user(path: str) -> str:
+    """Expand the leading ``~`` of ``path`` like :func:`os.path.expanduser`, treating an empty ``HOME`` as unset.
+
+    :raises RuntimeError: if neither ``HOME`` nor the password database gives a home directory.
+
+    """
+    if "HOME" in os.environ and not os.environ["HOME"]:
+        # expanduser roots the path at / for an empty HOME; Rust's std::env::home_dir treats it as unset too
+        expanded = path if (home := _passwd_home()) is None else (home.rstrip("/") + path[1:] or "/")
+    else:
+        expanded = os.path.expanduser(path)  # ruff:ignore[os-path-expanduser]  # str(Path) rewrites separators on Windows
+    if expanded.startswith("~"):
+        msg = f"could not determine the home directory for {path!r}, set HOME or an absolute XDG variable"
+        raise RuntimeError(msg)
+    return expanded
+
+
+def _passwd_home() -> str | None:
+    if sys.platform == "win32":  # pragma: win32 cover  # narrows pwd and os.getuid for ty
+        return None
+    with suppress(ImportError, KeyError):
+        import pwd  # ruff:ignore[import-outside-top-level]  # missing on WASI
+
+        return pwd.getpwuid(os.getuid()).pw_dir
+    return None
+
+
 __all__ = [
     "XDGMixin",
+    "_expand_user",
     "_xdg_dir",
 ]

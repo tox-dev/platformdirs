@@ -566,6 +566,12 @@ def test_macos_iter_runtime_dirs_no_duplicate(home: str) -> None:
     assert list(MacOS(appname="foo").iter_runtime_dirs()) == [expected]
 
 
+@pytest.mark.usefixtures("_clear_xdg_env", "_unknown_home")
+def test_without_home_macos_runtime_dir_raises() -> None:
+    with pytest.raises(RuntimeError, match=r"^could not determine the home directory for '~/Library/Caches/"):
+        _ = MacOS(appname="app").user_runtime_dir
+
+
 @pytest.mark.usefixtures("_clear_xdg_env")
 @pytest.mark.parametrize(
     "homebrew_prefix",

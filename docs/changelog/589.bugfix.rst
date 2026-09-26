@@ -1,0 +1,2 @@
+Raise ``RuntimeError`` for a Unix or macOS directory under the home when no home resolves, and read the password
+database for an empty ``HOME``.
