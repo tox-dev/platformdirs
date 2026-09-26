@@ -170,6 +170,30 @@ user-specific overrides:
 The same pattern works with :meth:`~platformdirs.api.PlatformDirsABC.iter_data_paths` for data files and
 :meth:`~platformdirs.api.PlatformDirsABC.iter_config_dirs` for string paths.
 
+Finding a file in user or site directories
+==========================================
+
+Use :meth:`~platformdirs.api.PlatformDirsABC.find_config_file` to load the copy of a file that wins under the `XDG Base
+Directory <https://specifications.freedesktop.org/basedir/latest/#variables>`_ precedence rule, user directory before
+site directories, and :meth:`~platformdirs.api.PlatformDirsABC.find_config_files` to get every copy in that order:
+
+.. code-block:: python
+
+    from platformdirs import PlatformDirs
+
+    dirs = PlatformDirs("MyApp", "Acme")
+    if (config_file := dirs.find_config_file("config.toml")) is not None:
+        print(config_file.read_text())
+
+    for plugin_file in dirs.find_config_files("plugins/enabled.toml"):
+        print(plugin_file)
+
+Both search the directories of :meth:`~platformdirs.api.PlatformDirsABC.iter_config_paths` and match regular files only,
+so a directory named ``config.toml`` is skipped. They never create a directory, even with ``ensure_exists=True``. The
+name may contain subdirectories; an absolute path, a drive or a ``..`` component raises :class:`ValueError`. The same
+pair exists for data, cache, state, log and runtime files, e.g.
+:meth:`~platformdirs.api.PlatformDirsABC.find_data_file`.
+
 Testing code that uses platformdirs
 ===================================
 

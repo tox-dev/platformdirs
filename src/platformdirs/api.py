@@ -589,6 +589,78 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         _make_private_directories((path := Path(directory, relative)).parent)
         return path
 
+    def find_config_file(self, name: str | os.PathLike[str]) -> Path | None:
+        """Find the first ``name`` file in :meth:`iter_config_paths` order, without creating any directory.
+
+        :param name: path relative to each directory, may contain subdirectories.
+
+        :returns: the file, or ``None`` when no directory holds one.
+
+        :raises ValueError: if ``name`` is absolute, has a drive or climbs out with ``..``.
+
+        """
+        return next(self._find_files(PlatformDirsABC.iter_config_paths, name), None)
+
+    def find_config_files(self, name: str | os.PathLike[str]) -> list[Path]:
+        """Find every ``name`` file in :meth:`iter_config_paths` order, without creating any directory.
+
+        :param name: see :meth:`find_config_file`.
+
+        :returns: the files, user directory first.
+
+        :raises ValueError: see :meth:`find_config_file`.
+
+        """
+        return list(self._find_files(PlatformDirsABC.iter_config_paths, name))
+
+    def find_data_file(self, name: str | os.PathLike[str]) -> Path | None:
+        """Like :meth:`find_config_file`, searching :meth:`iter_data_paths`."""
+        return next(self._find_files(PlatformDirsABC.iter_data_paths, name), None)
+
+    def find_data_files(self, name: str | os.PathLike[str]) -> list[Path]:
+        """Like :meth:`find_config_files`, searching :meth:`iter_data_paths`."""
+        return list(self._find_files(PlatformDirsABC.iter_data_paths, name))
+
+    def find_cache_file(self, name: str | os.PathLike[str]) -> Path | None:
+        """Like :meth:`find_config_file`, searching :meth:`iter_cache_paths`."""
+        return next(self._find_files(PlatformDirsABC.iter_cache_paths, name), None)
+
+    def find_cache_files(self, name: str | os.PathLike[str]) -> list[Path]:
+        """Like :meth:`find_config_files`, searching :meth:`iter_cache_paths`."""
+        return list(self._find_files(PlatformDirsABC.iter_cache_paths, name))
+
+    def find_state_file(self, name: str | os.PathLike[str]) -> Path | None:
+        """Like :meth:`find_config_file`, searching :meth:`iter_state_paths`."""
+        return next(self._find_files(PlatformDirsABC.iter_state_paths, name), None)
+
+    def find_state_files(self, name: str | os.PathLike[str]) -> list[Path]:
+        """Like :meth:`find_config_files`, searching :meth:`iter_state_paths`."""
+        return list(self._find_files(PlatformDirsABC.iter_state_paths, name))
+
+    def find_log_file(self, name: str | os.PathLike[str]) -> Path | None:
+        """Like :meth:`find_config_file`, searching :meth:`iter_log_paths`."""
+        return next(self._find_files(PlatformDirsABC.iter_log_paths, name), None)
+
+    def find_log_files(self, name: str | os.PathLike[str]) -> list[Path]:
+        """Like :meth:`find_config_files`, searching :meth:`iter_log_paths`."""
+        return list(self._find_files(PlatformDirsABC.iter_log_paths, name))
+
+    def find_runtime_file(self, name: str | os.PathLike[str]) -> Path | None:
+        """Like :meth:`find_config_file`, searching :meth:`iter_runtime_paths`."""
+        return next(self._find_files(PlatformDirsABC.iter_runtime_paths, name), None)
+
+    def find_runtime_files(self, name: str | os.PathLike[str]) -> list[Path]:
+        """Like :meth:`find_config_files`, searching :meth:`iter_runtime_paths`."""
+        return list(self._find_files(PlatformDirsABC.iter_runtime_paths, name))
+
+    def _find_files(
+        self, iter_paths: Callable[[PlatformDirsABC], Iterator[Path]], name: str | os.PathLike[str]
+    ) -> Iterator[Path]:
+        _ensure_inside_base("name", relative := os.fspath(name))
+        # The iterators create each directory they yield under ensure_exists, and a lookup must only read the disk.
+        (lookup := copy(self)).ensure_exists = False
+        return (path for directory in iter_paths(lookup) if (path := directory / relative).is_file())
+
 
 def _ensure_inside_base(name: str, value: str | Literal[False] | None) -> None:
     if not value:
