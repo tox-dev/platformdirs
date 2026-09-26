@@ -11,7 +11,7 @@ import platformdirs
 from platformdirs.ios import IOS
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Callable, Iterator
 
 
 @pytest.fixture
@@ -93,6 +93,26 @@ def test_ios(container: Path, params: dict[str, Any], func: str) -> None:
 @pytest.mark.usefixtures("container")
 def test_ios_ensure_exists(func: str, created: bool) -> None:
     assert Path(getattr(IOS("foo", ensure_exists=True), func)).is_dir() is created
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
+@pytest.mark.usefixtures("_umask")
+@pytest.mark.parametrize(
+    ("func", "created"),
+    [
+        pytest.param(
+            "user_data_dir", ["Library", "Library/Application Support", "Library/Application Support/foo"], id="data"
+        ),
+        pytest.param("user_cache_dir", ["Library", "Library/Caches", "Library/Caches/foo"], id="cache"),
+        pytest.param("user_log_dir", ["Library", "Library/Logs", "Library/Logs/foo"], id="log"),
+        pytest.param("user_runtime_dir", ["tmp", "tmp/foo"], id="runtime"),
+    ],
+)
+def test_ios_ensure_exists_creates_private(
+    container: Path, modes: Callable[[Path], dict[str, int]], func: str, created: list[str]
+) -> None:
+    getattr(IOS("foo", ensure_exists=True), func)
+    assert modes(container) == dict.fromkeys(created, 0o700)
 
 
 @pytest.mark.parametrize(

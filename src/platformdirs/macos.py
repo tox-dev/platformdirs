@@ -27,7 +27,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     """
 
     def _base_user_app_support_dir(self) -> str:
-        return self._append_app_name_and_version(os.path.expanduser("~/Library/Application Support"))  # ruff:ignore[os-path-expanduser]
+        return self._append_app_name_and_version(os.path.expanduser("~/Library/Application Support"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
 
     def _base_site_dirs(self) -> list[str]:
         path_list = [self._join_app_name_and_version(f"{prefix}/share")] if (prefix := _homebrew_prefix()) else []
@@ -65,7 +65,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_cache_dir(self) -> str:
         """Cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/Library/Caches"))  # ruff:ignore[os-path-expanduser]
+        return self._append_app_name_and_version(os.path.expanduser("~/Library/Caches"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
 
     @property
     def _site_cache_dirs(self) -> list[str]:
@@ -92,18 +92,18 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     def site_state_dir(self) -> str:
         """State directory shared by users, the first entry of `site_data_dir` without ``$XDG_DATA_DIRS``, ignoring `multipath <platformdirs.api.PlatformDirsABC.multipath>`."""
         path = self._base_site_dirs()[0]
-        self._optionally_create_directory(path)
+        self._optionally_create_directory(path, private=False)
         return path
 
     @property
     def user_log_dir(self) -> str:
         """Log directory tied to the user, e.g. ``~/Library/Logs/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/Library/Logs"))  # ruff:ignore[os-path-expanduser]
+        return self._append_app_name_and_version(os.path.expanduser("~/Library/Logs"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
 
     @property
     def site_log_dir(self) -> str:
         """Log directory shared by users, e.g. ``/Library/Logs/$appname/$version``."""
-        return self._append_app_name_and_version("/Library/Logs")
+        return self._append_app_name_and_version("/Library/Logs", private=False)
 
     @property
     def user_documents_dir(self) -> str:
@@ -158,7 +158,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_preference_dir(self) -> str:
         """Preference directory tied to the user, e.g. ``~/Library/Preferences/AppName``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/Library/Preferences"))  # ruff:ignore[os-path-expanduser]  # API returns str, not Path
+        return self._append_app_name_and_version(os.path.expanduser("~/Library/Preferences"), private=True)  # ruff:ignore[os-path-expanduser]  # API returns str, not Path
 
     @property
     def user_bin_dir(self) -> str:
@@ -188,7 +188,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_runtime_dir(self) -> str:
         """Runtime directory tied to the user, e.g. ``~/Library/Caches/TemporaryItems/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/Library/Caches/TemporaryItems"))  # ruff:ignore[os-path-expanduser]
+        return self._append_app_name_and_version(os.path.expanduser("~/Library/Caches/TemporaryItems"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
 
     @property
     def site_runtime_dir(self) -> str:

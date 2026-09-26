@@ -1,0 +1,1 @@
+Create missing user app directories and their parents with mode ``0700`` under ``ensure_exists`` on POSIX platforms.

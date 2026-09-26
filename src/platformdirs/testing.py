@@ -46,7 +46,9 @@ def isolated_dirs(root: str | os.PathLike[str]) -> Iterator[Path]:
     """
     base = Path(root)
     patches = {
-        name: _redirect(base / (kind := name.removesuffix("_dir")), app=kind in _APP_KINDS)
+        name: _redirect(
+            base / (kind := name.removesuffix("_dir")), app=kind in _APP_KINDS, private=kind.startswith("user_")
+        )
         for name in PlatformDirsABC.__abstractmethods__
     }
     # The *_path and iter_* accessors of the Unix and macOS site kinds read these lists instead of the *_dir property.
@@ -67,9 +69,9 @@ def isolated_dirs(root: str | os.PathLike[str]) -> Iterator[Path]:
                 delattr(cls, name)
 
 
-def _redirect(path: Path, *, app: bool) -> property:
+def _redirect(path: Path, *, app: bool, private: bool) -> property:
     def resolve(self: PlatformDirsABC) -> str:
-        return self._append_app_name_and_version(str(path)) if app else str(path)
+        return self._append_app_name_and_version(str(path), private=private) if app else str(path)
 
     return property(resolve)
 

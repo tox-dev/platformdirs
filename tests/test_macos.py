@@ -11,6 +11,8 @@ import platformdirs
 from platformdirs.macos import MacOS
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from pytest_mock import MockerFixture
 
 _MEDIA_DIRS: Final = [
@@ -642,3 +644,13 @@ def test_non_homebrew_opt_python_uses_system_site_dirs(
 ) -> None:
     mocker.patch("sys.base_prefix", base_prefix)
     assert getattr(MacOS(multipath=True), prop) == expected
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
+@pytest.mark.usefixtures("_clear_xdg_env", "_umask")
+def test_macos_user_log_dir_creates_missing_components_private(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, modes: Callable[[Path], dict[str, int]]
+) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path))
+    _ = MacOS(appname="app", ensure_exists=True).user_log_dir
+    assert modes(tmp_path) == {"Library": 0o700, "Library/Logs": 0o700, "Library/Logs/app": 0o700}

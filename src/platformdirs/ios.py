@@ -23,7 +23,7 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_data_dir(self) -> str:
         """Data directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/Library/Application Support"))  # ruff:ignore[os-path-expanduser]
+        return self._append_app_name_and_version(os.path.expanduser("~/Library/Application Support"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
 
     @property
     def site_data_dir(self) -> str:
@@ -43,7 +43,7 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_cache_dir(self) -> str:
         """Cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/Library/Caches"))  # ruff:ignore[os-path-expanduser]
+        return self._append_app_name_and_version(os.path.expanduser("~/Library/Caches"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
 
     @property
     def site_cache_dir(self) -> str:
@@ -63,7 +63,7 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_log_dir(self) -> str:
         """Log directory tied to the user, e.g. ``~/Library/Logs/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/Library/Logs"))  # ruff:ignore[os-path-expanduser]
+        return self._append_app_name_and_version(os.path.expanduser("~/Library/Logs"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
 
     @property
     def site_log_dir(self) -> str:
@@ -150,7 +150,7 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_runtime_dir(self) -> str:
         """Runtime directory tied to the user, e.g. ``~/tmp/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/tmp"))  # ruff:ignore[os-path-expanduser]
+        return self._append_app_name_and_version(os.path.expanduser("~/tmp"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
 
     @property
     def site_runtime_dir(self) -> str:

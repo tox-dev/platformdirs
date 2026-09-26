@@ -40,7 +40,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_data_dir(self) -> str:
         """Data directory tied to the user, e.g. ``~/.local/share/$appname/$version`` or ``$XDG_DATA_HOME/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/.local/share"))  # ruff:ignore[os-path-expanduser]
+        return self._append_app_name_and_version(os.path.expanduser("~/.local/share"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
 
     @property
     def _site_data_dirs(self) -> list[str]:
@@ -49,7 +49,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_config_dir(self) -> str:
         """Config directory tied to the user, e.g. ``~/.config/$appname/$version`` or ``$XDG_CONFIG_HOME/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/.config"))  # ruff:ignore[os-path-expanduser]
+        return self._append_app_name_and_version(os.path.expanduser("~/.config"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
 
     @property
     def _site_config_dirs(self) -> list[str]:
@@ -58,22 +58,22 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_cache_dir(self) -> str:
         """Cache directory tied to the user, e.g. ``~/.cache/$appname/$version`` or ``$XDG_CACHE_HOME/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/.cache"))  # ruff:ignore[os-path-expanduser]
+        return self._append_app_name_and_version(os.path.expanduser("~/.cache"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
 
     @property
     def site_cache_dir(self) -> str:
         """Cache directory shared by users, e.g. ``/var/cache/$appname/$version``."""
-        return self._append_app_name_and_version("/var/cache")
+        return self._append_app_name_and_version("/var/cache", private=False)
 
     @property
     def user_state_dir(self) -> str:
         """State directory tied to the user, e.g. ``~/.local/state/$appname/$version`` or ``$XDG_STATE_HOME/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/.local/state"))  # ruff:ignore[os-path-expanduser]
+        return self._append_app_name_and_version(os.path.expanduser("~/.local/state"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
 
     @property
     def site_state_dir(self) -> str:
         """State directory shared by users, e.g. ``/var/lib/$appname/$version``."""
-        return self._append_app_name_and_version("/var/lib")
+        return self._append_app_name_and_version("/var/lib", private=False)
 
     @property
     def user_log_dir(self) -> str:
@@ -81,7 +81,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         path = self.user_state_dir
         if self.opinion:
             path = os.path.join(path, "log")  # ruff:ignore[os-path-join]
-            self._optionally_create_directory(path)
+            self._optionally_create_directory(path, private=True)
         return path
 
     @property
@@ -91,7 +91,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         Unlike `user_log_dir`, ``opinion`` has no effect since ``/var/log`` is inherently a log directory.
 
         """
-        return self._append_app_name_and_version("/var/log")
+        return self._append_app_name_and_version("/var/log", private=False)
 
     @property
     def user_documents_dir(self) -> str:
@@ -198,7 +198,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
             path = f"/run/user/{getuid()}"
         if not os.access(path, os.W_OK):
             path = self._temp_runtime_dir()
-        return self._append_app_name_and_version(path)
+        return self._append_app_name_and_version(path, private=True)
 
     def _temp_runtime_dir(self) -> str:
         # Another user can pre-create this predictable name, and XDG requires an owned runtime dir with mode 0700.
@@ -234,7 +234,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
             path = "/var/run"
         else:
             path = "/run"
-        return self._append_app_name_and_version(path)
+        return self._append_app_name_and_version(path, private=False)
 
     @property
     def site_data_path(self) -> Path:

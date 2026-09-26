@@ -191,6 +191,11 @@ variable or ``user-dirs.dirs``, and returns a dangling symlink there unchanged. 
 as ``~/Documents``, or the fonts, bin and applications directories, because the desktop session or the system owns them.
 On Android the applications directory is the data directory, so platformdirs creates it too.
 
+On Unix, macOS, iOS and Android, platformdirs creates the user directories and each missing parent with mode ``0700``,
+as the `XDG Base Directory Specification <https://specifications.freedesktop.org/basedir/latest/>`_ asks. Site and media
+directories get the default mode so other users can read them. platformdirs leaves the mode of an existing directory
+alone.
+
 Without a resolvable home directory, ``ensure_exists`` raises ``RuntimeError`` for a path that would start with ``~``.
 
 .. code-block:: python
