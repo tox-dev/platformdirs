@@ -351,7 +351,7 @@ See also: :ref:`api:User videos directory`
     .. tab-item:: Android
        :sync: android
 
-       ``/storage/emulated/0/DCIM/Camera``
+       ``/storage/emulated/0/Movies``
 
 ``user_music_dir``
 ==================
@@ -405,7 +405,7 @@ See also: :ref:`api:User desktop directory`
     .. tab-item:: Android
        :sync: android
 
-       ``/storage/emulated/0/Desktop``
+       ``/storage/emulated/0/Documents/Desktop``
 
 ``user_projects_dir``
 =====================
@@ -437,7 +437,7 @@ to xdg-user-dirs).
     .. tab-item:: Android
        :sync: android
 
-       ``/storage/emulated/0/Projects``
+       ``/storage/emulated/0/Documents/Projects``
 
 ``user_publicshare_dir``
 ========================
@@ -470,7 +470,7 @@ per-user directory. See `FOLDERID_Public <https://learn.microsoft.com/en-us/wind
     .. tab-item:: Android
        :sync: android
 
-       ``/storage/emulated/0/Public``
+       ``/storage/emulated/0/Documents/Public``
 
 ``user_templates_dir``
 ======================
@@ -502,7 +502,7 @@ platform-defined templates directory; ``~/Templates`` is returned as a pragmatic
     .. tab-item:: Android
        :sync: android
 
-       ``/storage/emulated/0/Templates``
+       ``/storage/emulated/0/Documents/Templates``
 
 ``user_fonts_dir``
 ==================
@@ -533,7 +533,7 @@ Derived from ``$XDG_DATA_HOME/fonts`` on Linux (no dedicated env var). See the `
     .. tab-item:: Android
        :sync: android
 
-       ``/storage/emulated/0/fonts``
+       ``/storage/emulated/0/Documents/fonts``
 
 ``user_preference_dir``
 =======================
