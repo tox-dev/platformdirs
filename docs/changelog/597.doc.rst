@@ -1,0 +1,1 @@
+Document that Microsoft Store Python redirects only new files and folders under ``AppData``.
