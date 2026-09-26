@@ -389,3 +389,117 @@ def test_place_file_rejected_name_creates_nothing(home: Path) -> None:
     with pytest.raises(ValueError, match="must stay inside"):
         _place("config")("../evil")
     assert not home.exists()
+
+
+_SUFFIXES: Final = [pytest.param("file", id="file"), pytest.param("files", id="files")]
+_MISSING: Final = [pytest.param("file", None, id="file"), pytest.param("files", [], id="files")]
+
+
+@pytest.fixture
+def dirs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Unix:
+    # XDG only accepts POSIX absolute paths, so Windows drops the drive and needs it as the current one.
+    monkeypatch.chdir(tmp_path)
+    root = tmp_path.as_posix().removeprefix(tmp_path.drive)
+    for var in ("XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "XDG_STATE_HOME", "XDG_RUNTIME_DIR"):
+        monkeypatch.setenv(var, f"{root}/user/{var}")
+    for var in ("XDG_CONFIG_DIRS", "XDG_DATA_DIRS"):
+        monkeypatch.setenv(var, os.pathsep.join(f"{root}/site/{var}/{index}" for index in (1, 2)))
+    return Unix("find-files-test")
+
+
+@pytest.fixture
+def config_paths(dirs: Unix) -> list[Path]:
+    return list(dirs.iter_config_paths())
+
+
+@pytest.fixture
+def user_file(dirs: Unix, kind: str) -> Path:
+    return _touch(next(getattr(dirs, f"iter_{kind}_paths")()) / "app.toml")
+
+
+def _touch(path: Path) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.touch()
+    return path
+
+
+@pytest.mark.parametrize("kind", _KINDS)
+def test_find_file_returns_user_file(dirs: Unix, kind: str, user_file: Path) -> None:
+    assert getattr(dirs, f"find_{kind}_file")("app.toml") == user_file
+
+
+@pytest.mark.parametrize("kind", _KINDS)
+def test_find_files_lists_user_file_once(dirs: Unix, kind: str, user_file: Path) -> None:
+    assert getattr(dirs, f"find_{kind}_files")("app.toml") == [user_file]
+
+
+@pytest.mark.parametrize(("suffix", "expected"), _MISSING)
+@pytest.mark.parametrize("kind", _KINDS)
+def test_find_missing_file(dirs: Unix, kind: str, suffix: str, expected: list[Path] | None) -> None:
+    assert getattr(dirs, f"find_{kind}_{suffix}")("app.toml") == expected
+
+
+@pytest.mark.parametrize(("suffix", "expected"), _MISSING)
+def test_find_skips_directory_with_the_name(dirs: Unix, suffix: str, expected: list[Path] | None) -> None:
+    (dirs.user_config_path / "app.toml").mkdir(parents=True)
+    assert getattr(dirs, f"find_config_{suffix}")("app.toml") == expected
+
+
+def test_find_config_file_prefers_user_over_site(dirs: Unix, config_paths: list[Path]) -> None:
+    user = _touch(config_paths[0] / "app.toml")
+    _touch(config_paths[2] / "app.toml")
+    assert dirs.find_config_file("app.toml") == user
+
+
+def test_find_config_file_falls_back_to_site(dirs: Unix, config_paths: list[Path]) -> None:
+    site = _touch(config_paths[2] / "app.toml")
+    assert dirs.find_config_file("app.toml") == site
+
+
+def test_find_config_files_orders_user_before_site(dirs: Unix, config_paths: list[Path]) -> None:
+    expected = [_touch(config_paths[index] / "app.toml") for index in (0, 2)]
+    assert dirs.find_config_files("app.toml") == expected
+
+
+def test_find_config_file_accepts_nested_path_like(dirs: Unix, config_paths: list[Path]) -> None:
+    nested = _touch(config_paths[1] / "sub" / "app.toml")
+    assert dirs.find_config_file(Path("sub", "app.toml")) == nested
+
+
+@pytest.mark.parametrize("suffix", _SUFFIXES)
+@pytest.mark.parametrize("kind", _KINDS)
+def test_find_creates_no_directory_with_ensure_exists(dirs: Unix, tmp_path: Path, kind: str, suffix: str) -> None:
+    dirs.ensure_exists = True
+    getattr(dirs, f"find_{kind}_{suffix}")("app.toml")
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_find_keeps_ensure_exists_on_the_instance(dirs: Unix) -> None:
+    dirs.ensure_exists = True
+    dirs.find_config_file("app.toml")
+    assert dirs.ensure_exists is True
+
+
+@pytest.mark.parametrize("suffix", _SUFFIXES)
+@pytest.mark.parametrize(
+    "name",
+    [
+        pytest.param("../evil", id="parent"),
+        pytest.param("nested/../../evil", id="nested-parent"),
+        pytest.param("..\\evil", id="backslash-parent"),
+        pytest.param("/evil", id="rooted"),
+        pytest.param("\\evil", id="backslash-rooted"),
+        pytest.param("//server/share/evil", id="unc"),
+        pytest.param(Path("..", "evil"), id="path-like-parent"),
+        pytest.param(
+            "C:/evil",
+            marks=pytest.mark.skipif(sys.platform != "win32", reason="drive letters only exist on Windows"),
+            id="drive",
+        ),
+    ],
+)
+def test_find_rejects_name_escaping_the_directory(dirs: Unix, name: str | Path, suffix: str) -> None:
+    with pytest.raises(
+        ValueError, match=rf"^name must stay inside the base directory, got {re.escape(repr(os.fspath(name)))}$"
+    ):
+        getattr(dirs, f"find_config_{suffix}")(name)
