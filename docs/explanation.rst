@@ -489,17 +489,24 @@ See :class:`platformdirs.unix.Unix` for the full API reference.
 Android
 =======
 
-On Android, ``platformdirs`` uses the app's private storage directories. The app's package folder (e.g.
-``/data/data/com.example.app``) is detected via ``python-for-android`` or ``pyjnius``. All directories are within your
-app's private storage and data is automatically removed when the app is uninstalled.
+``platformdirs`` treats the process as Android when :func:`sys.getandroidapilevel` exists, or when ``ANDROID_DATA`` is
+``/data`` and ``ANDROID_ROOT`` is ``/system``. It then looks for the app's package folder, such as ``/data/user/<user
+id>/com.example.app``. With `pyjnius <https://github.com/kivy/pyjnius>`_ it asks the python-for-android activity, or the
+service in a service process. Otherwise it searches :data:`sys.path` for a ``<package folder>/files`` entry under
+``/data/data``, ``/data/user/<user id>`` or an adopted storage volume in ``/mnt/expand``. If neither finds the folder,
+``platformdirs`` uses the Unix backend.
 
-Media directories (documents, downloads, pictures, videos, music) point to shared external storage under
-``/storage/emulated/0/``. App-private directories don't require storage permissions; external storage access requires
-appropriate Android permissions.
+App directories sit in the package folder, and Android removes them when the user uninstalls the app.
+
+Media directories point to the shared storage of the Android user the app runs as, ``/storage/emulated/<user id>``:
+``Documents``, ``Download``, ``Pictures``, ``Movies`` and ``Music``. Android lets an app without All Files Access create
+top-level shared folders only from its standard list, so the desktop, projects, public share, templates and fonts
+directories sit under ``Documents``, such as ``Documents/Desktop``. App-private directories don't require storage
+permissions; external storage access requires appropriate Android permissions.
 
 **Shell environments**: Android apps like `Termux <https://termux.dev>`_ and Pydroid that function as Linux shells are
-detected by the presence of the ``SHELL`` environment variable. In these environments, ``platformdirs`` uses the
-Unix/XDG backend instead, including support for ``XDG_*`` environment variables.
+detected by the presence of the ``SHELL`` or ``PREFIX`` environment variable. In these environments, ``platformdirs``
+uses the Unix/XDG backend instead, including support for ``XDG_*`` environment variables.
 
 See :class:`platformdirs.android.Android` for the full API reference.
 
