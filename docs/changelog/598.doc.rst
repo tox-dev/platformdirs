@@ -1,0 +1,1 @@
+Show how to load a font on Windows after copying it into ``user_fonts_dir``.
