@@ -1,2 +1,0 @@
-Document that a Homebrew Python puts the Homebrew prefix first in the macOS shared directories, with or without
-``multipath``.

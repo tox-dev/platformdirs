@@ -1,2 +1,0 @@
-Add ``find_<kind>_file`` and ``find_<kind>_files`` to look up an existing file across the user and site directories of
-each kind that has an ``iter_<kind>_paths`` method.

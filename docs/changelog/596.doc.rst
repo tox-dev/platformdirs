@@ -1,1 +1,0 @@
-Describe how platformdirs detects Android, finds the app folder and places the shared folders.

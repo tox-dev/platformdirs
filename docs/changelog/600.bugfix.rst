@@ -1,1 +1,0 @@
-Use the app container layout on iOS, such as ``~/Library/Application Support`` for data.

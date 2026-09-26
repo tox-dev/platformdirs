@@ -6,6 +6,37 @@
 
 .. towncrier release notes start
 
+*********************
+ 4.12.0 (2026-09-26)
+*********************
+
+- Add ``place_*_file`` methods that return a file path under a user directory and create its missing parents with mode
+  ``0o700``. :pr:`585`
+- Add ``find_<kind>_file`` and ``find_<kind>_files`` to look up an existing file across the user and site directories of
+  each kind that has an ``iter_<kind>_paths`` method. :pr:`586`
+- Add :func:`platformdirs.testing.isolated_dirs` and the ``platformdirs_isolated`` pytest fixture to resolve every
+  directory under one test root. :pr:`590`
+- Emit :class:`~platformdirs.RuntimeDirWarning` when the Unix :func:`~platformdirs.user_runtime_dir` falls back from
+  ``XDG_RUNTIME_DIR``. :pr:`599`
+- Read ``user_templates_dir``, ``user_publicshare_dir`` and ``user_bin_dir`` on Windows from their known folders.
+  :pr:`587`
+- Create missing user app directories and their parents with mode ``0700`` under ``ensure_exists`` on POSIX platforms.
+  :pr:`588`
+- Raise ``RuntimeError`` for a Unix or macOS directory under the home when no home resolves, and read the password
+  database for an empty ``HOME``. :pr:`589`
+- Skip an ``XDG_RUNTIME_DIR`` or ``/run/user/<uid>`` that is not a private directory of the user, and reject a symlink
+  or file as the ``runtime-<uid>`` fallback. :pr:`599`
+- Use the app container layout on iOS, such as ``~/Library/Application Support`` for data. :pr:`600`
+- Document that a Homebrew Python puts the Homebrew prefix first in the macOS shared directories, with or without
+  ``multipath``. :pr:`591`
+- Document that the macOS media directories honor the ``XDG_*_DIR`` variables. :pr:`592`
+- Document the ``WIN_PD_OVERRIDE_COMMON_PROGRAMS`` variable. :pr:`593`
+- Document ``/usr/local/share/applications`` as the Linux ``site_applications_dir`` default. :pr:`594`
+- Correct the BSD ``user_runtime_dir`` defaults and describe the temporary directory fallback. :pr:`595`
+- Describe how platformdirs detects Android, finds the app folder and places the shared folders. :pr:`596`
+- Document that Microsoft Store Python redirects only new files and folders under ``AppData``. :pr:`597`
+- Show how to load a font on Windows after copying it into ``user_fonts_dir``. :pr:`598`
+
 **********************
  4.11.15 (2026-09-26)
 **********************

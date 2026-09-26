@@ -1,2 +1,0 @@
-Add :func:`platformdirs.testing.isolated_dirs` and the ``platformdirs_isolated`` pytest fixture to resolve every
-directory under one test root.

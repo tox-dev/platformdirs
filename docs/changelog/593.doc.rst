@@ -1,1 +1,0 @@
-Document the ``WIN_PD_OVERRIDE_COMMON_PROGRAMS`` variable.
