@@ -421,13 +421,13 @@ The override variable name is ``WIN_PD_OVERRIDE_`` followed by the CSIDL suffix:
 
     **Windows Store Python (MSIX)**
 
-    Python installed from the Microsoft Store runs in a sandboxed (AppContainer) environment. Windows silently redirects
-    writes under ``AppData`` to a per-package private location, e.g.
-    ``AppData\Local\Packages\PythonSoftwareFoundation.Python.3.X_<hash>\LocalCache\Local\...``.
+    Python installed from the Microsoft Store runs as an MSIX package. Windows redirects the new files and folders this
+    Python creates under ``AppData`` to a per-package location, e.g.
+    ``AppData\Local\Packages\PythonSoftwareFoundation.Python.3.X_<hash>\LocalCache\Local\...``. Files written into a
+    folder that already exists at the real path stay there.
 
-    ``platformdirs`` returns the logical ``AppData`` path, which is correct for code running inside the same sandbox.
-    However, if you pass these paths to external processes (subprocesses, other applications), those processes may not
-    see files created at the logical path because they run outside the sandbox.
+    ``platformdirs`` returns the logical ``AppData`` path, which is correct for code running inside the same package.
+    Processes outside the package, such as other applications, do not see the redirected files at the logical path.
 
     To obtain the real on-disk path for sharing with external processes, call :func:`os.path.realpath` on the path
     **after** the file or directory has been created:
