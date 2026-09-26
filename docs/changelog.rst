@@ -7,6 +7,16 @@
 .. towncrier release notes start
 
 **********************
+ 4.11.15 (2026-09-26)
+**********************
+
+- Fix the pyjnius lookup of the Android app folder and media directories, which always failed. :pr:`580`
+- Detect Android from ``sys.getandroidapilevel`` when ``ANDROID_DATA`` and ``ANDROID_ROOT`` are unset. :pr:`581`
+- Put Android shared-storage directories under the current user's /storage/emulated/<user id>, not user 0's. :pr:`582`
+- Move Android videos to ``Movies`` and the five non-standard media folders, such as ``Desktop``, into ``Documents``.
+  :pr:`583`
+
+**********************
  4.11.14 (2026-09-25)
 **********************
 

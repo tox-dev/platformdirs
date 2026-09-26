@@ -1,1 +1,0 @@
-Fix the pyjnius lookup of the Android app folder and media directories, which always failed.
