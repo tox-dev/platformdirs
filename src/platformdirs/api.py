@@ -700,3 +700,7 @@ def _make_private_directories(path: Path) -> None:
     except FileNotFoundError:
         _make_private_directories(path.parent)
         path.mkdir(mode=0o700, exist_ok=True)
+
+
+class RuntimeDirWarning(UserWarning):
+    """Emitted when the Unix :attr:`~platformdirs.unix.Unix.user_runtime_dir` cannot use ``$XDG_RUNTIME_DIR``."""

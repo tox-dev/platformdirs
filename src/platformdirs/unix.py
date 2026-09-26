@@ -6,12 +6,14 @@ import os
 import re
 import stat
 import sys
+import warnings
+from contextlib import suppress
 from pathlib import Path
 from tempfile import gettempdir
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from ._xdg import XDGMixin, _expand_user, _xdg_dir
-from .api import PlatformDirsABC
+from .api import PlatformDirsABC, RuntimeDirWarning
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -179,42 +181,26 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         dirs = self._site_applications_dirs
         return os.pathsep.join(dirs) if self.multipath else dirs[0]
 
-    @property
-    def user_runtime_dir(self) -> str:
-        """Runtime directory tied to the user, e.g. ``$XDG_RUNTIME_DIR/$appname/$version``.
-
-        If ``$XDG_RUNTIME_DIR`` is unset, tries the platform default (``/tmp/run/user/$(id -u)`` on OpenBSD,
-        ``/var/run/user/$(id -u)`` on FreeBSD/NetBSD, ``/run/user/$(id -u)`` otherwise). If the default is not writable,
-        falls back to ``runtime-$(id -u)`` in the temporary directory, with mode ``0700`` under ``ensure_exists``.
-
-        :raises PermissionError: if another user owns the temporary fallback directory.
-
-        """
+    def _default_runtime_dir(self) -> str:
         if sys.platform.startswith("openbsd"):
             path = f"/tmp/run/user/{getuid()}"  # ruff:ignore[hardcoded-temp-file]
         elif sys.platform.startswith(("freebsd", "netbsd")):
             path = f"/var/run/user/{getuid()}"
         else:
             path = f"/run/user/{getuid()}"
-        if not os.access(path, os.W_OK):
-            path = self._temp_runtime_dir()
-        return self._append_app_name_and_version(path, private=True)
+        return path if os.path.lexists(path) and not _runtime_dir_problem(path) else self._temp_runtime_dir()
 
     def _temp_runtime_dir(self) -> str:
         # Another user can pre-create this predictable name, and XDG requires an owned runtime dir with mode 0700.
-        path = f"{gettempdir()}/runtime-{(uid := getuid())}"
-        if self.ensure_exists:
-            Path(path).mkdir(mode=0o700, exist_ok=True)
-        try:
-            info = Path(path).lstat()
-        except FileNotFoundError:
-            return path
-        if info.st_uid != uid:
-            msg = f"runtime directory {path} is owned by uid {info.st_uid}, not {uid}; set XDG_RUNTIME_DIR instead"
+        path = f"{gettempdir()}/runtime-{getuid()}"
+        with suppress(FileExistsError):
+            self._optionally_create_directory(path, private=True)
+        if problem := _runtime_dir_problem(path, check_mode=False):
+            msg = f"runtime directory {problem}; set XDG_RUNTIME_DIR instead"
             raise PermissionError(msg)
         # Earlier releases created this directory with the default 0755.
-        if self.ensure_exists and stat.S_IMODE(info.st_mode) & 0o077:
-            Path(path).chmod(0o700)
+        if self.ensure_exists:
+            Path(path).chmod(_RUNTIME_DIR_MODE)
         return path
 
     @property
@@ -322,9 +308,31 @@ class Unix(XDGMixin, _UnixDefaults):
 
     @property
     def user_runtime_dir(self) -> str:
-        """Runtime directory tied to the user, or site equivalent when root with ``use_site_for_root``."""
-        # XDGMixin.site_runtime_dir reads $XDG_RUNTIME_DIR, which belongs to the user who started the root process.
-        return super(XDGMixin, self).site_runtime_dir if self._use_site else super().user_runtime_dir
+        """Runtime directory tied to the user, e.g. ``$XDG_RUNTIME_DIR/$appname/$version``.
+
+        Accepts ``$XDG_RUNTIME_DIR`` only as a directory, not a symlink, that the user owns with mode ``0700``, as the
+        XDG spec requires, and creates a missing one that way under ``ensure_exists``. When the variable is unset or
+        fails that check, emits one :class:`~platformdirs.RuntimeDirWarning` per cause and falls back to the platform
+        default (``/tmp/run/user/<uid>`` on OpenBSD, ``/var/run/user/<uid>`` on FreeBSD/NetBSD, ``/run/user/<uid>``
+        elsewhere) if it passes the same check, else to ``runtime-<uid>`` in the temporary directory. Root with
+        ``use_site_for_root`` gets the site equivalent.
+
+        :raises PermissionError: if the temporary fallback is a symlink, not a directory, or owned by another user.
+
+        """
+        if self._use_site:
+            # XDGMixin.site_runtime_dir reads $XDG_RUNTIME_DIR, which belongs to the user who started the root process.
+            return super(XDGMixin, self).site_runtime_dir
+        if not (path := _xdg_dir("XDG_RUNTIME_DIR")):
+            reason = "XDG_RUNTIME_DIR is not set"
+        else:
+            with suppress(FileExistsError):
+                self._optionally_create_directory(path, private=True)
+            if not (problem := _runtime_dir_problem(path)):
+                return self._append_app_name_and_version(path, private=True)
+            reason = f"XDG_RUNTIME_DIR {problem}"
+        _warn_once(f"{reason}, falling back to {(fallback := self._default_runtime_dir())}")
+        return self._append_app_name_and_version(fallback, private=True)
 
     @property
     def user_bin_dir(self) -> str:
@@ -399,6 +407,35 @@ def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
         # xdg-user-dirs-update backslash-escapes $, `, " and \ inside the quotes.
         value = re.sub(r"\\(.)", r"\1", value)
     return prefix + value
+
+
+def _runtime_dir_problem(path: str, *, check_mode: bool = True) -> str | None:
+    """Return why ``path`` fails the checks of Qt's ``checkXdgRuntimeDir``, or ``None`` if it passes or is missing."""
+    try:
+        info = os.lstat(path)
+    except FileNotFoundError:
+        return None
+    except OSError as error:
+        return f"{path} cannot be checked: {error.strerror}"
+    mode = info.st_mode & 0o777
+    checks = (
+        (stat.S_ISLNK(info.st_mode), "is a symlink"),
+        (not stat.S_ISDIR(info.st_mode), "is not a directory"),
+        (info.st_uid != (uid := getuid()), f"is owned by uid {info.st_uid}, not {uid}"),
+        (check_mode and mode != _RUNTIME_DIR_MODE, f"has mode {mode:04o}, not {_RUNTIME_DIR_MODE:04o}"),
+    )
+    return next((f"{path} {problem}" for failed, problem in checks if failed), None)
+
+
+def _warn_once(message: str) -> None:
+    # Each read of user_runtime_dir repeats the check, so a warning per read would flood long-running programs.
+    if message not in _WARNED:
+        _WARNED.add(message)
+        warnings.warn(message, RuntimeDirWarning, stacklevel=3)
+
+
+_WARNED: Final[set[str]] = set()
+_RUNTIME_DIR_MODE: Final = 0o700
 
 
 __all__ = [

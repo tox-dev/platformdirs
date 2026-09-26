@@ -1,0 +1,2 @@
+Skip an ``XDG_RUNTIME_DIR`` or ``/run/user/<uid>`` that is not a private directory of the user, and reject a symlink or
+file as the ``runtime-<uid>`` fallback.

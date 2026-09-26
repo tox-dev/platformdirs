@@ -66,7 +66,7 @@ def _print_dirs(dirs: PlatformDirsABC) -> None:
 
 
 def _dir_or_error(dirs: PlatformDirsABC, prop: str) -> str:
-    # user_runtime_dir raises when another user owns its temporary fallback.
+    # user_runtime_dir raises when its temporary fallback is not a directory the user owns.
     try:
         return getattr(dirs, prop)
     except PermissionError as error:
