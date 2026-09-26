@@ -6,7 +6,7 @@ import os
 import pathlib
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 from unittest.mock import MagicMock
 
 import pytest
@@ -40,6 +40,9 @@ _WIN_FOLDERS: dict[str, str] = {
     "CSIDL_DESKTOPDIRECTORY": r"C:\Users\Test\Desktop",
     "CSIDL_PROGRAMS": r"C:\Users\Test\AppData\Roaming\Microsoft\Windows\Start Menu\Programs",
     "CSIDL_COMMON_PROGRAMS": r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs",
+    "CSIDL_TEMPLATES": r"C:\Users\Test\AppData\Roaming\Microsoft\Windows\Templates",
+    "CSIDL_PUBLIC": r"C:\Users\Public",
+    "CSIDL_USER_PROGRAM_FILES": r"C:\Users\Test\AppData\Local\Programs",
 }
 
 _LOCAL = os.path.normpath(_WIN_FOLDERS["CSIDL_LOCAL_APPDATA"])
@@ -97,15 +100,11 @@ def test_windows(params: dict[str, Any], func: str) -> None:
         "user_music_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_MYMUSIC"]),
         "user_desktop_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_DESKTOPDIRECTORY"]),
         "user_projects_dir": os.path.normpath(pathlib.Path("~/Projects").expanduser()),
-        "user_publicshare_dir": os.path.normpath(
-            os.environ.get("PUBLIC", str(Path("~").expanduser().parent / "Public"))
-        ),
-        "user_templates_dir": os.path.normpath(
-            str(Path(_WIN_FOLDERS["CSIDL_APPDATA"]) / "Microsoft" / "Windows" / "Templates")
-        ),
+        "user_publicshare_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_PUBLIC"]),
+        "user_templates_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_TEMPLATES"]),
         "user_fonts_dir": os.path.normpath(str(Path(_LOCAL) / "Microsoft" / "Windows" / "Fonts")),
         "user_preference_dir": local,
-        "user_bin_dir": os.path.join(_LOCAL, "Programs"),  # ruff:ignore[os-path-join]
+        "user_bin_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_USER_PROGRAM_FILES"]),
         "site_bin_dir": os.path.join(_COMMON, "bin"),  # ruff:ignore[os-path-join]
         "user_applications_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_PROGRAMS"]),
         "site_applications_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_COMMON_PROGRAMS"]),
@@ -115,18 +114,32 @@ def test_windows(params: dict[str, Any], func: str) -> None:
     assert result == expected_map[func]
 
 
-def test_publicshare_dir_with_unavailable_home(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> None:
+@pytest.mark.parametrize(
+    ("func", "csidl_name"),
+    [
+        pytest.param("user_templates_dir", "CSIDL_TEMPLATES", id="templates"),
+        pytest.param("user_publicshare_dir", "CSIDL_PUBLIC", id="publicshare"),
+        pytest.param("user_bin_dir", "CSIDL_USER_PROGRAM_FILES", id="bin"),
+    ],
+)
+def test_windows_dir_follows_known_folder(mocker: MockerFixture, func: str, csidl_name: str) -> None:
+    mocker.patch("platformdirs.windows.get_win_folder", side_effect={csidl_name: r"D:\Moved"}.__getitem__)
+    assert getattr(Windows(), func) == os.path.normpath(r"D:\Moved")
+
+
+def test_get_win_folder_from_env_vars_public_with_unavailable_home(
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
+) -> None:
     monkeypatch.setenv("PUBLIC", r"C:\Users\Shared")
     mocker.patch.object(Path, "expanduser", side_effect=RuntimeError("Could not determine home directory."))
-    assert Windows().user_publicshare_dir == os.path.normpath(r"C:\Users\Shared")
+    assert get_win_folder_from_env_vars("CSIDL_PUBLIC") == r"C:\Users\Shared"
 
 
 @pytest.mark.parametrize("env", [pytest.param({}, id="unset"), pytest.param({"PUBLIC": ""}, id="empty")])
-def test_publicshare_dir_fallback(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, env: dict[str, str]) -> None:
-    monkeypatch.delenv("PUBLIC", raising=False)
-    mocker.patch.dict(os.environ, env)
+def test_get_win_folder_from_env_vars_public_fallback(mocker: MockerFixture, env: dict[str, str]) -> None:
+    mocker.patch.dict(os.environ, env, clear=True)
     mocker.patch.object(Path, "expanduser", return_value=Path("C:/Users/Test"))
-    assert Windows().user_publicshare_dir == os.path.normpath("C:/Users/Public")
+    assert get_win_folder_from_env_vars("CSIDL_PUBLIC") == str(Path("C:/Users/Public"))
 
 
 def test_roaming_uses_appdata(mocker: MockerFixture) -> None:
@@ -191,6 +204,28 @@ def test_get_win_folder_from_env_vars_user_folders(
     assert get_win_folder_from_env_vars(csidl_name).endswith(subfolder)
 
 
+@pytest.mark.parametrize(
+    ("csidl_name", "env_var", "value", "parts"),
+    [
+        pytest.param(
+            "CSIDL_TEMPLATES",
+            "APPDATA",
+            r"C:\Users\Test\AppData\Roaming",
+            ("Microsoft", "Windows", "Templates"),
+            id="templates",
+        ),
+        pytest.param(
+            "CSIDL_USER_PROGRAM_FILES", "LOCALAPPDATA", r"C:\Users\Test\AppData\Local", ("Programs",), id="bin"
+        ),
+    ],
+)
+def test_get_win_folder_from_env_vars_joined_folder(
+    monkeypatch: pytest.MonkeyPatch, csidl_name: str, env_var: str, value: str, parts: tuple[str, ...]
+) -> None:
+    monkeypatch.setenv(env_var, value)
+    assert get_win_folder_from_env_vars(csidl_name) == os.path.join(value, *parts)  # ruff:ignore[os-path-join]
+
+
 def test_get_win_folder_from_env_vars_programs(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("APPDATA", r"C:\Users\Test\AppData\Roaming")
     result = get_win_folder_from_env_vars("CSIDL_PROGRAMS")
@@ -203,11 +238,8 @@ def test_get_win_folder_from_env_vars_unknown() -> None:
 
 
 @pytest.mark.parametrize("env", [pytest.param({}, id="unset"), pytest.param({"APPDATA": ""}, id="empty")])
-def test_get_win_folder_from_env_vars_unset(
-    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, env: dict[str, str]
-) -> None:
-    monkeypatch.delenv("APPDATA", raising=False)
-    mocker.patch.dict(os.environ, env)
+def test_get_win_folder_from_env_vars_unset(mocker: MockerFixture, env: dict[str, str]) -> None:
+    mocker.patch.dict(os.environ, env, clear=True)
     with pytest.raises(ValueError, match="Unset environment variable"):
         get_win_folder_from_env_vars("CSIDL_APPDATA")
 
@@ -290,6 +322,62 @@ def test_get_win_folder_via_ctypes_real(csidl_name: str) -> None:
     result = fresh_fn(csidl_name)
     assert isinstance(result, str)
     assert len(result) > 0
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="compares against the folders of an unredirected Windows profile")
+@pytest.mark.parametrize(
+    ("csidl_name", "base_csidl_name", "parts"),
+    [
+        pytest.param("CSIDL_TEMPLATES", "CSIDL_APPDATA", ("Microsoft", "Windows", "Templates"), id="templates"),
+        pytest.param("CSIDL_USER_PROGRAM_FILES", "CSIDL_LOCAL_APPDATA", ("Programs",), id="bin"),
+    ],
+)
+def test_get_win_folder_via_ctypes_real_matches_default_layout(
+    csidl_name: str, base_csidl_name: str, parts: tuple[str, ...]
+) -> None:
+    importlib.reload(windows)
+    from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
+
+    assert fresh_fn(csidl_name) == os.path.join(fresh_fn(base_csidl_name), *parts)  # ruff:ignore[os-path-join]
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="compares against the folders of an unredirected Windows profile")
+def test_get_win_folder_via_ctypes_real_public_matches_old_lookup() -> None:
+    importlib.reload(windows)
+    from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
+
+    # tox does not pass PUBLIC through, so the old lookup falls back to the home directory's sibling here
+    expected = os.path.normpath(os.environ.get("PUBLIC") or str(Path("~").expanduser().parent / "Public"))
+    assert fresh_fn("CSIDL_PUBLIC") == expected
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="mock-based GUID inspection only runs on non-Windows")
+@pytest.mark.parametrize(
+    ("csidl_name", "folder_guid"),
+    [
+        pytest.param("CSIDL_TEMPLATES", "{A63293E8-664E-48DB-A079-DF759E0509F7}", id="templates"),
+        pytest.param("CSIDL_PUBLIC", "{DFDF76A2-C82A-4D63-906A-5644AC457385}", id="public"),
+        pytest.param("CSIDL_USER_PROGRAM_FILES", "{5CD7AEE2-2219-4A67-B85D-6C9CE15660CB}", id="user_program_files"),
+    ],
+)
+def test_get_win_folder_via_ctypes_queries_known_folder(
+    mocker: MockerFixture, csidl_name: str, folder_guid: str
+) -> None:
+    _setup_ctypes_mocks(mocker)
+    dlls = {"ole32": MagicMock(), "shell32": MagicMock()}
+    mocker.patch.object(ctypes, "WinDLL", MagicMock(side_effect=dlls.__getitem__))
+    mocker.patch("ctypes.byref", side_effect=lambda x: x)
+    mocker.patch("ctypes.wintypes.LPWSTR", return_value=MagicMock(value=r"D:\Moved"))
+
+    try:
+        importlib.reload(windows)
+        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
+
+        result = fresh_fn(csidl_name)
+    finally:
+        _cleanup_ctypes_mocks()
+
+    assert (result, dlls["ole32"].CLSIDFromString.call_args[0][0]) == (r"D:\Moved", folder_guid)
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="mock-based flag inspection only runs on non-Windows")
@@ -432,12 +520,35 @@ def test_get_win_folder_from_registry_unknown() -> None:
         get_win_folder_from_registry("CSIDL_NOT_A_FOLDER")
 
 
+_NO_SHELL_FOLDER_VALUE: Final[set[str]] = {"CSIDL_PUBLIC", "CSIDL_USER_PROGRAM_FILES"}
+
+
 @pytest.mark.skipif(sys.platform == "win32", reason="on Windows the resolver reads the registry instead of raising")
-@pytest.mark.parametrize("csidl_name", sorted(_KNOWN_FOLDER_GUIDS))
+@pytest.mark.parametrize("csidl_name", sorted(_KNOWN_FOLDER_GUIDS.keys() - _NO_SHELL_FOLDER_VALUE))
 def test_get_win_folder_from_registry_knows_every_known_folder(csidl_name: str) -> None:
     # Reaching the platform guard proves the name is in the lookup table; a missing one raises ValueError instead.
     with pytest.raises(NotImplementedError):
         get_win_folder_from_registry(csidl_name)
+
+
+@pytest.mark.parametrize(
+    ("csidl_name", "env_var", "value", "expected"),
+    [
+        pytest.param("CSIDL_PUBLIC", "PUBLIC", r"C:\Users\Public", r"C:\Users\Public", id="public"),
+        pytest.param(
+            "CSIDL_USER_PROGRAM_FILES",
+            "LOCALAPPDATA",
+            r"C:\Users\Test\AppData\Local",
+            os.path.join(r"C:\Users\Test\AppData\Local", "Programs"),  # ruff:ignore[os-path-join]
+            id="user_program_files",
+        ),
+    ],
+)
+def test_get_win_folder_from_registry_falls_back_to_env_vars(
+    monkeypatch: pytest.MonkeyPatch, csidl_name: str, env_var: str, value: str, expected: str
+) -> None:
+    monkeypatch.setenv(env_var, value)
+    assert get_win_folder_from_registry(csidl_name) == expected
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="reads the live registry")
@@ -456,6 +567,7 @@ def test_get_win_folder_from_env_vars_knows_every_known_folder(
     monkeypatch.setenv("APPDATA", r"C:\Users\Test\AppData\Roaming")
     monkeypatch.setenv("LOCALAPPDATA", r"C:\Users\Test\AppData\Local")
     monkeypatch.setenv("ALLUSERSPROFILE", r"C:\ProgramData")
+    monkeypatch.setenv("PUBLIC", r"C:\Users\Public")
     assert get_win_folder_from_env_vars(csidl_name).startswith("C:")
 
 
@@ -472,6 +584,9 @@ def test_known_folder_guids_has_all_csidl_names() -> None:
         "CSIDL_DESKTOPDIRECTORY",
         "CSIDL_PROGRAMS",
         "CSIDL_COMMON_PROGRAMS",
+        "CSIDL_TEMPLATES",
+        "CSIDL_PUBLIC",
+        "CSIDL_USER_PROGRAM_FILES",
     }
     assert set(_KNOWN_FOLDER_GUIDS.keys()) == expected
 
@@ -501,6 +616,9 @@ def test_pick_get_win_folder_ctypes(mocker: MockerFixture) -> None:
         pytest.param("CSIDL_MYMUSIC", "MYMUSIC", id="mymusic"),
         pytest.param("CSIDL_DESKTOPDIRECTORY", "DESKTOPDIRECTORY", id="desktop"),
         pytest.param("CSIDL_PROGRAMS", "PROGRAMS", id="programs"),
+        pytest.param("CSIDL_TEMPLATES", "TEMPLATES", id="templates"),
+        pytest.param("CSIDL_PUBLIC", "PUBLIC", id="public"),
+        pytest.param("CSIDL_USER_PROGRAM_FILES", "USER_PROGRAM_FILES", id="user_program_files"),
     ],
 )
 def test_get_win_folder_override(monkeypatch: pytest.MonkeyPatch, csidl_name: str, env_suffix: str) -> None:
