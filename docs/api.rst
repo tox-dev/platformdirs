@@ -360,6 +360,9 @@ Unix (Linux)
     :members:
     :show-inheritance:
 
+.. autoexception:: platformdirs.RuntimeDirWarning
+    :show-inheritance:
+
 Windows
 =======
 

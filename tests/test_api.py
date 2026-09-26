@@ -282,27 +282,28 @@ _POSIX_ONLY: Final = pytest.mark.skipif(sys.platform == "win32", reason="Windows
 
 
 @pytest.fixture
-def home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> Path:
+def home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     # XDG variables only take POSIX absolute paths, so drive the Unix defaults through the home directory instead.
-    for var in ("XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "XDG_STATE_HOME", "XDG_RUNTIME_DIR"):
+    for var in ("XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "XDG_STATE_HOME"):
         monkeypatch.delenv(var, raising=False)
     for var in ("HOME", "USERPROFILE"):
         monkeypatch.setenv(var, str(tmp_path / "home"))
-    mocker.patch("os.access", return_value=False)
-    mocker.patch("tempfile.tempdir", str(tmp_path / "home" / "tmp"))
+    # The runtime directory has no home default, and a missing XDG_RUNTIME_DIR is accepted as is. On Windows the
+    # drive-less POSIX path resolves against the current drive.
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", (tmp_path / "home" / "run").as_posix().removeprefix(tmp_path.drive))
     return tmp_path / "home"
 
 
 @pytest.fixture
-def user_dirs(home: Path, mocker: MockerFixture) -> dict[str, Path]:
-    mocker.patch("platformdirs.unix.getuid", return_value=(uid := home.parent.stat().st_uid))
+def user_dirs(home: Path) -> dict[str, Path]:
     return {
         "config": home / ".config" / "app",
         "data": home / ".local" / "share" / "app",
         "cache": home / ".cache" / "app",
         "state": home / ".local" / "state" / "app",
         "log": home / ".local" / "state" / "app" / "log",
-        "runtime": home / "tmp" / f"runtime-{uid}" / "app",
+        "runtime": Path(os.environ["XDG_RUNTIME_DIR"], "app"),
     }
 
 
@@ -394,6 +395,11 @@ def test_place_file_rejected_name_creates_nothing(home: Path) -> None:
 
 _SUFFIXES: Final = [pytest.param("file", id="file"), pytest.param("files", id="files")]
 _MISSING: Final = [pytest.param("file", None, id="file"), pytest.param("files", [], id="files")]
+# Unix checks the owner of an existing XDG_RUNTIME_DIR against getuid, which Windows lacks.
+_EXISTING_KINDS: Final = [
+    *(pytest.param(kind, id=kind) for kind in ("config", "data", "cache", "state", "log")),
+    pytest.param("runtime", id="runtime", marks=_POSIX_ONLY),
+]
 
 
 @pytest.fixture
@@ -415,7 +421,9 @@ def config_paths(dirs: Unix) -> list[Path]:
 
 @pytest.fixture
 def user_file(dirs: Unix, kind: str) -> Path:
-    return _touch(next(getattr(dirs, f"iter_{kind}_paths")()) / "app.toml")
+    # An existing XDG_RUNTIME_DIR is only used with mode 0o700, which place_runtime_file creates it with.
+    (path := getattr(dirs, f"place_{kind}_file")("app.toml")).touch()
+    return path
 
 
 def _touch(path: Path) -> Path:
@@ -424,12 +432,12 @@ def _touch(path: Path) -> Path:
     return path
 
 
-@pytest.mark.parametrize("kind", _KINDS)
+@pytest.mark.parametrize("kind", _EXISTING_KINDS)
 def test_find_file_returns_user_file(dirs: Unix, kind: str, user_file: Path) -> None:
     assert getattr(dirs, f"find_{kind}_file")("app.toml") == user_file
 
 
-@pytest.mark.parametrize("kind", _KINDS)
+@pytest.mark.parametrize("kind", _EXISTING_KINDS)
 def test_find_files_lists_user_file_once(dirs: Unix, kind: str, user_file: Path) -> None:
     assert getattr(dirs, f"find_{kind}_files")("app.toml") == [user_file]
 

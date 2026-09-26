@@ -1,0 +1,2 @@
+Emit :class:`~platformdirs.RuntimeDirWarning` when the Unix :func:`~platformdirs.user_runtime_dir` falls back from
+``XDG_RUNTIME_DIR``.
