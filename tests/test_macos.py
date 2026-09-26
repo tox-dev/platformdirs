@@ -91,7 +91,7 @@ def test_macos(home: str, params: dict[str, Any], func: str) -> None:
         "user_publicshare_dir": f"{home}/Public",
         "user_templates_dir": f"{home}/Templates",
         "user_fonts_dir": f"{home}/Library/Fonts",
-        "user_preference_dir": f"{home}/Library/Preferences{suffix}",
+        "user_preference_dir": f"{home}/Library/Application Support{suffix}",
         "user_bin_dir": f"{home}/.local/bin",
         "site_bin_dir": "/usr/local/bin",
         "user_applications_dir": f"{home}/Applications",
@@ -186,6 +186,7 @@ def test_multipath_reaches_the_module_function(mocker: MockerFixture, name: str,
     [
         pytest.param("XDG_DATA_HOME", "user_data_dir", "/custom/data", id="user_data_dir"),
         pytest.param("XDG_CONFIG_HOME", "user_config_dir", "/custom/config", id="user_config_dir"),
+        pytest.param("XDG_CONFIG_HOME", "user_preference_dir", "/custom/config", id="user_preference_dir"),
         pytest.param("XDG_CACHE_HOME", "user_cache_dir", "/custom/cache", id="user_cache_dir"),
         pytest.param("XDG_STATE_HOME", "user_state_dir", "/custom/state", id="user_state_dir"),
         pytest.param("XDG_RUNTIME_DIR", "user_runtime_dir", "/custom/runtime", id="user_runtime_dir"),
@@ -296,7 +297,7 @@ def test_macos_xdg_empty_falls_back(monkeypatch: pytest.MonkeyPatch, home: str, 
         "user_publicshare_dir": f"{home}/Public",
         "user_templates_dir": f"{home}/Templates",
         "user_fonts_dir": f"{home}/Library/Fonts",
-        "user_preference_dir": f"{home}/Library/Preferences",
+        "user_preference_dir": f"{home}/Library/Application Support",
         "user_bin_dir": f"{home}/.local/bin",
         "site_bin_dir": "/usr/local/bin",
         "user_applications_dir": f"{home}/Applications",
@@ -555,6 +556,19 @@ def test_macos_ensure_exists_preexisting_dir(mocker: MockerFixture, tmp_path: Pa
     # Calling again with an already-existing directory must not raise.
     second = dirs.user_data_dir
     assert first == second
+
+
+@pytest.mark.usefixtures("_clear_xdg_env")
+def test_macos_ensure_exists_keeps_preference_dir_out_of_library_preferences(
+    mocker: MockerFixture, tmp_path: Path
+) -> None:
+    mocker.patch("platformdirs.macos.os.path.expanduser", lambda p: str(tmp_path / p.lstrip("~/")))
+    preference_dir = Path(MacOS(appname="foo", ensure_exists=True).user_preference_dir)
+    assert sorted(tmp_path.rglob("*")) == [
+        tmp_path / "Library",
+        tmp_path / "Library/Application Support",
+        preference_dir,
+    ]
 
 
 @pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")

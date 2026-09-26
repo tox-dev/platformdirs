@@ -23,9 +23,8 @@ dir that sits alongside their documents, music, and photos.
 
 Within app dirs, the next question is whether the data is essential. If it can be regenerated, use ``cache`` (fast
 lookups) or ``runtime`` (session-only sockets and PIDs). If it is important but not critical, use ``state`` (window
-positions, recent files). For settings use ``config``; on macOS, ``preference`` gives you the separate
-``~/Library/Preferences`` location that Apple convention expects. Use ``data`` for everything else that must survive app
-updates.
+positions, recent files). For settings use ``config``, which ``preference`` aliases. Use ``data`` for everything else
+that must survive app updates.
 
 Within media dirs, pick the folder that matches the file's type from the user's perspective — not what your app does
 with it. A font your app installs for the user goes in ``fonts``, not ``data``.
@@ -43,7 +42,6 @@ with it. A font your app installs for the user goes in ``fonts``, not ``data``.
         E -- No --> STATE[state dir]
         C -- No --> F{What kind?}
         F -- Settings / options --> CONFIG[config dir]
-        F -- macOS preferences --> PREF[preference dir]
         F -- Log file --> LOG[log dir]
         F -- Everything else --> DATA[data dir]
 
@@ -275,18 +273,12 @@ Fonts
  Preference directory
 **********************
 
-``user_preference_dir`` is meaningful mainly on macOS, where Apple's conventions distinguish two separate locations:
-
-- ``~/Library/Application Support/AppName`` — long-term application data, databases, plug-ins
-- ``~/Library/Preferences/AppName`` — user-adjustable preference files (historically ``.plist``)
-
-On Linux and Windows, ``user_preference_dir`` is an alias for ``user_config_dir`` — the XDG and Windows conventions make
-no such distinction. On Android, it also aliases ``user_config_dir``.
-
-Use ``user_preference_dir`` when you specifically need to follow Apple's `File System Programming Guide
-<https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html>`_
-and store preference files in ``~/Library/Preferences``. For most cross-platform applications ``user_config_dir`` is
-sufficient.
+``user_preference_dir`` returns the same directory as ``user_config_dir`` on every platform, so on macOS it is
+``~/Library/Application Support/AppName``. Apple's `File System Programming Guide
+<https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/MacOSXDirectories/MacOSXDirectories.html>`_
+reserves ``~/Library/Preferences`` for ``NSUserDefaults`` and says "You should never create files in this directory
+yourself". Write your own preference files to ``user_preference_dir``, and use ``NSUserDefaults`` or an equivalent
+system interface for values that belong in the macOS defaults system.
 
 **************************
  User vs site directories

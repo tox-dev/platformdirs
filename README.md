@@ -49,7 +49,7 @@ user_config_path("MyApp", "MyCompany")  # returns pathlib.Path
 
 - **Data**: Persistent application data (`user_data_dir`, `site_data_dir`)
 - **Config**: Configuration files and settings (`user_config_dir`, `site_config_dir`)
-- **Preference**: User preferences, distinct from config on macOS (`user_preference_dir`)
+- **Preference**: User preferences, same directory as config (`user_preference_dir`)
 - **Cache**: Cached data that can be regenerated (`user_cache_dir`, `site_cache_dir`)
 - **State**: Non-essential runtime state like window positions (`user_state_dir`, `site_state_dir`)
 - **Logs**: Log files (`user_log_dir`, `site_log_dir`)

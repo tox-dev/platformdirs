@@ -157,8 +157,8 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def user_preference_dir(self) -> str:
-        """Preference directory tied to the user, e.g. ``~/Library/Preferences/AppName``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/Library/Preferences"))  # ruff:ignore[os-path-expanduser]  # API returns str, not Path
+        """Preference directory tied to the user, same as `user_config_dir`, because Apple reserves ``~/Library/Preferences`` for ``NSUserDefaults``."""
+        return self.user_config_dir
 
     @property
     def user_bin_dir(self) -> str:

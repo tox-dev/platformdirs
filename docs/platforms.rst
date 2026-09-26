@@ -540,10 +540,10 @@ Derived from ``$XDG_DATA_HOME/fonts`` on Linux (no dedicated env var). See the `
 
 See also: :ref:`api:User preference directory`
 
-On macOS, ``~/Library/Preferences`` is distinct from ``~/Library/Application Support`` (``user_config_dir``). See
-`Apple's File System Programming Guide
-<https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html>`_.
-On all other platforms, this aliases ``user_config_dir``.
+This aliases ``user_config_dir`` on every platform. On macOS it stays out of ``~/Library/Preferences``, where `Apple's
+File System Programming Guide
+<https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/MacOSXDirectories/MacOSXDirectories.html>`_
+says apps should never create files themselves.
 
 .. tab-set::
 
@@ -555,7 +555,7 @@ On all other platforms, this aliases ``user_config_dir``.
     .. tab-item:: macOS
        :sync: macos
 
-       ``~/Library/Preferences/AppName`` (distinct from ``~/Library/Application Support``)
+       Same as ``user_config_dir`` (``~/Library/Application Support/AppName``)
 
     .. tab-item:: Windows
        :sync: windows

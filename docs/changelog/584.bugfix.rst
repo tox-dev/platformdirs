@@ -1,0 +1,2 @@
+Return the ``user_config_dir`` path from the macOS :func:`~platformdirs.user_preference_dir`, so ``ensure_exists`` stops
+creating folders in ``~/Library/Preferences``.
