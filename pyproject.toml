@@ -50,6 +50,7 @@ urls.Documentation = "https://platformdirs.readthedocs.io"
 urls.Homepage = "https://github.com/tox-dev/platformdirs"
 urls.Source = "https://github.com/tox-dev/platformdirs"
 urls.Tracker = "https://github.com/tox-dev/platformdirs/issues"
+entry-points.pytest11.platformdirs = "platformdirs.pytest_plugin"
 
 [dependency-groups]
 dev = [

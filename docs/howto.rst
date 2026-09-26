@@ -173,9 +173,12 @@ The same pattern works with :meth:`~platformdirs.api.PlatformDirsABC.iter_data_p
 Testing code that uses platformdirs
 ===================================
 
-Use ``monkeypatch`` or ``tmp_path`` to override directories in tests:
+Wrap the test in :func:`platformdirs.testing.isolated_dirs` to resolve every directory under a temporary root, so the
+test never reads or writes the real home and system folders:
 
 .. code-block:: python
+
+    import json
 
     from platformdirs import PlatformDirs
 
@@ -189,30 +192,35 @@ Use ``monkeypatch`` or ``tmp_path`` to override directories in tests:
 .. code-block:: python
 
     # test_my_app.py
-    import json
-    from unittest.mock import MagicMock
+    from platformdirs import PlatformDirs
+    from platformdirs.testing import isolated_dirs
 
 
     def test_loads_config(tmp_path):
-        config_file = tmp_path / "config.json"
-        config_file.write_text('{"theme": "dark"}')
+        with isolated_dirs(tmp_path):
+            config_file = (
+                PlatformDirs("MyApp", ensure_exists=True).user_config_path / "config.json"
+            )
+            config_file.write_text('{"theme": "dark"}')
 
-        dirs = MagicMock()
-        dirs.user_config_path = tmp_path
+            assert my_app_init(PlatformDirs("MyApp")) == {"theme": "dark"}
 
-        result = my_app_init(dirs)
-        assert result == {"theme": "dark"}
-
-Alternatively, monkeypatch the standalone functions:
+With pytest, request the ``platformdirs_isolated`` fixture instead. platformdirs registers it as a pytest plugin; it
+isolates under ``tmp_path`` and yields the root:
 
 .. code-block:: python
 
-    def test_data_dir(monkeypatch, tmp_path):
-        monkeypatch.setattr("platformdirs.user_data_dir", lambda *a, **kw: str(tmp_path))
+    def test_loads_config(platformdirs_isolated):
+        config_file = (
+            PlatformDirs("MyApp", ensure_exists=True).user_config_path / "config.json"
+        )
+        config_file.write_text('{"theme": "dark"}')
 
-        from platformdirs import user_data_dir
+        assert my_app_init(PlatformDirs("MyApp")) == {"theme": "dark"}
 
-        assert user_data_dir("MyApp") == str(tmp_path)
+Each kind lands in ``<root>/<kind>``, for example ``<root>/user_config/MyApp``, and the module-level functions follow
+the same layout. The redirection covers :data:`~platformdirs.PlatformDirs` in the current process only: a subprocess, or
+another platform class such as :class:`~platformdirs.unix.Unix` on macOS, still resolves the real directories.
 
 Overriding directories with environment variables
 =================================================
