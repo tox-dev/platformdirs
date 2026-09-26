@@ -262,14 +262,23 @@ Fonts
 - **macOS**: ``~/Library/Fonts``
 - **Windows**: ``%LOCALAPPDATA%\Microsoft\Windows\Fonts`` — the per-user font location added in Windows 10
 
+On Windows, copying a font file there does not make it available to processes started later in the same session. Load it
+with `AddFontResourceW <https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-addfontresourcew>`_, which
+adds it for the current session only.
+
 .. code-block:: python
 
     import shutil
+    import sys
     from platformdirs import user_fonts_path
 
     font_dir = user_fonts_path()
     font_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy("MyFont.ttf", font_dir / "MyFont.ttf")
+    font = shutil.copy("MyFont.ttf", font_dir / "MyFont.ttf")
+    if sys.platform == "win32":
+        import ctypes
+
+        ctypes.windll.gdi32.AddFontResourceW(str(font))
 
 **********************
  Preference directory
