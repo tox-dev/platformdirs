@@ -6,7 +6,7 @@
 [![Downloads](https://static.pepy.tech/badge/platformdirs/month)](https://pepy.tech/project/platformdirs)
 
 A Python package for determining platform-specific directories (e.g. user data, config, cache, logs). Handles the
-differences between macOS, Windows, Linux/Unix, and Android so you don't have to.
+differences between macOS, Windows, Linux/Unix, Android, and iOS so you don't have to.
 
 ## Quick start
 

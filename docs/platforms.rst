@@ -5,7 +5,8 @@
 ``platformdirs`` auto-detects the current platform and returns the correct directory paths. This page describes the
 default paths for each platform and any platform-specific behavior.
 
-All examples below assume ``appname="SuperApp"`` and ``appauthor="Acme"`` unless stated otherwise.
+All examples below assume ``appname="SuperApp"`` and ``appauthor="Acme"`` unless stated otherwise. On iOS, ``~`` is the
+app's data container.
 
 ******************
  User directories
@@ -40,6 +41,11 @@ See also: :ref:`api:User data directory`
 
        ``/data/data/<pkg>/files/SuperApp``
 
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Library/Application Support/SuperApp``
+
 ``user_config_dir``
 ===================
 
@@ -66,6 +72,11 @@ See also: :ref:`api:User config directory`
        :sync: android
 
        ``/data/data/<pkg>/shared_prefs/SuperApp``
+
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Library/Application Support/SuperApp``
 
 ``user_cache_dir``
 ==================
@@ -94,6 +105,11 @@ See also: :ref:`api:User cache directory`
 
        ``/data/data/<pkg>/cache/SuperApp``
 
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Library/Caches/SuperApp``
+
 ``user_state_dir``
 ==================
 
@@ -120,6 +136,11 @@ See also: :ref:`api:User state directory`
        :sync: android
 
        ``/data/data/<pkg>/files/SuperApp``
+
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Library/Application Support/SuperApp``
 
 ``user_log_dir``
 ================
@@ -148,6 +169,11 @@ See also: :ref:`api:User log directory`
 
        ``/data/data/<pkg>/cache/SuperApp/log``
 
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Library/Logs/SuperApp``
+
 ``user_runtime_dir``
 ====================
 
@@ -175,6 +201,11 @@ See also: :ref:`api:User runtime directory`
 
        ``/data/data/<pkg>/cache/SuperApp/tmp``
 
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/tmp/SuperApp``
+
 ``user_applications_dir``
 =========================
 
@@ -201,6 +232,11 @@ See also: :ref:`api:User applications directory`
        :sync: android
 
        Same as ``user_data_dir``
+
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Applications``
 
 .. note::
 
@@ -233,6 +269,11 @@ See also: :ref:`api:User binary directory`
        :sync: android
 
        ``/data/data/<pkg>/files/bin``
+
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/.local/bin``
 
 .. note::
 
@@ -272,6 +313,11 @@ absolute path.
 
        ``/storage/emulated/0/Documents``
 
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Documents``
+
 ``user_downloads_dir``
 ======================
 
@@ -298,6 +344,11 @@ See also: :ref:`api:User downloads directory`
        :sync: android
 
        ``/storage/emulated/0/Download``
+
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Documents/Downloads``
 
 ``user_pictures_dir``
 =====================
@@ -326,6 +377,11 @@ See also: :ref:`api:User pictures directory`
 
        ``/storage/emulated/0/Pictures``
 
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Documents/Pictures``
+
 ``user_videos_dir``
 ===================
 
@@ -352,6 +408,11 @@ See also: :ref:`api:User videos directory`
        :sync: android
 
        ``/storage/emulated/0/Movies``
+
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Documents/Movies``
 
 ``user_music_dir``
 ==================
@@ -380,6 +441,11 @@ See also: :ref:`api:User music directory`
 
        ``/storage/emulated/0/Music``
 
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Documents/Music``
+
 ``user_desktop_dir``
 ====================
 
@@ -406,6 +472,11 @@ See also: :ref:`api:User desktop directory`
        :sync: android
 
        ``/storage/emulated/0/Documents/Desktop``
+
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Documents/Desktop``
 
 ``user_projects_dir``
 =====================
@@ -438,6 +509,11 @@ to xdg-user-dirs).
        :sync: android
 
        ``/storage/emulated/0/Documents/Projects``
+
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Documents/Projects``
 
 ``user_publicshare_dir``
 ========================
@@ -472,6 +548,11 @@ per-user directory. See `FOLDERID_Public <https://learn.microsoft.com/en-us/wind
 
        ``/storage/emulated/0/Documents/Public``
 
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Documents/Public``
+
 ``user_templates_dir``
 ======================
 
@@ -504,6 +585,11 @@ platform-defined templates directory; ``~/Templates`` is returned as a pragmatic
 
        ``/storage/emulated/0/Documents/Templates``
 
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Documents/Templates``
+
 ``user_fonts_dir``
 ==================
 
@@ -535,6 +621,11 @@ Derived from ``$XDG_DATA_HOME/fonts`` on Linux (no dedicated env var). See the `
 
        ``/storage/emulated/0/Documents/fonts``
 
+    .. tab-item:: iOS
+       :sync: ios
+
+       ``~/Library/Fonts``
+
 ``user_preference_dir``
 =======================
 
@@ -564,6 +655,11 @@ On all other platforms, this aliases ``user_config_dir``.
 
     .. tab-item:: Android
        :sync: android
+
+       Same as ``user_config_dir``
+
+    .. tab-item:: iOS
+       :sync: ios
 
        Same as ``user_config_dir``
 
@@ -603,6 +699,11 @@ See also: :ref:`api:Shared data directory`
 
        ``/data/data/<pkg>/files/SuperApp``
 
+    .. tab-item:: iOS
+       :sync: ios
+
+       Same as ``user_data_dir``
+
 ``site_config_dir``
 ===================
 
@@ -629,6 +730,11 @@ See also: :ref:`api:Shared config directory`
        :sync: android
 
        ``/data/data/<pkg>/shared_prefs/SuperApp``
+
+    .. tab-item:: iOS
+       :sync: ios
+
+       Same as ``user_config_dir``
 
 ``site_cache_dir``
 ==================
@@ -657,6 +763,11 @@ See also: :ref:`api:Shared cache directory`
 
        ``/data/data/<pkg>/cache/SuperApp``
 
+    .. tab-item:: iOS
+       :sync: ios
+
+       Same as ``user_cache_dir``
+
 ``site_state_dir``
 ==================
 
@@ -683,6 +794,11 @@ See also: :ref:`api:Shared state directory`
        :sync: android
 
        ``/data/data/<pkg>/files/SuperApp``
+
+    .. tab-item:: iOS
+       :sync: ios
+
+       Same as ``user_state_dir``
 
 ``site_log_dir``
 ================
@@ -711,6 +827,11 @@ See also: :ref:`api:Shared log directory`
 
        ``/data/data/<pkg>/cache/SuperApp/log``
 
+    .. tab-item:: iOS
+       :sync: ios
+
+       Same as ``user_log_dir``
+
 ``site_runtime_dir``
 ====================
 
@@ -738,6 +859,11 @@ See also: :ref:`api:Shared runtime directory`
 
        ``/data/data/<pkg>/cache/SuperApp/tmp``
 
+    .. tab-item:: iOS
+       :sync: ios
+
+       Same as ``user_runtime_dir``
+
 ``site_applications_dir``
 =========================
 
@@ -762,6 +888,11 @@ See also: :ref:`api:Shared applications directory`
 
     .. tab-item:: Android
        :sync: android
+
+       Same as ``user_applications_dir``
+
+    .. tab-item:: iOS
+       :sync: ios
 
        Same as ``user_applications_dir``
 
@@ -794,6 +925,11 @@ See also: :ref:`api:Shared binary directory`
 
     .. tab-item:: Android
        :sync: android
+
+       Same as ``user_bin_dir``
+
+    .. tab-item:: iOS
+       :sync: ios
 
        Same as ``user_bin_dir``
 

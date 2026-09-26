@@ -25,6 +25,8 @@ if sys.platform == "win32":
     from platformdirs.windows import Windows as _Result
 elif sys.platform == "darwin":
     from platformdirs.macos import MacOS as _Result
+elif sys.platform == "ios":
+    from platformdirs.ios import IOS as _Result  # ruff:ignore[constant-imported-as-non-constant]  # a class, PEP 8 acronym
 else:
     from platformdirs.unix import Unix as _Result
 

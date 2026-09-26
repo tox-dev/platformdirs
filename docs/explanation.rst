@@ -281,7 +281,8 @@ Fonts
 - ``~/Library/Preferences/AppName`` — user-adjustable preference files (historically ``.plist``)
 
 On Linux and Windows, ``user_preference_dir`` is an alias for ``user_config_dir`` — the XDG and Windows conventions make
-no such distinction. On Android, it also aliases ``user_config_dir``.
+no such distinction. On Android, it also aliases ``user_config_dir``. On iOS it aliases ``user_config_dir`` as well,
+because Apple reserves ``Library/Preferences`` for ``NSUserDefaults``.
 
 Use ``user_preference_dir`` when you specifically need to follow Apple's `File System Programming Guide
 <https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html>`_
@@ -500,6 +501,21 @@ detected by the presence of the ``SHELL`` environment variable. In these environ
 Unix/XDG backend instead, including support for ``XDG_*`` environment variables.
 
 See :class:`platformdirs.android.Android` for the full API reference.
+
+iOS
+===
+
+On iOS, ``platformdirs`` follows the app container layout from Apple's `File System Programming Guide
+<https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html>`_.
+On iOS the home directory is the app's sandbox, so ``~`` is the app's data container and every path stays inside it.
+
+Data, config, state and preferences share ``~/Library/Application Support``. Caches go to ``~/Library/Caches``, which
+iOS leaves out of backups, and runtime files go to ``~/tmp``, which the system may purge while the app is not running.
+The container has ``Documents`` but no other media folder, so downloads, pictures and the rest are subfolders of
+``~/Documents``. An app has no system-wide directories, so each ``site_*_dir`` returns its ``user_*_dir``. ``XDG_*``
+environment variables have no effect.
+
+See :class:`platformdirs.ios.IOS` for the full API reference.
 
 *********************
  Real-world examples
