@@ -30,7 +30,10 @@ else:
 
 
 def _set_platform_dir_class() -> type[PlatformDirsABC]:
-    if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system":
+    # Every Android build of CPython has sys.getandroidapilevel, even in a process started with a cleared environment.
+    if hasattr(sys, "getandroidapilevel") or (
+        os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system"
+    ):
         if os.getenv("SHELL") or os.getenv("PREFIX"):
             return _Result
 
