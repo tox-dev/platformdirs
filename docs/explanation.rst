@@ -469,8 +469,10 @@ When ``multipath=True``, ``site_data_dir`` and ``site_config_dir`` return all pa
 
 Writing to ``site_*`` directories typically requires root privileges. Normal users can only read from these locations.
 
-**FreeBSD / OpenBSD / NetBSD**: ``user_runtime_dir`` falls back to ``/var/run/user/<uid>`` or ``/tmp/runtime-<uid>``
-when ``/run/user/<uid>`` does not exist.
+Without ``XDG_RUNTIME_DIR``, ``user_runtime_dir`` uses ``/run/user/<uid>``, or ``/var/run/user/<uid>`` on FreeBSD and
+NetBSD and ``/tmp/run/user/<uid>`` on OpenBSD. When that directory is not writable, it falls back to ``runtime-<uid>``
+in :func:`tempfile.gettempdir`, created with mode ``0700`` under ``ensure_exists``. It raises :exc:`PermissionError` if
+another user owns that fallback directory.
 
 .. note::
 
