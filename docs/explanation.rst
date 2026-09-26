@@ -414,6 +414,8 @@ The override variable name is ``WIN_PD_OVERRIDE_`` followed by the CSIDL suffix:
       - Desktop
     - - ``WIN_PD_OVERRIDE_PROGRAMS``
       - Applications (Start Menu Programs)
+    - - ``WIN_PD_OVERRIDE_COMMON_PROGRAMS``
+      - Site-wide applications (All Users Start Menu Programs)
 
 ``platformdirs`` ignores a blank value or one without both a drive and a root, such as ``\shared`` or ``D:appdata``.
 
