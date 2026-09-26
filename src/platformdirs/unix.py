@@ -10,7 +10,7 @@ from pathlib import Path
 from tempfile import gettempdir
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from ._xdg import XDGMixin, _xdg_dir
+from ._xdg import XDGMixin, _expand_user, _xdg_dir
 from .api import PlatformDirsABC
 
 if TYPE_CHECKING:
@@ -40,7 +40,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_data_dir(self) -> str:
         """Data directory tied to the user, e.g. ``~/.local/share/$appname/$version`` or ``$XDG_DATA_HOME/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/.local/share"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
+        return self._append_app_name_and_version(_expand_user("~/.local/share"), private=True)
 
     @property
     def _site_data_dirs(self) -> list[str]:
@@ -49,7 +49,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_config_dir(self) -> str:
         """Config directory tied to the user, e.g. ``~/.config/$appname/$version`` or ``$XDG_CONFIG_HOME/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/.config"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
+        return self._append_app_name_and_version(_expand_user("~/.config"), private=True)
 
     @property
     def _site_config_dirs(self) -> list[str]:
@@ -58,7 +58,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_cache_dir(self) -> str:
         """Cache directory tied to the user, e.g. ``~/.cache/$appname/$version`` or ``$XDG_CACHE_HOME/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/.cache"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
+        return self._append_app_name_and_version(_expand_user("~/.cache"), private=True)
 
     @property
     def site_cache_dir(self) -> str:
@@ -68,7 +68,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_state_dir(self) -> str:
         """State directory tied to the user, e.g. ``~/.local/state/$appname/$version`` or ``$XDG_STATE_HOME/$appname/$version``."""
-        return self._append_app_name_and_version(os.path.expanduser("~/.local/state"), private=True)  # ruff:ignore[os-path-expanduser]  # Path.expanduser raises on an unknown home
+        return self._append_app_name_and_version(_expand_user("~/.local/state"), private=True)
 
     @property
     def site_state_dir(self) -> str:
@@ -142,12 +142,12 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         if path := _get_user_dirs_folder(key):
             self._optionally_create_media_directory(path)
             return path
-        return os.path.expanduser(default)  # ruff:ignore[os-path-expanduser]
+        return _expand_user(default)
 
     @property
     def user_fonts_dir(self) -> str:
         """Fonts directory tied to the user, e.g. ``~/.local/share/fonts``."""
-        return f"{os.path.expanduser('~/.local/share')}/fonts"  # ruff:ignore[os-path-expanduser]  # API returns str, not Path
+        return f"{_expand_user('~/.local/share')}/fonts"
 
     @property
     def user_preference_dir(self) -> str:
@@ -157,7 +157,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_bin_dir(self) -> str:
         """Bin directory tied to the user, e.g. ``~/.local/bin``."""
-        return os.path.expanduser("~/.local/bin")  # ruff:ignore[os-path-expanduser]
+        return _expand_user("~/.local/bin")
 
     @property
     def site_bin_dir(self) -> str:
@@ -167,7 +167,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_applications_dir(self) -> str:
         """Applications directory tied to the user, e.g. ``~/.local/share/applications``."""
-        return os.path.join(os.path.expanduser("~/.local/share"), "applications")  # ruff:ignore[os-path-expanduser, os-path-join]
+        return f"{_expand_user('~/.local/share')}{os.sep}applications"
 
     @property
     def _site_applications_dirs(self) -> list[str]:
@@ -374,7 +374,7 @@ def _get_user_dirs_folder(key: str) -> str | None:
     See https://freedesktop.org/wiki/Software/xdg-user-dirs/.
 
     """
-    config_home = _xdg_dir("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")  # ruff:ignore[os-path-expanduser]
+    config_home = _xdg_dir("XDG_CONFIG_HOME") or _expand_user("~/.config")
     user_dirs_config_path = Path(config_home) / "user-dirs.dirs"
     if not user_dirs_config_path.exists():
         return None
@@ -390,7 +390,7 @@ def _get_user_dirs_folder(key: str) -> str | None:
 def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
     value = entry["bare"] if entry["quoted"] is None else entry["quoted"]
     if value == "$HOME" or value.startswith("$HOME/"):
-        prefix, value = os.path.expanduser("~"), value.removeprefix("$HOME")  # ruff:ignore[os-path-expanduser]
+        prefix, value = _expand_user("~"), value.removeprefix("$HOME")
     elif value.startswith("/"):
         prefix = ""
     else:

@@ -12,6 +12,9 @@ from platformdirs.ios import IOS
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
+    from types import ModuleType
+
+    from pytest_mock import MockerFixture
 
 
 @pytest.fixture
@@ -113,6 +116,17 @@ def test_ios_ensure_exists_creates_private(
 ) -> None:
     getattr(IOS("foo", ensure_exists=True), func)
     assert modes(container) == dict.fromkeys(created, 0o700)
+
+
+def test_ios_ensure_exists_without_home_creates_nothing(
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, pwd: ModuleType, tmp_path: Path
+) -> None:
+    monkeypatch.delenv("HOME", raising=False)
+    mocker.patch.object(pwd, "getpwuid", side_effect=KeyError("getpwuid(): uid not found"))
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(RuntimeError, match=r"^could not determine the home directory, refusing to create '~/"):
+        _ = IOS(appname="app", ensure_exists=True).user_data_dir
+    assert list(tmp_path.iterdir()) == []
 
 
 @pytest.mark.parametrize(

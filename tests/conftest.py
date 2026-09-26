@@ -9,6 +9,7 @@ import pytest
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
     from pathlib import Path
+    from types import ModuleType
 
     from _pytest.fixtures import SubRequest
     from pytest_mock import MockerFixture
@@ -107,3 +108,19 @@ def modes() -> Callable[[Path], dict[str, int]]:
         return {path.relative_to(root).as_posix(): stat.S_IMODE(path.stat().st_mode) for path in root.rglob("*")}
 
     return collect
+
+
+@pytest.fixture(params=[pytest.param(None, id="home-unset"), pytest.param("", id="home-empty")])
+def _unknown_home(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, pwd: ModuleType
+) -> None:
+    if request.param is None:
+        monkeypatch.delenv("HOME", raising=False)
+    else:
+        monkeypatch.setenv("HOME", request.param)
+    mocker.patch.object(pwd, "getpwuid", side_effect=KeyError("getpwuid(): uid not found"))
+
+
+@pytest.fixture
+def pwd() -> ModuleType:
+    return pytest.importorskip("pwd")
