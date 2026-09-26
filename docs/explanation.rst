@@ -368,8 +368,9 @@ XDG environment variables (``XDG_DATA_HOME``, ``XDG_CONFIG_HOME``, ``XDG_CACHE_H
 precedence over the macOS defaults when set. This allows users who prefer the XDG layout to override the default
 behavior.
 
-When `Homebrew <https://brew.sh>`_ is installed, ``site_data_dir`` and ``site_cache_dir`` include the Homebrew prefix as
-an additional path when ``multipath=True``.
+When Python comes from `Homebrew <https://brew.sh>`_, ``site_data_dir``, ``site_config_dir``, ``site_cache_dir`` and
+``site_state_dir`` return a path under the Homebrew prefix, such as ``/opt/homebrew/share/AppName``. With
+``multipath=True``, the first three also list the ``/Library`` path after it.
 
 See :class:`platformdirs.macos.MacOS` for the full API reference.
 
