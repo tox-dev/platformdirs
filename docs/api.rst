@@ -290,6 +290,17 @@ sources` for a practical example. The most specific directory comes first, and e
 
 See :class:`~platformdirs.api.PlatformDirsABC` for the full method documentation.
 
+*********
+ Testing
+*********
+
+See :ref:`howto:Testing code that uses platformdirs` for examples.
+
+.. autofunction:: platformdirs.testing.isolated_dirs
+
+The ``platformdirs_isolated`` pytest fixture runs a test inside ``isolated_dirs(tmp_path)`` and yields the root.
+platformdirs registers it through the ``pytest11`` entry point, and a test gets it only by requesting it.
+
 *************************
  Backwards compatibility
 *************************
