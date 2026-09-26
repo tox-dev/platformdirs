@@ -4,7 +4,7 @@
 
 ``platformdirs`` is a Python library for determining platform-specific system directories. Whether you need user data,
 configuration, cache, or log directories, ``platformdirs`` resolves the correct location for macOS, Windows, Linux/Unix,
-and Android.
+Android, and iOS.
 
 **********
  Features
@@ -16,7 +16,7 @@ and Android.
     .. grid-item-card:: Platform auto-detection
        :class-card: sd-border-0
 
-       Works on macOS, Windows, Linux, FreeBSD, OpenBSD, and Android -- no configuration needed.
+       Works on macOS, Windows, Linux, FreeBSD, OpenBSD, Android, and iOS -- no configuration needed.
 
     .. grid-item-card:: Convention-compliant
        :class-card: sd-border-0

@@ -328,6 +328,13 @@ Android
     :members:
     :show-inheritance:
 
+iOS
+===
+
+.. autoclass:: platformdirs.ios.IOS
+    :members:
+    :show-inheritance:
+
 macOS
 =====
 
