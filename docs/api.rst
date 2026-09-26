@@ -251,9 +251,9 @@ Shared applications directory
 
 See also: :ref:`platforms:\`\`site_applications_dir\`\``
 
-Where application launchers and shortcuts are registered system-wide — ``.desktop`` files in ``/usr/share/applications``
-on Linux, ``/Applications`` on macOS, or the All Users Start Menu on Windows. Applications installed here are available
-to all users.
+Where application launchers and shortcuts are registered system-wide — ``.desktop`` files in
+``/usr/local/share/applications`` on Linux, ``/Applications`` on macOS, or the All Users Start Menu on Windows.
+Applications installed here are available to all users.
 
 .. autofunction:: platformdirs.site_applications_dir
 
