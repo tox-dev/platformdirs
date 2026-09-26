@@ -509,6 +509,22 @@ def test_without_home_returns_unexpanded_path(dirs_class: type[Unix | MacOS], pr
     assert Path(getattr(dirs_class(appname="app"), prop)).parts[0] == "~"
 
 
+@pytest.mark.usefixtures("_unknown_home")
+@pytest.mark.parametrize("dirs_class", _HOME_DIRS_CLASSES)
+def test_place_file_without_home_creates_nothing(tmp_path: Path, dirs_class: type[Unix | MacOS]) -> None:
+    with pytest.raises(RuntimeError, match=r"^could not determine the home directory, refusing to create '~/"):
+        dirs_class(appname="app").place_config_file("app.toml")
+    assert not (tmp_path / "~").exists()
+
+
+def test_place_runtime_file_rejects_temp_fallback_of_other_owner(mocker: MockerFixture, runtime_temp_dir: Path) -> None:
+    owner: typing.Final = runtime_temp_dir.stat().st_uid
+    (runtime_temp_dir / f"runtime-{owner + 1}").mkdir()
+    mocker.patch("platformdirs.unix.getuid", return_value=owner + 1)
+    with pytest.raises(PermissionError, match=f"owned by uid {owner},"):
+        Unix(appname="foo").place_runtime_file("app.sock")
+
+
 @pytest.fixture
 def _home_relative_user_dirs(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)

@@ -1,0 +1,2 @@
+Add ``place_*_file`` methods that return a file path under a user directory and create its missing parents with mode
+``0o700``.
