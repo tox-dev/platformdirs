@@ -7,6 +7,12 @@
 .. towncrier release notes start
 
 *********************
+ 4.12.1 (2026-09-28)
+*********************
+
+- Avoid ``PytestAssertRewriteWarning`` when importing ``platformdirs`` before invoking pytest. :pr:`601`
+
+*********************
  4.12.0 (2026-09-26)
 *********************
 
