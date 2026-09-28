@@ -1,0 +1,1 @@
+Avoid ``PytestAssertRewriteWarning`` when importing ``platformdirs`` before invoking pytest.

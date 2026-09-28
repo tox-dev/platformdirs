@@ -5,6 +5,8 @@ auto-detects the current platform, and the :class:`~platformdirs.api.PlatformDir
 
 See <https://github.com/platformdirs/platformdirs> for details and usage.
 
+PYTEST_DONT_REWRITE: Applications may import platformdirs before starting pytest.
+
 """
 
 from __future__ import annotations
