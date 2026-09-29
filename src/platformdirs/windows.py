@@ -182,6 +182,11 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         return os.path.normpath(get_win_folder("CSIDL_COMMON_PROGRAMS"))
 
     @property
+    def site_applications_path(self) -> Path:
+        """Applications path shared by users. The ``multipath`` option is ignored on Windows."""
+        return Path(self.site_applications_dir)
+
+    @property
     def user_runtime_dir(self) -> str:
         r"""Runtime directory tied to the user, e.g. ``%USERPROFILE%\AppData\Local\Temp\$appauthor\$appname``."""
         path = os.path.normpath(os.path.join(get_win_folder("CSIDL_LOCAL_APPDATA"), "Temp"))  # ruff:ignore[os-path-join]

@@ -114,6 +114,23 @@ def test_windows(params: dict[str, Any], func: str) -> None:
     assert result == expected_map[func]
 
 
+@pytest.mark.parametrize("directory", ["Programs", "Programs;Shared"])
+@pytest.mark.parametrize("multipath", [False, True])
+@pytest.mark.parametrize("api", ["instance", "function"])
+def test_site_applications_path_preserves_directory(
+    tmp_path: Path, mocker: MockerFixture, directory: str, multipath: bool, api: str
+) -> None:
+    expected = tmp_path / directory
+    mocker.patch.dict(_WIN_FOLDERS, {"CSIDL_COMMON_PROGRAMS": str(expected)})
+    mocker.patch("platformdirs.PlatformDirs", Windows)
+    dirs = Windows(multipath=multipath)
+    assert dirs.site_applications_dir == str(expected)
+    result = (
+        dirs.site_applications_path if api == "instance" else platformdirs.site_applications_path(multipath=multipath)
+    )
+    assert result == expected
+
+
 @pytest.mark.parametrize(
     ("func", "csidl_name"),
     [
