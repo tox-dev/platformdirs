@@ -7,6 +7,13 @@
 .. towncrier release notes start
 
 *********************
+ 4.12.2 (2026-09-29)
+*********************
+
+- Keep ``os.pathsep`` in ``site_applications_path`` under ``multipath=True`` on platforms with one applications
+  directory. :pr:`604`
+
+*********************
  4.12.1 (2026-09-28)
 *********************
 

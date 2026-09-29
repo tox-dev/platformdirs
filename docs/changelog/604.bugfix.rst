@@ -1,1 +1,0 @@
-Keep ``os.pathsep`` in ``site_applications_path`` under ``multipath=True`` on platforms with one applications directory.
