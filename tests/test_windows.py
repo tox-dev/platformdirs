@@ -114,6 +114,12 @@ def test_windows(params: dict[str, Any], func: str) -> None:
     assert result == expected_map[func]
 
 
+def test_site_applications_path_multipath_keeps_pathsep(mocker: MockerFixture) -> None:
+    folder = rf"C:\ProgramData\Start{os.pathsep}Menu"
+    mocker.patch.dict(_WIN_FOLDERS, {"CSIDL_COMMON_PROGRAMS": folder})
+    assert Windows(multipath=True).site_applications_path == Path(folder)
+
+
 @pytest.mark.parametrize(
     ("func", "csidl_name"),
     [

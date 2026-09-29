@@ -51,9 +51,11 @@ def isolated_dirs(root: str | os.PathLike[str]) -> Iterator[Path]:
         )
         for name in PlatformDirsABC.__abstractmethods__
     }
-    # The *_path and iter_* accessors of the Unix and macOS site kinds read these lists instead of the *_dir property.
+    # Unix and macOS build the site lists from search paths; the base versions derive them from the redirected dirs.
     patches |= {
-        f"_site_{kind}_dirs": _redirect_site_list(base / f"site_{kind}") for kind in ("data", "config", "cache")
+        name: value
+        for name, value in vars(PlatformDirsABC).items()
+        if name.startswith("_site_") and name.endswith("_dirs")
     }
     cls = platformdirs.PlatformDirs
     saved = {name: vars(cls)[name] for name in patches if name in vars(cls)}
@@ -72,13 +74,6 @@ def isolated_dirs(root: str | os.PathLike[str]) -> Iterator[Path]:
 def _redirect(path: Path, *, app: bool, private: bool) -> property:
     def resolve(self: PlatformDirsABC) -> str:
         return self._append_app_name_and_version(str(path), private=private) if app else str(path)
-
-    return property(resolve)
-
-
-def _redirect_site_list(path: Path) -> property:
-    def resolve(self: PlatformDirsABC) -> list[str]:
-        return [self._join_app_name_and_version(str(path))]
 
     return property(resolve)
 

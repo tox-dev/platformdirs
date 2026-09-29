@@ -177,12 +177,6 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         self._optionally_create_directory(path, private=False)
         return Path(path)
 
-    def _first_item_as_path_if_multipath(self, directory: str) -> Path:
-        if self.multipath:
-            # If multipath is True, the first path is returned.
-            directory = directory.partition(os.pathsep)[0]
-        return Path(directory)
-
     @property
     @abstractmethod
     def user_data_dir(self) -> str:
@@ -195,7 +189,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def _site_data_dirs(self) -> list[str]:
-        raise NotImplementedError
+        return [self.site_data_dir]
 
     @property
     @abstractmethod
@@ -209,7 +203,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def _site_config_dirs(self) -> list[str]:
-        raise NotImplementedError
+        return [self.site_config_dir]
 
     @property
     @abstractmethod
@@ -220,6 +214,10 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
     @abstractmethod
     def site_cache_dir(self) -> str:
         """Cache directory shared by users."""
+
+    @property
+    def _site_cache_dirs(self) -> list[str]:
+        return [self.site_cache_dir]
 
     @property
     @abstractmethod
@@ -318,7 +316,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def _site_applications_dirs(self) -> list[str]:
-        raise NotImplementedError
+        return [self.site_applications_dir]
 
     @property
     @abstractmethod
@@ -337,8 +335,8 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def site_data_path(self) -> Path:
-        """Data path shared by users."""
-        return Path(self.site_data_dir)
+        """Data path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
+        return self._first_site_dir_as_path(self._site_data_dirs)
 
     @property
     def user_config_path(self) -> Path:
@@ -347,8 +345,8 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def site_config_path(self) -> Path:
-        """Config path shared by users."""
-        return Path(self.site_config_dir)
+        """Config path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
+        return self._first_site_dir_as_path(self._site_config_dirs)
 
     @property
     def user_cache_path(self) -> Path:
@@ -357,8 +355,8 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def site_cache_path(self) -> Path:
-        """Cache path shared by users."""
-        return Path(self.site_cache_dir)
+        """Cache path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
+        return self._first_site_dir_as_path(self._site_cache_dirs)
 
     @property
     def user_state_path(self) -> Path:
@@ -453,7 +451,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
     @property
     def site_applications_path(self) -> Path:
         """Applications path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
-        return self._first_item_as_path_if_multipath(self.site_applications_dir)
+        return Path(self._site_applications_dirs[0])
 
     @property
     def user_runtime_path(self) -> Path:
@@ -471,7 +469,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
     def _iter_config_dirs(self) -> Iterator[str]:
         yield self.user_config_dir
-        yield self.site_config_dir
+        yield from self._create_as_yielded(self._site_config_dirs)
 
     def iter_data_dirs(self) -> Iterator[str]:
         """:yield: all user and site data directories."""
@@ -479,7 +477,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
     def _iter_data_dirs(self) -> Iterator[str]:
         yield self.user_data_dir
-        yield self.site_data_dir
+        yield from self._create_as_yielded(self._site_data_dirs)
 
     def iter_cache_dirs(self) -> Iterator[str]:
         """:yield: all user and site cache directories."""
@@ -487,7 +485,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
     def _iter_cache_dirs(self) -> Iterator[str]:
         yield self.user_cache_dir
-        yield self.site_cache_dir
+        yield from self._create_as_yielded(self._site_cache_dirs)
 
     def iter_state_dirs(self) -> Iterator[str]:
         """:yield: all user and site state directories."""

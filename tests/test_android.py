@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
@@ -322,6 +323,13 @@ def test_android_applications_dir_function_takes_app_arguments(mocker: MockerFix
 def test_android_applications_path_function_takes_app_arguments(mocker: MockerFixture, func: str) -> None:
     mocker.patch("platformdirs.PlatformDirs", Android)
     assert getattr(platformdirs, func)(appname="foo", version="1.0") == Path(_SCOPED_APPLICATIONS_DIR)
+
+
+@pytest.mark.usefixtures("_example_android_folder")
+def test_android_site_applications_path_multipath_keeps_pathsep() -> None:
+    appname = f"foo{os.pathsep}bar"
+    expected = Path(f"/data/data/com.example/files/{appname}")
+    assert Android(appname=appname, multipath=True).site_applications_path == expected
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")

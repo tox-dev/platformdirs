@@ -175,12 +175,6 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     def _site_applications_dirs(self) -> list[str]:
         return [os.path.join(p, "applications") for p in ["/usr/local/share", "/usr/share"]]  # ruff:ignore[os-path-join]
 
-    @property
-    def site_applications_dir(self) -> str:
-        """Applications directory shared by users, e.g. ``/usr/local/share/applications``."""
-        dirs = self._site_applications_dirs
-        return os.pathsep.join(dirs) if self.multipath else dirs[0]
-
     def _default_runtime_dir(self) -> str:
         if sys.platform.startswith("openbsd"):
             path = f"/tmp/run/user/{getuid()}"  # ruff:ignore[hardcoded-temp-file]
@@ -221,16 +215,6 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         else:
             path = "/run"
         return self._append_app_name_and_version(path, private=False)
-
-    @property
-    def site_data_path(self) -> Path:
-        """Data path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
-        return self._first_site_dir_as_path(self._site_data_dirs)
-
-    @property
-    def site_config_path(self) -> Path:
-        """Config path shared by users, returns the first item, even if ``multipath`` is set to ``True``."""
-        return self._first_site_dir_as_path(self._site_config_dirs)
 
     def _iter_config_dirs(self) -> Iterator[str]:
         # Under multipath the user dir is an os.pathsep-joined string that no single site entry matches, so the
