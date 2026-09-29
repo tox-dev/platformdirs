@@ -468,7 +468,8 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         yield from _unique(self._iter_config_dirs())
 
     def _iter_config_dirs(self) -> Iterator[str]:
-        yield self.user_config_dir
+        if not self._use_site:
+            yield self.user_config_dir
         yield from self._create_as_yielded(self._site_config_dirs)
 
     def iter_data_dirs(self) -> Iterator[str]:
@@ -476,7 +477,8 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         yield from _unique(self._iter_data_dirs())
 
     def _iter_data_dirs(self) -> Iterator[str]:
-        yield self.user_data_dir
+        if not self._use_site:
+            yield self.user_data_dir
         yield from self._create_as_yielded(self._site_data_dirs)
 
     def iter_cache_dirs(self) -> Iterator[str]:
@@ -484,7 +486,8 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         yield from _unique(self._iter_cache_dirs())
 
     def _iter_cache_dirs(self) -> Iterator[str]:
-        yield self.user_cache_dir
+        if not self._use_site:
+            yield self.user_cache_dir
         yield from self._create_as_yielded(self._site_cache_dirs)
 
     def iter_state_dirs(self) -> Iterator[str]:
@@ -492,7 +495,8 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         yield from _unique(self._iter_state_dirs())
 
     def _iter_state_dirs(self) -> Iterator[str]:
-        yield self.user_state_dir
+        if not self._use_site:
+            yield self.user_state_dir
         yield self.site_state_dir
 
     def iter_log_dirs(self) -> Iterator[str]:
@@ -500,7 +504,8 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         yield from _unique(self._iter_log_dirs())
 
     def _iter_log_dirs(self) -> Iterator[str]:
-        yield self.user_log_dir
+        if not self._use_site:
+            yield self.user_log_dir
         yield self.site_log_dir
 
     def iter_runtime_dirs(self) -> Iterator[str]:
@@ -509,7 +514,15 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
     def _iter_runtime_dirs(self) -> Iterator[str]:
         yield self.user_runtime_dir
-        yield self.site_runtime_dir
+        # Root's user runtime dir is already the site one; site_runtime_dir reads the invoking user's XDG_RUNTIME_DIR.
+        if not self._use_site:
+            yield self.site_runtime_dir
+
+    @property
+    def _use_site(self) -> bool:
+        # Only Unix redirects root's user dirs to the site ones. The iterators then skip the user dir, since under
+        # multipath it is the joined site string that _unique cannot match against any single entry.
+        return False
 
     def iter_config_paths(self) -> Iterator[Path]:
         """:yield: all user and site configuration paths."""
