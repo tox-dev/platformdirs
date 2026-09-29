@@ -550,7 +550,7 @@ def test_macos_site_runtime_path(home: str) -> None:
 
 @pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
 def test_macos_ensure_exists_preexisting_dir(mocker: MockerFixture, tmp_path: Path) -> None:
-    mocker.patch("platformdirs.macos.os.path.expanduser", lambda p: str(tmp_path / p.lstrip("~/")))
+    mocker.patch("platformdirs._xdg.os.path.expanduser", lambda p: str(tmp_path / p.lstrip("~/")))
     dirs = MacOS(appname="foo", ensure_exists=True)
     first = dirs.user_data_dir
     assert Path(first).exists()

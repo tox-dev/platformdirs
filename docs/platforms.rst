@@ -886,9 +886,6 @@ See also: :ref:`api:Shared applications directory`
 
        ``C:\ProgramData\Microsoft\Windows\Start Menu\Programs``
 
-       ``site_applications_path`` returns this single directory unchanged, even with ``multipath=True``. Semicolons
-       in directory names are preserved.
-
     .. tab-item:: Android
        :sync: android
 
