@@ -10,13 +10,10 @@ import warnings
 from contextlib import suppress
 from pathlib import Path
 from tempfile import gettempdir
-from typing import TYPE_CHECKING, Final, NoReturn
+from typing import Final, NoReturn
 
 from ._xdg import XDGMixin, _expand_user, _xdg_dir
 from .api import PlatformDirsABC, RuntimeDirWarning
-
-if TYPE_CHECKING:
-    from collections.abc import Iterator
 
 if sys.platform == "win32":
 
@@ -215,38 +212,6 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         else:
             path = "/run"
         return self._append_app_name_and_version(path, private=False)
-
-    def _iter_config_dirs(self) -> Iterator[str]:
-        # Under multipath the user dir is an os.pathsep-joined string that no single site entry matches, so the
-        # dedupe in iter_config_dirs cannot drop it. Skip it here instead.
-        if not self._use_site:
-            yield self.user_config_dir
-        yield from self._create_as_yielded(self._site_config_dirs)
-
-    def _iter_data_dirs(self) -> Iterator[str]:
-        if not self._use_site:
-            yield self.user_data_dir
-        yield from self._create_as_yielded(self._site_data_dirs)
-
-    def _iter_cache_dirs(self) -> Iterator[str]:
-        if not self._use_site:
-            yield self.user_cache_dir
-        yield self.site_cache_dir
-
-    def _iter_state_dirs(self) -> Iterator[str]:
-        if not self._use_site:
-            yield self.user_state_dir
-        yield self.site_state_dir
-
-    def _iter_log_dirs(self) -> Iterator[str]:
-        if not self._use_site:
-            yield self.user_log_dir
-        yield self.site_log_dir
-
-    def _iter_runtime_dirs(self) -> Iterator[str]:
-        yield self.user_runtime_dir
-        if not self._use_site:
-            yield self.site_runtime_dir
 
 
 class Unix(XDGMixin, _UnixDefaults):
