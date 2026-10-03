@@ -7,6 +7,14 @@
 .. towncrier release notes start
 
 *********************
+ 4.12.3 (2026-10-03)
+*********************
+
+- Place files from ``place_config_file`` and ``place_data_file`` in the first site directory for root on Unix with
+  ``use_site_for_root=True`` and ``multipath=True``, where ``find_config_file`` and ``find_data_file`` look for them.
+  :pr:`607`
+
+*********************
  4.12.2 (2026-09-29)
 *********************
 
