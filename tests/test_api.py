@@ -334,6 +334,45 @@ def test_place_file_accepts_path_like() -> None:
 
 
 @_POSIX_ONLY
+@pytest.mark.parametrize("kind", ["config", "data"])
+@pytest.mark.parametrize("uid", [0, 1000])
+@pytest.mark.parametrize("use_site_for_root", [True, False])
+@pytest.mark.parametrize("multipath", [True, False])
+@pytest.mark.parametrize("ensure_exists", [True, False])
+def test_place_file_uses_one_directory(  # ruff:ignore[too-many-arguments]
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mocker: MockerFixture,
+    kind: str,
+    uid: int,
+    use_site_for_root: bool,
+    multipath: bool,
+    ensure_exists: bool,
+) -> None:
+    user, first, second = (tmp_path / name for name in ("user", "first", "second"))
+    monkeypatch.setenv(f"XDG_{kind.upper()}_HOME", str(user))
+    monkeypatch.setenv(f"XDG_{kind.upper()}_DIRS", os.pathsep.join(map(str, (first, second))))
+    mocker.patch("platformdirs.unix.getuid", return_value=uid)
+    dirs = Unix(
+        "app:plugin",
+        version="1.0",
+        multipath=multipath,
+        ensure_exists=ensure_exists,
+        use_site_for_root=use_site_for_root,
+    )
+    expected_base = first if uid == 0 and use_site_for_root else user
+    expected = expected_base / "app:plugin" / "1.0" / "sub" / "settings.toml"
+
+    result = getattr(dirs, f"place_{kind}_file")(Path("sub", "settings.toml"))
+
+    assert result == expected
+    assert result.parent.is_dir()
+    assert not result.exists()
+    assert not second.exists()
+    assert dirs.ensure_exists is ensure_exists
+
+
+@_POSIX_ONLY
 @pytest.mark.parametrize("ensure_exists", [pytest.param(False, id="lookup"), pytest.param(True, id="ensure-exists")])
 @pytest.mark.parametrize("kind", _KINDS)
 def test_place_file_creates_directories_private(

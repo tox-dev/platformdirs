@@ -566,11 +566,11 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         :raises RuntimeError: if the user directory starts with ``~`` because the home directory is unknown.
 
         """
-        return self._place_file(lambda dirs: dirs.user_config_dir, name)
+        return self._place_file(lambda dirs: str(dirs.user_config_path), name)
 
     def place_data_file(self, name: str | os.PathLike[str]) -> Path:
         """Like `place_config_file`, under `user_data_dir`."""
-        return self._place_file(lambda dirs: dirs.user_data_dir, name)
+        return self._place_file(lambda dirs: str(dirs.user_data_path), name)
 
     def place_cache_file(self, name: str | os.PathLike[str]) -> Path:
         """Like `place_config_file`, under `user_cache_dir`."""

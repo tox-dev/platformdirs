@@ -59,6 +59,9 @@ Directories that already exist keep their mode, and you write the file yourself:
 same for the matching ``user_*_dir``. A name that is empty, absolute, has a drive or climbs out with ``..`` raises
 :class:`ValueError`.
 
+With ``use_site_for_root=True`` on Unix, config and data files go under the first site directory when running as root,
+even with ``multipath=True``, matching ``user_config_path`` and ``user_data_path``.
+
 Handling write errors
 =====================
 
