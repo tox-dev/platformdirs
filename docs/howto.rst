@@ -42,7 +42,7 @@ Or use ``ensure_exists=True`` to create directories automatically:
 Placing a file in a user directory
 ==================================
 
-:meth:`~platformdirs.api.PlatformDirsABC.place_config_file` returns the path of a file under ``user_config_dir`` and
+:meth:`~platformdirs.api.PlatformDirsABC.place_config_file` returns the path of a file under ``user_config_path`` and
 creates the missing directories on the way with mode ``0o700``, as the `XDG base directory specification
 <https://specifications.freedesktop.org/basedir/latest/>`_ asks. The process umask still applies to that mode.
 Directories that already exist keep their mode, and you write the file yourself:
@@ -56,7 +56,7 @@ Directories that already exist keep their mode, and you write the file yourself:
     path.write_text('theme = "dark"\n', encoding="utf-8")
 
 ``place_data_file``, ``place_cache_file``, ``place_state_file``, ``place_log_file`` and ``place_runtime_file`` do the
-same for the matching ``user_*_dir``. A name that is empty, absolute, has a drive or climbs out with ``..`` raises
+same for the matching ``user_*_path``. A name that is empty, absolute, has a drive or climbs out with ``..`` raises
 :class:`ValueError`.
 
 Handling write errors
