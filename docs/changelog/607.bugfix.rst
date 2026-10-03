@@ -1,0 +1,2 @@
+Place files from ``place_config_file`` and ``place_data_file`` in the first site directory for root on Unix with
+``use_site_for_root=True`` and ``multipath=True``, where ``find_config_file`` and ``find_data_file`` look for them.

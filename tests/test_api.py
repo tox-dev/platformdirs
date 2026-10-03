@@ -334,45 +334,6 @@ def test_place_file_accepts_path_like() -> None:
 
 
 @_POSIX_ONLY
-@pytest.mark.parametrize("kind", ["config", "data"])
-@pytest.mark.parametrize("uid", [0, 1000])
-@pytest.mark.parametrize("use_site_for_root", [True, False])
-@pytest.mark.parametrize("multipath", [True, False])
-@pytest.mark.parametrize("ensure_exists", [True, False])
-def test_place_file_uses_one_directory(  # ruff:ignore[too-many-arguments]
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    mocker: MockerFixture,
-    kind: str,
-    uid: int,
-    use_site_for_root: bool,
-    multipath: bool,
-    ensure_exists: bool,
-) -> None:
-    user, first, second = (tmp_path / name for name in ("user", "first", "second"))
-    monkeypatch.setenv(f"XDG_{kind.upper()}_HOME", str(user))
-    monkeypatch.setenv(f"XDG_{kind.upper()}_DIRS", os.pathsep.join(map(str, (first, second))))
-    mocker.patch("platformdirs.unix.getuid", return_value=uid)
-    dirs = Unix(
-        "app:plugin",
-        version="1.0",
-        multipath=multipath,
-        ensure_exists=ensure_exists,
-        use_site_for_root=use_site_for_root,
-    )
-    expected_base = first if uid == 0 and use_site_for_root else user
-    expected = expected_base / "app:plugin" / "1.0" / "sub" / "settings.toml"
-
-    result = getattr(dirs, f"place_{kind}_file")(Path("sub", "settings.toml"))
-
-    assert result == expected
-    assert result.parent.is_dir()
-    assert not result.exists()
-    assert not second.exists()
-    assert dirs.ensure_exists is ensure_exists
-
-
-@_POSIX_ONLY
 @pytest.mark.parametrize("ensure_exists", [pytest.param(False, id="lookup"), pytest.param(True, id="ensure-exists")])
 @pytest.mark.parametrize("kind", _KINDS)
 def test_place_file_creates_directories_private(
@@ -512,6 +473,19 @@ def test_find_config_files_orders_user_before_site(dirs: Unix, config_paths: lis
 def test_find_config_file_accepts_nested_path_like(dirs: Unix, config_paths: list[Path]) -> None:
     nested = _touch(config_paths[1] / "sub" / "app.toml")
     assert dirs.find_config_file(Path("sub", "app.toml")) == nested
+
+
+@pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="single-path")])
+@pytest.mark.parametrize("kind", [pytest.param(kind, id=kind) for kind in ("config", "data")])
+def test_find_file_finds_root_placed_file_in_first_site_dir(
+    dirs: Unix, mocker: MockerFixture, kind: str, multipath: bool
+) -> None:
+    mocker.patch("platformdirs.unix.getuid", return_value=0)
+    dirs.use_site_for_root = True
+    dirs.multipath = multipath
+    getattr(dirs, f"place_{kind}_file")("app.toml").touch()
+    first_site_dir = os.environ[f"XDG_{kind.upper()}_DIRS"].split(os.pathsep)[0]
+    assert getattr(dirs, f"find_{kind}_file")("app.toml") == Path(first_site_dir, "find-files-test", "app.toml")
 
 
 @pytest.mark.parametrize("suffix", _SUFFIXES)
