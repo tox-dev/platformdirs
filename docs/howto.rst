@@ -45,7 +45,8 @@ Placing a file in a user directory
 :meth:`~platformdirs.api.PlatformDirsABC.place_config_file` returns the path of a file under ``user_config_path`` and
 creates the missing directories on the way with mode ``0o700``, as the `XDG base directory specification
 <https://specifications.freedesktop.org/basedir/latest/>`_ asks. The process umask still applies to that mode.
-Directories that already exist keep their mode, and you write the file yourself:
+Directories that already exist keep their mode, and you write the file yourself. As root with ``use_site_for_root`` on
+Unix, the user directory is the site one, which gets the default mode so other users can still read it:
 
 .. code-block:: python
 

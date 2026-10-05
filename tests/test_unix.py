@@ -1226,6 +1226,23 @@ def test_user_path_site_redirect(
     assert getattr(dirs, prop) == Path(base) / ("applications" if prop == "user_applications_path" else "foo/1.0")
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
+@pytest.mark.parametrize("uid", [pytest.param(0, id="root"), pytest.param(1000, id="user")], indirect=True)
+@pytest.mark.parametrize("kind", ["config", "data"])
+def test_place_file_with_use_site_for_root_keeps_site_dir_readable(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, uid: int, kind: str
+) -> None:
+    monkeypatch.setenv(f"XDG_{kind.upper()}_HOME", str(tmp_path / "user"))
+    monkeypatch.setenv(f"XDG_{kind.upper()}_DIRS", str(tmp_path / "site"))
+    getattr(Unix(appname="foo", use_site_for_root=True), f"place_{kind}_file")("sub/app.toml")
+    (reference := tmp_path / "reference").mkdir()
+    expected: typing.Final = stat.S_IMODE(reference.stat().st_mode) if uid == 0 else 0o700
+    created: typing.Final = (tmp_path / ("site" if uid == 0 else "user")).rglob("*")
+    assert {path.name: oct(stat.S_IMODE(path.stat().st_mode)) for path in created} == dict.fromkeys(
+        ["foo", "sub"], oct(expected)
+    )
+
+
 @pytest.fixture
 def uid(request: pytest.FixtureRequest, mocker: MockerFixture) -> int:
     value: typing.Final = typing.cast("int", request.param)
