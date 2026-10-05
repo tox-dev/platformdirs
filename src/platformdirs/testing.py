@@ -11,7 +11,7 @@ from platformdirs.api import PlatformDirsABC
 
 if TYPE_CHECKING:
     import os
-    from collections.abc import Iterator
+    from collections.abc import Generator
 
 _APP_KINDS: Final[frozenset[str]] = frozenset({
     "user_data",
@@ -31,7 +31,7 @@ _APP_KINDS: Final[frozenset[str]] = frozenset({
 
 
 @contextmanager
-def isolated_dirs(root: str | os.PathLike[str]) -> Iterator[Path]:
+def isolated_dirs(root: str | os.PathLike[str]) -> Generator[Path, None, None]:
     """Resolve every directory of :data:`~platformdirs.PlatformDirs` under ``root`` while the context is active.
 
     Each kind maps to ``<root>/<kind>``, where ``kind`` is the property name without ``_dir``, such as ``user_config``.
