@@ -1,2 +1,2 @@
-Warn and fall back from an unreachable ``XDG_RUNTIME_DIR`` under ``ensure_exists=True``, as without it, instead of
-raising the error from creating it.
+Make :func:`~platformdirs.user_runtime_dir` warn and fall back from an unreachable ``XDG_RUNTIME_DIR`` under
+:attr:`~platformdirs.api.PlatformDirsABC.ensure_exists` instead of raising.
