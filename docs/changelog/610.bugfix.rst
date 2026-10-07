@@ -1,2 +1,3 @@
-Create missing directories with the default mode in ``place_*_file`` for root on Unix with ``use_site_for_root=True``,
-so other users can still read the site directory instead of it becoming ``0700`` - by :user:`darrenhuai`.
+Keep site directories readable by other users when root calls
+:meth:`~platformdirs.api.PlatformDirsABC.place_config_file` or another ``place_*_file`` method with
+:attr:`~platformdirs.api.PlatformDirsABC.use_site_for_root` - by :user:`darrenhuai`.
