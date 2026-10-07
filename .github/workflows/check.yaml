@@ -86,6 +86,14 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Download coverage data
+        id: coverage-data
+        background: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          path: .tox
+          pattern: .coverage.*
+          merge-multiple: true
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
@@ -98,12 +106,7 @@ jobs:
         run: tox -e coverage --notest
         env:
           UV_PYTHON_PREFERENCE: only-managed
-      - name: Download coverage data
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          path: .tox
-          pattern: .coverage.*
-          merge-multiple: true
+      - wait: coverage-data
       - name: Combine and report coverage
         run: tox -e coverage --skip-pkg-install
         env:
