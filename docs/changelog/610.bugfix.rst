@@ -1,3 +1,0 @@
-Keep site directories readable by other users when root calls
-:meth:`~platformdirs.api.PlatformDirsABC.place_config_file` or another ``place_*_file`` method with
-:attr:`~platformdirs.api.PlatformDirsABC.use_site_for_root` - by :user:`darrenhuai`.

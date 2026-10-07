@@ -7,6 +7,16 @@
 .. towncrier release notes start
 
 *********************
+ 4.12.4 (2026-10-07)
+*********************
+
+- Keep site directories readable by other users when root calls
+  :meth:`~platformdirs.api.PlatformDirsABC.place_config_file` or another ``place_*_file`` method with
+  :attr:`~platformdirs.api.PlatformDirsABC.use_site_for_root` - by :user:`darrenhuai`. :pr:`610`
+- Make :func:`~platformdirs.user_runtime_dir` warn and fall back from an unreachable ``XDG_RUNTIME_DIR`` under
+  :attr:`~platformdirs.api.PlatformDirsABC.ensure_exists` instead of raising. :pr:`611`
+
+*********************
  4.12.3 (2026-10-03)
 *********************
 
