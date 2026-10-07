@@ -559,8 +559,8 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
         Each directory it creates, including the user directory itself, gets mode ``0o700`` whether or not
         `ensure_exists` is set; directories that already exist keep their mode. On Unix, root with `use_site_for_root`
-        places the file in the site directory instead, and creates it with the default mode like any site directory.
-        It does not create the file.
+        places the file in the site directory instead, and creates it with the default mode like any site directory. It
+        does not create the file.
 
         :param name: file path relative to the user directory, e.g. ``"sub/app.toml"``.
 
