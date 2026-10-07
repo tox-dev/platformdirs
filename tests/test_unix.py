@@ -472,17 +472,19 @@ def test_runtime_dir_xdg_runtime_dir_of_other_user_warns(
 
 @_POSIX_ONLY
 @pytest.mark.usefixtures("runtime_uid")
+@pytest.mark.parametrize("ensure_exists", [False, True])
 def test_runtime_dir_unreachable_xdg_runtime_dir_warns(
-    runtime_temp_dir: Path, temp_dir: Path, monkeypatch: pytest.MonkeyPatch
+    runtime_temp_dir: Path, temp_dir: Path, monkeypatch: pytest.MonkeyPatch, ensure_exists: bool
 ) -> None:
     (blocker := runtime_temp_dir / "blocker").touch()
     monkeypatch.setenv("XDG_RUNTIME_DIR", str(blocker / "session"))
     with pytest.warns(RuntimeDirWarning) as record:
-        _ = Unix(appname="app").user_runtime_dir
+        assert Unix(appname="app", ensure_exists=ensure_exists).user_runtime_dir == str(temp_dir / "app")
     expected: typing.Final = (
         f"XDG_RUNTIME_DIR {blocker / 'session'} cannot be checked: Not a directory, falling back to {temp_dir}"
     )
     assert [str(warning.message) for warning in record] == [expected]
+    assert (temp_dir / "app").is_dir() is ensure_exists
 
 
 @_POSIX_ONLY
