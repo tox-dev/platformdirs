@@ -275,7 +275,7 @@ class Unix(XDGMixin, _UnixDefaults):
         if not (path := _xdg_dir("XDG_RUNTIME_DIR")):
             reason = "XDG_RUNTIME_DIR is not set"
         else:
-            with suppress(FileExistsError):
+            with suppress(OSError):
                 self._optionally_create_directory(path, private=True)
             if not (problem := _runtime_dir_problem(path)):
                 return self._append_app_name_and_version(path, private=True)
