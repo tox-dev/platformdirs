@@ -1,3 +1,2 @@
-Create the parent directories of ``place_config_file`` and ``place_data_file`` with the default mode for root on Unix
-with ``use_site_for_root=True``, so the shared site directory stays readable for other users instead of becoming
-``0700`` - by :user:`darrenhuai`.
+Create missing directories with the default mode in ``place_*_file`` for root on Unix with ``use_site_for_root=True``,
+so other users can still read the site directory instead of it becoming ``0700`` - by :user:`darrenhuai`.

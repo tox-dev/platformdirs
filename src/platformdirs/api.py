@@ -559,8 +559,8 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
         Each directory it creates, including the user directory itself, gets mode ``0o700`` whether or not
         `ensure_exists` is set; directories that already exist keep their mode. On Unix, root with `use_site_for_root`
-        places the file in the site directory instead, and creates it with the default mode like any site directory. It
-        does not create the file.
+        places the file under the site directory instead and creates the missing directories with the default mode, so
+        other users can read them. It does not create the file.
 
         :param name: file path relative to the user directory, e.g. ``"sub/app.toml"``.
 
@@ -605,7 +605,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         _ensure_home_known(str(directory := user_path(lookup)))
         path = directory / relative
         if self._use_site:
-            # A site directory keeps the default mode, as under ensure_exists, so the other users can still read it.
+            # Site directories keep the default mode, as under ensure_exists, so other users can still read them.
             path.parent.mkdir(parents=True, exist_ok=True)
         else:
             _make_private_directories(path.parent)
