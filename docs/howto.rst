@@ -56,8 +56,9 @@ Directories that already exist keep their mode, and you write the file yourself:
     path.write_text('theme = "dark"\n', encoding="utf-8")
 
 ``place_data_file``, ``place_cache_file``, ``place_state_file``, ``place_log_file`` and ``place_runtime_file`` do the
-same for the matching ``user_*_path``. A name that is empty, absolute, has a drive or climbs out with ``..`` raises
-:class:`ValueError`.
+same for the matching ``user_*_path``. As root with ``use_site_for_root`` on Unix, that path is the site one, and the
+missing directories get the default mode so other users can still read them. A name that is empty, absolute, has a drive
+or climbs out with ``..`` raises :class:`ValueError`.
 
 Handling write errors
 =====================
