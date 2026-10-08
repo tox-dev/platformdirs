@@ -1,2 +1,3 @@
-Keep the Homebrew site directories of :class:`~platformdirs.macos.MacOS` under :option:`python:-S`, where
-:data:`sys.base_prefix` points at the ``Cellar`` keg instead of the ``opt`` link - by :user:`sricharanreddycheruku`.
+Detect Homebrew Python for the :class:`~platformdirs.macos.MacOS` site directories under :option:`python:-S`, which
+leaves :data:`sys.base_prefix` on the ``Cellar`` keg, and for the ``python-freethreading`` formula - by
+:user:`sricharanreddycheruku`.

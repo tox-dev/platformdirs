@@ -582,8 +582,14 @@ def test_without_home_macos_runtime_dir_raises() -> None:
     ],
 )
 @pytest.mark.parametrize(
-    "formula",
-    [pytest.param("opt/python@3.13", id="opt"), pytest.param("Cellar/python@3.13/3.13.7_1", id="cellar")],
+    "framework",
+    [
+        pytest.param("opt/python@3.13/Frameworks/Python.framework", id="opt"),
+        pytest.param("Cellar/python@3.13/3.13.7_1/Frameworks/Python.framework", id="cellar"),
+        pytest.param("Cellar/python@3.15/3.15.0rc1/Frameworks/Python.framework", id="cellar-prerelease"),
+        pytest.param("opt/python-freethreading/Frameworks/PythonT.framework", id="freethreading-opt"),
+        pytest.param("Cellar/python-freethreading/3.14.8/Frameworks/PythonT.framework", id="freethreading-cellar"),
+    ],
 )
 @pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="singlepath")])
 @pytest.mark.parametrize(
@@ -600,10 +606,10 @@ def test_without_home_macos_runtime_dir_raises() -> None:
     ],
 )
 def test_homebrew_virtual_environment(
-    monkeypatch: pytest.MonkeyPatch, homebrew_prefix: str, formula: str, prop: str, multipath: bool
+    monkeypatch: pytest.MonkeyPatch, homebrew_prefix: str, framework: str, prop: str, multipath: bool
 ) -> None:
     monkeypatch.setattr(sys, "prefix", "/Users/me/project/.venv")
-    monkeypatch.setattr(sys, "base_prefix", f"{homebrew_prefix}/{formula}/Frameworks/Python.framework/Versions/3.13")
+    monkeypatch.setattr(sys, "base_prefix", f"{homebrew_prefix}/{framework}/Versions/3.13")
     suffix: Final = "var/cache" if "cache" in prop else "share"
     expected: str | Path = f"{homebrew_prefix}/{suffix}{os.sep}Example{os.sep}1.0"
     if prop.endswith("_path"):

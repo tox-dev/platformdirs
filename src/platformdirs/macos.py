@@ -185,11 +185,11 @@ class MacOS(XDGMixin, _MacOSDefaults):
 # Homebrew's sitecustomize rewrites the Cellar keg path to the opt link, so -S or PYTHONHOME leaves the Cellar one.
 _HOMEBREW_PYTHON: Final = re.compile(
     r"""
-    (?P<prefix>.+)                 # $HOMEBREW_PREFIX, such as /opt/homebrew or /usr/local
-    /(?:opt/python[^/]*            # formula link: python, python3 or python@3.13
-       |Cellar/python[^/]*/[^/]+)  # formula keg, including its installed version
-    /Frameworks/Python\.framework  # framework build
-    /Versions/[^/]+                # interpreter version, such as 3.13
+    (?P<prefix>.+)                          # $HOMEBREW_PREFIX, such as /opt/homebrew or /usr/local
+    /(?:opt/python[^/]*                     # formula link: python, python3, python@3.13 or python-freethreading
+       |Cellar/python[^/]*/[^/]+)           # formula keg, including its installed version
+    /Frameworks/PythonT?\.framework         # framework build, PythonT for python-freethreading
+    /Versions/[^/]+                         # interpreter version, such as 3.13
     """,
     re.VERBOSE,
 )
