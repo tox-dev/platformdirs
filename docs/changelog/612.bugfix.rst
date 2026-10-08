@@ -1,2 +1,2 @@
-Recognize Homebrew Python framework installations under ``Cellar`` as well as ``opt`` on macOS, preserving the Homebrew
-shared directory locations when Python runs without ``sitecustomize``, such as under ``-S``.
+Keep the Homebrew site directories of :class:`~platformdirs.macos.MacOS` under :option:`python:-S`, where
+:data:`sys.base_prefix` points at the ``Cellar`` keg instead of the ``opt`` link - by :user:`sricharanreddycheruku`.
