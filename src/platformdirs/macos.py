@@ -181,11 +181,12 @@ class MacOS(XDGMixin, _MacOSDefaults):
     """
 
 
-# Homebrew links each Python formula as a framework build, and a virtual environment keeps it as sys.base_prefix.
+# Homebrew's sitecustomize rewrites Cellar prefixes to opt; without it, the framework keeps its Cellar path.
 _HOMEBREW_PYTHON: Final = re.compile(
     r"""
     (?P<prefix>.+)                 # $HOMEBREW_PREFIX, such as /opt/homebrew or /usr/local
-    /opt/python[^/]*               # formula link: python, python3 or python@3.13
+    /(?:opt/python[^/]*            # formula link: python, python3 or python@3.13
+       |Cellar/python[^/]*/[^/]+)  # formula keg, including its installed version
     /Frameworks/Python\.framework  # framework build
     /Versions/[^/]+                # interpreter version, such as 3.13
     """,
