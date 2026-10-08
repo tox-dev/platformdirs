@@ -1,0 +1,3 @@
+Detect Homebrew Python for the :class:`~platformdirs.macos.MacOS` site directories under :option:`python:-S`, which
+leaves :data:`sys.base_prefix` on the ``Cellar`` keg, and for the ``python-freethreading`` formula - by
+:user:`sricharanreddycheruku`.

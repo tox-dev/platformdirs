@@ -581,6 +581,16 @@ def test_without_home_macos_runtime_dir_raises() -> None:
         pytest.param("/custom/brew", id="custom-prefix"),
     ],
 )
+@pytest.mark.parametrize(
+    "framework",
+    [
+        pytest.param("opt/python@3.13/Frameworks/Python.framework", id="opt"),
+        pytest.param("Cellar/python@3.13/3.13.7_1/Frameworks/Python.framework", id="cellar"),
+        pytest.param("Cellar/python@3.15/3.15.0rc1/Frameworks/Python.framework", id="cellar-prerelease"),
+        pytest.param("opt/python-freethreading/Frameworks/PythonT.framework", id="freethreading-opt"),
+        pytest.param("Cellar/python-freethreading/3.14.8/Frameworks/PythonT.framework", id="freethreading-cellar"),
+    ],
+)
 @pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="singlepath")])
 @pytest.mark.parametrize(
     "prop",
@@ -596,12 +606,10 @@ def test_without_home_macos_runtime_dir_raises() -> None:
     ],
 )
 def test_homebrew_virtual_environment(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, homebrew_prefix: str, prop: str, multipath: bool
+    monkeypatch: pytest.MonkeyPatch, homebrew_prefix: str, framework: str, prop: str, multipath: bool
 ) -> None:
-    monkeypatch.setattr(sys, "prefix", str(tmp_path / ".venv"))
-    monkeypatch.setattr(
-        sys, "base_prefix", f"{homebrew_prefix}/opt/python@3.13/Frameworks/Python.framework/Versions/3.13"
-    )
+    monkeypatch.setattr(sys, "prefix", "/Users/me/project/.venv")
+    monkeypatch.setattr(sys, "base_prefix", f"{homebrew_prefix}/{framework}/Versions/3.13")
     suffix: Final = "var/cache" if "cache" in prop else "share"
     expected: str | Path = f"{homebrew_prefix}/{suffix}{os.sep}Example{os.sep}1.0"
     if prop.endswith("_path"):
@@ -636,6 +644,9 @@ def test_non_homebrew_base_ignores_virtual_environment_name(
         pytest.param("/opt/python/3.12.4", id="opt-python-at-root"),
         pytest.param("/opt/python3.12", id="opt-python-versioned-dir"),
         pytest.param("/srv/opt/python/3.12.4", id="opt-python-nested"),
+        pytest.param(
+            "/srv/Cellar/python/latest/Frameworks/Python.framework/Versions/3.13", id="cellar-unversioned-keg"
+        ),
     ],
 )
 @pytest.mark.parametrize(
@@ -645,7 +656,7 @@ def test_non_homebrew_base_ignores_virtual_environment_name(
         pytest.param("site_cache_dir", "/Library/Caches", id="cache"),
     ],
 )
-def test_non_homebrew_opt_python_uses_system_site_dirs(
+def test_non_homebrew_python_uses_system_site_dirs(
     mocker: MockerFixture, base_prefix: str, prop: str, expected: str
 ) -> None:
     mocker.patch("sys.base_prefix", base_prefix)
