@@ -644,6 +644,9 @@ def test_non_homebrew_base_ignores_virtual_environment_name(
         pytest.param("/opt/python/3.12.4", id="opt-python-at-root"),
         pytest.param("/opt/python3.12", id="opt-python-versioned-dir"),
         pytest.param("/srv/opt/python/3.12.4", id="opt-python-nested"),
+        pytest.param(
+            "/srv/Cellar/python/latest/Frameworks/Python.framework/Versions/3.13", id="cellar-unversioned-keg"
+        ),
     ],
 )
 @pytest.mark.parametrize(
@@ -653,7 +656,7 @@ def test_non_homebrew_base_ignores_virtual_environment_name(
         pytest.param("site_cache_dir", "/Library/Caches", id="cache"),
     ],
 )
-def test_non_homebrew_opt_python_uses_system_site_dirs(
+def test_non_homebrew_python_uses_system_site_dirs(
     mocker: MockerFixture, base_prefix: str, prop: str, expected: str
 ) -> None:
     mocker.patch("sys.base_prefix", base_prefix)

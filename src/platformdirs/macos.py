@@ -187,7 +187,7 @@ _HOMEBREW_PYTHON: Final = re.compile(
     r"""
     (?P<prefix>.+)                          # $HOMEBREW_PREFIX, such as /opt/homebrew or /usr/local
     /(?:opt/python[^/]*                     # formula link: python, python3, python@3.13 or python-freethreading
-       |Cellar/python[^/]*/[^/]+)           # formula keg, including its installed version
+       |Cellar/python[^/]*/[0-9._abrc]+)    # formula keg, named by version as sitecustomize matches it, e.g. 3.13.7_1
     /Frameworks/PythonT?\.framework         # framework build, PythonT for python-freethreading
     /Versions/[^/]+                         # interpreter version, such as 3.13
     """,
