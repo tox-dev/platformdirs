@@ -574,19 +574,16 @@ def test_without_home_macos_runtime_dir_raises() -> None:
 
 @pytest.mark.usefixtures("_clear_xdg_env")
 @pytest.mark.parametrize(
-    "installation",
+    "homebrew_prefix",
     [
-        pytest.param((prefix, layout), id=f"{platform}-{scheme}")
-        for prefix, platform in (
-            ("/opt/homebrew", "apple-silicon"),
-            ("/usr/local", "intel"),
-            ("/custom/brew", "custom-prefix"),
-        )
-        for layout, scheme in (
-            ("opt/python@3.13", "opt"),
-            ("Cellar/python@3.13/3.13.7_1", "cellar"),
-        )
+        pytest.param("/opt/homebrew", id="apple-silicon"),
+        pytest.param("/usr/local", id="intel"),
+        pytest.param("/custom/brew", id="custom-prefix"),
     ],
+)
+@pytest.mark.parametrize(
+    "formula",
+    [pytest.param("opt/python@3.13", id="opt"), pytest.param("Cellar/python@3.13/3.13.7_1", id="cellar")],
 )
 @pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="singlepath")])
 @pytest.mark.parametrize(
@@ -603,11 +600,10 @@ def test_without_home_macos_runtime_dir_raises() -> None:
     ],
 )
 def test_homebrew_virtual_environment(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, installation: tuple[str, str], prop: str, multipath: bool
+    monkeypatch: pytest.MonkeyPatch, homebrew_prefix: str, formula: str, prop: str, multipath: bool
 ) -> None:
-    homebrew_prefix, layout = installation
-    monkeypatch.setattr(sys, "prefix", str(tmp_path / ".venv"))
-    monkeypatch.setattr(sys, "base_prefix", f"{homebrew_prefix}/{layout}/Frameworks/Python.framework/Versions/3.13")
+    monkeypatch.setattr(sys, "prefix", "/Users/me/project/.venv")
+    monkeypatch.setattr(sys, "base_prefix", f"{homebrew_prefix}/{formula}/Frameworks/Python.framework/Versions/3.13")
     suffix: Final = "var/cache" if "cache" in prop else "share"
     expected: str | Path = f"{homebrew_prefix}/{suffix}{os.sep}Example{os.sep}1.0"
     if prop.endswith("_path"):
