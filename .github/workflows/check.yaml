@@ -27,7 +27,6 @@ jobs:
           - "3.13"
           - "3.12"
           - "3.11"
-          - "3.10"
         os:
           - ubuntu-24.04
           - windows-2025
@@ -44,7 +43,7 @@ jobs:
         with:
           enable-cache: false
       - name: Install tox
-        run: uv tool install --python-preference only-managed --python 3.14 tox --with tox-uv
+        run: uv tool install --python-preference only-managed --python 3.15 tox --with tox-uv
       - name: Install Python
         run: uv python install --python-preference only-managed ${{ matrix.py }}
       - name: Setup test suite
@@ -99,9 +98,9 @@ jobs:
         with:
           enable-cache: false
       - name: Install tox
-        run: uv tool install --python-preference only-managed --python 3.14 tox --with tox-uv
+        run: uv tool install --python-preference only-managed --python 3.15 tox --with tox-uv
       - name: Build package to generate version
-        run: uv build --python 3.14 --python-preference only-managed --wheel . --out-dir dist
+        run: uv build --python 3.15 --python-preference only-managed --wheel . --out-dir dist
       - name: Setup coverage tool
         run: tox -e coverage --notest
         env:
@@ -142,7 +141,7 @@ jobs:
         with:
           enable-cache: false
       - name: Install tox
-        run: uv tool install --python-preference only-managed --python 3.14 tox --with tox-uv
+        run: uv tool install --python-preference only-managed --python 3.15 tox --with tox-uv
       - name: Setup test suite
         run: tox run -vv --notest --skip-missing-interpreters false -e ${{ matrix.tox_env }}
         env:
