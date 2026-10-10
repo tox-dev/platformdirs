@@ -1283,6 +1283,28 @@ def test_user_dirs_preserves_percent_signs(folder: str, base: str, tmp_path: Pat
 
 
 @pytest.mark.parametrize(
+    ("folder", "expected"),
+    [
+        pytest.param(r"a\q", r"a\q", id="ordinary-letter"),
+        pytest.param(r"a\ b", r"a\ b", id="space"),
+        pytest.param(r"a\-b", r"a\-b", id="hyphen"),
+        pytest.param(r"a\nb", r"a\nb", id="literal-backslash-n"),
+        pytest.param(r"a\'b", r"a\'b", id="single-quote"),
+        pytest.param(r"a\\b", r"a\b", id="escaped-backslash"),
+        pytest.param(r"a\$b", "a$b", id="escaped-dollar"),
+        pytest.param(r"a\`b", "a`b", id="escaped-backtick"),
+        pytest.param(r"a\"b", 'a"b', id="escaped-double-quote"),
+    ],
+)
+@pytest.mark.parametrize("base", ["$HOME", "/absolute"])
+def test_user_dirs_double_quoted_backslashes(
+    folder: str, expected: str, base: str, tmp_path: Path, user_dirs_file: Path
+) -> None:
+    user_dirs_file.write_text(f'XDG_DOCUMENTS_DIR="{base}/{folder}"\n', encoding="utf-8")
+    assert Unix().user_documents_path == Path(tmp_path if base == "$HOME" else base) / expected
+
+
+@pytest.mark.parametrize(
     ("content", "expected"),
     [
         pytest.param(
