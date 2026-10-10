@@ -1294,6 +1294,7 @@ def test_user_dirs_preserves_percent_signs(folder: str, base: str, tmp_path: Pat
         pytest.param(r"a\$b", "a$b", id="escaped-dollar"),
         pytest.param(r"a\`b", "a`b", id="escaped-backtick"),
         pytest.param(r"a\"b", 'a"b', id="escaped-double-quote"),
+        pytest.param(r"a\q\\b\$c", r"a\q\b$c", id="mixed-escapes"),
     ],
 )
 @pytest.mark.parametrize("base", ["$HOME", "/absolute"])
