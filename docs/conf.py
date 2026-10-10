@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from platformdirs.version import __version__
@@ -32,7 +32,7 @@ extensions = [
 ]
 html_theme = "furo"
 html_logo = html_favicon = "platformdirs.svg"
-html_title, html_last_updated_fmt = "platformdirs", datetime.now(tz=timezone.utc).isoformat()
+html_title, html_last_updated_fmt = "platformdirs", datetime.now(tz=UTC).isoformat()
 pygments_style, pygments_dark_style = "sphinx", "monokai"
 autoclass_content, autodoc_member_order, autodoc_typehints = "class", "bysource", "none"
 autodoc_default_options = {

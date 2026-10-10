@@ -28,6 +28,7 @@ jobs:
       - name: 📦 Setup uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
+          python-version: "3.15"
           enable-cache: false
       - name: 🔢 Compute next version
         id: version
