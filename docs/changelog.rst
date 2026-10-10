@@ -7,6 +7,15 @@
 .. towncrier release notes start
 
 *********************
+ 4.13.0 (2026-10-10)
+*********************
+
+- Detect Homebrew Python for the :class:`~platformdirs.macos.MacOS` site directories under :option:`python:-S`, which
+  leaves :data:`sys.base_prefix` on the ``Cellar`` keg, and for the ``python-freethreading`` formula - by
+  :user:`sricharanreddycheruku`. :pr:`612`
+- Use Python 3.15 for development and automation. :pr:`613`
+
+*********************
  4.12.4 (2026-10-07)
 *********************
 
