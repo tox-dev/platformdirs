@@ -96,7 +96,11 @@ commands = [
   [
     "python",
     "-c",
-    "import glob; import subprocess; subprocess.check_call(['proselint', 'check'] + glob.glob('docs/*.rst'))",
+    # RE2 lacks Python 3.15 wheels: https://github.com/google/re2/issues/647
+    """\
+  import glob; import subprocess; subprocess.check_call(['uv', 'tool', 'run', '--python', '3.14', '--from', \
+  'proselint>=0.16', 'proselint', 'check', *glob.glob('docs/*.rst')])\
+  """,
   ],
   [
     "sphinx-build",
