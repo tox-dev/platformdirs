@@ -286,10 +286,10 @@ See also: :ref:`api:User binary directory`
 See also: :ref:`api:User documents directory`
 
 On Unix, use percent signs as literal characters in ``user-dirs.dirs`` paths, for example ``$HOME/100% complete``. Lines
-follow ``xdg-user-dir`` rules: the last valid line for a directory wins, ``\"`` and other shell escapes inside the
-quotes resolve to the escaped character, and platformdirs skips values that are neither ``$HOME``-relative nor absolute.
-``XDG_DOCUMENTS_DIR`` in the environment takes precedence over the file and is skipped in the same way unless it is an
-absolute path.
+follow ``xdg-user-dir`` rules: the last valid line for a directory wins. Inside double quotes, a backslash is removed
+only before ``$``, a backtick, ``"``, or another backslash. Other backslashes, such as ``\q`` in a folder name, remain
+literal. Platformdirs skips values that are neither ``$HOME``-relative nor absolute. ``XDG_DOCUMENTS_DIR`` in the
+environment takes precedence over the file and is skipped in the same way unless it is an absolute path.
 
 .. tab-set::
 
