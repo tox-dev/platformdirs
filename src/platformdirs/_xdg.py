@@ -133,7 +133,7 @@ class XDGMixin(PlatformDirsABC):
         """Fonts directory tied to the user, from ``$XDG_DATA_HOME/fonts`` if set, else platform default."""
         if path := _xdg_dir("XDG_DATA_HOME"):
             # posixpath keeps the XDG separator even when this mixin runs on a non-POSIX host.
-            return posixpath.join(os.path.expanduser(path), "fonts")  # ruff:ignore[os-path-expanduser]
+            return posixpath.join(path, "fonts")
         return super().user_fonts_dir
 
     @property

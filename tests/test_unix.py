@@ -703,9 +703,15 @@ def test_without_home_absolute_xdg_dir_applies(
 
 @pytest.mark.usefixtures("_clear_xdg_env")
 @pytest.mark.parametrize("dirs_class", _CLASSES)
-def test_user_fonts_dir_xdg_root(monkeypatch: pytest.MonkeyPatch, dirs_class: type[Unix | MacOS]) -> None:
-    monkeypatch.setenv("XDG_DATA_HOME", "/")
-    assert dirs_class().user_fonts_dir == "/fonts"
+@pytest.mark.parametrize(
+    ("data_home", "expected"),
+    [pytest.param("/", "/fonts", id="root"), pytest.param("/xdg/", "/xdg/fonts", id="trailing_slash")],
+)
+def test_user_fonts_dir_xdg_trailing_separator(
+    monkeypatch: pytest.MonkeyPatch, dirs_class: type[Unix | MacOS], data_home: str, expected: str
+) -> None:
+    monkeypatch.setenv("XDG_DATA_HOME", data_home)
+    assert dirs_class().user_fonts_dir == expected
 
 
 @pytest.mark.usefixtures("_clear_xdg_env", "_unknown_home")
