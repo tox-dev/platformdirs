@@ -7,6 +7,14 @@
 .. towncrier release notes start
 
 *********************
+ 4.13.1 (2026-10-15)
+*********************
+
+- Free the path buffer from ``SHGetKnownFolderPath`` when the known-folder lookup fails. :pr:`618`
+- Preserve literal backslashes before ordinary characters in double-quoted ``user-dirs.dirs`` paths instead of removing
+  them.
+
+*********************
  4.13.0 (2026-10-10)
 *********************
 
