@@ -5,6 +5,7 @@ import importlib
 import os
 import pathlib
 import sys
+from ctypes import wintypes
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
 from unittest.mock import MagicMock
@@ -481,6 +482,45 @@ def test_get_win_folder_via_ctypes_null_result(mocker: MockerFixture) -> None:
             fresh_fn("CSIDL_LOCAL_APPDATA")
     finally:
         _cleanup_ctypes_mocks()
+
+
+@pytest.mark.parametrize("path", [None, r"C:\Users\Test\AppData\Local"])
+def test_get_win_folder_via_ctypes_frees_path_on_error(mocker: MockerFixture, path: str | None) -> None:
+    dlls = {"ole32": MagicMock(), "shell32": MagicMock()}
+    mocker.patch("sys.platform", "win32")
+    mocker.patch.object(ctypes, "HRESULT", MagicMock(), create=True)
+    mocker.patch.object(ctypes, "WinDLL", MagicMock(side_effect=dlls.__getitem__), create=True)
+    mocker.patch("ctypes.POINTER", return_value=MagicMock())
+    mocker.patch("ctypes.byref", side_effect=lambda value: value)
+    path_ptr = MagicMock(value=path)
+    mocker.patch("ctypes.wintypes.LPWSTR", return_value=path_ptr)
+    error = OSError("SHGetKnownFolderPath failed")
+    dlls["shell32"].SHGetKnownFolderPath.side_effect = error
+    resolve = windows._build_get_win_folder_via_ctypes.__wrapped__()  # ruff:ignore[private-member-access]
+
+    with pytest.raises(OSError, match=r"^SHGetKnownFolderPath failed$") as caught:
+        resolve("CSIDL_LOCAL_APPDATA")
+
+    assert caught.value is error
+    dlls["ole32"].CoTaskMemFree.assert_called_once_with(path_ptr)
+
+
+def test_get_win_folder_via_ctypes_real_failure_frees_path(mocker: MockerFixture) -> None:
+    if sys.platform != "win32":
+        pytest.skip("calls the Windows shell API")
+
+    dlls = {"ole32": ctypes.WinDLL("ole32"), "shell32": ctypes.WinDLL("shell32")}
+    dlls["ole32"].CoTaskMemFree.restype = None
+    dlls["ole32"].CoTaskMemFree.argtypes = [wintypes.LPVOID]
+    free = mocker.spy(dlls["ole32"], "CoTaskMemFree")
+    mocker.patch.object(ctypes, "WinDLL", side_effect=dlls.__getitem__)
+    mocker.patch.dict(windows._KNOWN_FOLDER_GUIDS, {"CSIDL_LOCAL_APPDATA": "{00000000-0000-0000-0000-000000000000}"})  # ruff:ignore[private-member-access]
+    resolve = windows._build_get_win_folder_via_ctypes.__wrapped__()  # ruff:ignore[private-member-access]
+
+    with pytest.raises(OSError, match=r"^\[WinError "):
+        resolve("CSIDL_LOCAL_APPDATA")
+
+    free.assert_called_once()
 
 
 def _short_name(_long: str, buf: ctypes.Array[ctypes.c_wchar], _size: int) -> int:
