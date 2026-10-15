@@ -1,0 +1,1 @@
+Free the path buffer from ``SHGetKnownFolderPath`` when the known-folder lookup fails.

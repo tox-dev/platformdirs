@@ -483,6 +483,29 @@ def test_get_win_folder_via_ctypes_null_result(mocker: MockerFixture) -> None:
         _cleanup_ctypes_mocks()
 
 
+@pytest.mark.parametrize(
+    "path",
+    [pytest.param(None, id="null"), pytest.param(r"C:\Users\Test\AppData\Local", id="populated")],
+)
+def test_get_win_folder_via_ctypes_frees_path_on_error(mocker: MockerFixture, path: str | None) -> None:
+    _setup_ctypes_mocks(mocker)
+    error = OSError("SHGetKnownFolderPath failed")
+    dlls = {"ole32": MagicMock(), "shell32": MagicMock(SHGetKnownFolderPath=MagicMock(side_effect=error))}
+    mocker.patch.object(ctypes, "WinDLL", MagicMock(side_effect=dlls.__getitem__))
+    mocker.patch("ctypes.byref", side_effect=lambda x: x)
+    path_ptr = MagicMock(value=path)
+    mocker.patch("ctypes.wintypes.LPWSTR", return_value=path_ptr)
+
+    try:
+        importlib.reload(windows)
+        with pytest.raises(OSError, match=r"^SHGetKnownFolderPath failed$"):
+            windows.get_win_folder_via_ctypes("CSIDL_LOCAL_APPDATA")
+    finally:
+        _cleanup_ctypes_mocks()
+
+    dlls["ole32"].CoTaskMemFree.assert_called_once_with(path_ptr)
+
+
 def _short_name(_long: str, buf: ctypes.Array[ctypes.c_wchar], _size: int) -> int:
     buf.value = r"C:\Users\UKASZ~1\AppData\Local"
     return len(buf.value)

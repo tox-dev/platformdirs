@@ -355,9 +355,11 @@ def _build_get_win_folder_via_ctypes() -> Callable[[str], str]:
         ole32.CLSIDFromString(folder_guid, byref(guid))
 
         path_ptr = wintypes.LPWSTR()
-        shell32.SHGetKnownFolderPath(byref(guid), _KF_FLAG_DONT_VERIFY, None, byref(path_ptr))
-        result = path_ptr.value
-        ole32.CoTaskMemFree(path_ptr)
+        try:
+            shell32.SHGetKnownFolderPath(byref(guid), _KF_FLAG_DONT_VERIFY, None, byref(path_ptr))
+            result = path_ptr.value
+        finally:
+            ole32.CoTaskMemFree(path_ptr)
 
         if result is None:
             msg = f"SHGetKnownFolderPath returned NULL for {csidl_name}"
