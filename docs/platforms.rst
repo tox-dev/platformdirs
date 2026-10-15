@@ -8,9 +8,6 @@ default paths for each platform and any platform-specific behavior.
 All examples below assume ``appname="SuperApp"`` and ``appauthor="Acme"`` unless stated otherwise. On iOS, ``~`` is the
 app's data container.
 
-On Windows, a known-folder lookup can raise :exc:`OSError` if the shell cannot resolve the requested folder. Any memory
-returned by the shell is released before the error is propagated.
-
 ******************
  User directories
 ******************
