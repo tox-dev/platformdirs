@@ -39,6 +39,8 @@ def isolated_dirs(root: str | os.PathLike[str]) -> Generator[Path, None, None]:
     ``PlatformDirs("app", version="1.0").user_config_path`` becomes ``<root>/user_config/app/1.0``. Every thread of the
     current process sees the change, and subprocesses do not.
 
+    On Unix, ``use_site_for_root`` is ignored inside the context so user and site directories keep separate kinds.
+
     :param root: directory that holds the redirected directories
 
     :returns: ``root`` as a :class:`~pathlib.Path`
@@ -51,11 +53,11 @@ def isolated_dirs(root: str | os.PathLike[str]) -> Generator[Path, None, None]:
         )
         for name in PlatformDirsABC.__abstractmethods__
     }
-    # Unix and macOS build the site lists from search paths; the base versions derive them from the redirected dirs.
+    # Base site lists follow the redirected dirs, and disabling root redirection keeps user and site kinds separate.
     patches |= {
         name: value
         for name, value in vars(PlatformDirsABC).items()
-        if name.startswith("_site_") and name.endswith("_dirs")
+        if name == "_use_site" or (name.startswith("_site_") and name.endswith("_dirs"))
     }
     cls = platformdirs.PlatformDirs
     saved = {name: vars(cls)[name] for name in patches if name in vars(cls)}
