@@ -701,6 +701,19 @@ def test_without_home_absolute_xdg_dir_applies(
     assert getattr(dirs_class(appname="app"), prop) == f"/xdg{suffix}"
 
 
+@pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.parametrize("dirs_class", _CLASSES)
+@pytest.mark.parametrize(
+    ("data_home", "expected"),
+    [pytest.param("/", "/fonts", id="root"), pytest.param("/xdg/", "/xdg/fonts", id="trailing_slash")],
+)
+def test_user_fonts_dir_xdg_trailing_separator(
+    monkeypatch: pytest.MonkeyPatch, dirs_class: type[Unix | MacOS], data_home: str, expected: str
+) -> None:
+    monkeypatch.setenv("XDG_DATA_HOME", data_home)
+    assert dirs_class().user_fonts_dir == expected
+
+
 @pytest.mark.usefixtures("_clear_xdg_env", "_unknown_home")
 def test_without_home_absolute_user_dirs_entry_applies(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     (tmp_path / "user-dirs.dirs").write_text('XDG_DOCUMENTS_DIR="/srv/docs"\n', encoding="utf-8")
