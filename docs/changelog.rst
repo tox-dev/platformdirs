@@ -7,6 +7,12 @@
 .. towncrier release notes start
 
 *********************
+ 4.13.2 (2026-10-16)
+*********************
+
+- Normalize ``user_fonts_dir`` when ``XDG_DATA_HOME`` ends with a separator. :pr:`619`
+
+*********************
  4.13.1 (2026-10-15)
 *********************
 
