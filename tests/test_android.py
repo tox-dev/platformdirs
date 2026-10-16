@@ -341,3 +341,21 @@ def test_android_opinion_subdir_created_private(
     mocker.patch("platformdirs.android._android_folder", return_value=str(tmp_path), autospec=True)
     subdir = Path(getattr(Android(appname="app", ensure_exists=True), prop)).name
     assert modes(tmp_path) == {"cache": 0o700, "cache/app": 0o700, f"cache/app/{subdir}": 0o700}
+
+
+@pytest.mark.usefixtures("_clear_android_caches")
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/data/data/org.example.app/filesystem",
+        "/data/user/10/org.example.app/files-backup/lib",
+        "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user/10/org.example.app/filesystem",
+    ],
+)
+def test_android_folder_requires_files_segment(
+    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, path: str
+) -> None:
+    mocker.patch.dict(sys.modules, {"jnius": None})
+    monkeypatch.setattr(sys, "path", [path])
+    with pytest.raises(RuntimeError, match=r"^cannot find the Android app folder"):
+        _ = Android().user_data_dir
