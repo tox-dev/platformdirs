@@ -34,7 +34,7 @@ def _reload_after_test() -> typing.Iterator[None]:
 
 
 @pytest.fixture
-def _as_root(mocker: MockerFixture) -> None:
+def _as_root(mocker: MockerFixture, _clear_xdg_env: None) -> None:
     mocker.patch("platformdirs.unix.getuid", return_value=0)
 
 
