@@ -33,8 +33,7 @@ Run tests for a specific Python version with `tox r -e 3.14`. To run tests acros
 
 ### Code Quality Checks
 
-Use `tox r -e fix` to auto-fix formatting and linting issues using ruff. Run `tox r -e type` to check types with
-pyright.
+Use `tox r -e fix` to auto-fix formatting and linting issues using ruff. Run `tox r -e type` to check types with ty.
 
 ### Coverage
 
