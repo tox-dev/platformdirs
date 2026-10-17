@@ -347,9 +347,17 @@ def test_android_opinion_subdir_created_private(
 @pytest.mark.parametrize(
     "path",
     [
-        "/data/data/org.example.app/filesystem",
-        "/data/user/10/org.example.app/files-backup/lib",
-        "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user/10/org.example.app/filesystem",
+        pytest.param("/data/data/org.example.app/filesystem", id="internal-prefix"),
+        pytest.param("/data/user/10/org.example.app/files-backup/lib", id="secondary-user-prefix"),
+        pytest.param("/data/data/org.example.app/files\n", id="internal-newline"),
+        pytest.param(
+            "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user/10/org.example.app/filesystem",
+            id="adopted-prefix",
+        ),
+        pytest.param(
+            "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user/10/org.example.app/files\n",
+            id="adopted-newline",
+        ),
     ],
 )
 def test_android_folder_requires_files_segment(
