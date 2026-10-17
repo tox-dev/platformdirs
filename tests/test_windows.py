@@ -148,6 +148,14 @@ def test_get_win_folder_from_env_vars_public_fallback(mocker: MockerFixture, env
     assert get_win_folder_from_env_vars("CSIDL_PUBLIC") == str(Path("C:/Users/Public"))
 
 
+def test_user_projects_dir_raises_without_home(mocker: MockerFixture) -> None:
+    # os.path.expanduser leaves the tilde in place when the home is unknown (only Path.expanduser raises),
+    # so the Projects directory must not come back as a literal ~ path.
+    mocker.patch.object(os.path, "expanduser", return_value="~/Projects")
+    with pytest.raises(RuntimeError, match=r"^could not determine the home directory for '~/Projects'"):
+        _ = Windows().user_projects_dir
+
+
 def test_roaming_uses_appdata(mocker: MockerFixture) -> None:
     mock = mocker.patch("platformdirs.windows.get_win_folder", side_effect=lambda csidl: _WIN_FOLDERS[csidl])
     _result = Windows(appname="foo", roaming=True).user_data_dir
