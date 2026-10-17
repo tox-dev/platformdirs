@@ -10,6 +10,7 @@ import pytest
 import platformdirs
 from platformdirs.android import Android
 from platformdirs.testing import isolated_dirs
+from platformdirs.unix import Unix
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -141,3 +142,35 @@ def test_isolated_dirs_nested_restores_outer(tmp_path: Path) -> None:
         with isolated_dirs(tmp_path / "inner"):
             pass
         assert platformdirs.user_data_path("app") == tmp_path / "outer" / "user_data" / "app"
+
+
+@pytest.mark.parametrize("kind", ["user_data", "user_config", "user_preference", "user_applications"])
+@pytest.mark.parametrize("multipath", [False, True])
+def test_isolated_dirs_root_paths_follow_redirected_dirs(
+    tmp_path: Path, mocker: MockerFixture, kind: str, multipath: bool
+) -> None:
+    mocker.patch("platformdirs.PlatformDirs", Unix)
+    mocker.patch("platformdirs.unix.getuid", return_value=0)
+    dirs = Unix("app", version="1.0", multipath=multipath, use_site_for_root=True)
+    expected = tmp_path / kind
+    if kind != "user_applications":
+        expected /= "app/1.0"
+    with isolated_dirs(tmp_path):
+        assert getattr(dirs, f"{kind}_dir") == str(expected)
+        assert getattr(dirs, f"{kind}_path") == expected
+
+
+def test_isolated_dirs_restores_root_redirection(tmp_path: Path, mocker: MockerFixture) -> None:
+    mocker.patch("platformdirs.PlatformDirs", Unix)
+    mocker.patch("platformdirs.unix.getuid", return_value=0)
+    mocker.patch.dict(
+        os.environ, {"XDG_CONFIG_HOME": str(tmp_path / "user"), "XDG_CONFIG_DIRS": str(tmp_path / "site")}
+    )
+    dirs = Unix("app", use_site_for_root=True)
+    assert dirs.user_config_dir == dirs.site_config_dir
+    with isolated_dirs(tmp_path):
+        assert list(dirs.iter_config_paths()) == [tmp_path / "user_config/app", tmp_path / "site_config/app"]
+        with pytest.raises(LookupError), isolated_dirs(tmp_path / "inner"):
+            raise LookupError
+        assert dirs.user_config_path == tmp_path / "user_config/app"
+    assert dirs.user_config_dir == dirs.site_config_dir
