@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import re
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -124,7 +125,7 @@ def test_ios_ensure_exists_without_home_creates_nothing(
     monkeypatch.delenv("HOME", raising=False)
     mocker.patch.object(pwd, "getpwuid", side_effect=KeyError("getpwuid(): uid not found"))
     monkeypatch.chdir(tmp_path)
-    with pytest.raises(RuntimeError, match=r"^could not determine the home directory, refusing to create '~/"):
+    with pytest.raises(RuntimeError, match=r"^could not determine the home directory"):
         _ = IOS(appname="app", ensure_exists=True).user_data_dir
     assert list(tmp_path.iterdir()) == []
 
@@ -141,3 +142,22 @@ def test_ios_ensure_exists_without_home_creates_nothing(
 def test_ios_ignores_xdg_variables(monkeypatch: pytest.MonkeyPatch, container: Path, env_var: str, func: str) -> None:
     monkeypatch.setenv(env_var, "/xdg")
     assert Path(getattr(IOS(), func)).is_relative_to(container)
+
+
+@pytest.mark.usefixtures("_unknown_home")
+@pytest.mark.parametrize(
+    ("prop", "path"),
+    [
+        pytest.param("user_data_dir", "~/Library/Application Support", id="data"),
+        pytest.param("user_config_dir", "~/Library/Application Support", id="config"),
+        pytest.param("user_cache_dir", "~/Library/Caches", id="cache"),
+        pytest.param("user_log_dir", "~/Library/Logs", id="log"),
+        pytest.param("user_runtime_dir", "~/tmp", id="runtime"),
+        pytest.param("user_documents_dir", "~/Documents", id="documents"),
+        pytest.param("user_applications_dir", "~/Applications", id="applications"),
+        pytest.param("user_fonts_dir", "~/Library/Fonts", id="fonts"),
+    ],
+)
+def test_without_home_ios_dir_raises(prop: str, path: str) -> None:
+    with pytest.raises(RuntimeError, match=re.escape(f"could not determine the home directory for {path!r}")):
+        _ = getattr(IOS(appname="app", version="1.0"), prop)
