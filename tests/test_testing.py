@@ -10,6 +10,7 @@ import pytest
 import platformdirs
 from platformdirs.android import Android
 from platformdirs.testing import isolated_dirs
+from platformdirs.unix import Unix
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -141,3 +142,57 @@ def test_isolated_dirs_nested_restores_outer(tmp_path: Path) -> None:
         with isolated_dirs(tmp_path / "inner"):
             pass
         assert platformdirs.user_data_path("app") == tmp_path / "outer" / "user_data" / "app"
+
+
+@pytest.mark.usefixtures("_unix_root")
+@pytest.mark.parametrize(
+    ("kind", "suffix"),
+    [
+        pytest.param("user_data", "app/1.0", id="data"),
+        pytest.param("user_config", "app/1.0", id="config"),
+        pytest.param("user_preference", "app/1.0", id="preference"),
+        pytest.param("user_applications", "", id="applications"),
+    ],
+)
+@pytest.mark.parametrize("multipath", [pytest.param(False, id="single"), pytest.param(True, id="multiple")])
+def test_isolated_dirs_root_paths_follow_redirected_dirs(
+    tmp_path: Path, kind: str, suffix: str, multipath: bool
+) -> None:
+    dirs = Unix("app", version="1.0", multipath=multipath, use_site_for_root=True)
+    expected = tmp_path / kind / suffix
+    with isolated_dirs(tmp_path):
+        assert getattr(dirs, f"{kind}_dir") == str(expected)
+        assert getattr(dirs, f"{kind}_path") == expected
+
+
+@pytest.mark.usefixtures("_unix_root")
+def test_isolated_dirs_root_iter_config_paths(tmp_path: Path) -> None:
+    with isolated_dirs(tmp_path):
+        assert list(Unix("app", use_site_for_root=True).iter_config_paths()) == [
+            tmp_path / "user_config/app",
+            tmp_path / "site_config/app",
+        ]
+
+
+@pytest.mark.usefixtures("_unix_root")
+def test_isolated_dirs_restores_root_redirection(tmp_path: Path, mocker: MockerFixture) -> None:
+    mocker.patch.dict(os.environ, {"XDG_CONFIG_HOME": "/user", "XDG_CONFIG_DIRS": "/site"})
+    dirs = Unix("app", use_site_for_root=True)
+    with isolated_dirs(tmp_path):
+        pass
+    assert dirs.user_config_dir == dirs.site_config_dir
+
+
+@pytest.mark.usefixtures("_unix_root")
+def test_isolated_dirs_nested_root_restores_after_exception(tmp_path: Path) -> None:
+    dirs = Unix("app", use_site_for_root=True)
+    with isolated_dirs(tmp_path):
+        with pytest.raises(LookupError), isolated_dirs(tmp_path / "inner"):
+            raise LookupError
+        assert dirs.user_config_path == tmp_path / "user_config/app"
+
+
+@pytest.fixture
+def _unix_root(mocker: MockerFixture) -> None:
+    mocker.patch("platformdirs.PlatformDirs", Unix)
+    mocker.patch("platformdirs.unix.getuid", return_value=0)
