@@ -176,13 +176,11 @@ def test_isolated_dirs_root_iter_config_paths(tmp_path: Path) -> None:
 
 @pytest.mark.usefixtures("_unix_root")
 def test_isolated_dirs_restores_root_redirection(tmp_path: Path, mocker: MockerFixture) -> None:
-    mocker.patch.dict(
-        os.environ, {"XDG_CONFIG_HOME": str(tmp_path / "user"), "XDG_CONFIG_DIRS": str(tmp_path / "site")}
-    )
+    mocker.patch.dict(os.environ, {"XDG_CONFIG_HOME": "/user", "XDG_CONFIG_DIRS": "/site"})
     dirs = Unix("app", use_site_for_root=True)
     with isolated_dirs(tmp_path):
         pass
-    assert dirs.user_config_dir == str(tmp_path / "site/app")
+    assert dirs.user_config_dir == dirs.site_config_dir
 
 
 @pytest.mark.usefixtures("_unix_root")
