@@ -9,6 +9,7 @@ from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
+from ._xdg import _expand_user
 from .api import PlatformDirsABC
 
 if TYPE_CHECKING:
@@ -139,7 +140,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_projects_dir(self) -> str:
         r"""Projects directory tied to the user, e.g. ``%USERPROFILE%\Projects``."""
-        return os.path.normpath(os.path.expanduser("~/Projects"))  # ruff:ignore[os-path-expanduser]
+        return os.path.normpath(_expand_user("~/Projects"))
 
     @property
     def user_publicshare_dir(self) -> str:
