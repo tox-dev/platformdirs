@@ -7,6 +7,20 @@
 .. towncrier release notes start
 
 *********************
+ 4.13.4 (2026-10-17)
+*********************
+
+- Require a complete ``files`` path segment when locating Android app directories from ``sys.path``. :pr:`621`
+- Keep root directory tests independent of inherited XDG environment variables. :pr:`622`
+- Raise ``RuntimeError`` when iOS cannot resolve the home directory, rather than returning paths rooted at a literal
+  ``~``. :pr:`624`
+- Keep user directory strings, paths and iterators consistent inside ``isolated_dirs`` when Unix root enables
+  ``use_site_for_root``. Restore root redirection when the context exits. :pr:`625`
+- Raise ``RuntimeError`` when the Windows Projects directory cannot resolve the home directory, rather than returning a
+  path rooted at a literal ``~``. :pr:`627`
+- Correct the contributor guide to name ty as the type checker used by the type environment. :pr:`623`
+
+*********************
  4.13.3 (2026-10-16)
 *********************
 

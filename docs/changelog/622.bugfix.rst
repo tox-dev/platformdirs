@@ -1,1 +1,0 @@
-Keep root directory tests independent of inherited XDG environment variables.

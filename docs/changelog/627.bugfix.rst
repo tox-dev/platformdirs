@@ -1,2 +1,0 @@
-Raise ``RuntimeError`` when the Windows Projects directory cannot resolve the home directory, rather than returning a
-path rooted at a literal ``~``.
