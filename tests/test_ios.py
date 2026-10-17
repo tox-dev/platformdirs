@@ -159,6 +159,5 @@ def test_ios_ignores_xdg_variables(monkeypatch: pytest.MonkeyPatch, container: P
     ],
 )
 def test_without_home_ios_dir_raises(prop: str, path: str) -> None:
-    """An iOS directory cannot be built from a literal tilde when no home resolves."""
     with pytest.raises(RuntimeError, match=re.escape(f"could not determine the home directory for {path!r}")):
         _ = getattr(IOS(appname="app", version="1.0"), prop)
