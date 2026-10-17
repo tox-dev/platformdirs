@@ -1,1 +1,2 @@
-Raise ``RuntimeError`` when iOS cannot resolve the home directory, rather than returning paths rooted at a literal ``~``.
+Raise ``RuntimeError`` when iOS cannot resolve the home directory, rather than returning paths rooted at a literal
+``~``.
