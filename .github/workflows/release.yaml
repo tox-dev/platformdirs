@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0 # full history so hatch-vcs derives the version from the tag
           persist-credentials: false
       - name: 📦 Setup uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           python-version: "3.15"
           enable-cache: false # this workflow builds the artifact that gets published; no cache to poison
@@ -45,7 +45,6 @@ jobs:
       url: https://pypi.org/project/platformdirs/${{ github.ref_name }}
     permissions:
       id-token: write
-      contents: write
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -70,13 +69,50 @@ jobs:
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
         with:
           skip-existing: true
+  github-release:
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - name: 📢 Create GitHub release
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           VERSION: ${{ github.ref_name }}
         run: |
-          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            echo "Release $VERSION already exists, skipping"
+          set -euo pipefail
+          awk -v version="$VERSION" '
+            index($0, " " version " (") == 1 { found = 1; next }
+            found && /^ [0-9]+\.[0-9]+\.[0-9]+ \(/ { exit }
+            found && $0 !~ /^\*+$/ { print }
+          ' docs/changelog.rst > "$RUNNER_TEMP/release-notes.md"
+          python3 - "$RUNNER_TEMP/release-notes.md" <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          path = Path(sys.argv[1])
+          body = path.read_text()
+          body = re.sub(r":user:`([^`]+)`", r"\1", body)
+          body = re.sub(r":(?:pr|issue):`(\d+)`", r"#\1", body)
+          body = re.sub(r":[a-z]+:`~?([^`]+)`", lambda match: f"`{match.group(1).split('.')[-1]}`", body)
+          path.write_text(body.replace("``", "`"))
+          PY
+          test -s "$RUNNER_TEMP/release-notes.md"
+          printf '\n[PyPI release](https://pypi.org/project/platformdirs/%s/)\n' "$VERSION" >> "$RUNNER_TEMP/release-notes.md"
+          previous=$({ gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate --jq '.[].tag_name'; printf '%s\n' "$VERSION"; } | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -Vu | awk -v tag="$VERSION" '$0 == tag { print previous; exit } { previous = $0 }')
+          if [[ -n "$previous" ]]; then
+            printf '\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n' "$GITHUB_REPOSITORY" "$previous" "$VERSION" >> "$RUNNER_TEMP/release-notes.md"
           else
-            gh release create "$VERSION" --repo "$GITHUB_REPOSITORY" --title="$VERSION" --verify-tag --generate-notes
+            printf '\n**Full Changelog**: https://github.com/%s/commits/%s\n' "$GITHUB_REPOSITORY" "$VERSION" >> "$RUNNER_TEMP/release-notes.md"
+          fi
+          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release edit "$VERSION" --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md"
+          else
+            gh release create "$VERSION" --repo "$GITHUB_REPOSITORY" --title="$VERSION" --verify-tag --notes-file "$RUNNER_TEMP/release-notes.md"
           fi

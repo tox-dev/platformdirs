@@ -40,7 +40,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           python-version: "3.15"
           enable-cache: false
@@ -96,7 +96,7 @@ jobs:
           pattern: .coverage.*
           merge-multiple: true
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           python-version: "3.15"
           enable-cache: false
@@ -140,7 +140,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           python-version: "3.15"
           enable-cache: false
@@ -157,19 +157,32 @@ jobs:
   changelog:
     name: 📝 News fragment
     runs-on: ubuntu-24.04
-    # A PR must add a docs/changelog/<pr>.<type>.rst fragment; automated dependency and pre-commit bumps are exempt, as
-    # is anything labeled skip news, for changes no user of the library can observe.
-    if: >-
-      github.event_name == 'pull_request' && !contains(fromJSON('["dependabot[bot]", "pre-commit-ci[bot]"]'), github.event.pull_request.user.login) && !contains(github.event.pull_request.labels.*.name, 'skip news')
+    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip news')
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           python-version: "3.15"
           enable-cache: false
       - name: Require a news fragment
         run: uvx towncrier check --compare-with "origin/${GITHUB_BASE_REF}"
+  gate:
+    name: Required checks pass
+    if: always()
+    needs: [test, coverage, check, changelog]
+    runs-on: ubuntu-24.04
+    steps:
+      - env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          jq -e '
+            all(
+              to_entries[];
+              .value.result == "success" or
+              (.key == "changelog" and .value.result == "skipped")
+            )
+          ' <<< "$NEEDS_JSON"
