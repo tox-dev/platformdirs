@@ -72,7 +72,7 @@ jobs:
           skip-existing: true
       - name: 📢 Create GitHub release
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           VERSION: ${{ github.ref_name }}
         run: |
           if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
