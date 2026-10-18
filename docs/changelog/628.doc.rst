@@ -1,0 +1,1 @@
+Require the aggregate CI check to cover the test matrix and pull request news fragment check.
