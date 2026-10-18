@@ -78,20 +78,41 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
       - name: 📢 Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ github.ref_name }}
         run: |
-          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            echo "Release $VERSION already exists, skipping"
+          set -euo pipefail
+          awk -v version="$VERSION" '
+            index($0, " " version " (") == 1 { found = 1; next }
+            found && /^ [0-9]+\.[0-9]+\.[0-9]+ \(/ { exit }
+            found && $0 !~ /^\*+$/ { print }
+          ' docs/changelog.rst > "$RUNNER_TEMP/release-notes.md"
+          python3 - "$RUNNER_TEMP/release-notes.md" <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          path = Path(sys.argv[1])
+          body = path.read_text()
+          body = re.sub(r":user:`([^`]+)`", r"\1", body)
+          body = re.sub(r":(?:pr|issue):`(\d+)`", r"#\1", body)
+          body = re.sub(r":[a-z]+:`~?([^`]+)`", lambda match: f"`{match.group(1).split('.')[-1]}`", body)
+          path.write_text(body.replace("``", "`"))
+          PY
+          test -s "$RUNNER_TEMP/release-notes.md"
+          printf '\n[PyPI release](https://pypi.org/project/platformdirs/%s/)\n' "$VERSION" >> "$RUNNER_TEMP/release-notes.md"
+          previous=$(git tag --list '[0-9]*' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | awk -v tag="$VERSION" '$0 == tag { print previous; exit } { previous = $0 }')
+          if [[ -n "$previous" ]]; then
+            printf '\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n' "$GITHUB_REPOSITORY" "$previous" "$VERSION" >> "$RUNNER_TEMP/release-notes.md"
           else
-            awk -v version="$VERSION" '
-              index($0, " " version " (") == 1 { found = 1; next }
-              found && /^ [0-9]+\.[0-9]+\.[0-9]+ \(/ { exit }
-              found && $0 !~ /^\*+$/ { print }
-            ' docs/changelog.rst > "$RUNNER_TEMP/release-notes.md"
-            test -s "$RUNNER_TEMP/release-notes.md"
+            printf '\n**Full Changelog**: https://github.com/%s/commits/%s\n' "$GITHUB_REPOSITORY" "$VERSION" >> "$RUNNER_TEMP/release-notes.md"
+          fi
+          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release edit "$VERSION" --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md"
+          else
             gh release create "$VERSION" --repo "$GITHUB_REPOSITORY" --title="$VERSION" --verify-tag --notes-file "$RUNNER_TEMP/release-notes.md"
           fi
