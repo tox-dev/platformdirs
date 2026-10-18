@@ -105,7 +105,7 @@ jobs:
           PY
           test -s "$RUNNER_TEMP/release-notes.md"
           printf '\n[PyPI release](https://pypi.org/project/platformdirs/%s/)\n' "$VERSION" >> "$RUNNER_TEMP/release-notes.md"
-          previous=$(git tag --list '[0-9]*' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | awk -v tag="$VERSION" '$0 == tag { print previous; exit } { previous = $0 }')
+          previous=$({ gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate --jq '.[].tag_name'; printf '%s\n' "$VERSION"; } | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -Vu | awk -v tag="$VERSION" '$0 == tag { print previous; exit } { previous = $0 }')
           if [[ -n "$previous" ]]; then
             printf '\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n' "$GITHUB_REPOSITORY" "$previous" "$VERSION" >> "$RUNNER_TEMP/release-notes.md"
           else
