@@ -7,6 +7,13 @@
 .. towncrier release notes start
 
 *********************
+ 4.13.5 (2026-10-19)
+*********************
+
+- Publish a GitHub Release with changelog notes, a PyPI link, and a version comparison after each PyPI release.
+  :pr:`631`
+
+*********************
  4.13.4 (2026-10-17)
 *********************
 
