@@ -97,13 +97,14 @@ jobs:
           from pathlib import Path
 
           path = Path(sys.argv[1])
-          body = path.read_text()
+          body = path.read_text().strip()
           body = re.sub(r":user:`([^`]+)`", r"\1", body)
           body = re.sub(r":(?:pr|issue):`(\d+)`", r"#\1", body)
           body = re.sub(r":[a-z]+:`~?([^`]+)`", lambda match: f"`{match.group(1).split('.')[-1]}`", body)
-          path.write_text(body.replace("``", "`"))
+          if not body:
+              raise SystemExit("release notes are empty")
+          path.write_text(body.replace("``", "`") + "\n")
           PY
-          test -s "$RUNNER_TEMP/release-notes.md"
           printf '\n[PyPI release](https://pypi.org/project/platformdirs/%s/)\n' "$VERSION" >> "$RUNNER_TEMP/release-notes.md"
           previous=$({ gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate --jq '.[].tag_name'; printf '%s\n' "$VERSION"; } | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -Vu | awk -v tag="$VERSION" '$0 == tag { print previous; exit } { previous = $0 }')
           if [[ -n "$previous" ]]; then
