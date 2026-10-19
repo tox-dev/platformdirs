@@ -1,0 +1,1 @@
+Publish a GitHub Release with changelog notes, a PyPI link, and a version comparison after each PyPI release.
