@@ -8,6 +8,7 @@ requires = [
 
 [project]
 name = "platformdirs"
+import-names = [ "platformdirs" ]
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
 keywords = [
   "appdirs",
@@ -28,7 +29,6 @@ requires-python = ">=3.11"
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3 :: Only",
