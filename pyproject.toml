@@ -1,6 +1,7 @@
 [build-system]
 build-backend = "hatchling.build"
 requires = [
+  "hatch-fancy-pypi-readme>=25.1",
   "hatch-vcs>=0.5",
   "hatchling>=1.29",
 ]
@@ -8,7 +9,6 @@ requires = [
 [project]
 name = "platformdirs"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
-readme = "README.md"
 keywords = [
   "appdirs",
   "application",
@@ -42,6 +42,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dynamic = [
+  "readme",
   "version",
 ]
 urls.Changelog = "https://platformdirs.readthedocs.io/en/latest/changelog.html"
@@ -110,6 +111,8 @@ release = [
 
 [tool.hatch]
 version.source = "vcs"
+metadata.hooks.fancy-pypi-readme.content-type = "text/markdown"
+metadata.hooks.fancy-pypi-readme.fragments = [ { path = "README.md" } ]
 build.hooks.vcs.version-file = "src/platformdirs/version.py"
 build.targets.sdist.include = [
   "/src",
