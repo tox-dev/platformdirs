@@ -1,0 +1,25 @@
+name: Upgrade release tools
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 8 * * 2"
+permissions: {}
+concurrency:
+  group: upgrade-release-tools
+  cancel-in-progress: false
+jobs:
+  upgrade:
+    uses: tox-dev/github-workflows/.github/workflows/upgrade-release-tools.yaml@5e8bf7d128a11823fb168415f22e3a9fac1614c8
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+    with:
+      groups: release
+      python-version: "3.15"
+      check-workflow: check.yaml
+      commit-message: "build(deps): refresh release lock"
+      pull-request-title: "build(deps): refresh release tool lock"
+      pull-request-body: |-
+        Refresh the locked release tools to the latest versions allowed by the `release` dependency group.
+        `pylock.toml` records the exact versions used by release and changelog workflows.

@@ -156,33 +156,72 @@ jobs:
           UV_PYTHON_PREFERENCE: only-managed
   changelog:
     name: 📝 News fragment
-    runs-on: ubuntu-24.04
-    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip news')
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           python-version: "3.15"
           enable-cache: false
-      - name: Require a news fragment
-        run: uvx towncrier check --compare-with "origin/${GITHUB_BASE_REF}"
+      - name: Install locked release tools
+        run: |
+          uv venv --python 3.15 "$RUNNER_TEMP/release-tools"
+          uv pip sync --preview-features pylock --python "$RUNNER_TEMP/release-tools/bin/python" --group release pylock.toml
+          echo "$RUNNER_TEMP/release-tools/bin" >> "$GITHUB_PATH"
+      - uses: tox-dev/github-workflows/validate-news@5e8bf7d128a11823fb168415f22e3a9fac1614c8
+  release-dry-run:
+    name: Release without publishing
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main')
+    uses: tox-dev/github-workflows/.github/workflows/validate-python-release.yaml@5e8bf7d128a11823fb168415f22e3a9fac1614c8
+    permissions:
+      contents: read
+      pull-requests: read
+    with:
+      changelog: docs/changelog.rst
+      fragments: docs/changelog
+      format: rst
+      heading-prefix: ""
+      artifact-base-url: https://pypi.org/project/platformdirs/
+  release-tools-preview:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: "3.15"
+          enable-cache: false
+      - uses: tox-dev/github-workflows/refresh-release-lock@5e8bf7d128a11823fb168415f22e3a9fac1614c8
+        with:
+          groups: release
+          python-version: "3.15"
   gate:
     name: Required checks pass
     if: always()
-    needs: [test, coverage, check, changelog]
+    needs: [test, coverage, check, changelog, release-dry-run, release-tools-preview]
     runs-on: ubuntu-24.04
     steps:
       - env:
           NEEDS_JSON: ${{ toJSON(needs) }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
         run: |
-          jq -e '
+          jq -e --arg event "$EVENT_NAME" --arg ref "$REF" '
             all(
               to_entries[];
               .value.result == "success" or
-              (.key == "changelog" and .value.result == "skipped")
+              (.key == "changelog" and .value.result == "skipped" and $event != "pull_request") or
+              (.key == "release-dry-run" and .value.result == "skipped" and
+                ($event != "pull_request" and ($event != "workflow_dispatch" or $ref == "refs/heads/main"))) or
+              (.key == "release-tools-preview" and .value.result == "skipped" and $event != "pull_request")
             )
           ' <<< "$NEEDS_JSON"
