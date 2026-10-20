@@ -1,0 +1,2 @@
+Stop ``user-dirs.dirs`` entries from resolving to a path with a doubled leading slash, like ``//Documents``, when
+the home directory is ``/`` - by :user:`darrenhuai`.
