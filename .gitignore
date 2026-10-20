@@ -7,3 +7,4 @@
 /docs/build
 /.coverage
 /.coverage.*
+/uv.lock
