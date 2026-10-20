@@ -172,11 +172,11 @@ jobs:
           uv venv --python 3.15 "$RUNNER_TEMP/release-tools"
           uv pip sync --preview-features pylock --python "$RUNNER_TEMP/release-tools/bin/python" --group release pylock.toml
           echo "$RUNNER_TEMP/release-tools/bin" >> "$GITHUB_PATH"
-      - uses: tox-dev/github-workflows/validate-news@60edc05324abc8e592818262dc63b36fb7b70f8c
+      - uses: tox-dev/github-workflows/validate-news@84255555371c47578577079d168a4654fc749166
   release-dry-run:
     name: Release without publishing
     if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main')
-    uses: tox-dev/github-workflows/.github/workflows/validate-python-release.yaml@60edc05324abc8e592818262dc63b36fb7b70f8c
+    uses: tox-dev/github-workflows/.github/workflows/validate-python-release.yaml@84255555371c47578577079d168a4654fc749166
     permissions:
       contents: read
       pull-requests: read
@@ -200,7 +200,7 @@ jobs:
         with:
           python-version: "3.15"
           enable-cache: false
-      - uses: tox-dev/github-workflows/refresh-release-lock@60edc05324abc8e592818262dc63b36fb7b70f8c
+      - uses: tox-dev/github-workflows/refresh-release-lock@84255555371c47578577079d168a4654fc749166
         with:
           groups: release
           python-version: "3.15"
