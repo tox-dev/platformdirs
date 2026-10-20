@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: "3.15"
           enable-cache: false
-      - uses: tox-dev/github-workflows/build-python-distribution@5e8bf7d128a11823fb168415f22e3a9fac1614c8
+      - uses: tox-dev/github-workflows/build-python-distribution@60edc05324abc8e592818262dc63b36fb7b70f8c
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ env.dists-artifact-name }}
@@ -71,7 +71,7 @@ jobs:
               -f tag_name="$TAG" \
               --jq .body > "$RUNNER_TEMP/generated-notes.md"
           fi
-      - uses: tox-dev/github-workflows/render-release-notes@5e8bf7d128a11823fb168415f22e3a9fac1614c8
+      - uses: tox-dev/github-workflows/render-release-notes@60edc05324abc8e592818262dc63b36fb7b70f8c
         with:
           tag: ${{ github.ref_name }}
           changelog: docs/changelog.rst

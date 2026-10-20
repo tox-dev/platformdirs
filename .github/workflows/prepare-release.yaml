@@ -41,7 +41,7 @@ jobs:
           uv pip sync --preview-features pylock --python "$RUNNER_TEMP/release-tools/bin/python" --group release pylock.toml
           echo "$RUNNER_TEMP/release-tools/bin" >> "$GITHUB_PATH"
       - id: prepare
-        uses: tox-dev/github-workflows/prepare-towncrier@5e8bf7d128a11823fb168415f22e3a9fac1614c8
+        uses: tox-dev/github-workflows/prepare-towncrier@60edc05324abc8e592818262dc63b36fb7b70f8c
         with:
           bump: ${{ inputs.bump }}
           changelog: docs/changelog.rst
@@ -77,14 +77,14 @@ jobs:
           uv venv --python 3.15 "$RUNNER_TEMP/release-tools"
           uv pip sync --preview-features pylock --python "$RUNNER_TEMP/release-tools/bin/python" --group release pylock.toml
           echo "$RUNNER_TEMP/release-tools/bin" >> "$GITHUB_PATH"
-      - uses: tox-dev/github-workflows/validate-release-patch@5e8bf7d128a11823fb168415f22e3a9fac1614c8
+      - uses: tox-dev/github-workflows/validate-release-patch@60edc05324abc8e592818262dc63b36fb7b70f8c
         with:
           version: ${{ needs.assemble.outputs.version }}
           changelog: docs/changelog.rst
           fragments: docs/changelog
           patch: ${{ runner.temp }}/release-patch/release.patch
           expected-sha: ${{ github.sha }}
-          heading-prefix: ""
+          heading-prefix: " "
       - id: token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
@@ -93,7 +93,7 @@ jobs:
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
           permission-contents: write
-      - uses: tox-dev/github-workflows/commit-and-tag@5e8bf7d128a11823fb168415f22e3a9fac1614c8
+      - uses: tox-dev/github-workflows/commit-and-tag@60edc05324abc8e592818262dc63b36fb7b70f8c
         with:
           version: ${{ needs.assemble.outputs.version }}
           token: ${{ steps.token.outputs.token }}
