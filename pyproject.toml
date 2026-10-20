@@ -117,6 +117,13 @@ build.targets.sdist.include = [
   "/tox.toml",
 ]
 
+[tool.uv]
+dependency-groups.dev = { requires-python = ">=3.15" }
+dependency-groups.docs = { requires-python = ">=3.15" }
+dependency-groups.docs-core = { requires-python = ">=3.12" }
+dependency-groups.release = { requires-python = ">=3.15" }
+dependency-groups.type = { requires-python = ">=3.15" }
+
 [tool.ruff]
 line-length = 120
 format.preview = true

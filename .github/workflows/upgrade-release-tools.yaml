@@ -9,13 +9,12 @@ concurrency:
   cancel-in-progress: false
 jobs:
   upgrade:
-    uses: tox-dev/github-workflows/.github/workflows/upgrade-release-tools.yaml@84255555371c47578577079d168a4654fc749166
+    uses: tox-dev/github-workflows/.github/workflows/upgrade-release-tools.yaml@65ca97430da17d7c6f3cf636c0fd16dc3474481e
     permissions:
       actions: write
       contents: write
       pull-requests: write
     with:
-      groups: release
       python-version: "3.15"
       check-workflow: check.yaml
       commit-message: "build(deps): refresh release lock"
