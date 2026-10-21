@@ -168,12 +168,12 @@ def _xdg_dir_list(env_var: str) -> list[str]:
 
 
 def _expand_user(path: str) -> str:
-    """Expand the leading ``~`` of ``path`` like :func:`os.path.expanduser`, treating an empty ``HOME`` as unset.
+    """Expand the leading ``~`` of ``path`` like :func:`os.path.expanduser`, treating an empty ``HOME`` as unset on POSIX.
 
-    :raises RuntimeError: if neither ``HOME`` nor the password database gives a home directory.
+    :raises RuntimeError: if the home directory cannot be resolved.
 
     """
-    if "HOME" in os.environ and not os.environ["HOME"]:
+    if sys.platform != "win32" and "HOME" in os.environ and not os.environ["HOME"]:
         # expanduser roots the path at / for an empty HOME; Rust's std::env::home_dir treats it as unset too
         expanded = path if (home := _passwd_home()) is None else (home.rstrip("/") + path[1:] or "/")
     else:

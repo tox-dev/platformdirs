@@ -49,6 +49,13 @@ _LOCAL = os.path.normpath(_WIN_FOLDERS["CSIDL_LOCAL_APPDATA"])
 _COMMON = os.path.normpath(_WIN_FOLDERS["CSIDL_COMMON_APPDATA"])
 
 
+@pytest.mark.skipif(sys.platform != "win32", reason="requires Windows home expansion")
+def test_windows_projects_with_empty_home(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("HOME", "")
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    assert Windows().user_projects_dir == str(tmp_path / "Projects")
+
+
 @pytest.fixture(autouse=True)
 def _mock_get_win_folder(mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.windows.get_win_folder", side_effect=lambda csidl: _WIN_FOLDERS[csidl])
