@@ -177,11 +177,23 @@ jobs:
           uv venv --python 3.15 "$RUNNER_TEMP/release-tools"
           uv pip sync --preview-features pylock --python "$RUNNER_TEMP/release-tools/bin/python" --group release pylock.toml
           echo "$RUNNER_TEMP/release-tools/bin" >>"$GITHUB_PATH"
-      - uses: tox-dev/github-workflows/validate-news@560223eaaf4a15385415c521564155a50653fa52
+      - uses: tox-dev/github-workflows/validate-news@8db87d4730353b61630d66cbc592d6bed0c85d2b
+  hook-update-cooldown:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: tox-dev/github-workflows/check-hook-update-cooldown@8db87d4730353b61630d66cbc592d6bed0c85d2b
+        with:
+          repository: ${{ github.repository }}
+          pull-request: ${{ github.event.pull_request.number }}
+          head-sha: ${{ github.event.pull_request.head.sha }}
   gate:
     name: Required checks pass
     if: always()
-    needs: [test, coverage, check, changelog]
+    needs: [test, coverage, check, changelog, hook-update-cooldown]
     runs-on: ubuntu-24.04
     steps:
       - env:
@@ -192,6 +204,7 @@ jobs:
             all(
               to_entries[];
               .value.result == "success" or
-              (.key == "changelog" and .value.result == "skipped" and $event != "pull_request")
+              ((.key == "changelog" or .key == "hook-update-cooldown") and
+               .value.result == "skipped" and $event != "pull_request")
             )
           ' <<<"$NEEDS_JSON"
