@@ -82,8 +82,28 @@ jobs:
           path: ${{ steps.stage.outputs.manifest }}
           if-no-files-found: error
           retention-days: 1
+  github_draft:
+    needs: [pypi_stage, github_notes]
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: github-release-notes
+          path: ${{ runner.temp }}/release-notes
+      - uses: tox-dev/github-workflows/publish-github-release@3553fb1bb4ed1385f8b68571de1b5515edf2d339
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          repository: ${{ github.repository }}
+          tag: ${{ github.ref_name }}
+          commit: ${{ github.sha }}
+          title: ${{ github.ref_name }}
+          notes-file: ${{ runner.temp }}/release-notes/release-notes.md
+          mode: stage
   release:
-    needs: pypi_stage
+    needs: [pypi_stage, github_draft]
     runs-on: ubuntu-26.04
     environment:
       name: release
@@ -114,7 +134,7 @@ jobs:
           packages-dir: upload
           skip-existing: true
   pypi_verify:
-    needs: release
+    needs: [release, github_draft]
     runs-on: ubuntu-26.04
     permissions:
       contents: read
@@ -233,7 +253,7 @@ jobs:
           path: ${{ runner.temp }}/release-notes.md
           if-no-files-found: error
   github-release:
-    needs: [pypi_verify, github_notes]
+    needs: [pypi_verify, github_draft, github_notes]
     runs-on: ubuntu-26.04
     permissions:
       contents: write
@@ -251,3 +271,4 @@ jobs:
           commit: ${{ github.sha }}
           title: ${{ github.ref_name }}
           notes-file: ${{ runner.temp }}/release-notes/release-notes.md
+          mode: publish
