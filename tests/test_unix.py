@@ -1024,6 +1024,27 @@ def test_user_dirs_respects_xdg_config_home(posix_tmp_path: str, monkeypatch: py
     assert Unix().user_documents_path == Path(posix_tmp_path) / "CustomDocs"
 
 
+@pytest.mark.parametrize(
+    ("entry", "expected"),
+    [
+        pytest.param("$HOME/Docs", "/Docs", id="below-home"),
+        pytest.param("$HOME", "/", id="home-itself"),
+        pytest.param("$HOME/", "/", id="home-trailing-slash"),
+    ],
+)
+def test_user_dirs_home_at_filesystem_root(
+    entry: str, expected: str, posix_tmp_path: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Service accounts often run with HOME=/, and pathlib treats a leading "//" as a separate root.
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    (config := Path(posix_tmp_path) / "config").mkdir()
+    (config / "user-dirs.dirs").write_text(f'XDG_DOCUMENTS_DIR="{entry}"\n', encoding="utf-8")
+    monkeypatch.setenv("HOME", "/")
+    monkeypatch.setenv("USERPROFILE", "/")
+    monkeypatch.setenv("XDG_CONFIG_HOME", config.as_posix())
+    assert Unix().user_documents_dir == expected
+
+
 @pytest.fixture
 def posix_tmp_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> str:
     # Unix paths in Windows tests need the temporary directory's drive as the current drive.

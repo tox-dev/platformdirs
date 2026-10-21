@@ -347,7 +347,8 @@ def _get_user_dirs_folder(key: str) -> str | None:
 def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
     value = entry["bare"] if entry["quoted"] is None else entry["quoted"]
     if value == "$HOME" or value.startswith("$HOME/"):
-        prefix, value = _expand_user("~"), value.removeprefix("$HOME")
+        # A home of / would give "//Desktop", which pathlib keeps as a distinct root.
+        prefix, value = _expand_user("~").rstrip("/"), value.removeprefix("$HOME")
     elif value.startswith("/"):
         prefix = ""
     else:
@@ -355,7 +356,7 @@ def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
     if entry["quoted"] is not None:
         # xdg-user-dirs-update backslash-escapes $, `, " and \ inside the quotes.
         value = re.sub(r'\\([$`"\\])', r"\1", value)
-    return prefix + value
+    return (prefix + value) or "/"
 
 
 def _runtime_dir_problem(path: str, *, check_mode: bool = True) -> str | None:
