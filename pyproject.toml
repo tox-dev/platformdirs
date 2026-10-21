@@ -104,8 +104,10 @@ pkg-meta = [
   "uv>=0.10.7",
 ]
 release = [
+  "mdformat-gfm>=1",
+  "mdformat-ruff>=0.1.3",
   "prek>=0.5",
-  "release-creator @ git+https://github.com/tox-dev/release-creator@b710d0913a8da770551efaf93c763432c01bec3d",
+  "release-creator @ git+https://github.com/tox-dev/release-creator@cf1d89453fc88887e5cf924f6bc1b83157d3a6ac",
   "towncrier>=26.9",
 ]
 

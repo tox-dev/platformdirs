@@ -30,10 +30,10 @@ jobs:
           - "3.11"
         os:
           - ubuntu-24.04
-          - windows-2025
-          - macos-15
+          - windows-2025-vs2026
+          - macos-26
         exclude:
-          - {os: windows-2025, py: pypy3.11}
+          - {os: windows-2025-vs2026, py: pypy3.11}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -54,13 +54,14 @@ jobs:
           UV_PYTHON_PREFERENCE: only-managed
       - name: Run test suite
         run: |
-          if [[ "${{ matrix.py }}" == pypy* ]]; then
-            tox run --skip-pkg-install -e ${{ matrix.py }} --
+          if [[ "$MATRIX_PY" == pypy* ]]; then
+            tox run --skip-pkg-install -e "$MATRIX_PY" --
           else
-            tox run --skip-pkg-install -e ${{ matrix.py }}
+            tox run --skip-pkg-install -e "$MATRIX_PY"
           fi
         shell: bash
         env:
+          MATRIX_PY: ${{ matrix.py }}
           PYTEST_ADDOPTS: "-vv --durations=20"
           UV_PYTHON_PREFERENCE: only-managed
           DIFF_AGAINST: HEAD
@@ -126,14 +127,14 @@ jobs:
       matrix:
         os:
           - ubuntu-24.04
-          - windows-2025
+          - windows-2025-vs2026
         tox_env:
           - dev
           - type
           - docs
           - pkg_meta
         exclude:
-          - {os: windows-2025, tox_env: pkg_meta}
+          - {os: windows-2025-vs2026, tox_env: pkg_meta}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -171,8 +172,8 @@ jobs:
         run: |
           uv venv --python 3.15 "$RUNNER_TEMP/release-tools"
           uv pip sync --preview-features pylock --python "$RUNNER_TEMP/release-tools/bin/python" --group release pylock.toml
-          echo "$RUNNER_TEMP/release-tools/bin" >> "$GITHUB_PATH"
-      - uses: tox-dev/github-workflows/validate-news@144f8e68b7d4c7c44e32258b1305e4402bc4e392
+          echo "$RUNNER_TEMP/release-tools/bin" >>"$GITHUB_PATH"
+      - uses: tox-dev/github-workflows/validate-news@5e11f2254a4dcb7102747d312ad7db48a2e9b0cb
   gate:
     name: Required checks pass
     if: always()
@@ -189,4 +190,4 @@ jobs:
               .value.result == "success" or
               (.key == "changelog" and .value.result == "skipped" and $event != "pull_request")
             )
-          ' <<< "$NEEDS_JSON"
+          ' <<<"$NEEDS_JSON"
