@@ -173,7 +173,7 @@ jobs:
           uv venv --python 3.15 "$RUNNER_TEMP/release-tools"
           uv pip sync --preview-features pylock --python "$RUNNER_TEMP/release-tools/bin/python" --group release pylock.toml
           echo "$RUNNER_TEMP/release-tools/bin" >>"$GITHUB_PATH"
-      - uses: tox-dev/github-workflows/validate-news@5e11f2254a4dcb7102747d312ad7db48a2e9b0cb
+      - uses: tox-dev/github-workflows/validate-news@4417ce2a6208a7e5afcf3b3291d174cb2eccbbd1
   gate:
     name: Required checks pass
     if: always()
