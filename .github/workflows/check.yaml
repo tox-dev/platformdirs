@@ -39,9 +39,10 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Install the latest version of uv
+      - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          version: latest-known
           python-version: "3.15"
           enable-cache: false
       - name: Install tox
@@ -96,9 +97,10 @@ jobs:
           path: .tox
           pattern: .coverage.*
           merge-multiple: true
-      - name: Install the latest version of uv
+      - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          version: latest-known
           python-version: "3.15"
           enable-cache: false
       - name: Install tox
@@ -140,9 +142,10 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Install the latest version of uv
+      - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          version: latest-known
           python-version: "3.15"
           enable-cache: false
       - name: Install tox
@@ -166,6 +169,7 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          version: latest-known
           python-version: "3.15"
           enable-cache: false
       - name: Install locked release tools
@@ -173,7 +177,7 @@ jobs:
           uv venv --python 3.15 "$RUNNER_TEMP/release-tools"
           uv pip sync --preview-features pylock --python "$RUNNER_TEMP/release-tools/bin/python" --group release pylock.toml
           echo "$RUNNER_TEMP/release-tools/bin" >>"$GITHUB_PATH"
-      - uses: tox-dev/github-workflows/validate-news@4417ce2a6208a7e5afcf3b3291d174cb2eccbbd1
+      - uses: tox-dev/github-workflows/validate-news@3553fb1bb4ed1385f8b68571de1b5515edf2d339
   gate:
     name: Required checks pass
     if: always()

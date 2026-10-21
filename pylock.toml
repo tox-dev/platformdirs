@@ -5106,28 +5106,7 @@ sha256 = "edaa16e6c14d7cf395d75d4bbd5a26390f4dc06501a33b4e76282b02cc688a25"
 name = "packaging"
 version = "26.3"
 index = "https://pypi.org/simple"
-marker = "\"fix\" in dependency_groups or \"pkg-meta\" in dependency_groups or \"test\" in dependency_groups or (\"dev\" in dependency_groups and (python_full_version >= '3.15')) or (\"docs\" in dependency_groups and (python_full_version >= '3.15')) or (\"docs-core\" in dependency_groups and (python_full_version >= '3.12')) or (\"release\" in dependency_groups and (python_full_version >= '3.15')) or (\"type\" in dependency_groups and (python_full_version >= '3.15'))"
-
-[packages.sdist]
-url = "https://files.pythonhosted.org/packages/7d/fa/3944b40b07da9ce895c0e6303a5ab7d53da063554f534556b134a54d6093/packaging-26.3.tar.gz"
-upload-time = 2026-08-04 18:15:28+00:00
-size = 313412
-
-[packages.sdist.hashes]
-sha256 = "94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79"
-
-[[packages.wheels]]
-url = "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl"
-upload-time = 2026-08-04 18:15:27+00:00
-size = 129956
-
-[packages.wheels.hashes]
-sha256 = "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"
-
-[[packages]]
-name = "packaging"
-version = "26.3"
-marker = "\"build\" in dependency_groups"
+marker = "\"build\" in dependency_groups or \"fix\" in dependency_groups or \"pkg-meta\" in dependency_groups or \"test\" in dependency_groups or (\"dev\" in dependency_groups and (python_full_version >= '3.15')) or (\"docs\" in dependency_groups and (python_full_version >= '3.15')) or (\"docs-core\" in dependency_groups and (python_full_version >= '3.12')) or (\"release\" in dependency_groups and (python_full_version >= '3.15')) or (\"type\" in dependency_groups and (python_full_version >= '3.15'))"
 
 [packages.sdist]
 url = "https://files.pythonhosted.org/packages/7d/fa/3944b40b07da9ce895c0e6303a5ab7d53da063554f534556b134a54d6093/packaging-26.3.tar.gz"
@@ -5170,28 +5149,7 @@ sha256 = "a00ce642f577bf7f473932318056212bc4f8bfdf53128c78bbd5af0b9b20b189"
 name = "pluggy"
 version = "1.6.0"
 index = "https://pypi.org/simple"
-marker = "\"coverage\" in dependency_groups or \"test\" in dependency_groups or (\"dev\" in dependency_groups and (python_full_version >= '3.15')) or (\"type\" in dependency_groups and (python_full_version >= '3.15'))"
-
-[packages.sdist]
-url = "https://files.pythonhosted.org/packages/f9/e2/3e91f31a7d2b083fe6ef3fa267035b518369d9511ffab804f839851d2779/pluggy-1.6.0.tar.gz"
-upload-time = 2025-05-15 12:30:07+00:00
-size = 69412
-
-[packages.sdist.hashes]
-sha256 = "7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3"
-
-[[packages.wheels]]
-url = "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl"
-upload-time = 2025-05-15 12:30:06+00:00
-size = 20538
-
-[packages.wheels.hashes]
-sha256 = "e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746"
-
-[[packages]]
-name = "pluggy"
-version = "1.6.0"
-marker = "\"build\" in dependency_groups"
+marker = "\"build\" in dependency_groups or \"coverage\" in dependency_groups or \"test\" in dependency_groups or (\"dev\" in dependency_groups and (python_full_version >= '3.15')) or (\"type\" in dependency_groups and (python_full_version >= '3.15'))"
 
 [packages.sdist]
 url = "https://files.pythonhosted.org/packages/f9/e2/3e91f31a7d2b083fe6ef3fa267035b518369d9511ffab804f839851d2779/pluggy-1.6.0.tar.gz"
@@ -6509,7 +6467,7 @@ sha256 = "8a1513379d709975552d202d942d9837758905c8d01eb82b8bcc30918929e7b8"
 name = "pyyaml"
 version = "6.0.3"
 index = "https://pypi.org/simple"
-marker = "\"fix\" in dependency_groups or (\"dev\" in dependency_groups and (python_full_version >= '3.15')) or (\"docs\" in dependency_groups and (python_full_version >= '3.15')) or (\"release\" in dependency_groups and (python_full_version >= '3.15')) or (\"type\" in dependency_groups and (python_full_version >= '3.15'))"
+marker = "\"fix\" in dependency_groups or (\"dev\" in dependency_groups and (python_full_version >= '3.15')) or (\"docs\" in dependency_groups and (python_full_version >= '3.15'))"
 
 [packages.sdist]
 url = "https://files.pythonhosted.org/packages/05/8e/961c0007c59b8dd7729d542c61a4d537767a59645b82a0b521206e1e25c2/pyyaml-6.0.3.tar.gz"
@@ -6919,14 +6877,14 @@ sha256 = "d0dae1f74bb273b534770cb4cccb6bb78735540afdb03c2146f4e19dcd412560"
 
 [[packages]]
 name = "release-creator"
-version = "0.4.2.dev40+ga68e1cac5"
+version = "0.4.2.dev50+g7330cc0dc"
 marker = "(\"dev\" in dependency_groups and (python_full_version >= '3.15')) or (\"docs\" in dependency_groups and (python_full_version >= '3.15')) or (\"release\" in dependency_groups and (python_full_version >= '3.15')) or (\"type\" in dependency_groups and (python_full_version >= '3.15'))"
 
 [packages.vcs]
 type = "git"
 url = "https://github.com/tox-dev/release-creator"
-requested-revision = "a68e1cac50755c8d8fbb2be85fa1a35eeb78d577"
-commit-id = "a68e1cac50755c8d8fbb2be85fa1a35eeb78d577"
+requested-revision = "7330cc0dc3c7a41a8d169bf8014fc2a75f6e220a"
+commit-id = "7330cc0dc3c7a41a8d169bf8014fc2a75f6e220a"
 
 [[packages]]
 name = "requests"

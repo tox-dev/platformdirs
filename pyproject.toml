@@ -107,7 +107,7 @@ release = [
   "mdformat-gfm>=1",
   "mdformat-ruff>=0.1.3",
   "prek>=0.5",
-  "release-creator @ git+https://github.com/tox-dev/release-creator@a68e1cac50755c8d8fbb2be85fa1a35eeb78d577",
+  "release-creator @ git+https://github.com/tox-dev/release-creator@7330cc0dc3c7a41a8d169bf8014fc2a75f6e220a",
   "towncrier>=26.9",
 ]
 
