@@ -41,7 +41,7 @@ jobs:
           uv pip sync --preview-features pylock --python "$RUNNER_TEMP/release-tools/bin/python" --group release pylock.toml
           echo "$RUNNER_TEMP/release-tools/bin" >>"$GITHUB_PATH"
       - id: prepare
-        uses: tox-dev/github-workflows/prepare-towncrier@3553fb1bb4ed1385f8b68571de1b5515edf2d339
+        uses: tox-dev/github-workflows/prepare-towncrier@560223eaaf4a15385415c521564155a50653fa52
         with:
           bump: ${{ inputs.bump }}
           changelog: docs/changelog.rst
@@ -79,7 +79,7 @@ jobs:
           uv venv --python 3.15 "$RUNNER_TEMP/release-tools"
           uv pip sync --preview-features pylock --python "$RUNNER_TEMP/release-tools/bin/python" --group release pylock.toml
           echo "$RUNNER_TEMP/release-tools/bin" >>"$GITHUB_PATH"
-      - uses: tox-dev/github-workflows/validate-release-patch@3553fb1bb4ed1385f8b68571de1b5515edf2d339
+      - uses: tox-dev/github-workflows/validate-release-patch@560223eaaf4a15385415c521564155a50653fa52
         with:
           version: ${{ needs.assemble.outputs.version }}
           changelog: docs/changelog.rst
@@ -106,7 +106,7 @@ jobs:
         with:
           name: release-patch
           path: ${{ runner.temp }}/release-patch
-      - uses: tox-dev/github-workflows/validate-release-patch@3553fb1bb4ed1385f8b68571de1b5515edf2d339
+      - uses: tox-dev/github-workflows/validate-release-patch@560223eaaf4a15385415c521564155a50653fa52
         with:
           version: ${{ needs.assemble.outputs.version }}
           changelog: docs/changelog.rst
@@ -123,7 +123,7 @@ jobs:
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
           permission-contents: write
-      - uses: tox-dev/github-workflows/commit-and-tag@3553fb1bb4ed1385f8b68571de1b5515edf2d339
+      - uses: tox-dev/github-workflows/commit-and-tag@560223eaaf4a15385415c521564155a50653fa52
         with:
           version: ${{ needs.assemble.outputs.version }}
           token: ${{ steps.token.outputs.token }}
