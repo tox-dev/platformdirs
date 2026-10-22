@@ -28,7 +28,9 @@ jobs:
           version: latest-known
           python-version: "3.15"
           enable-cache: false
-      - uses: tox-dev/github-workflows/build-python-distribution@33db207c963ad07b8d2bff4099143593fd4100b2
+      - uses: tox-dev/github-workflows/build-python-distribution@fcba1cc52c8e8bbb8c3305ee5e4bc454b9ab0c50
+        with:
+          planner-group: release-notes
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ env.dists-artifact-name }}
@@ -37,17 +39,17 @@ jobs:
   build:
     name: 📦 validate tagged build
     if: startsWith(github.ref, 'refs/tags/')
-    uses: tox-dev/github-workflows/.github/workflows/validate-python-release.yaml@33db207c963ad07b8d2bff4099143593fd4100b2
+    uses: tox-dev/github-workflows/.github/workflows/validate-python-release.yaml@fcba1cc52c8e8bbb8c3305ee5e4bc454b9ab0c50
     permissions:
       contents: read
     with:
+      check-group: release-check
+      notes-group: release-notes
       changelog: docs/changelog.rst
       issue-role: issue
       artifact-base-url: https://pypi.org/project/platformdirs/
   pypi_stage:
-    needs:
-      - build
-      - github_notes
+    needs: build
     runs-on: ubuntu-26.04
     permissions:
       contents: read
@@ -67,8 +69,9 @@ jobs:
           name: ${{ env.dists-artifact-name }}
           path: dist
       - id: stage
-        uses: tox-dev/github-workflows/reconcile-pypi-artifacts@33db207c963ad07b8d2bff4099143593fd4100b2
+        uses: tox-dev/github-workflows/reconcile-pypi-artifacts@fcba1cc52c8e8bbb8c3305ee5e4bc454b9ab0c50
         with:
+          tool-group: release-notes
           project: platformdirs
           version: ${{ github.ref_name }}
           dist: dist
@@ -89,7 +92,7 @@ jobs:
         with:
           name: github-release-notes
           path: ${{ runner.temp }}/release-notes
-      - uses: tox-dev/github-workflows/publish-github-release@33db207c963ad07b8d2bff4099143593fd4100b2
+      - uses: tox-dev/github-workflows/publish-github-release@fcba1cc52c8e8bbb8c3305ee5e4bc454b9ab0c50
         env:
           GH_TOKEN: ${{ github.token }}
         with:
@@ -118,7 +121,7 @@ jobs:
           name: pypi-missing-names
           path: ${{ runner.temp }}/pypi-missing-names
       - id: select
-        uses: tox-dev/github-workflows/select-pypi-artifacts@33db207c963ad07b8d2bff4099143593fd4100b2
+        uses: tox-dev/github-workflows/select-pypi-artifacts@fcba1cc52c8e8bbb8c3305ee5e4bc454b9ab0c50
         with:
           dist: dist
           manifest: ${{ runner.temp }}/pypi-missing-names/pypi-missing-names.txt
@@ -148,8 +151,9 @@ jobs:
         with:
           name: ${{ env.dists-artifact-name }}
           path: dist
-      - uses: tox-dev/github-workflows/reconcile-pypi-artifacts@33db207c963ad07b8d2bff4099143593fd4100b2
+      - uses: tox-dev/github-workflows/reconcile-pypi-artifacts@fcba1cc52c8e8bbb8c3305ee5e4bc454b9ab0c50
         with:
+          tool-group: release-notes
           project: platformdirs
           version: ${{ github.ref_name }}
           dist: dist
@@ -172,8 +176,9 @@ jobs:
           python-version: "3.15"
           enable-cache: false
       - name: Install locked release tools
-        uses: tox-dev/github-workflows/install-locked-tools@33db207c963ad07b8d2bff4099143593fd4100b2
+        uses: tox-dev/github-workflows/install-locked-tools@fcba1cc52c8e8bbb8c3305ee5e4bc454b9ab0c50
         with:
+          groups: release-notes
           venv: ${{ runner.temp }}/release-tools
       - name: Add installed tools to PATH
         run: echo "$RUNNER_TEMP/release-tools/bin" >>"$GITHUB_PATH"
@@ -228,8 +233,9 @@ jobs:
           python-version: "3.15"
           enable-cache: false
       - name: Install locked release tools
-        uses: tox-dev/github-workflows/install-locked-tools@33db207c963ad07b8d2bff4099143593fd4100b2
+        uses: tox-dev/github-workflows/install-locked-tools@fcba1cc52c8e8bbb8c3305ee5e4bc454b9ab0c50
         with:
+          groups: release-notes
           venv: ${{ runner.temp }}/release-tools
       - name: Add installed tools to PATH
         run: echo "$RUNNER_TEMP/release-tools/bin" >>"$GITHUB_PATH"
@@ -237,7 +243,7 @@ jobs:
         with:
           name: generated-release-notes
           path: ${{ runner.temp }}/generated-notes
-      - uses: tox-dev/github-workflows/render-release-notes@33db207c963ad07b8d2bff4099143593fd4100b2
+      - uses: tox-dev/github-workflows/render-release-notes@fcba1cc52c8e8bbb8c3305ee5e4bc454b9ab0c50
         with:
           tag: ${{ github.ref_name }}
           changelog: docs/changelog.rst
@@ -261,7 +267,7 @@ jobs:
         with:
           name: github-release-notes
           path: ${{ runner.temp }}/release-notes
-      - uses: tox-dev/github-workflows/publish-github-release@33db207c963ad07b8d2bff4099143593fd4100b2
+      - uses: tox-dev/github-workflows/publish-github-release@fcba1cc52c8e8bbb8c3305ee5e4bc454b9ab0c50
         env:
           GH_TOKEN: ${{ github.token }}
         with:
