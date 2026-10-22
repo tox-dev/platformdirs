@@ -717,6 +717,8 @@ def _make_private_directories(path: Path) -> None:
     try:
         path.mkdir(mode=0o700, exist_ok=True)
     except FileNotFoundError:
+        if path.parent == path:  # a missing drive or network share has no parent to create
+            raise
         _make_private_directories(path.parent)
         path.mkdir(mode=0o700, exist_ok=True)
 
