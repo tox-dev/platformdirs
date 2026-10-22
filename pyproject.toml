@@ -107,7 +107,7 @@ release = [
   "mdformat-gfm>=1",
   "mdformat-ruff>=0.1.3",
   "prek>=0.5",
-  "release-creator>=0.5",
+  "release-creator>=0.5.1",
   "towncrier>=26.9",
 ]
 
