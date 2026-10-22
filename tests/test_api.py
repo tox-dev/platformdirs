@@ -393,6 +393,14 @@ def test_place_file_rejected_name_creates_nothing(home: Path) -> None:
     assert not home.exists()
 
 
+@pytest.mark.usefixtures("home")
+def test_place_file_on_missing_root_raises_file_not_found(mocker: MockerFixture) -> None:
+    # On a missing Windows drive or network share, even the root fails with FileNotFoundError.
+    mocker.patch.object(Path, "mkdir", autospec=True, side_effect=FileNotFoundError)
+    with pytest.raises(FileNotFoundError):
+        _place("config")("app.toml")
+
+
 _SUFFIXES: Final = [pytest.param("file", id="file"), pytest.param("files", id="files")]
 _MISSING: Final = [pytest.param("file", None, id="file"), pytest.param("files", [], id="files")]
 # Unix checks the owner of an existing XDG_RUNTIME_DIR against getuid, which Windows lacks.
