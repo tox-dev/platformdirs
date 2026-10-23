@@ -28,7 +28,7 @@ jobs:
           version: latest-known
           python-version: "3.15"
           enable-cache: false
-      - uses: tox-dev/github-workflows/build-python-distribution@1b7d58c3e744b505215e1cb11697a80737b0e94d # v1.0.1
+      - uses: tox-dev/github-workflows/build-python-distribution@74472c1a3602ca9b66db058ea31578865e1d208b # v1.0.5
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ env.dists-artifact-name }}
@@ -37,7 +37,7 @@ jobs:
   build:
     name: 📦 validate tagged build
     if: startsWith(github.ref, 'refs/tags/')
-    uses: tox-dev/github-workflows/.github/workflows/validate-python-release.yaml@1b7d58c3e744b505215e1cb11697a80737b0e94d # v1.0.1
+    uses: tox-dev/github-workflows/.github/workflows/validate-python-release.yaml@74472c1a3602ca9b66db058ea31578865e1d208b # v1.0.5
     permissions:
       contents: read
   github_draft:
@@ -52,7 +52,7 @@ jobs:
         with:
           name: github-release-notes
           path: ${{ runner.temp }}/release-notes
-      - uses: tox-dev/github-workflows/publish-github-release@1b7d58c3e744b505215e1cb11697a80737b0e94d # v1.0.1
+      - uses: tox-dev/github-workflows/publish-github-release@74472c1a3602ca9b66db058ea31578865e1d208b # v1.0.5
         env:
           GH_TOKEN: ${{ github.token }}
         with:
@@ -100,7 +100,7 @@ jobs:
         with:
           name: ${{ env.dists-artifact-name }}
           path: dist
-      - uses: tox-dev/github-workflows/reconcile-pypi-artifacts@1b7d58c3e744b505215e1cb11697a80737b0e94d # v1.0.1
+      - uses: tox-dev/github-workflows/reconcile-pypi-artifacts@74472c1a3602ca9b66db058ea31578865e1d208b # v1.0.5
         with:
           project: platformdirs
           version: ${{ github.ref_name }}
@@ -123,13 +123,13 @@ jobs:
           python-version: "3.15"
           enable-cache: false
       - name: Install locked release tools
-        uses: tox-dev/github-workflows/install-locked-tools@1b7d58c3e744b505215e1cb11697a80737b0e94d # v1.0.1
+        uses: tox-dev/github-workflows/install-locked-tools@74472c1a3602ca9b66db058ea31578865e1d208b # v1.0.5
         with:
           groups: release-notes
           venv: ${{ runner.temp }}/release-tools
       - name: Find previous tag
         id: previous
-        uses: tox-dev/github-workflows/select-previous-tag@1b7d58c3e744b505215e1cb11697a80737b0e94d # v1.0.1
+        uses: tox-dev/github-workflows/select-previous-tag@74472c1a3602ca9b66db058ea31578865e1d208b # v1.0.5
         with:
           tag: ${{ github.ref_name }}
   contributor_metadata:
@@ -176,7 +176,7 @@ jobs:
           python-version: "3.15"
           enable-cache: false
       - name: Install locked release tools
-        uses: tox-dev/github-workflows/install-locked-tools@1b7d58c3e744b505215e1cb11697a80737b0e94d # v1.0.1
+        uses: tox-dev/github-workflows/install-locked-tools@74472c1a3602ca9b66db058ea31578865e1d208b # v1.0.5
         with:
           groups: release-notes
           venv: ${{ runner.temp }}/release-tools
@@ -184,7 +184,7 @@ jobs:
         with:
           name: generated-release-notes
           path: ${{ runner.temp }}/generated-notes
-      - uses: tox-dev/github-workflows/render-release-notes@1b7d58c3e744b505215e1cb11697a80737b0e94d # v1.0.1
+      - uses: tox-dev/github-workflows/render-release-notes@74472c1a3602ca9b66db058ea31578865e1d208b # v1.0.5
         with:
           tag: ${{ github.ref_name }}
           previous: ${{ needs.previous_tag.outputs.tag }}
@@ -207,7 +207,7 @@ jobs:
         with:
           name: github-release-notes
           path: ${{ runner.temp }}/release-notes
-      - uses: tox-dev/github-workflows/publish-github-release@1b7d58c3e744b505215e1cb11697a80737b0e94d # v1.0.1
+      - uses: tox-dev/github-workflows/publish-github-release@74472c1a3602ca9b66db058ea31578865e1d208b # v1.0.5
         env:
           GH_TOKEN: ${{ github.token }}
         with:
