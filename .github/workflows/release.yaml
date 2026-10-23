@@ -161,7 +161,7 @@ jobs:
           path: ${{ runner.temp }}/generated-notes.md
           if-no-files-found: error
   github_notes:
-    needs: contributor_metadata
+    needs: [contributor_metadata, previous_tag]
     runs-on: ubuntu-26.04
     permissions:
       contents: read
@@ -187,6 +187,7 @@ jobs:
       - uses: tox-dev/github-workflows/render-release-notes@1b7d58c3e744b505215e1cb11697a80737b0e94d # v1.0.1
         with:
           tag: ${{ github.ref_name }}
+          previous: ${{ needs.previous_tag.outputs.tag }}
           changelog: docs/changelog.rst
           artifact-url: https://pypi.org/project/platformdirs/${{ github.ref_name }}/
           generated-notes: ${{ runner.temp }}/generated-notes/generated-notes.md
