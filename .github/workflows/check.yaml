@@ -5,7 +5,7 @@ on:
     branches: ["main"]
     tags-ignore: ["**"]
   pull_request:
-    types: [opened, reopened, synchronize, labeled, unlabeled]
+    types: [opened, reopened, synchronize]
   schedule:
     - cron: "0 8 * * *"
 concurrency:
@@ -30,18 +30,19 @@ jobs:
           - "3.11"
         os:
           - ubuntu-24.04
-          - windows-2025
-          - macos-15
+          - windows-2025-vs2026
+          - macos-26
         exclude:
-          - {os: windows-2025, py: pypy3.11}
+          - {os: windows-2025-vs2026, py: pypy3.11}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Install the latest version of uv
+      - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          version: latest-known
           python-version: "3.15"
           enable-cache: false
       - name: Install tox
@@ -54,13 +55,14 @@ jobs:
           UV_PYTHON_PREFERENCE: only-managed
       - name: Run test suite
         run: |
-          if [[ "${{ matrix.py }}" == pypy* ]]; then
-            tox run --skip-pkg-install -e ${{ matrix.py }} --
+          if [[ "$MATRIX_PY" == pypy* ]]; then
+            tox run --skip-pkg-install -e "$MATRIX_PY" --
           else
-            tox run --skip-pkg-install -e ${{ matrix.py }}
+            tox run --skip-pkg-install -e "$MATRIX_PY"
           fi
         shell: bash
         env:
+          MATRIX_PY: ${{ matrix.py }}
           PYTEST_ADDOPTS: "-vv --durations=20"
           UV_PYTHON_PREFERENCE: only-managed
           DIFF_AGAINST: HEAD
@@ -95,9 +97,10 @@ jobs:
           path: .tox
           pattern: .coverage.*
           merge-multiple: true
-      - name: Install the latest version of uv
+      - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          version: latest-known
           python-version: "3.15"
           enable-cache: false
       - name: Install tox
@@ -126,22 +129,23 @@ jobs:
       matrix:
         os:
           - ubuntu-24.04
-          - windows-2025
+          - windows-2025-vs2026
         tox_env:
           - dev
           - type
           - docs
           - pkg_meta
         exclude:
-          - {os: windows-2025, tox_env: pkg_meta}
+          - {os: windows-2025-vs2026, tox_env: pkg_meta}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Install the latest version of uv
+      - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          version: latest-known
           python-version: "3.15"
           enable-cache: false
       - name: Install tox
@@ -154,35 +158,32 @@ jobs:
         run: tox run --skip-pkg-install -e ${{ matrix.tox_env }}
         env:
           UV_PYTHON_PREFERENCE: only-managed
-  changelog:
-    name: 📝 News fragment
-    runs-on: ubuntu-24.04
-    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip news')
+  hook-update-cooldown:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-26.04
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: tox-dev/github-workflows/check-hook-update-cooldown@55f51f9b5cc0b40f280155a95de2d4f0ecbf7be1 # v3.0.0
         with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
-        with:
-          python-version: "3.15"
-          enable-cache: false
-      - name: Require a news fragment
-        run: uvx towncrier check --compare-with "origin/${GITHUB_BASE_REF}"
+          release-app-client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
   gate:
-    name: Required checks pass
-    if: always()
-    needs: [test, coverage, check, changelog]
+    name: ${{ github.event_name == 'pull_request' && 'Required checks pass' || 'Non-PR checks pass' }}
+    if: ${{ !cancelled() }} # codespell:ignore cancelled
+    needs: [test, coverage, check, hook-update-cooldown]
     runs-on: ubuntu-24.04
     steps:
       - env:
           NEEDS_JSON: ${{ toJSON(needs) }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          jq -e '
+          jq -e --arg event "$EVENT_NAME" '
             all(
               to_entries[];
               .value.result == "success" or
-              (.key == "changelog" and .value.result == "skipped")
+              ((.key == "hook-update-cooldown") and
+               .value.result == "skipped" and $event != "pull_request")
             )
-          ' <<< "$NEEDS_JSON"
+          ' <<<"$NEEDS_JSON"

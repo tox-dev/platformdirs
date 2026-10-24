@@ -6,8 +6,14 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+from docutils import nodes
 
 from platformdirs.version import __version__
+
+if TYPE_CHECKING:
+    from sphinx.application import Sphinx
 
 author = "The platformdirs team"
 project = "platformdirs"
@@ -62,3 +68,31 @@ towncrier_draft_working_directory = Path(__file__).parent.parent
 exclude_patterns = ["changelog/*"]
 
 markdown_http_base = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
+
+
+def setup(app: Sphinx) -> None:
+    """Give repeated release categories stable, version-scoped labels."""
+    app.connect("doctree-read", _label_release_categories, priority=400)
+
+
+def _label_release_categories(app: Sphinx, document: nodes.document) -> None:
+    if app.env.current_document.docname != "changelog":
+        return
+    for section in document.findall(nodes.section):
+        if section[0].astext() not in {
+            "Added",
+            "Changes",
+            "Fixed",
+            "Documentation",
+            "Breaking changes",
+            "Security",
+            "Performance",
+            "Deprecated",
+            "Removed",
+            "Packaging",
+        }:
+            continue
+        if anchor := next((identifier for identifier in section["ids"] if identifier.startswith("release-")), None):
+            # Auto labels use the title source; each version needs its own category label.
+            section["ids"] = [anchor]
+            section[0].rawsource = anchor
