@@ -22,7 +22,7 @@ builtin_import = builtins.__import__
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping, Sequence
+    from collections.abc import Callable, Iterator, Mapping, Sequence
     from types import ModuleType
 
     from pytest_mock import MockerFixture
@@ -468,6 +468,28 @@ def test_find_config_file_falls_back_to_site(dirs: Unix, config_paths: list[Path
 def test_find_config_files_orders_user_before_site(dirs: Unix, config_paths: list[Path]) -> None:
     expected = [_touch(config_paths[index] / "app.toml") for index in (0, 2)]
     assert dirs.find_config_files("app.toml") == expected
+
+
+@pytest.mark.parametrize("suffix", _SUFFIXES)
+@pytest.mark.parametrize("kind", _KINDS)
+def test_find_uses_overridden_path_iterator(
+    dirs: Unix, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, kind: str, suffix: str
+) -> None:
+    class CustomDirs(Unix):
+        pass
+
+    expected = [_touch(tmp_path / directory / "app.toml") for directory in ("first", "second")]
+
+    def iter_paths(self: CustomDirs) -> Iterator[Path]:
+        assert self.ensure_exists is False
+        yield from (path.parent for path in expected)
+
+    monkeypatch.setattr(CustomDirs, f"iter_{kind}_paths", iter_paths)
+    custom = CustomDirs(dirs.appname, ensure_exists=True)
+    result = getattr(custom, f"find_{kind}_{suffix}")("app.toml")
+    assert result == (expected[0] if suffix == "file" else expected)
+    assert custom.ensure_exists is True
+    assert sorted(path.name for path in tmp_path.iterdir()) == ["first", "second"]
 
 
 def test_find_config_file_accepts_nested_path_like(dirs: Unix, config_paths: list[Path]) -> None:
