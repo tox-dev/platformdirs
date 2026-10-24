@@ -52,6 +52,24 @@ def test_isolated_dirs_yields_root_as_path(tmp_path: Path) -> None:
         assert root == tmp_path
 
 
+@pytest.mark.parametrize("root_name", [".", "isolated"])
+def test_isolated_dirs_relative_root_survives_chdir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, root_name: str
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    expected = tmp_path / root_name
+    (other := tmp_path / "other").mkdir()
+    with isolated_dirs(root_name) as root:
+        monkeypatch.chdir(other)
+        assert _outside(expected) == {}
+        assert root == expected
+        dirs = platformdirs.PlatformDirs("app", ensure_exists=True)
+        assert dirs.user_config_path == expected / "user_config" / "app"
+        assert dirs.user_config_path.is_dir()
+        assert not (other / "user_config").exists()
+        assert not (other / "isolated").exists()
+
+
 def test_isolated_dirs_redirects_every_accessor(tmp_path: Path) -> None:
     with isolated_dirs(tmp_path):
         assert _outside(tmp_path) == {}

@@ -244,9 +244,11 @@ isolates under ``tmp_path`` and yields the root:
         assert my_app_init(PlatformDirs("MyApp")) == {"theme": "dark"}
 
 Each kind lands in ``<root>/<kind>``, for example ``<root>/user_config/MyApp``, and the module-level functions follow
-the same layout. On Unix, isolation ignores ``use_site_for_root`` so user and site kinds stay separate even for root.
-The redirection covers :data:`~platformdirs.PlatformDirs` in the current process only: a subprocess, or another platform
-class such as :class:`~platformdirs.unix.Unix` on macOS, still resolves the real directories.
+the same layout. A relative root is made absolute when entering the context and the yielded root is absolute, so
+changing the working directory inside the context keeps all paths under the original root. On Unix, isolation ignores
+``use_site_for_root`` so user and site kinds stay separate even for root. The redirection covers
+:data:`~platformdirs.PlatformDirs` in the current process only: a subprocess, or another platform class such as
+:class:`~platformdirs.unix.Unix` on macOS, still resolves the real directories.
 
 Overriding directories with environment variables
 =================================================
