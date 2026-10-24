@@ -107,27 +107,27 @@ release = [
   "mdformat-gfm>=1",
   "mdformat-ruff>=0.1.3",
   "prek>=0.5",
-  "release-creator>=1",
+  "release-creator>=1.1",
   "towncrier>=26.9",
 ]
 release-check = [
   "prek>=0.5",
 ]
 release-news = [
-  "release-creator>=1",
+  "release-creator>=1.1",
   "towncrier>=26.9",
 ]
 release-notes = [
-  "release-creator>=1",
+  "release-creator>=1.1",
 ]
 release-prepare = [
   "prek>=0.5",
-  "release-creator>=1",
+  "release-creator>=1.1",
   "towncrier>=26.9",
 ]
 release-validate = [
   "prek>=0.5",
-  "release-creator>=1",
+  "release-creator>=1.1",
 ]
 
 [tool.hatch]
@@ -244,13 +244,5 @@ type = [
   { directory = "packaging", name = "Packaging", showcontent = true },
 ]
 
-[tool.nab]
-mode = "universal"
-base-group = "project-runtime"
-build-group = "build"
-default-groups = []
-uploaded-prior-to = "P7D"
-decision-order = "stable"
-matrix.python = ">=3.15,<3.16"
-matrix.platforms = [ "linux_x86_64", "linux_aarch64", "macos_arm64", "windows_amd64" ]
-packages.release-creator.uploaded-prior-to = "2026-10-24T06:07:46Z"
+[tool.release-creator]
+locks.exclude-newer-package = { release-creator = "2026-10-24T09:08:40Z" }
