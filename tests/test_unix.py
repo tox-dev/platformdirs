@@ -1002,6 +1002,15 @@ def test_user_media_dir_missing_key_in_user_dirs_file(tmp_path: Path, monkeypatc
     assert Unix().user_documents_dir == f"{tmp_path}/Documents"
 
 
+def test_user_media_dir_unreadable_user_dirs_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    (tmp_path / ".config" / "user-dirs.dirs").mkdir(parents=True)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setenv("XDG_CONFIG_HOME", "")
+    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
+
+
 def test_user_media_dir_no_user_dirs_file(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
