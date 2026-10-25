@@ -6,703 +6,1418 @@
 
 .. towncrier release notes start
 
+.. _release-4-13-5:
+
 *********************
  4.13.5 (2026-10-19)
 *********************
 
+.. _release-4-13-5-packaging:
+
+Packaging
+=========
+
 - Publish a GitHub Release with changelog notes, a PyPI link, and a version comparison after each PyPI release.
-  :pr:`631`
+  :pr:`631` - by :user:`gaborbernat`.
+
+.. _release-4-13-4:
 
 *********************
  4.13.4 (2026-10-17)
 *********************
 
-- Require a complete ``files`` path segment when locating Android app directories from ``sys.path``. :pr:`621`
-- Keep root directory tests independent of inherited XDG environment variables. :pr:`622`
+.. _release-4-13-4-fixed:
+
+Fixed
+=====
+
+- Require a complete ``files`` path segment when locating Android app directories from ``sys.path``. :pr:`621` - by
+  :user:`shoaibulhaque` and :user:`gaborbernat`.
 - Raise ``RuntimeError`` when iOS cannot resolve the home directory, rather than returning paths rooted at a literal
-  ``~``. :pr:`624`
+  ``~``. :pr:`624` - by :user:`XXXXXQ-0206` and :user:`gaborbernat`.
 - Keep user directory strings, paths and iterators consistent inside ``isolated_dirs`` when Unix root enables
-  ``use_site_for_root``. Restore root redirection when the context exits. :pr:`625`
+  ``use_site_for_root``. Restore root redirection when the context exits. :pr:`625` - by :user:`AryanRG` and
+  :user:`gaborbernat`.
 - Raise ``RuntimeError`` when the Windows Projects directory cannot resolve the home directory, rather than returning a
-  path rooted at a literal ``~``. :pr:`627`
-- Correct the contributor guide to name ty as the type checker used by the type environment. :pr:`623`
+  path rooted at a literal ``~``. :pr:`627` - by :user:`XXXXXQ-0206`.
+
+.. _release-4-13-3:
 
 *********************
  4.13.3 (2026-10-16)
 *********************
 
+.. _release-4-13-2:
+
 *********************
  4.13.2 (2026-10-16)
 *********************
 
-- Normalize ``user_fonts_dir`` when ``XDG_DATA_HOME`` ends with a separator. :pr:`619`
+.. _release-4-13-2-fixed:
+
+Fixed
+=====
+
+- Normalize ``user_fonts_dir`` when ``XDG_DATA_HOME`` ends with a separator. :pr:`619` - by :user:`blouirts123` and
+  :user:`gaborbernat`.
+
+.. _release-4-13-1:
 
 *********************
  4.13.1 (2026-10-15)
 *********************
 
-- Free the path buffer from ``SHGetKnownFolderPath`` when the known-folder lookup fails. :pr:`618`
+.. _release-4-13-1-fixed:
+
+Fixed
+=====
+
 - Preserve literal backslashes before ordinary characters in double-quoted ``user-dirs.dirs`` paths instead of removing
-  them.
+  them. :pr:`614` - by :user:`xiehuanyi` and :user:`gaborbernat`.
+- Avoid leaking the Windows known-folder path buffer when a lookup fails. :pr:`618` - by :user:`gaborbernat` and
+  :user:`repzakske`.
+
+.. _release-4-13-0:
 
 *********************
  4.13.0 (2026-10-10)
 *********************
 
+.. _release-4-13-0-fixed:
+
+Fixed
+=====
+
 - Detect Homebrew Python for the :class:`~platformdirs.macos.MacOS` site directories under :option:`python:-S`, which
-  leaves :data:`sys.base_prefix` on the ``Cellar`` keg, and for the ``python-freethreading`` formula - by
-  :user:`sricharanreddycheruku`. :pr:`612`
-- Use Python 3.15 for development and automation. :pr:`613`
+  leaves :data:`sys.base_prefix` on the ``Cellar`` keg, and for the ``python-freethreading`` formula. :pr:`612` - by
+  :user:`sricharanreddycheruku` and :user:`gaborbernat`.
+
+.. _release-4-12-4:
 
 *********************
  4.12.4 (2026-10-07)
 *********************
 
+.. _release-4-12-4-fixed:
+
+Fixed
+=====
+
 - Keep site directories readable by other users when root calls
   :meth:`~platformdirs.api.PlatformDirsABC.place_config_file` or another ``place_*_file`` method with
-  :attr:`~platformdirs.api.PlatformDirsABC.use_site_for_root` - by :user:`darrenhuai`. :pr:`610`
+  :attr:`~platformdirs.api.PlatformDirsABC.use_site_for_root`. :pr:`610` - by :user:`darrenhuai` and
+  :user:`gaborbernat`.
 - Make :func:`~platformdirs.user_runtime_dir` warn and fall back from an unreachable ``XDG_RUNTIME_DIR`` under
-  :attr:`~platformdirs.api.PlatformDirsABC.ensure_exists` instead of raising. :pr:`611`
+  :attr:`~platformdirs.api.PlatformDirsABC.ensure_exists` instead of raising. :pr:`611` - by :user:`harbinresearcher`
+  and :user:`gaborbernat`.
+
+.. _release-4-12-3:
 
 *********************
  4.12.3 (2026-10-03)
 *********************
 
+.. _release-4-12-3-fixed:
+
+Fixed
+=====
+
 - Place files from ``place_config_file`` and ``place_data_file`` in the first site directory for root on Unix with
   ``use_site_for_root=True`` and ``multipath=True``, where ``find_config_file`` and ``find_data_file`` look for them.
-  :pr:`607`
+  :pr:`607` - by :user:`PDGGK` and :user:`gaborbernat`.
+
+.. _release-4-12-2:
 
 *********************
  4.12.2 (2026-09-29)
 *********************
 
+.. _release-4-12-2-fixed:
+
+Fixed
+=====
+
 - Keep ``os.pathsep`` in ``site_applications_path`` under ``multipath=True`` on platforms with one applications
-  directory. :pr:`604`
+  directory. :pr:`604` - by :user:`9Kun` and :user:`gaborbernat`.
+
+.. _release-4-12-1:
 
 *********************
  4.12.1 (2026-09-28)
 *********************
 
-- Avoid ``PytestAssertRewriteWarning`` when importing ``platformdirs`` before invoking pytest. :pr:`601`
+.. _release-4-12-1-fixed:
+
+Fixed
+=====
+
+- Avoid ``PytestAssertRewriteWarning`` when importing ``platformdirs`` before invoking pytest. :issue:`601` :pr:`602` -
+  by :user:`gaborbernat`.
+
+.. _release-4-12-0:
 
 *********************
  4.12.0 (2026-09-26)
 *********************
 
+.. _release-4-12-0-added:
+
+Added
+=====
+
 - Add ``place_*_file`` methods that return a file path under a user directory and create its missing parents with mode
-  ``0o700``. :pr:`585`
+  ``0o700``. :pr:`585` - by :user:`gaborbernat`.
 - Add ``find_<kind>_file`` and ``find_<kind>_files`` to look up an existing file across the user and site directories of
-  each kind that has an ``iter_<kind>_paths`` method. :pr:`586`
+  each kind that has an ``iter_<kind>_paths`` method. :pr:`586` - by :user:`gaborbernat`.
 - Add :func:`platformdirs.testing.isolated_dirs` and the ``platformdirs_isolated`` pytest fixture to resolve every
-  directory under one test root. :pr:`590`
+  directory under one test root. :pr:`590` - by :user:`gaborbernat`.
 - Emit :class:`~platformdirs.RuntimeDirWarning` when the Unix :func:`~platformdirs.user_runtime_dir` falls back from
-  ``XDG_RUNTIME_DIR``. :pr:`599`
+  ``XDG_RUNTIME_DIR``. :pr:`599` - by :user:`gaborbernat`.
 - Read ``user_templates_dir``, ``user_publicshare_dir`` and ``user_bin_dir`` on Windows from their known folders.
-  :pr:`587`
-- Create missing user app directories and their parents with mode ``0700`` under ``ensure_exists`` on POSIX platforms.
-  :pr:`588`
+  :pr:`587` - by :user:`gaborbernat`.
+- Use the app container layout on iOS, such as ``~/Library/Application Support`` for data. :pr:`600` - by
+  :user:`gaborbernat`.
+
+.. _release-4-12-0-fixed:
+
+Fixed
+=====
+
 - Raise ``RuntimeError`` for a Unix or macOS directory under the home when no home resolves, and read the password
-  database for an empty ``HOME``. :pr:`589`
-- Skip an ``XDG_RUNTIME_DIR`` or ``/run/user/<uid>`` that is not a private directory of the user, and reject a symlink
-  or file as the ``runtime-<uid>`` fallback. :pr:`599`
-- Use the app container layout on iOS, such as ``~/Library/Application Support`` for data. :pr:`600`
+  database for an empty ``HOME``. :pr:`589` - by :user:`gaborbernat`.
+
+.. _release-4-12-0-documentation:
+
+Documentation
+=============
+
 - Document that a Homebrew Python puts the Homebrew prefix first in the macOS shared directories, with or without
-  ``multipath``. :pr:`591`
-- Document that the macOS media directories honor the ``XDG_*_DIR`` variables. :pr:`592`
-- Document the ``WIN_PD_OVERRIDE_COMMON_PROGRAMS`` variable. :pr:`593`
-- Document ``/usr/local/share/applications`` as the Linux ``site_applications_dir`` default. :pr:`594`
-- Correct the BSD ``user_runtime_dir`` defaults and describe the temporary directory fallback. :pr:`595`
-- Describe how platformdirs detects Android, finds the app folder and places the shared folders. :pr:`596`
-- Document that Microsoft Store Python redirects only new files and folders under ``AppData``. :pr:`597`
-- Show how to load a font on Windows after copying it into ``user_fonts_dir``. :pr:`598`
+  ``multipath``. :pr:`591` - by :user:`gaborbernat`.
+- Document that the macOS media directories honor the ``XDG_*_DIR`` variables. :pr:`592` - by :user:`gaborbernat`.
+- Document the ``WIN_PD_OVERRIDE_COMMON_PROGRAMS`` variable. :pr:`593` - by :user:`gaborbernat`.
+- Document ``/usr/local/share/applications`` as the Linux ``site_applications_dir`` default. :pr:`594` - by
+  :user:`gaborbernat`.
+- Correct the BSD ``user_runtime_dir`` defaults and describe the temporary directory fallback. :pr:`595` - by
+  :user:`gaborbernat`.
+- Describe how platformdirs detects Android, finds the app folder and places the shared folders. :pr:`596` - by
+  :user:`gaborbernat`.
+- Document that Microsoft Store Python redirects only new files and folders under ``AppData``. :pr:`597` - by
+  :user:`gaborbernat`.
+- Show how to load a font on Windows after copying it into ``user_fonts_dir``. :pr:`598` - by :user:`gaborbernat`.
+
+.. _release-4-12-0-security:
+
+Security
+========
+
+- Create missing user app directories and their parents with mode ``0700`` under ``ensure_exists`` on POSIX platforms.
+  :pr:`588` - by :user:`gaborbernat`.
+- Skip an ``XDG_RUNTIME_DIR`` or ``/run/user/<uid>`` that is not a private directory of the user, and reject a symlink
+  or file as the ``runtime-<uid>`` fallback. :pr:`599` - by :user:`gaborbernat`.
+
+.. _release-4-11-15:
 
 **********************
  4.11.15 (2026-09-26)
 **********************
 
-- Fix the pyjnius lookup of the Android app folder and media directories, which always failed. :pr:`580`
-- Detect Android from ``sys.getandroidapilevel`` when ``ANDROID_DATA`` and ``ANDROID_ROOT`` are unset. :pr:`581`
-- Put Android shared-storage directories under the current user's /storage/emulated/<user id>, not user 0's. :pr:`582`
+.. _release-4-11-15-fixed:
+
+Fixed
+=====
+
+- Fix the pyjnius lookup of the Android app folder and media directories, which always failed. :pr:`580` - by
+  :user:`gaborbernat`.
+- Detect Android from ``sys.getandroidapilevel`` when ``ANDROID_DATA`` and ``ANDROID_ROOT`` are unset. :pr:`581` - by
+  :user:`gaborbernat`.
+- Put Android shared-storage directories under the current user's /storage/emulated/<user id>, not user 0's. :pr:`582` -
+  by :user:`gaborbernat`.
 - Move Android videos to ``Movies`` and the five non-standard media folders, such as ``Desktop``, into ``Documents``.
-  :pr:`583`
+  :pr:`583` - by :user:`gaborbernat`.
+
+.. _release-4-11-14:
 
 **********************
  4.11.14 (2026-09-25)
 **********************
 
+.. _release-4-11-14-added:
+
+Added
+=====
+
+- Accept ``roaming`` in :func:`~platformdirs.user_log_dir` and :func:`~platformdirs.user_log_path`. :pr:`572` - by
+  :user:`gaborbernat`.
+
+.. _release-4-11-14-fixed:
+
+Fixed
+=====
+
 - With ``ensure_exists``, create a media directory such as ``user_documents_dir`` only when the user set it through an
   ``XDG_*_DIR`` variable or ``user-dirs.dirs``, and return a dangling symlink there instead of raising
   ``FileExistsError``. 4.11.13 also created the platform defaults, which filled headless home directories with folders
-  such as ``~/Templates`` and made a literal ``~`` directory when ``HOME`` was unset. :pr:`561`
-- Ignore ``$XDG_RUNTIME_DIR`` in ``user_runtime_dir`` when ``use_site_for_root`` redirects root. :pr:`562`
+  such as ``~/Templates`` and made a literal ``~`` directory when ``HOME`` was unset. :pr:`561` - by
+  :user:`gaborbernat`.
+- Ignore ``$XDG_RUNTIME_DIR`` in ``user_runtime_dir`` when ``use_site_for_root`` redirects root. :pr:`562` - by
+  :user:`gaborbernat`.
 - Return ``/storage/emulated/0/Download`` from the Android :func:`~platformdirs.user_downloads_dir` fallback. :pr:`563`
-- Ignore ``WIN_PD_OVERRIDE_*`` values that lack a drive or a root. :pr:`564`
-- Find the Android app folder for package names that start with ``files``. :pr:`565`
-- Reject an ``appname``, ``appauthor`` or ``version`` that leaves the base directory when set after construction.
-  :pr:`566`
-- Apply a changed ``use_site_for_root`` on the next read. :pr:`567`
-- Stop raising ``UnicodeDecodeError`` on ``user-dirs.dirs`` bytes the locale encoding cannot decode. :pr:`568`
-- Drop a trailing ``# comment`` from unquoted ``user-dirs.dirs`` values. :pr:`569`
-- Treat empty Windows folder variables, such as ``PUBLIC`` or ``LOCALAPPDATA``, as unset. :pr:`571`
-- Accept ``roaming`` in :func:`~platformdirs.user_log_dir` and :func:`~platformdirs.user_log_path`. :pr:`572`
-- Detect Homebrew Python on macOS by its ``opt/python*/Frameworks`` layout. :pr:`573`
-- Keep colons in the Unix ``site_cache_path`` under ``multipath``. :pr:`574`
-- Return long Windows folder paths in place of 8.3 short names. :pr:`575`
-- Create the Unix ``runtime-<uid>`` temporary fallback with mode ``0700`` and reject one another user owns. :pr:`576`
+  - by :user:`gaborbernat`.
+- Ignore ``WIN_PD_OVERRIDE_*`` values that lack a drive or a root. :pr:`564` - by :user:`gaborbernat`.
+- Find the Android app folder for package names that start with ``files``. :pr:`565` - by :user:`gaborbernat`.
+- Apply a changed ``use_site_for_root`` on the next read. :pr:`567` - by :user:`gaborbernat`.
+- Stop raising ``UnicodeDecodeError`` on ``user-dirs.dirs`` bytes the locale encoding cannot decode. :pr:`568` - by
+  :user:`gaborbernat`.
+- Drop a trailing ``# comment`` from unquoted ``user-dirs.dirs`` values. :pr:`569` - by :user:`gaborbernat`.
+- Treat empty Windows folder variables, such as ``PUBLIC`` or ``LOCALAPPDATA``, as unset. :pr:`571` - by
+  :user:`gaborbernat`.
+- Detect Homebrew Python on macOS by its ``opt/python*/Frameworks`` layout. :pr:`573` - by :user:`gaborbernat`.
+- Keep colons in the Unix ``site_cache_path`` under ``multipath``. :pr:`574` - by :user:`gaborbernat`.
+- Return long Windows folder paths in place of 8.3 short names. :pr:`575` - by :user:`gaborbernat`.
 - Raise ``RuntimeError`` in place of creating a literal ``~`` directory when ``ensure_exists`` finds no home. :pr:`578`
-- Fix the Windows ``user_preference_dir`` path in the platform docs. :pr:`577`
-- Document that the macOS ``user_state_dir`` and ``site_state_dir`` ignore the ``XDG_DATA_*`` variables. :pr:`579`
+  - by :user:`gaborbernat`.
+
+.. _release-4-11-14-documentation:
+
+Documentation
+=============
+
+- Fix the Windows ``user_preference_dir`` path in the platform docs. :pr:`577` - by :user:`gaborbernat`.
+- Document that the macOS ``user_state_dir`` and ``site_state_dir`` ignore the ``XDG_DATA_*`` variables. :pr:`579` - by
+  :user:`gaborbernat`.
+
+.. _release-4-11-14-security:
+
+Security
+========
+
+- Reject an ``appname``, ``appauthor`` or ``version`` that leaves the base directory when set after construction.
+  :pr:`566` - by :user:`gaborbernat`.
+- Create the Unix ``runtime-<uid>`` temporary fallback with mode ``0700`` and reject one another user owns. :pr:`576` -
+  by :user:`gaborbernat`.
+
+.. _release-4-11-13:
 
 **********************
  4.11.13 (2026-09-25)
 **********************
 
+.. _release-4-11-13-fixed:
+
+Fixed
+=====
+
 - With ``ensure_exists``, the media directories such as ``user_documents_dir`` are created on Unix, and on macOS when an
-  XDG variable sets them - by :user:`ekanshul`. :pr:`560`
+  XDG variable sets them. :pr:`560` - by :user:`gaborbernat` and :user:`ekanshul`.
+
+.. _release-4-11-12:
 
 **********************
  4.11.12 (2026-09-22)
 **********************
 
+.. _release-4-11-12-fixed:
+
+Fixed
+=====
+
 - Ignore relative paths in the XDG user directory environment variables, so ``XDG_DOCUMENTS_DIR=Documents`` no longer
   makes :func:`~platformdirs.user_documents_dir` and the other media directories return a path relative to the working
   directory. They now fall back to the platform default like the XDG Base Directory variables, and like the same keys
-  read from ``user-dirs.dirs`` - by :user:`darrenhuai`. :pr:`554`
-- Copy nested directories in the versioned data migration recipe. :pr:`553`
-- Exclude sphinx-llm 1.1.0 from documentation dependencies because its Markdown builder emits unknown-node warnings.
-  :pr:`556`
+  read from ``user-dirs.dirs``. :pr:`554` - by :user:`darrenhuai`.
+
+.. _release-4-11-12-documentation:
+
+Documentation
+=============
+
+- Copy nested directories in the versioned data migration recipe. :pr:`553` - by :user:`agammann`.
+
+.. _release-4-11-11:
 
 **********************
  4.11.11 (2026-09-19)
 **********************
 
+.. _release-4-11-11-security:
+
+Security
+========
+
 - Reject ``appname``, ``appauthor`` and ``version`` values that leave the platform base directory (a ``..`` segment, a
   leading separator, a drive or a UNC share) with ``ValueError``, so ``ensure_exists`` cannot create directories outside
-  it - by :user:`Pitchfork-and-Torch`. :pr:`552`
+  it. :pr:`552` - by :user:`Pitchfork-and-Torch` and :user:`gaborbernat`.
+
+.. _release-4-11-10:
 
 **********************
  4.11.10 (2026-09-18)
 **********************
 
+.. _release-4-11-10-fixed:
+
+Fixed
+=====
+
 - With ``ensure_exists``, the ``site_*_dir`` and ``site_*_path`` properties and the ``iter_*_dirs`` iterators only
-  create the site directories they return or yield, instead of every entry in the site list - by :user:`darrenhuai`.
-  :pr:`550`
+  create the site directories they return or yield, instead of every entry in the site list. :pr:`550` - by
+  :user:`darrenhuai` and :user:`gaborbernat`.
+
+.. _release-4-11-9:
 
 *********************
  4.11.9 (2026-09-16)
 *********************
 
+.. _release-4-11-9-added:
+
+Added
+=====
+
 - Accept ``multipath`` in :func:`~platformdirs.site_cache_dir` and :func:`~platformdirs.site_cache_path`. Without it,
   the function API could not return the Homebrew cache prefix that :attr:`~platformdirs.macos.MacOS.site_cache_dir` adds
-  under ``multipath`` - by :user:`darrenhuai`. :pr:`544`
+  under ``multipath``. :pr:`544` - by :user:`darrenhuai` and :user:`gaborbernat`.
+
+.. _release-4-11-9-fixed:
+
+Fixed
+=====
+
 - Parse Unix ``user-dirs.dirs`` line by line like ``xdg-user-dir``. The INI parser raised on a repeated key or a line
   without ``=``, and returned trailing comments and backslash escapes inside :func:`~platformdirs.user_documents_dir`
   and the other media directories. The last valid assignment now wins, and platformdirs unescapes the quoted value and
-  ignores text after the closing quote - by :user:`darrenhuai`. :pr:`545`
+  ignores text after the closing quote. :pr:`545` - by :user:`darrenhuai` and :user:`gaborbernat`.
 - Read ``PUBLIC`` before the home directory in :func:`~platformdirs.user_publicshare_dir` on Windows, so it no longer
-  raises ``RuntimeError`` when ``PUBLIC`` is set and the home directory cannot be determined - by :user:`emme1t`.
-  :pr:`546`
+  raises ``RuntimeError`` when ``PUBLIC`` is set and the home directory cannot be determined. :pr:`546` - by
+  :user:`emme1t` and :user:`gaborbernat`.
 - Raise ``RuntimeError`` from :class:`~platformdirs.android.Android` directories when the app folder cannot be found,
-  instead of ``TypeError: expected str, bytes or os.PathLike object, not NoneType`` - by :user:`Str0k`. :pr:`547`
+  instead of ``TypeError: expected str, bytes or os.PathLike object, not NoneType``. :pr:`547` - by :user:`Str0k` and
+  :user:`gaborbernat`.
+
+.. _release-4-11-8:
 
 *********************
  4.11.8 (2026-09-08)
 *********************
 
+.. _release-4-11-8-fixed:
+
+Fixed
+=====
+
 - Make :func:`~platformdirs.user_data_path`, :func:`~platformdirs.user_config_path`,
   :func:`~platformdirs.user_preference_path` and :func:`~platformdirs.user_applications_path` return the first site
   entry when root is redirected by ``use_site_for_root`` under ``multipath``, matching their ``site_*_path`` twins. They
-  passed the whole joined list to :class:`~pathlib.Path`, giving one unusable path such as ``/xdg/a/foo:/xdg/b/foo`` -
-  by :user:`darrenhuai`. :pr:`538`
+  passed the whole joined list to :class:`~pathlib.Path`, giving one unusable path such as ``/xdg/a/foo:/xdg/b/foo``.
+  :pr:`538` - by :user:`darrenhuai` and :user:`gaborbernat`.
 - Ignore relative paths in XDG Base Directory environment variables and use the existing platform fallback. Relative
-  entries in ``$XDG_DATA_DIRS`` and ``$XDG_CONFIG_DIRS`` are skipped. :pr:`540`
+  entries in ``$XDG_DATA_DIRS`` and ``$XDG_CONFIG_DIRS`` are skipped. :pr:`540` - by :user:`lakshayxi` and
+  :user:`gaborbernat`.
 - Preserve literal percent signs in Unix ``user-dirs.dirs`` paths, including ``100% complete``, ``100%%`` and
-  ``%(XDG_DESKTOP_DIR)s``. Continue to expand ``$HOME``. :pr:`542`
+  ``%(XDG_DESKTOP_DIR)s``. Continue to expand ``$HOME``. :pr:`542` - by :user:`jackwalkerlabs` and :user:`gaborbernat`.
 - Use the base Python installation to locate Homebrew site directories on macOS, preserving shared data, config, cache
-  and state paths inside virtual environments. :pr:`543`
+  and state paths inside virtual environments. :pr:`543` - by :user:`jackwalkerlabs` and :user:`gaborbernat`.
+
+.. _release-4-11-7:
 
 *********************
  4.11.7 (2026-09-01)
 *********************
 
+.. _release-4-11-6:
+
 *********************
  4.11.6 (2026-09-01)
 *********************
 
+.. _release-4-11-6-added:
+
+Added
+=====
+
 - Give :func:`~platformdirs.user_bin_dir` and :func:`~platformdirs.user_bin_path` the ``use_site_for_root`` argument.
-  They took none, so neither could reach the Unix redirect of root to :func:`~platformdirs.site_bin_dir`. :pr:`537`
+  They took none, so neither could reach the Unix redirect of root to :func:`~platformdirs.site_bin_dir`. :pr:`537` - by
+  :user:`darrenhuai` and :user:`gaborbernat`.
+
+.. _release-4-11-5:
 
 *********************
  4.11.5 (2026-08-27)
 *********************
 
+.. _release-4-11-5-added:
+
+Added
+=====
+
 - Give :func:`~platformdirs.user_preference_dir` and :func:`~platformdirs.user_preference_path` the same arguments as
-  :func:`~platformdirs.user_config_dir`. Added without arguments in :pr:`491`, they could only return the unscoped base
-  directory even though the property they wrap appends the app name and version. :pr:`531`
-- Make :func:`~platformdirs.site_applications_path` return the first entry when ``multipath=True``, matching
-  :func:`~platformdirs.site_data_path`. On Unix and macOS it passed the whole ``$XDG_DATA_DIRS`` list to
-  :class:`~pathlib.Path`, giving one unusable path such as ``/first/applications:/second/applications``. :pr:`532`
+  :func:`~platformdirs.user_config_dir`. The functions were introduced in 4.10.0 without arguments, so they could only
+  return the unscoped base directory even though the property they wrap appends the app name and version. :pr:`491`
+  :pr:`531` - by :user:`gaborbernat` and :user:`dylanpulver`.
 - Give :func:`~platformdirs.user_applications_dir`, :func:`~platformdirs.user_applications_path`,
   :func:`~platformdirs.site_applications_dir` and :func:`~platformdirs.site_applications_path` the app arguments.
   Android scopes both applications directories to the app, so without them the functions could only return the unscoped
   base directory there. On the two site functions they are keyword-only, keeping ``multipath`` first positional as it
-  has been since 4.9.0; the two user functions take their boolean options keyword-only. :pr:`534`
+  has been since 4.9.0; the two user functions take their boolean options keyword-only. :pr:`534` - by
+  :user:`gaborbernat`.
+
+.. _release-4-11-5-fixed:
+
+Fixed
+=====
+
+- Make :func:`~platformdirs.site_applications_path` return the first entry when ``multipath=True``, matching
+  :func:`~platformdirs.site_data_path`. On Unix and macOS it passed the whole ``$XDG_DATA_DIRS`` list to
+  :class:`~pathlib.Path`, giving one unusable path such as ``/first/applications:/second/applications``. :pr:`532` - by
+  :user:`tunglambk` and :user:`gaborbernat`.
+
+.. _release-4-11-5-documentation:
+
+Documentation
+=============
+
 - Correct the ordering note on the iterator methods. ``use_site_for_root`` drops the user directory entirely, so the
   iterators are documented as yielding the most specific directory first rather than always yielding the user one.
-  :pr:`533`
+  :pr:`533` - by :user:`gaborbernat`.
+
+.. _release-4-11-4:
 
 *********************
  4.11.4 (2026-08-24)
 *********************
 
+.. _release-4-11-4-fixed:
+
+Fixed
+=====
+
 - Stop the ``iter_*_dirs`` methods yielding the same directory twice when a site directory resolves to its user
-  equivalent - :pr:`520` covered only Unix with ``use_site_for_root``. It also hit
+  equivalent - covered only Unix with ``use_site_for_root``. It also hit
   :meth:`~platformdirs.PlatformDirs.iter_runtime_dirs` on Unix with ``$XDG_RUNTIME_DIR`` set, on Windows and macOS, and
-  all six iterators on Android. :pr:`524`
+  all six iterators on Android. :pr:`520` :pr:`524` - by :user:`darrenhuai` and :user:`gaborbernat`.
+
+.. _release-4-11-4-documentation:
+
+Documentation
+=============
+
 - Fix the config merging example in the how-to guide. ``iter_config_paths`` yields the user directory first, so the
-  ``config.update`` loop let the site defaults override the user's config instead of the other way round. :pr:`529`
+  ``config.update`` loop let the site defaults override the user's config instead of the other way round. :pr:`529` - by
+  :user:`gaborbernat`.
+
+.. _release-4-11-3:
 
 *********************
  4.11.3 (2026-08-13)
 *********************
 
+.. _release-4-11-3-added:
+
+Added
+=====
+
 - ``python -m platformdirs`` now lists :func:`~platformdirs.user_desktop_dir`, which was missing from the properties it
-  prints. :pr:`523`
+  prints. :pr:`523` - by :user:`darrenhuai` and :user:`gaborbernat`.
+
+.. _release-4-11-3-fixed:
+
+Fixed
+=====
+
 - Stop :func:`~platformdirs.site_data_dir`, :func:`~platformdirs.site_config_dir` and
   :func:`~platformdirs.site_applications_dir` raising ``IndexError`` on Unix and macOS when ``$XDG_DATA_DIRS`` or
   ``$XDG_CONFIG_DIRS`` holds only separators and whitespace, such as ``":"``. These values now fall back to the platform
-  defaults, and each entry is stripped of surrounding whitespace. :pr:`523`
+  defaults, and each entry is stripped of surrounding whitespace. :pr:`523` - by :user:`darrenhuai` and
+  :user:`gaborbernat`.
+
+.. _release-4-11-2:
 
 *********************
  4.11.2 (2026-08-10)
 *********************
 
+.. _release-4-11-2-fixed:
+
+Fixed
+=====
+
 - Stop :meth:`~platformdirs.PlatformDirs.iter_cache_dirs`, :meth:`~platformdirs.PlatformDirs.iter_state_dirs`,
   :meth:`~platformdirs.PlatformDirs.iter_log_dirs` and :meth:`~platformdirs.PlatformDirs.iter_runtime_dirs` yielding the
-  same directory twice on Unix when ``use_site_for_root`` is active - :pr:`469` fixed this for the config and data
-  iterators only. On macOS, :meth:`~platformdirs.PlatformDirs.iter_cache_dirs` now yields the Homebrew and
-  ``/Library/Caches`` entries separately rather than one ``os.pathsep``-joined string when ``multipath`` is set.
-  :pr:`520`
+  same directory twice on Unix when ``use_site_for_root`` is active - fixed this for the config and data iterators only.
+  On macOS, :meth:`~platformdirs.PlatformDirs.iter_cache_dirs` now yields the Homebrew and ``/Library/Caches`` entries
+  separately rather than one ``os.pathsep``-joined string when ``multipath`` is set. :pr:`469` :pr:`520` - by
+  :user:`viccie30` and :user:`darrenhuai`.
+
+.. _release-4-11-1:
 
 *********************
  4.11.1 (2026-08-07)
 *********************
 
+.. _release-4-11-1-fixed:
+
+Fixed
+=====
+
 - Fix :func:`~platformdirs.user_desktop_dir` on Windows builds without ``ctypes``. ``CSIDL_DESKTOPDIRECTORY`` appeared
   only in the ctypes lookup table, so the registry and environment variable resolvers raised ``ValueError`` for it.
-  :pr:`519`
+  :pr:`519` - by :user:`darrenhuai` and :user:`gaborbernat`.
+
+.. _release-4-11-0:
 
 *********************
  4.11.0 (2026-07-21)
 *********************
 
-- Declare support for Python 3.15 and run the test suite against it, currently in beta. :pr:`512`
+.. _release-4-11-0-added:
+
+Added
+=====
+
+- Declare support for Python 3.15 and run the test suite against it, currently in beta. :pr:`512` - by
+  :user:`gaborbernat`.
+
+.. _release-4-10-1:
 
 *********************
  4.10.1 (2026-07-18)
 *********************
 
+.. _release-4-10-1-performance:
+
+Performance
+===========
+
 - Stop leaking memory on repeated Windows folder lookups. ``get_win_folder_via_ctypes`` defined a fresh ``ctypes``
   structure on every call, and each one registered a pointer type that was never released; the resolver is now built
-  once and reused. :pr:`507`
+  once and reused. :pr:`507` - by :user:`gaborbernat`.
+
+.. _release-4-10-0:
 
 *********************
  4.10.0 (2026-05-28)
 *********************
 
+.. _release-4-10-0-added:
+
+Added
+=====
+
 - Add :func:`~platformdirs.user_publicshare_dir`, :func:`~platformdirs.user_templates_dir`,
-  :func:`~platformdirs.user_fonts_dir`, and :func:`~platformdirs.user_preference_dir` :pr:`491`
-- Add :func:`~platformdirs.user_projects_dir` backed by ``$XDG_PROJECTS_DIR`` :pr:`490`
-- Return only the first path from :func:`~platformdirs.site_config_path` on macOS when ``multipath`` is set :pr:`488` -
-  by :user:`lphuc2250gma`
+  :func:`~platformdirs.user_fonts_dir`, and :func:`~platformdirs.user_preference_dir`. :pr:`491` - by
+  :user:`gaborbernat`.
+- Add :func:`~platformdirs.user_projects_dir` backed by ``$XDG_PROJECTS_DIR``. :pr:`490` - by :user:`gaborbernat`.
+
+.. _release-4-10-0-fixed:
+
+Fixed
+=====
+
+- Return only the first path from :func:`~platformdirs.site_config_path` on macOS when ``multipath`` is set. :pr:`488` -
+  by :user:`lphuc2250gma`.
+
+.. _release-4-9-6:
 
 ********************
  4.9.6 (2026-04-09)
 ********************
 
+.. _release-4-9-6-fixed:
+
+Fixed
+=====
+
 - Fix macOS XDG variables leaking across :func:`~platformdirs.user_config_dir`, :func:`~platformdirs.user_data_dir`, and
-  :func:`~platformdirs.user_state_dir` when only some are set :pr:`473` - by :user:`Goddesen`
+  :func:`~platformdirs.user_state_dir` when only some are set. :pr:`473` - by :user:`Goddesen`.
 - Avoid duplicate site directories in Unix :meth:`~platformdirs.PlatformDirs.iter_config_dirs` and
-  :meth:`~platformdirs.PlatformDirs.iter_data_dirs` when ``use_site_for_root`` is active :pr:`469` - by :user:`viccie30`
+  :meth:`~platformdirs.PlatformDirs.iter_data_dirs` when ``use_site_for_root`` is active. :pr:`469` - by
+  :user:`viccie30`.
+
+.. _release-4-9-4:
 
 ********************
  4.9.4 (2026-03-05)
 ********************
 
-- Respect ``XDG_CONFIG_HOME`` when reading the user-dirs configuration :pr:`453` - by :user:`bysiber`
+.. _release-4-9-4-fixed:
+
+Fixed
+=====
+
+- Respect ``XDG_CONFIG_HOME`` when reading the user-dirs configuration. :pr:`453` - by :user:`bysiber`.
 - Create the directory in Android :func:`~platformdirs.user_log_dir` and :func:`~platformdirs.user_runtime_dir` when
-  ``ensure_exists`` is set :pr:`452` - by :user:`bysiber`
+  ``ensure_exists`` is set. :pr:`452` - by :user:`bysiber`.
+
+.. _release-4-9-2:
 
 ********************
  4.9.2 (2026-02-16)
 ********************
 
-- No user-facing changes
+.. _release-4-9-1:
 
 ********************
  4.9.1 (2026-02-14)
 ********************
 
-- No user-facing changes
+.. _release-4-9-0:
 
 ********************
  4.9.0 (2026-02-14)
 ********************
 
-- Add :func:`~platformdirs.site_bin_dir` :pr:`443`
-- Add :func:`~platformdirs.site_applications_dir` :pr:`442`
-- Use the correct runtime directory path on OpenBSD :pr:`440`
+.. _release-4-9-0-added:
+
+Added
+=====
+
+- Add :func:`~platformdirs.site_bin_dir`. :pr:`443` - by :user:`gaborbernat`.
+- Add :func:`~platformdirs.site_applications_dir`. :pr:`442` - by :user:`gaborbernat`.
+
+.. _release-4-9-0-fixed:
+
+Fixed
+=====
+
+- Use the correct runtime directory path on OpenBSD. :pr:`440` - by :user:`gaborbernat`.
+
+.. _release-4-8-0:
 
 ********************
  4.8.0 (2026-02-14)
 ********************
 
-- Add ``use_site_for_root`` to redirect ``user_*_dir`` to ``site_*_dir`` for root on Unix :pr:`426`
-- Add :func:`~platformdirs.site_state_dir` for system-wide state :pr:`425`
-- Add :func:`~platformdirs.site_log_dir` :pr:`424`
-- Add :func:`~platformdirs.user_applications_dir` :pr:`432`
-- Add :func:`~platformdirs.user_bin_dir` :pr:`430`
-- Add ``PLATFORMDIRS_*`` environment variable overrides for Windows folder resolution :pr:`427`
-- Add ``WIN_PD_OVERRIDE_*`` environment variable overrides for Windows folder resolution :pr:`428`
+.. _release-4-8-0-added:
+
+Added
+=====
+
+- Add ``use_site_for_root`` to redirect ``user_*_dir`` to ``site_*_dir`` for root on Unix. :pr:`426` - by
+  :user:`gaborbernat`.
+- Add :func:`~platformdirs.site_state_dir` for system-wide state. :pr:`425` - by :user:`gaborbernat`.
+- Add :func:`~platformdirs.site_log_dir`. :pr:`424` - by :user:`gaborbernat`.
+- Add :func:`~platformdirs.user_applications_dir`. :pr:`432` - by :user:`gaborbernat`.
+- Add :func:`~platformdirs.user_bin_dir`. :pr:`430` - by :user:`gaborbernat`.
+- Add ``PLATFORMDIRS_*`` environment variable overrides for Windows folder resolution. :pr:`427` - by
+  :user:`gaborbernat`.
+- Add ``WIN_PD_OVERRIDE_*`` environment variable overrides for Windows folder resolution. :pr:`428` - by
+  :user:`gaborbernat`.
+
+.. _release-4-8-0-fixed:
+
+Fixed
+=====
+
 - Yield individual site directories from :meth:`~platformdirs.PlatformDirs.iter_data_dirs` and
-  :meth:`~platformdirs.PlatformDirs.iter_config_dirs` on macOS :pr:`429`
+  :meth:`~platformdirs.PlatformDirs.iter_config_dirs` on macOS. :pr:`429` - by :user:`gaborbernat`.
+
+.. _release-4-7-1:
 
 ********************
  4.7.1 (2026-02-13)
 ********************
 
-- Avoid :exc:`FileNotFoundError` on Windows in sandboxed environments :pr:`422`
+.. _release-4-7-1-fixed:
+
+Fixed
+=====
+
+- Avoid :exc:`FileNotFoundError` on Windows in sandboxed environments. :pr:`422` - by :user:`gaborbernat`.
+
+.. _release-4-7-0:
 
 ********************
  4.7.0 (2026-02-12)
 ********************
 
-- Fall back to a temp directory when the Unix runtime dir is not writable :pr:`369` - by :user:`lengau`
-- Use ``SHGetKnownFolderPath`` instead of the deprecated ``SHGetFolderPathW`` on Windows :pr:`380` - by :user:`moi15moi`
+.. _release-4-7-0-fixed:
+
+Fixed
+=====
+
+- Find relocated Windows Downloads folders and preserve long paths through ``SHGetKnownFolderPath``. :pr:`380` - by
+  :user:`moi15moi` and :user:`gaborbernat`.
+- Fall back to a temp directory when the Unix runtime dir is not writable. :pr:`369` - by :user:`lengau` and
+  :user:`gaborbernat`.
+
+.. _release-4-6-0:
 
 ********************
  4.6.0 (2026-02-12)
 ********************
 
-- Honor XDG environment variables on macOS :pr:`375` - by :user:`Czaki`
-- Fix :func:`~platformdirs.site_cache_dir` documentation :pr:`402` - by :user:`brianhelba`
-- Fix an outdated link and correct a function docstring :pr:`398` - by :user:`joclement`
+.. _release-4-6-0-fixed:
+
+Fixed
+=====
+
+- Honor XDG environment variables on macOS. :pr:`375` - by :user:`Czaki` and :user:`gaborbernat`.
+
+.. _release-4-6-0-documentation:
+
+Documentation
+=============
+
+- Fix :func:`~platformdirs.site_cache_dir` documentation. :pr:`402` - by :user:`brianhelba`.
+- Fix an outdated link and correct a function docstring. :pr:`398` - by :user:`joclement`.
+
+.. _release-4-5-1:
 
 ********************
  4.5.1 (2025-12-05)
 ********************
 
-- Fix no-ctypes fallback on Windows :pr:`403` - by :user:`youknowone`
+.. _release-4-5-1-fixed:
+
+Fixed
+=====
+
+- Fix no-ctypes fallback on Windows. :pr:`403` - by :user:`youknowone`.
+
+.. _release-4-5-0:
 
 ********************
  4.5.0 (2025-10-08)
 ********************
 
-- Add support for Python 3.14 :pr:`382` - by :user:`hugovk`
-- Drop support for Python 3.9 :pr:`389`
-- Update Windows file paths in README :pr:`385` - by :user:`ParadaCarleton`
+.. _release-4-5-0-added:
+
+Added
+=====
+
+- Add support for Python 3.14. :pr:`382` - by :user:`hugovk`.
+- Drop support for Python 3.9. :pr:`389` - by :user:`gaborbernat`.
+
+.. _release-4-5-0-documentation:
+
+Documentation
+=============
+
+- Update Windows file paths in README. :pr:`385` - by :user:`ParadaCarleton`.
+
+.. _release-4-4-0:
 
 ********************
  4.4.0 (2025-08-26)
 ********************
 
-- Improve Homebrew path detection :pr:`370` - by :user:`daeho-ro`
+.. _release-4-4-0-fixed:
+
+Fixed
+=====
+
+- Improve Homebrew path detection. :pr:`370` - by :user:`daeho-ro`.
+
+.. _release-4-3-8:
 
 ********************
  4.3.8 (2025-05-07)
 ********************
 
-- Add missing examples and fix example order in README :pr:`355` - by :user:`gene1wood`
+.. _release-4-3-8-documentation:
+
+Documentation
+=============
+
+- Add missing examples and fix example order in README. :pr:`355` - by :user:`gene1wood`.
+
+.. _release-4-3-7:
 
 ********************
  4.3.7 (2025-03-19)
 ********************
 
-- Drop support for EOL Python 3.8 :pr:`330` - by :user:`hugovk`
+.. _release-4-3-7-added:
+
+Added
+=====
+
+- Drop support for EOL Python 3.8. :pr:`330` - by :user:`hugovk`.
+
+.. _release-4-3-6:
 
 ********************
  4.3.6 (2024-09-17)
 ********************
 
-- No user-facing changes
+.. _release-4-3-5:
 
 ********************
  4.3.5 (2024-09-17)
 ********************
 
-- No user-facing changes
+.. _release-4-3-4:
 
 ********************
  4.3.4 (2024-09-17)
 ********************
 
-- No user-facing changes
+.. _release-4-3-3:
 
 ********************
  4.3.3 (2024-09-13)
 ********************
 
-- No user-facing changes
+.. _release-4-3-2:
 
 ********************
  4.3.2 (2024-09-08)
 ********************
 
-- Fix multi-path returned from ``_path`` methods on macOS :pr:`299` - by :user:`matthewhughes934`
+.. _release-4-3-2-fixed:
+
+Fixed
+=====
+
+- Fix multi-path returned from ``_path`` methods on macOS. :pr:`299` - by :user:`matthewhughes934` and
+  :user:`gaborbernat`.
+
+.. _release-4-3-1:
 
 ********************
  4.3.1 (2024-09-07)
 ********************
 
-- No user-facing changes
+.. _release-4-3-0:
 
 ********************
  4.3.0 (2024-09-07)
 ********************
 
-- Make :class:`~platformdirs.PlatformDirs` usable as a mypy superclass without breaking other type checkers :pr:`295` -
-  by :user:`Avasam`
-- Add support for Python 3.13 :pr:`289` - by :user:`edgarrmondragon`
+.. _release-4-3-0-added:
+
+Added
+=====
+
+- Make :class:`~platformdirs.PlatformDirs` usable as a mypy superclass without breaking other type checkers. :pr:`295` -
+  by :user:`Avasam` and :user:`gaborbernat`.
+- Add support for Python 3.13. :pr:`289` - by :user:`edgarrmondragon`.
+
+.. _release-4-2-2:
 
 ********************
  4.2.2 (2024-05-15)
 ********************
 
-- Fix Android detection when ``python-for-android`` is present :pr:`277` - by :user:`tmolitor-stud-tu`
+.. _release-4-2-2-fixed:
+
+Fixed
+=====
+
+- Fix Android detection when ``python-for-android`` is present. :pr:`277` - by :user:`tmolitor-stud-tu` and
+  :user:`gaborbernat`.
+
+.. _release-4-2-1:
 
 ********************
  4.2.1 (2024-04-23)
 ********************
 
-- Allow working without ctypes :pr:`275` - by :user:`youknowone`
+.. _release-4-2-1-fixed:
+
+Fixed
+=====
+
+- Allow working without ctypes. :pr:`275` - by :user:`youknowone`.
+
+.. _release-4-2-0:
 
 ********************
  4.2.0 (2024-01-31)
 ********************
 
-- Add convenience methods to iterate over both user and site dirs and paths :pr:`258` - by :user:`SpaceshipOperations`
-- Fix two typos referencing ``XDG_DATA_DIR`` :pr:`256` - by :user:`Freed-Wu`
+.. _release-4-2-0-added:
+
+Added
+=====
+
+- Add convenience methods to iterate over both user and site dirs and paths. :pr:`258` - by :user:`SpaceshipOperations`
+  and :user:`gaborbernat`.
+
+.. _release-4-2-0-documentation:
+
+Documentation
+=============
+
+- Fix two typos referencing ``XDG_DATA_DIR``. :pr:`256` - by :user:`Freed-Wu`.
+
+.. _release-4-1-0:
 
 ********************
  4.1.0 (2023-12-04)
 ********************
 
-- Drop support for EOL Python 3.7 :pr:`246` - by :user:`hugovk`
-- Fix Linux :func:`~platformdirs.user_log_dir` example in README :pr:`245` - by :user:`dbohdan`
+.. _release-4-1-0-added:
+
+Added
+=====
+
+- Drop support for EOL Python 3.7. :pr:`246` - by :user:`hugovk`.
+
+.. _release-4-1-0-documentation:
+
+Documentation
+=============
+
+- Fix Linux :func:`~platformdirs.user_log_dir` example in README. :pr:`245` - by :user:`dbohdan`.
+
+.. _release-4-0-0:
 
 ********************
  4.0.0 (2023-11-10)
 ********************
 
-- Revert :func:`~platformdirs.site_cache_dir` on UNIX to ``/var/cache`` instead of ``/var/tmp`` :pr:`239` - by
-  :user:`andersk`
+.. _release-4-0-0-changes:
+
+Changes
+=======
+
+- Revert :func:`~platformdirs.site_cache_dir` on UNIX to ``/var/cache`` instead of ``/var/tmp``. :pr:`239` - by
+  :user:`andersk`.
+
+.. _release-3-11-0:
 
 *********************
  3.11.0 (2023-10-02)
 *********************
 
-- Detect Homebrew-installed software on macOS :pr:`232` - by :user:`singingwolfboy`
+.. _release-3-11-0-added:
+
+Added
+=====
+
+- Detect Homebrew-installed software on macOS. :pr:`232` - by :user:`singingwolfboy`.
+
+.. _release-3-10-0:
 
 *********************
  3.10.0 (2023-07-29)
 *********************
 
-- Add :func:`~platformdirs.site_runtime_dir` :pr:`212` - by :user:`kemzeb`
+.. _release-3-10-0-added:
+
+Added
+=====
+
+- Add :func:`~platformdirs.site_runtime_dir`. :pr:`212` - by :user:`kemzeb`.
+
+.. _release-3-9-1:
 
 ********************
  3.9.1 (2023-07-15)
 ********************
 
-- Optionally create the opinionated ``log`` subdirectory in :func:`~platformdirs.user_log_dir` on Unix :pr:`208` - by
-  :user:`kemzeb`
+.. _release-3-9-1-fixed:
+
+Fixed
+=====
+
+- Optionally create the opinionated ``log`` subdirectory in :func:`~platformdirs.user_log_dir` on Unix. :pr:`208` - by
+  :user:`kemzeb`.
+
+.. _release-3-9-0:
 
 ********************
  3.9.0 (2023-07-15)
 ********************
 
-- Add :func:`~platformdirs.user_desktop_dir` and :func:`~platformdirs.user_desktop_path` :pr:`200` - by
-  :user:`lukacat10`
+.. _release-3-9-0-added:
+
+Added
+=====
+
+- Add :func:`~platformdirs.user_desktop_dir` and :func:`~platformdirs.user_desktop_path`. :pr:`200` - by
+  :user:`lukacat10`.
+
+.. _release-3-8-1:
 
 ********************
  3.8.1 (2023-07-06)
 ********************
 
-- Provide a fallback for :func:`~platformdirs.user_runtime_dir` on BSD :pr:`201` - by :user:`RayyanAnsari`
+.. _release-3-8-1-fixed:
+
+Fixed
+=====
+
+- Provide a fallback for :func:`~platformdirs.user_runtime_dir` on BSD. :pr:`201` - by :user:`RayyanAnsari`.
+
+.. _release-3-8-0:
 
 ********************
  3.8.0 (2023-06-22)
 ********************
 
-- No user-facing changes
+.. _release-3-7-0:
 
 ********************
  3.7.0 (2023-06-20)
 ********************
 
-- Return ``/var/run/user/$uid`` from :func:`~platformdirs.user_runtime_dir` on \*BSD :pr:`194` - by :user:`kemzeb`
+.. _release-3-7-0-added:
+
+Added
+=====
+
+- Return ``/var/run/user/$uid`` from :func:`~platformdirs.user_runtime_dir` on \*BSD. :pr:`194` - by :user:`kemzeb`.
+
+.. _release-3-6-0:
 
 ********************
  3.6.0 (2023-06-18)
 ********************
 
-- Add :func:`~platformdirs.user_downloads_dir` :pr:`192` - by :user:`cofiem`
+.. _release-3-6-0-added:
+
+Added
+=====
+
+- Add :func:`~platformdirs.user_downloads_dir`. :pr:`192` - by :user:`cofiem`.
+
+.. _release-3-5-3:
 
 ********************
  3.5.3 (2023-06-09)
 ********************
 
-- Add support for Python 3.12
+.. _release-3-5-3-added:
+
+Added
+=====
+
+- Add support for Python 3.12 - by :user:`gaborbernat`.
+
+.. _release-3-5-2:
 
 ********************
  3.5.2 (2023-06-09)
 ********************
 
-- No user-facing changes
+.. _release-3-5-1:
 
 ********************
  3.5.1 (2023-05-11)
 ********************
 
-- Define ``getuid`` on all non-Windows platforms so :func:`~platformdirs.user_runtime_dir` works beyond Linux :pr:`183`
+.. _release-3-5-1-fixed:
+
+Fixed
+=====
+
+- Define ``getuid`` on all non-Windows platforms so :func:`~platformdirs.user_runtime_dir` works beyond Linux. :pr:`183`
+  - by :user:`gaborbernat` and :user:`mtelka`.
+
+.. _release-3-5-0:
 
 ********************
  3.5.0 (2023-04-27)
 ********************
 
-- Add :func:`~platformdirs.user_music_dir` :pr:`173` - by :user:`kemzeb`
+.. _release-3-5-0-added:
+
+Added
+=====
+
+- Add :func:`~platformdirs.user_music_dir`. :pr:`173` - by :user:`kemzeb`.
+
+.. _release-3-4-0:
 
 ********************
  3.4.0 (2023-04-26)
 ********************
 
-- Add :func:`~platformdirs.user_videos_dir` :pr:`169` - by :user:`kemzeb`
+.. _release-3-4-0-added:
+
+Added
+=====
+
+- Add :func:`~platformdirs.user_videos_dir`. :pr:`169` - by :user:`kemzeb`.
+
+.. _release-3-3-0:
 
 ********************
  3.3.0 (2023-04-25)
 ********************
 
-- Add :func:`~platformdirs.user_pictures_dir` :pr:`167` - by :user:`kemzeb`
+.. _release-3-3-0-added:
+
+Added
+=====
+
+- Add :func:`~platformdirs.user_pictures_dir`. :pr:`167` - by :user:`kemzeb`.
+
+.. _release-3-2-0:
 
 ********************
  3.2.0 (2023-03-25)
 ********************
 
-- Add the ``ensure_exists`` option to create directories when they are missing :pr:`155` - by :user:`smsearcy`
+.. _release-3-2-0-added:
+
+Added
+=====
+
+- Add the ``ensure_exists`` option to create directories when they are missing. :pr:`155` - by :user:`smsearcy`.
+
+.. _release-3-1-1:
 
 ********************
  3.1.1 (2023-03-10)
 ********************
 
-- Point :func:`~platformdirs.site_cache_dir` at ``/var/tmp`` instead of write-protected ``/var/cache`` on Unix :pr:`148`
-  - by :user:`efiop`
+.. _release-3-1-1-fixed:
+
+Fixed
+=====
+
+- Point :func:`~platformdirs.site_cache_dir` at ``/var/tmp`` instead of write-protected ``/var/cache`` on Unix.
+  :pr:`148` - by :user:`efiop`.
+
+.. _release-3-1-0:
 
 ********************
  3.1.0 (2023-03-03)
 ********************
 
-- Add :func:`~platformdirs.site_cache_dir` :pr:`145` - by :user:`efiop`
+.. _release-3-1-0-added:
+
+Added
+=====
+
+- Add :func:`~platformdirs.site_cache_dir`. :pr:`145` - by :user:`efiop`.
+
+.. _release-3-0-0:
 
 ********************
  3.0.0 (2023-02-06)
 ********************
 
-- **BREAKING** Point macOS :func:`~platformdirs.user_config_dir` and :func:`~platformdirs.site_config_dir` at
-  ``*/Library/Application Support`` to mirror the data dirs, and drop the trailing slash from
-  :func:`~platformdirs.user_config_dir` and :func:`~platformdirs.user_data_dir` :pr:`137` - by :user:`ThomasWaldmann`
+.. _release-3-0-0-fixed:
+
+Fixed
+=====
+
+- Point macOS :func:`~platformdirs.user_config_dir` and :func:`~platformdirs.site_config_dir` at ``*/Library/Application
+  Support`` to mirror the data dirs, and drop the trailing slash from :func:`~platformdirs.user_config_dir` and
+  :func:`~platformdirs.user_data_dir`. :pr:`137` - by :user:`ThomasWaldmann` and :user:`gaborbernat`.
+
+.. _release-2-6-2:
 
 ********************
  2.6.2 (2022-12-28)
 ********************
 
-- Add ``typing-extensions`` as a dependency on Python < 3.8 :pr:`123` - by :user:`amacf`
+.. _release-2-6-2-packaging:
+
+Packaging
+=========
+
+- Add ``typing-extensions`` as a dependency on Python < 3.8. :pr:`123` - by :user:`amacf` and :user:`gaborbernat`.
+
+.. _release-2-6-1:
 
 ********************
  2.6.1 (2022-12-29)
 ********************
 
-- Detect Termux via ``$PREFIX`` when ``$SHELL`` is unset :pr:`115` - by :user:`Freed-Wu`
+.. _release-2-6-1-fixed:
+
+Fixed
+=====
+
+- Detect Termux via ``$PREFIX`` when ``$SHELL`` is unset. :pr:`115` - by :user:`Freed-Wu`.
+
+.. _release-2-6-0:
 
 ********************
  2.6.0 (2022-12-06)
 ********************
 
-- Point :func:`~platformdirs.user_log_dir` at :func:`~platformdirs.user_state_dir` on Linux per the XDG spec :pr:`108` -
-  by :user:`lordwelch`
+.. _release-2-6-0-changes:
+
+Changes
+=======
+
+- Point :func:`~platformdirs.user_log_dir` at :func:`~platformdirs.user_state_dir` on Linux per the XDG spec. :pr:`108`
+  - by :user:`lordwelch`.
+
+.. _release-2-5-4:
 
 ********************
  2.5.4 (2022-11-12)
 ********************
 
-- No user-facing changes
+.. _release-2-5-3:
 
 ********************
  2.5.3 (2022-11-06)
 ********************
 
-- Declare support for Python 3.11 :pr:`103` - by :user:`hugovk`
+.. _release-2-5-3-added:
+
+Added
+=====
+
+- Declare support for Python 3.11. :pr:`103` - by :user:`hugovk`.
+
+.. _release-2-5-2:
 
 ********************
  2.5.2 (2022-04-18)
 ********************
 
-- Treat Android shells as Unix :pr:`72`
+.. _release-2-5-2-fixed:
+
+Fixed
+=====
+
+- Treat Android shells as Unix. :pr:`72` - by :user:`Blocked`.
+
+.. _release-2-5-1:
 
 ********************
  2.5.1 (2022-02-19)
 ********************
 
-- Work out of the box under Nuitka standalone builds :pr:`68`
+.. _release-2-5-1-fixed:
+
+Fixed
+=====
+
+- Work out of the box under Nuitka standalone builds. :pr:`68` - by :user:`gaborbernat` and :user:`Clouder0`.
+
+.. _release-2-5-0:
 
 ********************
  2.5.0 (2022-02-09)
 ********************
 
-- Support the Termux subsystem :pr:`63` - by :user:`YariKartoshe4ka`
+.. _release-2-5-0-added:
+
+Added
+=====
+
+- Support the Termux subsystem. :pr:`63` - by :user:`YariKartoshe4ka`.
+
+.. _release-2-4-1:
 
 ********************
  2.4.1 (2021-12-26)
 ********************
 
-- **BREAKING** Drop Python 3.6 support :pr:`52`
+.. _release-2-4-1-added:
+
+Added
+=====
+
+- Drop Python 3.6 support. :pr:`52` - by :user:`gaborbernat`.
+
+.. _release-2-4-0:
 
 ********************
  2.4.0 (2021-09-25)
 ********************
 
-- Add :func:`~platformdirs.user_documents_dir` :pr:`39` - by :user:`JuneStepp`
+.. _release-2-4-0-added:
+
+Added
+=====
+
+- Add :func:`~platformdirs.user_documents_dir`. :pr:`39` - by :user:`JuneStepp`, Jeremy Stepp and :user:`gaborbernat`.
+
+.. _release-2-3-0:
 
 ********************
  2.3.0 (2021-08-30)
 ********************
 
-- Add :func:`~platformdirs.user_runtime_dir` for ``$XDG_RUNTIME_DIR`` :pr:`37` - by :user:`whonore`
+.. _release-2-3-0-added:
+
+Added
+=====
+
+- Add :func:`~platformdirs.user_runtime_dir` for ``$XDG_RUNTIME_DIR``. :pr:`37` - by :user:`whonore` and
+  :user:`gaborbernat`.
+
+.. _release-2-2-0:
 
 ********************
  2.2.0 (2021-07-29)
 ********************
 
-- Unix: fall back to the default when the ``$XDG_*`` environment variable is empty :pr:`30` - by :user:`papr`
+.. _release-2-2-0-fixed:
+
+Fixed
+=====
+
+- Unix: fall back to the default when the ``$XDG_*`` environment variable is empty. :pr:`30` - by :user:`papr` and
+  :user:`gaborbernat`.
+
+.. _release-2-1-0:
 
 ********************
  2.1.0 (2021-07-25)
 ********************
 
-- Add ``pathlib.Path``-returning ``*_path`` API alongside the string variants :pr:`27` - by :user:`papr`
-- Add Android support :pr:`18`
-- Add type annotations :pr:`20` - by :user:`domdfcoding`
-- **BREAKING** Drop Python 2.7 and 3.5 support :pr:`14` - by :user:`domdfcoding`
+.. _release-2-1-0-added:
+
+Added
+=====
+
+- Add ``pathlib.Path``-returning ``*_path`` API alongside the string variants. :pr:`27` - by :user:`papr`.
+- Add Android support. :pr:`18` - by :user:`gaborbernat` and :user:`YariKartoshe4ka`.
+- Add type annotations. :pr:`20` - by :user:`domdfcoding`.
+- Drop Python 2.7 and 3.5 support. :pr:`14` - by :user:`domdfcoding` and :user:`gaborbernat`.
+
+.. _release-2-0-2:
 
 ********************
  2.0.2 (2021-07-13)
 ********************
 
-- No user-facing changes
+.. _release-2-0-0:
 
 ********************
  2.0.0 (2021-07-12)
 ********************
 
-- **BREAKING** Rename ``appdirs`` to ``platformdirs`` as part of the friendly fork
-- **BREAKING** Remove support for end-of-life Pythons 2.6, 3.2, and 3.3
-- **BREAKING** Correct the config directory on macOS
-- Add support for Python 3.7, 3.8, and 3.9
+.. _release-v2-0-0a3:
+
+***********************
+ v2.0.0a3 (2021-05-13)
+***********************
+
+.. _release-v2-0-0a3-fixed:
+
+Fixed
+=====
+
+- Stop expanding user paths twice for two macOS directory lookups. :pr:`1` - by :user:`ofek`.
+
+.. _release-v2-0-0a3-performance:
+
+Performance
+===========
+
+- Resolve platform-dependent functions at import to speed up directory lookups. :pr:`1` - by :user:`ofek`.
+
+.. _release-v2-0-0a2:
+
+***********************
+ v2.0.0a2 (2021-05-13)
+***********************
+
+.. _release-v2-0-0a1:
+
+***********************
+ v2.0.0a1 (2021-05-13)
+***********************
+
+.. _release-v2-0-0a1-added:
+
+Added
+=====
+
+- Remove support for end-of-life Pythons 2.6, 3.2, and 3.3 - by :user:`Julian`.
+- Add support for Python 3.7, 3.8, and 3.9 - by :user:`Julian`.
+- Introduce ``platformdirs`` as a friendly fork of ``appdirs`` - by :user:`Julian`.

@@ -2,118 +2,157 @@ name: 🚀 Release
 on:
   push:
     branches: ["main"]
-    tags: ["[0-9]+.[0-9]+.[0-9]+"]
+    tags: ["*"]
   pull_request:
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: release-${{ github.ref }}
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 permissions:
   contents: read
 env:
   dists-artifact-name: python-package-distributions
 jobs:
-  build:
-    name: 📦 build
-    runs-on: ubuntu-24.04
+  build-pr:
+    name: 🏗️ Build distributions
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     steps:
-      - name: 📥 Checkout
+      - name: 📥 Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0 # full history so hatch-vcs derives the version from the tag
+          fetch-depth: 0
           persist-credentials: false
-      - name: 📦 Setup uv
-        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      - name: 🐍 Install uv
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         with:
+          version: latest-known
           python-version: "3.15"
-          enable-cache: false # this workflow builds the artifact that gets published; no cache to poison
-      - name: 📦 Build package
-        run: uv build --python 3.15 --python-preference only-managed --sdist --wheel . --out-dir dist
-      - name: 📤 Store the distribution packages
+          enable-cache: false
+      - name: 🏗️ Build distributions
+        uses: tox-dev/github-workflows/build-python-distribution@259a3d3fb578d00517ffb73341fdd463259b0b2f # 6.0.1
+      - name: 📤 Upload distributions
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ env.dists-artifact-name }}
           path: dist/*
-  publish:
-    name: 🚀 publish
-    needs: [build]
+          if-no-files-found: error
+  build:
+    name: 🏗️ Build
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-24.04
+    uses: tox-dev/github-workflows/.github/workflows/validate-python-release.yaml@259a3d3fb578d00517ffb73341fdd463259b0b2f # 6.0.1
+    permissions:
+      contents: read
+  release:
+    name: 🚀 Publish to PyPI
+    needs: [build, notes]
+    runs-on: ubuntu-26.04
     environment:
       name: release
       url: https://pypi.org/project/platformdirs/${{ github.ref_name }}
     permissions:
       id-token: write
     steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: 🛡️ Require a changelog section for this release
-        env:
-          VERSION: ${{ github.ref_name }}
-        # A tag reaches PyPI only through prepare-release, which builds the changelog first. A tag pushed by hand skips
-        # that, so refuse to publish a version the changelog does not document rather than ship it silently.
-        run: |
-          if ! grep -qE "^ ${VERSION//./\\.} \(" docs/changelog.rst; then
-            echo "::error::docs/changelog.rst has no section for $VERSION; release via the Prepare release workflow"
-            exit 1
-          fi
-      - name: ⬇️ Download all the dists
+      - name: 📩 Download distributions
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: ${{ env.dists-artifact-name }}
+          artifact-ids: ${{ needs.build.outputs.distributions-artifact-id }}
           path: dist/
       - name: 🚀 Publish to PyPI
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
         with:
-          skip-existing: true
-  github-release:
-    needs: publish
-    if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-24.04
+          packages-dir: dist
+  pypi_verify:
+    name: 🔍 Verify PyPI distributions
+    needs: [build, release]
+    runs-on: ubuntu-26.04
     permissions:
-      contents: write
+      contents: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: 📥 Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 🐍 Install uv
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          version: latest-known
+          python-version: "3.15"
+          enable-cache: false
+      - name: 📩 Download distributions
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.build.outputs.distributions-artifact-id }}
+          path: dist
+      - name: 🔍 Verify PyPI artifacts
+        uses: tox-dev/github-workflows/reconcile-pypi-artifacts@259a3d3fb578d00517ffb73341fdd463259b0b2f # 6.0.1
+        with:
+          project: platformdirs
+          version: ${{ github.ref_name }}
+          dist: dist
+  notes:
+    name: 📝 Render GitHub Release notes
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - name: 📥 Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: 📢 Create GitHub release
+      - name: 🐍 Install uv
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          version: latest-known
+          python-version: "3.15"
+          enable-cache: false
+      - name: 📦 Install locked release tools
+        uses: tox-dev/github-workflows/install-locked-tools@259a3d3fb578d00517ffb73341fdd463259b0b2f # 6.0.1
+        with:
+          groups: release-notes
+          venv: ${{ runner.temp }}/release-tools
+      - name: 🏷️ Select previous tag
+        id: previous
+        uses: tox-dev/github-workflows/select-previous-tag@259a3d3fb578d00517ffb73341fdd463259b0b2f # 6.0.1
+        with:
+          tag: ${{ github.ref_name }}
+      - name: 📝 Render release notes
+        uses: tox-dev/github-workflows/render-release-notes@259a3d3fb578d00517ffb73341fdd463259b0b2f # 6.0.1
+        with:
+          tag: ${{ github.ref_name }}
+          previous: ${{ steps.previous.outputs.previous }}
+          changelog: docs/changelog.rst
+          artifact-url: https://pypi.org/project/platformdirs/${{ github.ref_name }}/
+      - name: 📤 Upload release notes
+        id: upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: github-release-notes
+          path: ${{ runner.temp }}/release-notes.md
+          if-no-files-found: error
+  github-release:
+    name: 🚀 Publish GitHub Release
+    needs: [pypi_verify, notes]
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    steps:
+      - name: 📩 Download release notes
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.notes.outputs.artifact-id }}
+          path: ${{ runner.temp }}/release-notes
+      - name: 🚀 Publish GitHub release
+        uses: tox-dev/github-workflows/publish-github-release@259a3d3fb578d00517ffb73341fdd463259b0b2f # 6.0.1
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-          awk -v version="$VERSION" '
-            index($0, " " version " (") == 1 { found = 1; next }
-            found && /^ [0-9]+\.[0-9]+\.[0-9]+ \(/ { exit }
-            found && $0 !~ /^\*+$/ { print }
-          ' docs/changelog.rst > "$RUNNER_TEMP/release-notes.md"
-          python3 - "$RUNNER_TEMP/release-notes.md" <<'PY'
-          import re
-          import sys
-          from pathlib import Path
-
-          path = Path(sys.argv[1])
-          body = path.read_text().strip()
-          body = re.sub(r":user:`([^`]+)`", r"\1", body)
-          body = re.sub(r":(?:pr|issue):`(\d+)`", r"#\1", body)
-          body = re.sub(r":[a-z]+:`~?([^`]+)`", lambda match: f"`{match.group(1).split('.')[-1]}`", body)
-          if not body:
-              raise SystemExit("release notes are empty")
-          path.write_text(body.replace("``", "`") + "\n")
-          PY
-          printf '\n[PyPI release](https://pypi.org/project/platformdirs/%s/)\n' "$VERSION" >> "$RUNNER_TEMP/release-notes.md"
-          previous=$({ gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate --jq '.[].tag_name'; printf '%s\n' "$VERSION"; } | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -Vu | awk -v tag="$VERSION" '$0 == tag { print previous; exit } { previous = $0 }')
-          if [[ -n "$previous" ]]; then
-            printf '\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n' "$GITHUB_REPOSITORY" "$previous" "$VERSION" >> "$RUNNER_TEMP/release-notes.md"
-          else
-            printf '\n**Full Changelog**: https://github.com/%s/commits/%s\n' "$GITHUB_REPOSITORY" "$VERSION" >> "$RUNNER_TEMP/release-notes.md"
-          fi
-          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            gh release edit "$VERSION" --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md"
-          else
-            gh release create "$VERSION" --repo "$GITHUB_REPOSITORY" --title="$VERSION" --verify-tag --notes-file "$RUNNER_TEMP/release-notes.md"
-          fi
+        with:
+          tag: ${{ github.ref_name }}
+          commit: ${{ github.sha }}
+          title: ${{ github.ref_name }}
+          notes-file: ${{ runner.temp }}/release-notes/release-notes.md
