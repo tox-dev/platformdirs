@@ -1,0 +1,2 @@
+Describe the Homebrew prefix in the macOS ``_HOMEBREW_PYTHON`` pattern comment without hardcoding ``/opt/homebrew``, so
+Homebrew formulae that bundle platformdirs can share one bottle across macOS and Linux.
