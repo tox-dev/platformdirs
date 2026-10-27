@@ -414,7 +414,11 @@ def get_win_folder(csidl_name: str) -> str:
 def _is_fully_qualified(path: str) -> bool:
     # ntpath.isabs changed for rooted paths without a drive in 3.13 and for a bare UNC share in 3.11
     drive, tail = ntpath.splitdrive(path)
-    return drive.startswith(("\\", "/")) or (bool(drive) and tail.startswith(("\\", "/")))
+    if drive.startswith(("\\", "/")):
+        # A UNC volume needs both a server and a share; splitdrive also accepts an incomplete volume.
+        server, _, share = drive[2:].replace("/", "\\").partition("\\")
+        return bool(server and share)
+    return bool(drive) and tail.startswith(("\\", "/"))
 
 
 __all__ = [

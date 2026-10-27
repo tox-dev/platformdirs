@@ -435,7 +435,8 @@ The override variable name is ``WIN_PD_OVERRIDE_`` followed by the CSIDL suffix:
     - - ``WIN_PD_OVERRIDE_USER_PROGRAM_FILES``
       - User binaries (``AppData\Local\Programs``)
 
-``platformdirs`` ignores a blank value or one without both a drive and a root, such as ``\shared`` or ``D:appdata``.
+``platformdirs`` ignores a blank value or one without both a drive and a root, such as ``\shared`` or ``D:appdata``. UNC
+overrides must include both the server and share name, such as ``\\server\share``; ``\\server`` is ignored.
 
 .. note::
 
