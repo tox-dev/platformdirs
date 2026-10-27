@@ -1,0 +1,2 @@
+Ignore incomplete UNC paths without a share name in Windows folder overrides instead of treating the application name as
+the share.
