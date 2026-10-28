@@ -1,0 +1,2 @@
+Treat a relative ``HOME`` as unset on Unix, macOS and iOS, taking the home from the password database or raising
+``RuntimeError``, rather than resolving user directories against the working directory.
