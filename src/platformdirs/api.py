@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 from abc import ABC, abstractmethod
-from contextlib import suppress
 from copy import copy
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -156,8 +155,12 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
     def _optionally_create_media_directory(self, path: str) -> None:
         # Only called for a media directory the user configured. Media directories are often symlinks to removable or
         # network storage, so a dangling link is returned as-is, like before ensure_exists covered them.
-        with suppress(FileExistsError):
+        try:
             self._optionally_create_directory(path, private=False)
+        except FileExistsError:
+            directory = Path(path)
+            if not directory.is_symlink() or directory.exists():
+                raise
 
     def _select_site_dirs(self, dirs: list[str]) -> str:
         # Site lists are built without touching the disk, so ensure_exists only creates what the caller gets back.

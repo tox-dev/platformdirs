@@ -192,6 +192,8 @@ as ``~/Documents``, or the fonts, bin and applications directories, because the 
 On Android the applications directory is the data directory, so platformdirs creates it too. The module-level media
 functions, such as :func:`~platformdirs.user_documents_path`, take it as a keyword-only argument.
 
+If a configured media path is a regular file or a symlink to one, ``ensure_exists`` raises ``FileExistsError``.
+
 On Unix, macOS, iOS and Android, platformdirs creates the user directories and each missing parent with mode ``0700``,
 as the `XDG Base Directory Specification <https://specifications.freedesktop.org/basedir/latest/>`_ asks. Site and media
 directories get the default mode so other users can read them. platformdirs leaves the mode of an existing directory

@@ -865,6 +865,27 @@ def test_ensure_exists_returns_dangling_media_symlink(  # ruff:ignore[too-many-a
     assert not link.exists()
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="media overrides use POSIX paths and symlinks")
+@pytest.mark.parametrize(
+    ("key", "prop"), [("XDG_DOCUMENTS_DIR", "user_documents_dir"), ("XDG_MUSIC_DIR", "user_music_dir")]
+)
+@pytest.mark.parametrize("linked", [False, True], ids=["file", "file-symlink"])
+def test_user_dirs_media_file_collision(  # ruff:ignore[too-many-arguments]
+    monkeypatch: pytest.MonkeyPatch, user_dirs_file: Path, tmp_path: Path, key: str, prop: str, linked: bool
+) -> None:
+    (target := tmp_path / "file").write_text("preserve", encoding="utf-8")
+    path = tmp_path / "media" if linked else target
+    if linked:
+        path.symlink_to(target)
+    monkeypatch.delenv(key, raising=False)
+    user_dirs_file.write_text(f'{key}="{path}"\n', encoding="utf-8")
+
+    assert getattr(Unix(), prop) == str(path)
+    with pytest.raises(FileExistsError):
+        getattr(Unix(ensure_exists=True), prop)
+    assert target.read_text(encoding="utf-8") == "preserve"
+
+
 def test_iter_data_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("XDG_DATA_HOME", "/xdg/data")
     monkeypatch.setenv("XDG_DATA_DIRS", f"/xdg/share1{os.pathsep}/xdg/share2")
