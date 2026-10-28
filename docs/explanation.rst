@@ -367,7 +367,8 @@ need to separate data from config, use subdirectories within that path.
 
 XDG environment variables (``XDG_DATA_HOME``, ``XDG_CONFIG_HOME``, ``XDG_CACHE_HOME``, etc.) are also supported and take
 precedence over the macOS defaults when set. This allows users who prefer the XDG layout to override the default
-behavior.
+behavior. For ``user_runtime_dir``, ``XDG_RUNTIME_DIR`` must pass the check described under Linux below; otherwise
+``platformdirs`` emits a :class:`~platformdirs.RuntimeDirWarning` and uses the macOS default.
 
 When Python comes from `Homebrew <https://brew.sh>`_, ``site_data_dir``, ``site_config_dir``, ``site_cache_dir`` and
 ``site_state_dir`` return a path under the Homebrew prefix, such as ``/opt/homebrew/share/AppName``. With
