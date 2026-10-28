@@ -8,6 +8,7 @@ import os
 import re
 import stat
 import sys
+import time
 import typing
 import warnings
 from pathlib import Path
@@ -1424,6 +1425,48 @@ def test_use_site_for_root_bypasses_xdg_user_vars(
     assert result == expected_site
 
 
+@pytest.fixture
+def inherited_media_target(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> Path:
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    target = tmp_path / "inherited" / "media"
+    if (key := request.param) == "user-dirs":
+        (config := tmp_path / "inherited-config").mkdir()
+        (config / "user-dirs.dirs").write_text(f'XDG_DOCUMENTS_DIR="{target.as_posix()}"\n', encoding="utf-8")
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(config))
+    else:
+        monkeypatch.setenv(key, str(target))
+    return target
+
+
+@pytest.mark.usefixtures("_as_root", "inherited_media_target")
+@pytest.mark.parametrize(
+    ("inherited_media_target", "prop", "default"),
+    [
+        pytest.param("user-dirs", "user_documents_dir", "Documents", id="user-dirs"),
+        pytest.param("XDG_DOWNLOAD_DIR", "user_downloads_dir", "Downloads", id="XDG_DOWNLOAD_DIR"),
+        pytest.param("XDG_DATA_HOME", "user_fonts_dir", ".local/share/fonts", id="XDG_DATA_HOME"),
+    ],
+    indirect=["inherited_media_target"],
+)
+def test_use_site_for_root_bypasses_xdg_media_vars(tmp_path: Path, prop: str, default: str) -> None:
+    assert getattr(Unix(use_site_for_root=True), prop) == f"{tmp_path}/{default}"
+
+
+@pytest.mark.usefixtures("_as_root")
+@pytest.mark.parametrize(
+    ("inherited_media_target", "prop"),
+    [
+        pytest.param("user-dirs", "user_documents_dir", id="user-dirs"),
+        pytest.param("XDG_DOWNLOAD_DIR", "user_downloads_dir", id="XDG_DOWNLOAD_DIR"),
+    ],
+    indirect=["inherited_media_target"],
+)
+def test_use_site_for_root_creates_no_inherited_media_dir(inherited_media_target: Path, prop: str) -> None:
+    getattr(Unix(use_site_for_root=True, ensure_exists=True), prop)
+    assert not inherited_media_target.parent.exists()
+
+
 @pytest.mark.usefixtures("_as_root")
 @pytest.mark.parametrize(
     ("xdg_var", "func"),
@@ -1631,11 +1674,20 @@ def test_user_dirs_double_quoted_backslashes(
         pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs # moved\n", "~/Docs", id="unquoted-trailing-comment"),
         pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs\t#moved\n", "~/Docs", id="unquoted-tab-comment"),
         pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs#1\n", "~/Docs#1", id="unquoted-hash-inside-word"),
+        pytest.param("XDG_DOCUMENTS_DIR=$HOME/My \t Docs  \n", "~/My \t Docs", id="unquoted-blanks-inside"),
     ],
 )
 def test_user_dirs_read_like_xdg_user_dir(content: str, expected: str, tmp_path: Path, user_dirs_file: Path) -> None:
     user_dirs_file.write_text(content, encoding="utf-8")
     assert Unix().user_documents_dir == expected.replace("~", str(tmp_path), 1)
+
+
+@pytest.mark.parametrize("blank", [pytest.param(" ", id="spaces"), pytest.param("\t", id="tabs")])
+def test_user_dirs_long_unquoted_blank_run_reads_in_linear_time(blank: str, user_dirs_file: Path) -> None:
+    user_dirs_file.write_text(f"XDG_DOCUMENTS_DIR=$HOME/Docs{blank * 40_000}x\n", encoding="utf-8")
+    started = time.perf_counter()
+    _ = Unix().user_documents_dir
+    assert time.perf_counter() - started < 1
 
 
 @pytest.mark.parametrize(

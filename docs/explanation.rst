@@ -510,9 +510,10 @@ turn warnings into errors and run without a login session, such as in a containe
     When ``use_site_for_root=True`` is passed and the process is running as root (effective uid 0), ``user_*_dir``
     calls are redirected to their ``site_*_dir`` equivalents. This is useful for system daemons and installers that
     should write to system-wide directories rather than ``/root/.local/...``. XDG user environment variables (e.g.
-    ``XDG_DATA_HOME``) are bypassed when the redirect is active, since they are typically inherited from the calling
-    user via ``sudo`` and would defeat the purpose. The parameter is accepted on all platforms but only has an effect on
-    Unix.
+    ``XDG_DATA_HOME``) and ``user-dirs.dirs`` are bypassed when the redirect is active, since they are typically
+    inherited from the calling user via ``sudo`` and would defeat the purpose. The media and fonts directories, which
+    have no site equivalent, return their default under root's home. The parameter is accepted on all platforms but
+    only has an effect on Unix.
 
 See :class:`platformdirs.unix.Unix` for the full API reference.
 
