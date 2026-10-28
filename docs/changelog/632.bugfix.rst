@@ -1,0 +1,2 @@
+Fall back to the default media directories when ``user-dirs.dirs`` exists but cannot be read, rather than raising
+``PermissionError`` or ``IsADirectoryError``.

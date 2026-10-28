@@ -1389,6 +1389,12 @@ def test_user_dirs_undecodable_bytes(content: bytes, expected: str, tmp_path: Pa
     assert Unix().user_documents_dir == expected.replace("~", str(tmp_path), 1)
 
 
+def test_user_dirs_unreadable_file_uses_default(tmp_path: Path, user_dirs_file: Path) -> None:
+    # a directory stands in for an unreadable file because root ignores a chmod 000
+    user_dirs_file.mkdir()
+    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
+
+
 @pytest.fixture
 def user_dirs_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
