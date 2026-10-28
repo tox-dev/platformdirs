@@ -279,7 +279,7 @@ def test_appname_within_base_is_accepted(appname: str) -> None:
 
 _KINDS: Final = [pytest.param(kind, id=kind) for kind in ("config", "data", "cache", "state", "log", "runtime")]
 _POSIX_ONLY: Final = pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
-# Unix checks the owner of an existing XDG_RUNTIME_DIR against getuid, which Windows lacks.
+# Unix checks the owner of the runtime directory against getuid, which Windows lacks.
 _EXISTING_KINDS: Final = [
     *(pytest.param(kind, id=kind) for kind in ("config", "data", "cache", "state", "log")),
     pytest.param("runtime", id="runtime", marks=_POSIX_ONLY),
@@ -489,7 +489,7 @@ def test_find_config_files_orders_user_before_site(dirs: Unix, config_paths: lis
         pytest.param("files", [Path("second", "app.toml"), Path("first", "app.toml")], id="files"),
     ],
 )
-@pytest.mark.parametrize("kind", _KINDS)
+@pytest.mark.parametrize("kind", _EXISTING_KINDS)
 def test_find_searches_overridden_path_iterator(
     dirs: Unix, kind: str, suffix: str, expected: Path | list[Path]
 ) -> None:
