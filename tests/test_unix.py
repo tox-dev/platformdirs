@@ -484,6 +484,49 @@ def test_runtime_dir_invalid_xdg_runtime_dir_warns(
     assert [str(warning.message) for warning in record] == [expected]
 
 
+_TRAILING_SEPARATORS: typing.Final = ["/", "//", "/.", "/./"]
+
+
+@_POSIX_ONLY
+@pytest.mark.parametrize("suffix", _TRAILING_SEPARATORS)
+def test_runtime_dir_symlink_xdg_runtime_dir_with_trailing_separator_warns(
+    session_dir: Path, default_dir: Path, runtime_uid: int, monkeypatch: pytest.MonkeyPatch, suffix: str
+) -> None:
+    _create(session_dir, "symlink")
+    _create(default_dir, "private")
+    monkeypatch.setenv("XDG_RUNTIME_DIR", f"{session_dir}{suffix}")
+    with pytest.warns(RuntimeDirWarning) as record:
+        _ = Unix(appname="app").user_runtime_dir
+    expected: typing.Final = (
+        f"XDG_RUNTIME_DIR {session_dir}{suffix} is a symlink, falling back to /run/user/{runtime_uid}"
+    )
+    assert [str(warning.message) for warning in record] == [expected]
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("default_dir")
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+@pytest.mark.parametrize("suffix", _TRAILING_SEPARATORS)
+def test_runtime_dir_symlink_xdg_runtime_dir_with_trailing_separator_creates_nothing(
+    session_dir: Path, monkeypatch: pytest.MonkeyPatch, suffix: str
+) -> None:
+    _create(session_dir, "symlink")
+    monkeypatch.setenv("XDG_RUNTIME_DIR", f"{session_dir}{suffix}")
+    _ = Unix(appname="app", ensure_exists=True).user_runtime_dir
+    assert list(session_dir.iterdir()) == []
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("runtime_uid")
+@pytest.mark.filterwarnings("error::platformdirs.RuntimeDirWarning")
+def test_runtime_dir_private_xdg_runtime_dir_with_trailing_separator(
+    session_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _create(session_dir, "private")
+    monkeypatch.setenv("XDG_RUNTIME_DIR", f"{session_dir}/")
+    assert Unix(appname="app").user_runtime_dir == str(session_dir / "app")
+
+
 @_POSIX_ONLY
 def test_runtime_dir_xdg_runtime_dir_of_other_user_warns(
     session_dir: Path, runtime_temp_dir: Path, mocker: MockerFixture
@@ -982,6 +1025,7 @@ def test_without_home_site_dir_applies(dirs_class: type[Unix | MacOS], prop: str
 
 
 @pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.parametrize("home", [pytest.param("", id="empty"), pytest.param("relhome", id="relative")])
 @pytest.mark.parametrize(
     ("dirs_class", "expected"),
     [
@@ -989,17 +1033,30 @@ def test_without_home_site_dir_applies(dirs_class: type[Unix | MacOS], prop: str
         pytest.param(MacOS, "/home/app-user/Library/Application Support/app", id="macos"),
     ],
 )
-def test_empty_home_uses_passwd_entry(
+def test_unusable_home_uses_passwd_entry(  # ruff:ignore[too-many-arguments]
     monkeypatch: pytest.MonkeyPatch,
     mocker: MockerFixture,
     pwd: ModuleType,
     dirs_class: type[Unix | MacOS],
     expected: str,
+    home: str,
 ) -> None:
-    monkeypatch.setenv("HOME", "")
+    monkeypatch.setenv("HOME", home)
     entry = pwd.struct_passwd(("app-user", "x", 12345, 12345, "", "/home/app-user", "/bin/sh"))
     mocker.patch.object(pwd, "getpwuid", return_value=entry)
     assert dirs_class(appname="app").user_config_dir == expected
+
+
+@pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.parametrize("dirs_class", _CLASSES)
+def test_relative_passwd_home_raises(
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, pwd: ModuleType, dirs_class: type[Unix | MacOS]
+) -> None:
+    monkeypatch.delenv("HOME", raising=False)
+    entry = pwd.struct_passwd(("app-user", "x", 12345, 12345, "", "relhome", "/bin/sh"))
+    mocker.patch.object(pwd, "getpwuid", return_value=entry)
+    with pytest.raises(RuntimeError, match=r"^could not determine the home directory for '~/"):
+        _ = dirs_class(appname="app").user_config_dir
 
 
 @pytest.mark.usefixtures("_clear_xdg_env", "_unknown_home")

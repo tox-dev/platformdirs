@@ -407,7 +407,8 @@ def _runtime_dir_problem(path: str, *, missing_ok: bool, check_mode: bool = True
 
     """
     try:
-        info = os.lstat(path)
+        # A trailing / or /. makes lstat follow a final symlink, while Path, which creates the directory, drops it.
+        info = os.lstat(str(Path(path)))
     except FileNotFoundError:
         return None if missing_ok else f"{path} is missing"
     except OSError as error:
