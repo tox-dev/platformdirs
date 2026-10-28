@@ -8,6 +8,7 @@ import os
 import re
 import stat
 import sys
+import time
 import typing
 import warnings
 from pathlib import Path
@@ -1370,11 +1371,20 @@ def test_user_dirs_double_quoted_backslashes(
         pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs # moved\n", "~/Docs", id="unquoted-trailing-comment"),
         pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs\t#moved\n", "~/Docs", id="unquoted-tab-comment"),
         pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs#1\n", "~/Docs#1", id="unquoted-hash-inside-word"),
+        pytest.param("XDG_DOCUMENTS_DIR=$HOME/My \t Docs  \n", "~/My \t Docs", id="unquoted-blanks-inside"),
     ],
 )
 def test_user_dirs_read_like_xdg_user_dir(content: str, expected: str, tmp_path: Path, user_dirs_file: Path) -> None:
     user_dirs_file.write_text(content, encoding="utf-8")
     assert Unix().user_documents_dir == expected.replace("~", str(tmp_path), 1)
+
+
+@pytest.mark.parametrize("blank", [pytest.param(" ", id="spaces"), pytest.param("\t", id="tabs")])
+def test_user_dirs_long_unquoted_blank_run_reads_in_linear_time(blank: str, user_dirs_file: Path) -> None:
+    user_dirs_file.write_text(f"XDG_DOCUMENTS_DIR=$HOME/Docs{blank * 40_000}x\n", encoding="utf-8")
+    started = time.perf_counter()
+    _ = Unix().user_documents_dir
+    assert time.perf_counter() - started < 1
 
 
 @pytest.mark.parametrize(
