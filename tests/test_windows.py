@@ -681,6 +681,12 @@ def test_get_win_folder_override(monkeypatch: pytest.MonkeyPatch, csidl_name: st
         pytest.param("D:", id="drive_only"),
         pytest.param(r"D:appdata", id="drive_relative"),
         pytest.param(r"\shared", id="rooted_without_drive"),
+        pytest.param(r"\\server", id="unc_without_share"),
+        pytest.param("\\\\server\\", id="unc_empty_share"),
+        pytest.param(r"\\server\\appdata", id="unc_empty_share_with_folder"),
+        pytest.param("//server/", id="unc_forward_slash_empty_share"),
+        pytest.param(r"\\?\UNC\server", id="extended_unc_without_share"),
+        pytest.param("\\\\?\\UNC\\server\\", id="extended_unc_empty_share"),
     ],
 )
 def test_get_win_folder_override_ignored(monkeypatch: pytest.MonkeyPatch, value: str) -> None:
@@ -696,6 +702,10 @@ def test_get_win_folder_override_ignored(monkeypatch: pytest.MonkeyPatch, value:
         pytest.param("X:/appdata", id="drive_slash"),
         pytest.param(r"\\server\share", id="unc_share"),
         pytest.param(r"\\server\share\appdata", id="unc_share_folder"),
+        pytest.param("//server/share", id="unc_forward_slashes"),
+        pytest.param(r"\\?\C:\appdata", id="extended_drive"),
+        pytest.param(r"\\?\UNC\server\share", id="extended_unc_share"),
+        pytest.param(r"\\?\unc\server\share", id="extended_unc_lowercase_share"),
     ],
 )
 def test_get_win_folder_override_absolute(monkeypatch: pytest.MonkeyPatch, value: str) -> None:

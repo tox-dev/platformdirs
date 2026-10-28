@@ -1,0 +1,2 @@
+Ignore Windows folder overrides with a UNC path missing its server or share name, such as ``\\server``, instead of
+treating the application name as the share.
