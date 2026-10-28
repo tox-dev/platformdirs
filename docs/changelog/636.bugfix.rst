@@ -1,2 +1,2 @@
 Resolve ``$HOME`` entries in ``user-dirs.dirs`` to ``/Documents`` instead of ``//Documents`` when the home directory is
-``/`` - by :user:`darrenhuai`.
+``/``.
