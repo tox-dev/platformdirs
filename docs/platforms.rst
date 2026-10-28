@@ -756,6 +756,9 @@ See also: :ref:`api:Shared cache directory`
 
        ``/Library/Caches/SuperApp``
 
+       Every user can write to ``/Library/Caches``. Under ``ensure_exists``, platformdirs refuses a
+       ``/Library/Caches/SuperApp`` that another user created (see :ref:`parameters:\`\`ensure_exists\`\``).
+
     .. tab-item:: Windows
        :sync: windows
 
