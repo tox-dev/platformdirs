@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import errno
 import importlib
 import inspect
 import os
@@ -401,8 +402,8 @@ _PROBLEMS: typing.Final = {
     "mode-500": "has mode 0500, not 0700",
 }
 _UNREACHABLE: typing.Final = {
-    "file": "Not a directory",
-    "symlink-loop": "Too many levels of symbolic links",
+    "file": os.strerror(errno.ENOTDIR),
+    "symlink-loop": os.strerror(errno.ELOOP),
 }
 _DEFAULT_PREFIXES: typing.Final = {
     "linux": "run/user",
