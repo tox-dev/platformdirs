@@ -66,9 +66,16 @@ class XDGMixin(PlatformDirsABC):
 
     @property
     def user_runtime_dir(self) -> str:
-        """Runtime directory tied to the user, from ``$XDG_RUNTIME_DIR`` if set, else platform default."""
+        """Runtime directory tied to the user, from ``$XDG_RUNTIME_DIR`` if set and private, else platform default."""
+        from .unix import _runtime_dir_problem, _warn_once  # ruff:ignore[import-outside-top-level]  # unix imports _xdg
+
         if path := _xdg_dir("XDG_RUNTIME_DIR"):
-            return self._append_app_name_and_version(path, private=True)
+            with suppress(OSError):
+                self._optionally_create_directory(path, private=True)
+            # Another user can pre-create the path in a shared parent, and XDG requires an owned runtime dir with mode 0700.
+            if not (problem := _runtime_dir_problem(path)):
+                return self._append_app_name_and_version(path, private=True)
+            _warn_once(f"XDG_RUNTIME_DIR {problem}, falling back to the platform default")
         return super().user_runtime_dir
 
     @property

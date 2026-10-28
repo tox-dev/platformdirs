@@ -1,0 +1,2 @@
+Apply the ``XDG_RUNTIME_DIR`` check of the Unix :func:`~platformdirs.user_runtime_dir` to the macOS one, so it no
+longer uses a directory that is a symlink, owned by another user or not mode ``0700``.
