@@ -459,6 +459,49 @@ def test_runtime_dir_invalid_xdg_runtime_dir_warns(
     assert [str(warning.message) for warning in record] == [expected]
 
 
+_TRAILING_SEPARATORS: typing.Final = ["/", "//", "/.", "/./"]
+
+
+@_POSIX_ONLY
+@pytest.mark.parametrize("suffix", _TRAILING_SEPARATORS)
+def test_runtime_dir_symlink_xdg_runtime_dir_with_trailing_separator_warns(
+    session_dir: Path, default_dir: Path, runtime_uid: int, monkeypatch: pytest.MonkeyPatch, suffix: str
+) -> None:
+    _create(session_dir, "symlink")
+    _create(default_dir, "private")
+    monkeypatch.setenv("XDG_RUNTIME_DIR", f"{session_dir}{suffix}")
+    with pytest.warns(RuntimeDirWarning) as record:
+        _ = Unix(appname="app").user_runtime_dir
+    expected: typing.Final = (
+        f"XDG_RUNTIME_DIR {session_dir}{suffix} is a symlink, falling back to /run/user/{runtime_uid}"
+    )
+    assert [str(warning.message) for warning in record] == [expected]
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("default_dir")
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+@pytest.mark.parametrize("suffix", _TRAILING_SEPARATORS)
+def test_runtime_dir_symlink_xdg_runtime_dir_with_trailing_separator_creates_nothing(
+    session_dir: Path, monkeypatch: pytest.MonkeyPatch, suffix: str
+) -> None:
+    _create(session_dir, "symlink")
+    monkeypatch.setenv("XDG_RUNTIME_DIR", f"{session_dir}{suffix}")
+    _ = Unix(appname="app", ensure_exists=True).user_runtime_dir
+    assert list(session_dir.iterdir()) == []
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("runtime_uid")
+@pytest.mark.filterwarnings("error::platformdirs.RuntimeDirWarning")
+def test_runtime_dir_private_xdg_runtime_dir_with_trailing_separator(
+    session_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _create(session_dir, "private")
+    monkeypatch.setenv("XDG_RUNTIME_DIR", f"{session_dir}/")
+    assert Unix(appname="app").user_runtime_dir == str(session_dir / "app")
+
+
 @_POSIX_ONLY
 def test_runtime_dir_xdg_runtime_dir_of_other_user_warns(
     session_dir: Path, runtime_temp_dir: Path, mocker: MockerFixture

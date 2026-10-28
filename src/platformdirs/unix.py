@@ -363,7 +363,8 @@ def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
 def _runtime_dir_problem(path: str, *, check_mode: bool = True) -> str | None:
     """Return why ``path`` fails the checks of Qt's ``checkXdgRuntimeDir``, or ``None`` if it passes or is missing."""
     try:
-        info = os.lstat(path)
+        # A trailing / or /. makes lstat follow a final symlink, while Path, which creates the directory, drops it.
+        info = os.lstat(str(Path(path)))
     except FileNotFoundError:
         return None
     except OSError as error:
