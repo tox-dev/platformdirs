@@ -60,7 +60,9 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         """An optional parameter which indicates that the entire list of data dirs should be returned.
 
         When ``False``, only the first item is returned. Affects ``site_data_dir``, ``site_config_dir`` and
-        ``site_applications_dir`` on Unix and macOS, and ``site_cache_dir`` on macOS under Homebrew.
+        ``site_applications_dir`` on Unix and macOS, and ``site_cache_dir`` on macOS under Homebrew. All but
+        ``site_applications_dir`` raise :class:`ValueError` under it when `appname` or `version` contains
+        :data:`os.pathsep`.
 
         """
         self.opinion = opinion
@@ -162,6 +164,10 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
     def _select_site_dirs(self, dirs: list[str]) -> str:
         # Site lists are built without touching the disk, so ensure_exists only creates what the caller gets back.
         selected = dirs if self.multipath else dirs[:1]
+        if self.multipath and any(os.pathsep in path for path in selected):
+            # Callers split the joined string on os.pathsep, so a separator inside one entry reads as two directories.
+            msg = f"multipath cannot join site directories that contain {os.pathsep!r}, got {selected!r}"
+            raise ValueError(msg)
         for path in selected:
             self._optionally_create_directory(path, private=False)
         return os.pathsep.join(selected)
@@ -725,4 +731,4 @@ def _make_private_directories(path: Path) -> None:
 
 
 class RuntimeDirWarning(UserWarning):
-    """Emitted when the Unix :attr:`~platformdirs.unix.Unix.user_runtime_dir` cannot use ``$XDG_RUNTIME_DIR``."""
+    """Emitted when the Unix or macOS ``user_runtime_dir`` cannot use ``$XDG_RUNTIME_DIR``."""

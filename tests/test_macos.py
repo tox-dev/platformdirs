@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, Final
 import pytest
 
 import platformdirs
+from platformdirs import RuntimeDirWarning
 from platformdirs.macos import MacOS
 
 if TYPE_CHECKING:
@@ -758,3 +759,48 @@ def test_site_cache_ensure_exists_creates_missing_entry(site_cache: Path) -> Non
 def test_site_cache_lookup_leaves_planted_entry_alone(site_cache: Path, tmp_path: Path) -> None:
     (site_cache / "app").symlink_to(tmp_path)
     assert MacOS(appname="app").site_cache_path == site_cache / "app"
+
+
+_POSIX_ONLY: Final = pytest.mark.skipif(sys.platform == "win32", reason="Windows has no POSIX owners or modes")
+
+
+@pytest.fixture
+def runtime_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> Path:
+    # The runtime dir warnings are emitted once per process, so give every test its own record of them.
+    mocker.patch("platformdirs.unix._WARNED", set())
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(path := tmp_path / "runtime"))
+    return path
+
+
+@pytest.fixture
+def foreign_runtime_dir(runtime_dir: Path, mocker: MockerFixture) -> Path:
+    runtime_dir.mkdir(mode=0o700)
+    mocker.patch("platformdirs.unix.getuid", return_value=runtime_dir.stat().st_uid + 1)
+    return runtime_dir
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("foreign_runtime_dir")
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+def test_macos_user_runtime_dir_rejects_xdg_runtime_dir_of_other_user(home: str) -> None:
+    assert MacOS(appname="foo").user_runtime_dir == f"{home}/Library/Caches/TemporaryItems/foo"
+
+
+@_POSIX_ONLY
+def test_macos_user_runtime_dir_rejects_xdg_runtime_dir_of_other_user_warns(foreign_runtime_dir: Path) -> None:
+    owner: Final = foreign_runtime_dir.stat().st_uid
+    with pytest.warns(RuntimeDirWarning) as record:
+        _ = MacOS(appname="foo").user_runtime_dir
+    expected: Final = (
+        f"XDG_RUNTIME_DIR {foreign_runtime_dir} is owned by uid {owner}, not {owner + 1}, "
+        "falling back to the platform default"
+    )
+    assert [(str(warning.message), warning.filename) for warning in record] == [(expected, __file__)]
+
+
+@_POSIX_ONLY
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+def test_macos_user_runtime_dir_rejects_shared_xdg_runtime_dir(runtime_dir: Path, home: str) -> None:
+    runtime_dir.mkdir()
+    runtime_dir.chmod(0o777)
+    assert MacOS(appname="foo").user_runtime_dir == f"{home}/Library/Caches/TemporaryItems/foo"
