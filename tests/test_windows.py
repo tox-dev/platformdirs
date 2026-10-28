@@ -156,6 +156,13 @@ def test_user_projects_dir_raises_without_home(mocker: MockerFixture) -> None:
         _ = Windows().user_projects_dir
 
 
+@pytest.mark.skipif(sys.platform != "win32", reason="ntpath.expanduser reads USERPROFILE")
+def test_user_projects_dir_ignores_empty_home(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("HOME", "")
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    assert Windows().user_projects_dir == str(tmp_path / "Projects")
+
+
 def test_roaming_uses_appdata(mocker: MockerFixture) -> None:
     mock = mocker.patch("platformdirs.windows.get_win_folder", side_effect=lambda csidl: _WIN_FOLDERS[csidl])
     _result = Windows(appname="foo", roaming=True).user_data_dir
