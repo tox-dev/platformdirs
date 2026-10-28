@@ -621,7 +621,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         :raises ValueError: if ``name`` is absolute, has a drive or climbs out with ``..``.
 
         """
-        return next(self._find_files(type(self).iter_config_paths, name), None)
+        return next(self._find_files(lambda dirs: dirs.iter_config_paths(), name), None)
 
     def find_config_files(self, name: str | os.PathLike[str]) -> list[Path]:
         """Find every ``name`` file in :meth:`iter_config_paths` order, without creating any directory.
@@ -633,47 +633,47 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         :raises ValueError: see :meth:`find_config_file`.
 
         """
-        return list(self._find_files(type(self).iter_config_paths, name))
+        return list(self._find_files(lambda dirs: dirs.iter_config_paths(), name))
 
     def find_data_file(self, name: str | os.PathLike[str]) -> Path | None:
         """Like :meth:`find_config_file`, searching :meth:`iter_data_paths`."""
-        return next(self._find_files(type(self).iter_data_paths, name), None)
+        return next(self._find_files(lambda dirs: dirs.iter_data_paths(), name), None)
 
     def find_data_files(self, name: str | os.PathLike[str]) -> list[Path]:
         """Like :meth:`find_config_files`, searching :meth:`iter_data_paths`."""
-        return list(self._find_files(type(self).iter_data_paths, name))
+        return list(self._find_files(lambda dirs: dirs.iter_data_paths(), name))
 
     def find_cache_file(self, name: str | os.PathLike[str]) -> Path | None:
         """Like :meth:`find_config_file`, searching :meth:`iter_cache_paths`."""
-        return next(self._find_files(type(self).iter_cache_paths, name), None)
+        return next(self._find_files(lambda dirs: dirs.iter_cache_paths(), name), None)
 
     def find_cache_files(self, name: str | os.PathLike[str]) -> list[Path]:
         """Like :meth:`find_config_files`, searching :meth:`iter_cache_paths`."""
-        return list(self._find_files(type(self).iter_cache_paths, name))
+        return list(self._find_files(lambda dirs: dirs.iter_cache_paths(), name))
 
     def find_state_file(self, name: str | os.PathLike[str]) -> Path | None:
         """Like :meth:`find_config_file`, searching :meth:`iter_state_paths`."""
-        return next(self._find_files(type(self).iter_state_paths, name), None)
+        return next(self._find_files(lambda dirs: dirs.iter_state_paths(), name), None)
 
     def find_state_files(self, name: str | os.PathLike[str]) -> list[Path]:
         """Like :meth:`find_config_files`, searching :meth:`iter_state_paths`."""
-        return list(self._find_files(type(self).iter_state_paths, name))
+        return list(self._find_files(lambda dirs: dirs.iter_state_paths(), name))
 
     def find_log_file(self, name: str | os.PathLike[str]) -> Path | None:
         """Like :meth:`find_config_file`, searching :meth:`iter_log_paths`."""
-        return next(self._find_files(type(self).iter_log_paths, name), None)
+        return next(self._find_files(lambda dirs: dirs.iter_log_paths(), name), None)
 
     def find_log_files(self, name: str | os.PathLike[str]) -> list[Path]:
         """Like :meth:`find_config_files`, searching :meth:`iter_log_paths`."""
-        return list(self._find_files(type(self).iter_log_paths, name))
+        return list(self._find_files(lambda dirs: dirs.iter_log_paths(), name))
 
     def find_runtime_file(self, name: str | os.PathLike[str]) -> Path | None:
         """Like :meth:`find_config_file`, searching :meth:`iter_runtime_paths`."""
-        return next(self._find_files(type(self).iter_runtime_paths, name), None)
+        return next(self._find_files(lambda dirs: dirs.iter_runtime_paths(), name), None)
 
     def find_runtime_files(self, name: str | os.PathLike[str]) -> list[Path]:
         """Like :meth:`find_config_files`, searching :meth:`iter_runtime_paths`."""
-        return list(self._find_files(type(self).iter_runtime_paths, name))
+        return list(self._find_files(lambda dirs: dirs.iter_runtime_paths(), name))
 
     def _find_files(
         self, iter_paths: Callable[[PlatformDirsABC], Iterator[Path]], name: str | os.PathLike[str]
