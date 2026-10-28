@@ -60,12 +60,13 @@ An attacker who controls any of these already has what platformdirs could give t
 
 ## Threats and controls
 
-| STRIDE                 | Threat                                                                              | Control                                                                                                                    |
-| ---------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Tampering              | A crafted `name` makes `place_config_file` return `~/.ssh/authorized_keys`.         | Absolute, drive and `..` values raise `ValueError` for `name`, `appname`, `appauthor` and `version`.                       |
-| Information disclosure | A new user directory is readable by other users.                                    | On Unix, macOS, Android and iOS the user data, config, cache, state, log and runtime directories are created with `0o700`. |
-| Tampering              | Another user plants the runtime directory in a shared `/tmp`.                       | The runtime directory is refused when it is a symlink or owned by another user.                                            |
-| Elevation of privilege | A relative `XDG_CONFIG_HOME` resolves against an attacker-chosen working directory. | Relative XDG values are ignored.                                                                                           |
+| STRIDE                 | Threat                                                                                     | Control                                                                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tampering              | A crafted `name` makes `place_config_file` return `~/.ssh/authorized_keys`.                | Absolute, drive and `..` values raise `ValueError` for `name`, `appname`, `appauthor` and `version`.                                                 |
+| Information disclosure | A new user directory is readable by other users.                                           | On Unix, macOS, Android and iOS the user data, config, cache, state, log and runtime directories are created with `0o700`.                           |
+| Tampering              | Another user plants the runtime directory in a shared `/tmp`.                              | The runtime directory is refused when it is a symlink or owned by another user.                                                                      |
+| Tampering              | Another user plants `/Library/Caches/<appname>` on macOS before the site cache is created. | Under `ensure_exists`, that entry raises `PermissionError` when it is a symlink, not a directory, or owned by a user other than root and the caller. |
+| Elevation of privilege | A relative `XDG_CONFIG_HOME` resolves against an attacker-chosen working directory.        | Relative XDG values are ignored.                                                                                                                     |
 
 ## Release chain
 
@@ -97,6 +98,9 @@ Every workflow pins third-party actions to a commit SHA.
 
 - Directories that already exist keep their mode; platformdirs does not tighten them.
 - On Windows, and for media directories such as Downloads, directories are created without an explicit mode.
+- On Windows, an existing directory another user created in a shared parent such as `C:\ProgramData` is used as-is: it
+  stays inside the base, and Windows 11 stops an elevated process from following a junction a standard user planted
+  there.
 - A fully qualified `WIN_PD_OVERRIDE_*` variable replaces the Known Folder answer; the environment is trusted.
 
 ## Keeping this current
