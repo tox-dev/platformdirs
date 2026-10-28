@@ -198,6 +198,11 @@ alone.
 
 Without a resolvable home directory, ``ensure_exists`` raises ``RuntimeError`` for a path that would start with ``~``.
 
+On macOS every user can write to ``/Library/Caches``, the base of ``site_cache_dir``, so ``ensure_exists`` checks
+``/Library/Caches/$appname`` before creating anything below it. It raises :exc:`PermissionError` if that entry is a
+symlink, not a directory, or owned by a user other than root and the current one. On Windows every user can create
+folders in ``C:\ProgramData``, and platformdirs does not check who created an existing site directory there.
+
 .. code-block:: python
 
     from platformdirs import PlatformDirs
