@@ -247,6 +247,38 @@ def test_macos_xdg_media_dirs(monkeypatch: pytest.MonkeyPatch, env_var: str, pro
     assert getattr(MacOS(), prop) == "/custom/media"
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="creating symlinks needs elevated rights on Windows")
+@pytest.mark.parametrize(("env_var", "prop"), _MEDIA_DIRS)
+def test_macos_ensure_exists_raises_on_configured_media_file(
+    monkeypatch: pytest.MonkeyPatch, media_file: Path, env_var: str, prop: str
+) -> None:
+    monkeypatch.setenv(env_var, str(media_file))
+    with pytest.raises(FileExistsError):
+        getattr(MacOS(ensure_exists=True), prop)
+
+
+def _link_to_directory(path: Path, target: Path) -> None:
+    target.mkdir()
+    path.symlink_to(target)
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="creating symlinks needs elevated rights on Windows")
+@pytest.mark.parametrize(
+    ("plant", "is_dir"),
+    [
+        pytest.param(_link_to_directory, True, id="directory-symlink"),
+        pytest.param(lambda path, target: path.symlink_to(target), False, id="dangling-symlink"),
+        pytest.param(lambda path, _: path.symlink_to(path), False, id="symlink-loop"),
+    ],
+)
+def test_macos_ensure_exists_returns_configured_media_symlink(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, plant: Callable[[Path, Path], None], is_dir: bool
+) -> None:
+    plant(path := tmp_path / "media", tmp_path / "target")
+    monkeypatch.setenv("XDG_DOCUMENTS_DIR", str(path))
+    assert (MacOS(ensure_exists=True).user_documents_path, path.is_dir()) == (path, is_dir)
+
+
 @pytest.mark.parametrize(("xdg_value", "created"), [("/custom/media", True), (None, False)], ids=["xdg", "default"])
 @pytest.mark.parametrize(("env_var", "prop"), _MEDIA_DIRS)
 def test_macos_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[too-many-arguments]

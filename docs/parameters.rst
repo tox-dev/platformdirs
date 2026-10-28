@@ -191,10 +191,11 @@ Defaults to ``False``.
 
 This applies to the data, config, cache, state, log, runtime and preference directories, user and site alike.
 platformdirs creates a media directory such as ``user_documents_dir`` only when the user set it through an ``XDG_*_DIR``
-variable or ``user-dirs.dirs``, and returns a dangling symlink there unchanged. It never creates platform defaults such
-as ``~/Documents``, or the fonts, bin and applications directories, because the desktop session or the system owns them.
-On Android the applications directory is the data directory, so platformdirs creates it too. The module-level media
-functions, such as :func:`~platformdirs.user_documents_path`, take it as a keyword-only argument.
+variable or ``user-dirs.dirs``. It returns a dangling symlink there unchanged and raises ``FileExistsError`` when the
+path is a regular file or a symlink to one. It never creates platform defaults such as ``~/Documents``, or the fonts,
+bin and applications directories, because the desktop session or the system owns them. On Android the applications
+directory is the data directory, so platformdirs creates it too. The module-level media functions, such as
+:func:`~platformdirs.user_documents_path`, take it as a keyword-only argument.
 
 On Unix, macOS, iOS and Android, platformdirs creates the user directories and each missing parent with mode ``0700``,
 as the `XDG Base Directory Specification <https://specifications.freedesktop.org/basedir/latest/>`_ asks. Site and media

@@ -1085,6 +1085,33 @@ def test_ensure_exists_returns_dangling_media_symlink(  # ruff:ignore[too-many-a
     assert not link.exists()
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="creating symlinks needs elevated rights on Windows")
+@pytest.mark.parametrize(
+    ("key", "prop"),
+    [
+        pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", id="user_documents_dir"),
+        pytest.param("XDG_MUSIC_DIR", "user_music_dir", id="user_music_dir"),
+    ],
+)
+def test_ensure_exists_raises_on_user_dirs_media_file(
+    monkeypatch: pytest.MonkeyPatch, user_dirs_file: Path, media_file: Path, key: str, prop: str
+) -> None:
+    monkeypatch.delenv(key, raising=False)
+    user_dirs_file.write_text(f'{key}="{media_file}"\n', encoding="utf-8")
+    with pytest.raises(FileExistsError):
+        getattr(Unix(ensure_exists=True), prop)
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows reads media directories from Known Folders")
+@pytest.mark.parametrize("suffix", ["dir", "path"])
+def test_media_function_ensure_exists_raises_on_file(
+    monkeypatch: pytest.MonkeyPatch, media_file: Path, suffix: str
+) -> None:
+    monkeypatch.setenv("XDG_DOCUMENTS_DIR", str(media_file))
+    with pytest.raises(FileExistsError):
+        getattr(platformdirs, f"user_documents_{suffix}")(ensure_exists=True)
+
+
 def test_iter_data_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("XDG_DATA_HOME", "/xdg/data")
     monkeypatch.setenv("XDG_DATA_DIRS", f"/xdg/share1{os.pathsep}/xdg/share2")

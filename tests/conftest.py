@@ -145,3 +145,12 @@ def _unknown_home(
 @pytest.fixture
 def pwd() -> ModuleType:
     return pytest.importorskip("pwd")
+
+
+@pytest.fixture(params=["file", "file-symlink"])
+def media_file(request: SubRequest, tmp_path: Path) -> Path:
+    (target := tmp_path / "file").touch()
+    if request.param == "file":
+        return target
+    (link := tmp_path / "media").symlink_to(target)
+    return link
