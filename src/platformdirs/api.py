@@ -670,11 +670,14 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
     def find_runtime_file(self, name: str | os.PathLike[str]) -> Path | None:
         """Like :meth:`find_config_file`, searching :meth:`iter_runtime_paths`."""
-        return next(self._find_files(lambda dirs: dirs.iter_runtime_paths(), name), None)
+        return next(self._find_runtime_files(name), None)
 
     def find_runtime_files(self, name: str | os.PathLike[str]) -> list[Path]:
         """Like :meth:`find_config_files`, searching :meth:`iter_runtime_paths`."""
-        return list(self._find_files(lambda dirs: dirs.iter_runtime_paths(), name))
+        return list(self._find_runtime_files(name))
+
+    def _find_runtime_files(self, name: str | os.PathLike[str]) -> Iterator[Path]:
+        return self._find_files(lambda dirs: dirs.iter_runtime_paths(), name)
 
     def _find_files(
         self, iter_paths: Callable[[PlatformDirsABC], Iterator[Path]], name: str | os.PathLike[str]

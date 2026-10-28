@@ -279,6 +279,11 @@ def test_appname_within_base_is_accepted(appname: str) -> None:
 
 _KINDS: Final = [pytest.param(kind, id=kind) for kind in ("config", "data", "cache", "state", "log", "runtime")]
 _POSIX_ONLY: Final = pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
+# Unix checks the owner of an existing XDG_RUNTIME_DIR against getuid, which Windows lacks.
+_EXISTING_KINDS: Final = [
+    *(pytest.param(kind, id=kind) for kind in ("config", "data", "cache", "state", "log")),
+    pytest.param("runtime", id="runtime", marks=_POSIX_ONLY),
+]
 
 
 @pytest.fixture
@@ -311,21 +316,25 @@ def _place(kind: str, *, ensure_exists: bool = False) -> Callable[[str | Path], 
     return getattr(Unix(appname="app", ensure_exists=ensure_exists), f"place_{kind}_file")
 
 
-@pytest.mark.parametrize("kind", _KINDS)
+@pytest.mark.parametrize("kind", _EXISTING_KINDS)
 def test_place_file_returns_path_under_user_dir(user_dirs: dict[str, Path], kind: str) -> None:
     assert _place(kind)("sub/app.toml") == user_dirs[kind] / "sub" / "app.toml"
 
 
-@pytest.mark.parametrize("kind", _KINDS)
+@pytest.mark.parametrize("kind", _EXISTING_KINDS)
 def test_place_file_creates_parent_directories(user_dirs: dict[str, Path], kind: str) -> None:
     _place(kind)("sub/deeper/app.toml")
     assert (user_dirs[kind] / "sub" / "deeper").is_dir()
 
 
-@pytest.mark.parametrize("kind", _KINDS)
+@pytest.mark.parametrize("kind", _EXISTING_KINDS)
 @pytest.mark.usefixtures("user_dirs")
 def test_place_file_does_not_create_the_file(kind: str) -> None:
     assert not _place(kind)("app.toml").exists()
+
+
+def test_place_runtime_file_outside_unix(user_dirs: dict[str, Path]) -> None:
+    assert MacOS(appname="app").place_runtime_file("app.sock") == user_dirs["runtime"] / "app.sock"
 
 
 @pytest.mark.usefixtures("home")
@@ -403,11 +412,6 @@ def test_place_file_on_missing_root_raises_file_not_found(mocker: MockerFixture)
 
 _SUFFIXES: Final = [pytest.param("file", id="file"), pytest.param("files", id="files")]
 _MISSING: Final = [pytest.param("file", None, id="file"), pytest.param("files", [], id="files")]
-# Unix checks the owner of an existing XDG_RUNTIME_DIR against getuid, which Windows lacks.
-_EXISTING_KINDS: Final = [
-    *(pytest.param(kind, id=kind) for kind in ("config", "data", "cache", "state", "log")),
-    pytest.param("runtime", id="runtime", marks=_POSIX_ONLY),
-]
 
 
 @pytest.fixture

@@ -496,8 +496,11 @@ Writing to ``site_*`` directories typically requires root privileges. Normal use
 (``/var/run/user/<uid>`` on FreeBSD and NetBSD, ``/tmp/run/user/<uid>`` on OpenBSD) under the same check. When that
 directory is missing or fails the check, it falls back to ``runtime-<uid>`` in :func:`tempfile.gettempdir`, created with
 mode ``0700`` under ``ensure_exists``. It raises :exc:`PermissionError` if that fallback is a symlink, not a directory,
-or owned by another user. Test suites that turn warnings into errors and run without a login session, such as in a
-container, can silence the warning with ``warnings.filterwarnings("ignore", category=platformdirs.RuntimeDirWarning)``.
+or owned by another user. ``ensure_exists`` and ``place_runtime_file`` create the runtime directory before checking it,
+so one that is missing right after also fails. ``find_runtime_file`` and ``find_runtime_files`` skip a file below
+``XDG_RUNTIME_DIR`` or ``runtime-<uid>`` unless that directory exists and passes the owner check. Test suites that
+turn warnings into errors and run without a login session, such as in a container, can silence the warning with
+``warnings.filterwarnings("ignore", category=platformdirs.RuntimeDirWarning)``.
 
 .. note::
 
