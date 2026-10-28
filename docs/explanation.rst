@@ -492,7 +492,9 @@ When ``multipath=True``, ``site_data_dir`` and ``site_config_dir`` return all pa
 Writing to ``site_*`` directories typically requires root privileges. Normal users can only read from these locations.
 
 ``user_runtime_dir`` uses ``XDG_RUNTIME_DIR`` only if it names a directory, not a symlink, that the effective user owns
-with mode ``0700``, as the spec requires. If the variable is unset or fails that check, ``platformdirs`` emits a
+with mode ``0700``, as the spec requires. It also rejects a path below a parent that another user can replace: an entry
+of a directory writable by every user, such as ``/tmp``, that root or the user does not own, or a directory writable by
+every user without the sticky bit. If the variable is unset or fails that check, ``platformdirs`` emits a
 :class:`~platformdirs.RuntimeDirWarning` once for each distinct cause and tries ``/run/user/<uid>``
 (``/var/run/user/<uid>`` on FreeBSD and NetBSD, ``/tmp/run/user/<uid>`` on OpenBSD) under the same check. When that
 directory is missing or fails the check, it falls back to ``runtime-<uid>`` in :func:`tempfile.gettempdir`, created with
