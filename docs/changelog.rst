@@ -6,6 +6,44 @@
 
 .. towncrier release notes start
 
+.. _release-4-13-7:
+
+*********************
+ 4.13.7 (2026-10-28)
+*********************
+
+.. _release-4-13-7-fixed:
+
+Fixed
+=====
+
+- Fall back to the default media directories when ``user-dirs.dirs`` exists but cannot be read, rather than raising
+  ``PermissionError`` or ``IsADirectoryError`` (:pr:`632`) by :user:`Debasishhh` and :user:`gaborbernat`.
+- Resolve the Windows Projects directory from ``USERPROFILE`` when ``HOME`` is empty, rather than raising
+  ``RuntimeError`` (:pr:`635`) by :user:`pabszero` and :user:`gaborbernat`.
+- Resolve ``$HOME`` entries in ``user-dirs.dirs`` to ``/Documents`` instead of ``//Documents`` when the home directory
+  is ``/`` (:pr:`636`) by :user:`darrenhuai` and :user:`gaborbernat`.
+- Print the error and keep listing directories in ``python -m platformdirs`` when the home directory is unknown, rather
+  than stopping with ``RuntimeError`` (:pr:`638`) by :user:`tongwentao` and :user:`gaborbernat`.
+- Raise ``FileNotFoundError`` from the ``place_*_file`` methods when the user directory is on a missing Windows drive or
+  network share, rather than recursing until ``RecursionError`` (:pr:`639`) by :user:`nk-batman21` and
+  :user:`gaborbernat`.
+- Search the directories of a subclass's overridden ``iter_*_paths`` method in ``find_*_file`` and ``find_*_files``,
+  rather than the base class ones (:pr:`640`) by :user:`KennyMcSimpson` and :user:`gaborbernat`.
+- Keep ``isolated_dirs`` paths under a relative root after the working directory changes, and yield the root as an
+  absolute path (:pr:`643`) by :user:`0x5t4l1n` and :user:`gaborbernat`.
+- Ignore Windows folder overrides with a UNC path missing its server or share name, such as ``\\server``, instead of
+  treating the application name as the share (:pr:`647`) by :user:`RedCat888` and :user:`gaborbernat`.
+
+.. _release-4-13-7-documentation:
+
+Documentation
+=============
+
+- Remove the literal ``/opt/homebrew`` from a macOS source comment. Homebrew replaces it with a placeholder when
+  bottling on Apple Silicon but not on Linux, so formulae that bundle platformdirs could not share one bottle across
+  both (:pr:`644`) by :user:`Moisan` and :user:`gaborbernat`.
+
 .. _release-4-13-6:
 
 *********************

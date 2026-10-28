@@ -1,2 +1,0 @@
-Remove the literal ``/opt/homebrew`` from a macOS source comment. Homebrew replaces it with a placeholder when bottling
-on Apple Silicon but not on Linux, so formulae that bundle platformdirs could not share one bottle across both.
