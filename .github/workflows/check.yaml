@@ -1,11 +1,11 @@
-name: check
+name: 🧪 check
 on:
   workflow_dispatch:
   push:
     branches: ["main"]
     tags-ignore: ["**"]
   pull_request:
-    types: [opened, reopened, synchronize, labeled, unlabeled]
+    types: [opened, reopened, synchronize]
   schedule:
     - cron: "0 8 * * *"
 concurrency:
@@ -15,7 +15,7 @@ permissions:
   contents: read
 jobs:
   test:
-    name: test ${{ matrix.py }} - ${{ matrix.os }}
+    name: 🧪 test ${{ matrix.py }} - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -30,47 +30,50 @@ jobs:
           - "3.11"
         os:
           - ubuntu-24.04
-          - windows-2025
-          - macos-15
+          - windows-2025-vs2026
+          - macos-26
         exclude:
-          - {os: windows-2025, py: pypy3.11}
+          - {os: windows-2025-vs2026, py: pypy3.11}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: 📥 Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - name: 🐍 Install uv
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         with:
+          version: latest-known
           python-version: "3.15"
           enable-cache: false
-      - name: Install tox
+      - name: 📦 Install tox
         run: uv tool install --python-preference only-managed --python 3.15 tox --with tox-uv
-      - name: Install Python
+      - name: 🐍 Install Python ${{ matrix.py }}
         run: uv python install --python-preference only-managed ${{ matrix.py }}
-      - name: Setup test suite
+      - name: 📦 Set up test suite
         run: tox run -vv --notest --skip-missing-interpreters false -e ${{ matrix.py }}
         env:
           UV_PYTHON_PREFERENCE: only-managed
-      - name: Run test suite
+      - name: 🧪 Run test suite
         run: |
-          if [[ "${{ matrix.py }}" == pypy* ]]; then
-            tox run --skip-pkg-install -e ${{ matrix.py }} --
+          if [[ "$MATRIX_PY" == pypy* ]]; then
+            tox run --skip-pkg-install -e "$MATRIX_PY" --
           else
-            tox run --skip-pkg-install -e ${{ matrix.py }}
+            tox run --skip-pkg-install -e "$MATRIX_PY"
           fi
         shell: bash
         env:
+          MATRIX_PY: ${{ matrix.py }}
           PYTEST_ADDOPTS: "-vv --durations=20"
           UV_PYTHON_PREFERENCE: only-managed
           DIFF_AGAINST: HEAD
-      - name: Rename coverage report file
+      - name: 📊 Rename coverage report file
         if: ${{ !startsWith(matrix.py, 'pypy')}}
         run: |
           import os; import sys
           os.rename(f".tox/.coverage.${{ matrix.py }}", f".tox/.coverage.${{ matrix.py }}-{sys.platform}")
         shell: python
-      - name: Upload coverage data
+      - name: 📤 Upload coverage data
         if: ${{ !startsWith(matrix.py, 'pypy')}}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -79,15 +82,16 @@ jobs:
           path: ".tox/.coverage.*"
           retention-days: 3
   coverage:
-    name: Combine coverage
+    name: 📊 Combine coverage
     runs-on: ubuntu-24.04
     needs: test
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: 📥 Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Download coverage data
+      - name: 📩 Download coverage data
         id: coverage-data
         background: true
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -95,81 +99,76 @@ jobs:
           path: .tox
           pattern: .coverage.*
           merge-multiple: true
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - name: 🐍 Install uv
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         with:
+          version: latest-known
           python-version: "3.15"
           enable-cache: false
-      - name: Install tox
+      - name: 📦 Install tox
         run: uv tool install --python-preference only-managed --python 3.15 tox --with tox-uv
-      - name: Build package to generate version
+      - name: 🏗️ Build package to generate version
         run: uv build --python 3.15 --python-preference only-managed --wheel . --out-dir dist
-      - name: Setup coverage tool
+      - name: 📦 Set up coverage tool
         run: tox -e coverage --notest
         env:
           UV_PYTHON_PREFERENCE: only-managed
-      - wait: coverage-data
-      - name: Combine and report coverage
+      - name: ⏳ Wait for coverage data
+        wait: coverage-data
+      - name: 📊 Combine and report coverage
         run: tox -e coverage --skip-pkg-install
         env:
           UV_PYTHON_PREFERENCE: only-managed
-      - name: Upload HTML report
+      - name: 📤 Upload HTML report
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: html-report
           path: .tox/htmlcov
   check:
-    name: ${{ matrix.tox_env }} - ${{ matrix.os }}
+    name: 🔍 ${{ matrix.tox_env }} - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os:
           - ubuntu-24.04
-          - windows-2025
+          - windows-2025-vs2026
         tox_env:
           - dev
           - type
           - docs
           - pkg_meta
         exclude:
-          - {os: windows-2025, tox_env: pkg_meta}
+          - {os: windows-2025-vs2026, tox_env: pkg_meta}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: 📥 Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - name: 🐍 Install uv
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         with:
+          version: latest-known
           python-version: "3.15"
           enable-cache: false
-      - name: Install tox
+      - name: 📦 Install tox
         run: uv tool install --python-preference only-managed --python 3.15 tox --with tox-uv
-      - name: Setup test suite
+      - name: 📦 Set up check suite
         run: tox run -vv --notest --skip-missing-interpreters false -e ${{ matrix.tox_env }}
         env:
           UV_PYTHON_PREFERENCE: only-managed
-      - name: Run test suite
+      - name: 🧪 Run check for ${{ matrix.tox_env }}
         run: tox run --skip-pkg-install -e ${{ matrix.tox_env }}
         env:
           UV_PYTHON_PREFERENCE: only-managed
-  changelog:
-    name: 📝 News fragment
+  gate:
+    name: 🚦 ${{ github.event_name == 'pull_request' && 'Required checks pass' || 'Non-PR checks pass' }}
+    if: ${{ !cancelled() }} # codespell:ignore cancelled
+    needs: [test, coverage, check]
     runs-on: ubuntu-24.04
-    # A PR must add a docs/changelog/<pr>.<type>.rst fragment; automated dependency and pre-commit bumps are exempt, as
-    # is anything labeled skip news, for changes no user of the library can observe.
-    if: >-
-      github.event_name == 'pull_request' && !contains(fromJSON('["dependabot[bot]", "pre-commit-ci[bot]"]'), github.event.pull_request.user.login) && !contains(github.event.pull_request.labels.*.name, 'skip news')
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-        with:
-          python-version: "3.15"
-          enable-cache: false
-      - name: Require a news fragment
-        run: uvx towncrier check --compare-with "origin/${GITHUB_BASE_REF}"
+      - name: 🚦 Require all needed jobs to pass
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: jq -e 'all(to_entries[]; .value.result == "success")' <<<"$NEEDS_JSON"

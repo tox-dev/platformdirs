@@ -1,14 +1,15 @@
 [build-system]
 build-backend = "hatchling.build"
 requires = [
+  "hatch-fancy-pypi-readme>=25.1",
   "hatch-vcs>=0.5",
   "hatchling>=1.29",
 ]
 
 [project]
 name = "platformdirs"
+import-names = [ "platformdirs" ]
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
-readme = "README.md"
 keywords = [
   "appdirs",
   "application",
@@ -28,7 +29,6 @@ requires-python = ">=3.11"
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3 :: Only",
@@ -42,6 +42,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dynamic = [
+  "readme",
   "version",
 ]
 urls.Changelog = "https://platformdirs.readthedocs.io/en/latest/changelog.html"
@@ -70,12 +71,14 @@ test = [
 ]
 type = [
   "ty>=0.0.19",
+  { include-group = "docs-core" },
   { include-group = "release" },
   { include-group = "test" },
 ]
 docs = [
+  { include-group = "docs-core" },
+  { include-group = "release" },
   "furo>=2025.12.19",
-  "sphinx>=9.1",
   "sphinx-autodoc-typehints>=3.9.2",
   "sphinx-copybutton>=0.5.2",
   "sphinx-design>=0.7",
@@ -84,14 +87,21 @@ docs = [
   "sphinxcontrib-mermaid>=2",
   "sphinxcontrib-towncrier>=0.5.0a0",
   "sphinxext-opengraph>=0.13",
-  "towncrier>=24.8",
   "uv>=0.12.22",
+]
+build = [
+  "cython>=3",
+  "hatch-fancy-pypi-readme>=25.1",
+  "hatch-vcs>=0.5",
+  "hatchling>=1.29",
+  "setuptools>=80",
 ]
 coverage = [
   "covdefaults>=2.3",
   "coverage[toml]>=7.13.4",
   "diff-cover>=10.2",
 ]
+docs-core = [ "sphinx>=9.1" ]
 fix = [
   "pre-commit-uv>=4.2.1",
 ]
@@ -101,17 +111,42 @@ pkg-meta = [
   "uv>=0.10.7",
 ]
 release = [
-  "towncrier>=24.8",
+  "release-creator>=4.1",
+  "towncrier>=26.9",
+]
+release-news = [
+  "release-creator>=4.1",
+  "towncrier>=26.9",
+]
+release-notes = [
+  "release-creator>=4.1",
+]
+release-prepare = [
+  "prek>=0.5",
+  "release-creator>=4.1",
+  "towncrier>=26.9",
 ]
 
 [tool.hatch]
 version.source = "vcs"
+metadata.hooks.fancy-pypi-readme.content-type = "text/markdown"
+metadata.hooks.fancy-pypi-readme.fragments = [ { path = "README.md" } ]
 build.hooks.vcs.version-file = "src/platformdirs/version.py"
 build.targets.sdist.include = [
   "/src",
   "/tests",
   "/tox.toml",
 ]
+
+[tool.uv]
+dependency-groups.dev = { requires-python = ">=3.15" }
+dependency-groups.docs = { requires-python = ">=3.15" }
+dependency-groups.docs-core = { requires-python = ">=3.12" }
+dependency-groups.release = { requires-python = ">=3.15" }
+dependency-groups.release-news = { requires-python = ">=3.15" }
+dependency-groups.release-notes = { requires-python = ">=3.15" }
+dependency-groups.release-prepare = { requires-python = ">=3.15" }
+dependency-groups.type = { requires-python = ">=3.15" }
 
 [tool.ruff]
 line-length = 120
@@ -187,13 +222,29 @@ html.skip_covered = false
 name = "platformdirs"
 directory = "docs/changelog"
 filename = "docs/changelog.rst"
-template = "docs/changelog/template.jinja2"
+template = "release_creator.fragments:template.rst.jinja2"
 title_format = false
 issue_format = ":pr:`{issue}`"
+underlines = [ "*", "=", "-" ]
 type = [
-  { directory = "breaking", name = "Backward incompatible changes", showcontent = true },
-  { directory = "feature", name = "Features", showcontent = true },
-  { directory = "bugfix", name = "Bug fixes", showcontent = true },
-  { directory = "doc", name = "Improved documentation", showcontent = true },
-  { directory = "packaging", name = "Packaging updates", showcontent = true },
+  { directory = "feature", name = "Added", showcontent = true },
+  { directory = "change", name = "Changes", showcontent = true },
+  { directory = "bugfix", name = "Fixed", showcontent = true },
+  { directory = "doc", name = "Documentation", showcontent = true },
+  { directory = "breaking", name = "Breaking changes", showcontent = true },
+  { directory = "security", name = "Security", showcontent = true },
+  { directory = "performance", name = "Performance", showcontent = true },
+  { directory = "deprecation", name = "Deprecated", showcontent = true },
+  { directory = "removal", name = "Removed", showcontent = true },
+  { directory = "packaging", name = "Packaging", showcontent = true },
 ]
+
+[tool.nab]
+mode = "universal"
+base-group = "project-runtime"
+uploaded-prior-to = "P7D"
+decision-order = "stable"
+matrix.python = ">=3.15,<3.16"
+matrix.platforms = [ "linux_x86_64" ]
+# temporary, delete after 2026-11-02
+packages.release-creator.uploaded-prior-to = 2026-10-26T18:24:46Z

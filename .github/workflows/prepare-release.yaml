@@ -1,78 +1,22 @@
-name: 🛠️ Prepare release
+name: 🏷️ Prepare release
 on:
   workflow_dispatch:
     inputs:
       bump:
-        description: "Version bump"
+        description: Version bump type
         required: true
-        default: auto
         type: choice
         options: [auto, major, minor, patch]
-permissions:
-  contents: read
+        default: auto
+permissions: {}
 jobs:
-  prepare-release:
-    name: 📝 build changelog and tag
-    runs-on: ubuntu-24.04
-    # RELEASE_TOKEN is an environment-scoped secret; selecting the environment resolves it so the checkout can push.
-    environment:
-      name: release
+  prepare:
+    name: 🏷️ Prepare Towncrier release
+    uses: tox-dev/github-workflows/.github/workflows/prepare-towncrier-release.yaml@57a765127aae73adf7d0e24a7fe0f067f2d3ea3e # 6.2.1
     permissions:
-      contents: write
-    steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0 # full history so the version calculation sees the latest tag
-          token: ${{ secrets.RELEASE_TOKEN }} # zizmor: ignore[artipacked]
-      - name: 📦 Setup uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-        with:
-          python-version: "3.15"
-          enable-cache: false
-      - name: 🔢 Compute next version
-        id: version
-        env:
-          BUMP: ${{ inputs.bump }}
-        run: |
-          current=$(git tag --list --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
-          current=${current:-0.0.0}
-          IFS='.' read -r major minor patch <<< "$current"
-          bump="$BUMP"
-          if [ "$bump" = "auto" ]; then
-            if ls docs/changelog/*.breaking.rst >/dev/null 2>&1; then
-              bump=major
-            elif ls docs/changelog/*.feature.rst >/dev/null 2>&1; then
-              bump=minor
-            else
-              bump=patch
-            fi
-          fi
-          case "$bump" in
-            major) next="$((major + 1)).0.0" ;;
-            minor) next="$major.$((minor + 1)).0" ;;
-            patch) next="$major.$minor.$((patch + 1))" ;;
-          esac
-          echo "Bumping $current -> $next ($bump)"
-          echo "version=$next" >> "$GITHUB_OUTPUT"
-      - name: 📝 Build changelog, commit, and tag
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-        # Push the branch first, then the tag. The tag is pushed with RELEASE_TOKEN (a PAT), so it triggers the release
-        # workflow on the tag ref, where the build is verified against the changelog and published to PyPI.
-        run: |
-          if git ls-remote --tags origin "refs/tags/$VERSION" | grep -q .; then
-            echo "::error::Tag $VERSION already exists"
-            exit 1
-          fi
-          git config user.name "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
-          uvx towncrier build --yes --version "$VERSION"
-          # towncrier's headers and wrapping don't match docstrfmt, so the next PR pre-commit.ci touches would
-          # otherwise carry an unrelated changelog reformat. Pre-commit exits non-zero when it rewrites a file.
-          uvx --from pre-commit --with pre-commit-uv pre-commit run docstrfmt --files docs/changelog.rst || true
-          git add docs/changelog docs/changelog.rst
-          git commit -m "Release $VERSION"
-          git tag "$VERSION"
-          git push origin HEAD:main
-          git push origin "$VERSION"
+      contents: read
+      pull-requests: read
+    with:
+      bump: ${{ inputs.bump }}
+    secrets:
+      RELEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}

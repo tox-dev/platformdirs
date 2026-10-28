@@ -86,6 +86,34 @@ target 100% code coverage.
 When making user-facing changes, update relevant `.rst` files in `docs/`. Add docstrings to new public functions. Update
 examples if behavior changes. Run `tox r -e docs` to verify documentation builds.
 
+### Changelog entries
+
+Add one `.rst` file under `docs/changelog/` for each user-facing change. Named fragments need a `+` prefix and a
+category suffix, such as `+linux-runtime.bugfix.rst` or `+python-315.feature.rst`. Write only the change in the
+fragment:
+
+```rst
+Skip an XDG runtime directory owned by another user.
+```
+
+Leave out the PR number and any credit; the news check rejects hand-written ones. When a release is prepared, the
+release tooling links the fragment to its squash-merged PR and credits the authors of the merge commit, the PR author
+first and then every other commit author and co-author, in a single byline:
+
+```rst
+- Skip an XDG runtime directory owned by another user. :pr:`42` - by :user:`alice` and :user:`bob`.
+```
+
+AI assistant identities are dropped, and bots are credited only when they are the only author. Release preparation also
+runs `release-creator contributors`, which adds a "New Contributors" subsection to the new changelog section. GitHub
+Release notes use `@alice and @bob` instead of Sphinx roles.
+
+Use `feature` for added capabilities and Python support changes, `change` for changed behavior, `bugfix` for fixes, and
+`doc` for documentation that affects users. Use `security`, `performance`, `deprecation`, `removal`, `breaking`, or
+`packaging` when that distinction matters to users. Keep maintenance-only work out of the changelog. If a PR needs no
+entry, apply the `skip news` label; it can be added after opening the PR. Bot PRs get this label automatically unless
+they include a fragment.
+
 ## Submitting Changes
 
 ### Commit Messages
