@@ -337,8 +337,9 @@ _USER_DIRS_LINE: Final = re.compile(
     [ \t]*(?P<key>\w+)[ \t]*=[ \t]*  # KEY=, blanks allowed around the key and after the =
     (?:
         "(?P<quoted>(?:[^"\\]|\\.)*)"  # a double-quoted value with backslash escapes, text after it ignored
-        |(?P<bare>[^"\s].*?)          # or an unquoted value, up to
-        (?:[ \t]+\#.*|[ \t]*)$         # a comment, which sh starts at a word-initial #, or the line end
+        |(?P<bare>[^"\s](?:[^ \t\n]|[ \t]+[^ \t\n\#])*)  # or an unquoted value; blanks join it only before a word
+                                                         # that starts no comment, and each run is matched once so
+                                                         # long runs stay linear
     )
     """,
     re.VERBOSE,
