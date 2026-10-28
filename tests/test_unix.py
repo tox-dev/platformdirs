@@ -1035,7 +1035,6 @@ def test_user_dirs_respects_xdg_config_home(posix_tmp_path: str, monkeypatch: py
 def test_user_dirs_home_at_filesystem_root(
     entry: str, expected: str, posix_tmp_path: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # Service accounts often run with HOME=/, and pathlib treats a leading "//" as a separate root.
     monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
     (config := Path(posix_tmp_path) / "config").mkdir()
     (config / "user-dirs.dirs").write_text(f'XDG_DOCUMENTS_DIR="{entry}"\n', encoding="utf-8")

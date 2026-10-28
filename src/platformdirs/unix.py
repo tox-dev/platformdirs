@@ -356,7 +356,7 @@ def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
     if entry["quoted"] is not None:
         # xdg-user-dirs-update backslash-escapes $, `, " and \ inside the quotes.
         value = re.sub(r'\\([$`"\\])', r"\1", value)
-    return (prefix + value) or "/"
+    return f"{prefix}{value}" or "/"
 
 
 def _runtime_dir_problem(path: str, *, check_mode: bool = True) -> str | None:
