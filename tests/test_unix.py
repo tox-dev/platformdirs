@@ -477,46 +477,6 @@ def test_runtime_dir_xdg_runtime_dir_of_other_user_warns(
 
 @_POSIX_ONLY
 @pytest.mark.usefixtures("runtime_uid")
-@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
-@pytest.mark.parametrize("kind", list(_PROBLEMS))
-def test_site_runtime_dir_invalid_xdg_runtime_dir_falls_back(
-    session_dir: Path, mocker: MockerFixture, kind: str
-) -> None:
-    mocker.patch("sys.platform", "linux")
-    _create(session_dir, kind)
-    assert Unix(appname="app").site_runtime_dir == os.path.join("/run", "app")  # ruff:ignore[os-path-join]
-
-
-@_POSIX_ONLY
-@pytest.mark.usefixtures("runtime_uid")
-@pytest.mark.parametrize("kind", list(_PROBLEMS))
-def test_site_runtime_dir_invalid_xdg_runtime_dir_warns(session_dir: Path, kind: str) -> None:
-    _create(session_dir, kind)
-    with pytest.warns(RuntimeDirWarning) as record:
-        _ = Unix(appname="app").site_runtime_dir
-    expected: typing.Final = f"XDG_RUNTIME_DIR {session_dir} {_PROBLEMS[kind]}, falling back to the platform default"
-    assert [(str(warning.message), warning.filename) for warning in record] == [(expected, __file__)]
-
-
-@_POSIX_ONLY
-@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
-def test_find_runtime_file_skips_xdg_runtime_dir_of_other_user(session_dir: Path, mocker: MockerFixture) -> None:
-    _create(session_dir, "private")
-    (session_dir / "app").mkdir()
-    (session_dir / "app" / "daemon.pid").touch()
-    mocker.patch("platformdirs.unix.getuid", return_value=session_dir.stat().st_uid + 1)
-    assert Unix(appname="app").find_runtime_file("daemon.pid") is None
-
-
-@_POSIX_ONLY
-@pytest.mark.usefixtures("runtime_uid", "_umask")
-def test_site_runtime_dir_creates_xdg_runtime_dir_private(session_dir: Path) -> None:
-    _ = Unix(appname="app", ensure_exists=True).site_runtime_dir
-    assert stat.S_IMODE(session_dir.stat().st_mode) == 0o700
-
-
-@_POSIX_ONLY
-@pytest.mark.usefixtures("runtime_uid")
 @pytest.mark.parametrize("kind", list(_UNREACHABLE))
 @pytest.mark.parametrize("ensure_exists", [pytest.param(False, id="lazy"), pytest.param(True, id="ensure-exists")])
 def test_runtime_dir_unreachable_xdg_runtime_dir_warns(
@@ -1247,9 +1207,9 @@ def test_use_site_iter_runtime_dirs_bypasses_xdg_runtime_dir() -> None:
     assert list(Unix(appname="foo", use_site_for_root=True).iter_runtime_dirs()) == [_SITE_RUNTIME_DIR]
 
 
-@pytest.mark.usefixtures("_as_root", "_missing_xdg_runtime_dir")
-def test_use_site_keeps_xdg_runtime_dir_for_site_runtime_dir(posix_tmp_path: str) -> None:
-    expected: typing.Final = os.path.join(f"{posix_tmp_path}/runtime", "foo")  # ruff:ignore[os-path-join]
+@pytest.mark.usefixtures("_as_root", "_inherited_xdg_runtime_dir")
+def test_use_site_keeps_xdg_runtime_dir_for_site_runtime_dir() -> None:
+    expected: typing.Final = os.path.join("/run/user/1000", "foo")  # ruff:ignore[os-path-join]
     assert Unix(appname="foo", use_site_for_root=True).site_runtime_dir == expected
 
 
@@ -1496,6 +1456,7 @@ def test_unix_default_config_dir_creates_dot_config_private(
     [
         pytest.param("site_data_dir", "XDG_DATA_DIRS", id="site-data"),
         pytest.param("site_config_dir", "XDG_CONFIG_DIRS", id="site-config"),
+        pytest.param("site_runtime_dir", "XDG_RUNTIME_DIR", id="site-runtime"),
         pytest.param("user_documents_dir", "XDG_DOCUMENTS_DIR", id="media"),
     ],
 )

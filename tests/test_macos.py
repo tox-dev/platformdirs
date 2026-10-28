@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import stat
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
@@ -696,17 +695,15 @@ def foreign_runtime_dir(runtime_dir: Path, mocker: MockerFixture) -> Path:
 @_POSIX_ONLY
 @pytest.mark.usefixtures("foreign_runtime_dir")
 @pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
-@pytest.mark.parametrize("prop", ["user_runtime_dir", "site_runtime_dir"])
-def test_macos_runtime_dir_rejects_xdg_runtime_dir_of_other_user(home: str, prop: str) -> None:
-    assert getattr(MacOS(appname="foo"), prop) == f"{home}/Library/Caches/TemporaryItems/foo"
+def test_macos_user_runtime_dir_rejects_xdg_runtime_dir_of_other_user(home: str) -> None:
+    assert MacOS(appname="foo").user_runtime_dir == f"{home}/Library/Caches/TemporaryItems/foo"
 
 
 @_POSIX_ONLY
-@pytest.mark.parametrize("prop", ["user_runtime_dir", "site_runtime_dir"])
-def test_macos_runtime_dir_rejects_xdg_runtime_dir_of_other_user_warns(foreign_runtime_dir: Path, prop: str) -> None:
+def test_macos_user_runtime_dir_rejects_xdg_runtime_dir_of_other_user_warns(foreign_runtime_dir: Path) -> None:
     owner: Final = foreign_runtime_dir.stat().st_uid
     with pytest.warns(RuntimeDirWarning) as record:
-        getattr(MacOS(appname="foo"), prop)
+        _ = MacOS(appname="foo").user_runtime_dir
     expected: Final = (
         f"XDG_RUNTIME_DIR {foreign_runtime_dir} is owned by uid {owner}, not {owner + 1}, "
         "falling back to the platform default"
@@ -720,10 +717,3 @@ def test_macos_user_runtime_dir_rejects_shared_xdg_runtime_dir(runtime_dir: Path
     runtime_dir.mkdir()
     runtime_dir.chmod(0o777)
     assert MacOS(appname="foo").user_runtime_dir == f"{home}/Library/Caches/TemporaryItems/foo"
-
-
-@_POSIX_ONLY
-@pytest.mark.usefixtures("_umask")
-def test_macos_site_runtime_dir_creates_xdg_runtime_dir_private(runtime_dir: Path) -> None:
-    _ = MacOS(appname="foo", ensure_exists=True).site_runtime_dir
-    assert stat.S_IMODE(runtime_dir.stat().st_mode) == 0o700

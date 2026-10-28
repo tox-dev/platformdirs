@@ -378,11 +378,11 @@ def _runtime_dir_problem(path: str, *, check_mode: bool = True) -> str | None:
     return next((f"{path} {problem}" for failed, problem in checks if failed), None)
 
 
-def _warn_once(message: str, *, stacklevel: int = 3) -> None:
-    # Each read of a runtime dir repeats the check, so a warning per read would flood long-running programs.
+def _warn_once(message: str) -> None:
+    # Each read of user_runtime_dir repeats the check, so a warning per read would flood long-running programs.
     if message not in _WARNED:
         _WARNED.add(message)
-        warnings.warn(message, RuntimeDirWarning, stacklevel=stacklevel)
+        warnings.warn(message, RuntimeDirWarning, stacklevel=3)
 
 
 _WARNED: Final[set[str]] = set()

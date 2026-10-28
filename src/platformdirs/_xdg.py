@@ -67,29 +67,23 @@ class XDGMixin(PlatformDirsABC):
     @property
     def user_runtime_dir(self) -> str:
         """Runtime directory tied to the user, from ``$XDG_RUNTIME_DIR`` if set and private, else platform default."""
-        if path := self._xdg_runtime_dir():
-            return self._append_app_name_and_version(path, private=True)
+        from .unix import _runtime_dir_problem, _warn_once  # ruff:ignore[import-outside-top-level]  # unix imports _xdg
+
+        if path := _xdg_dir("XDG_RUNTIME_DIR"):
+            with suppress(OSError):
+                self._optionally_create_directory(path, private=True)
+            # Another user can pre-create the path in a shared parent, and XDG requires an owned runtime dir with mode 0700.
+            if not (problem := _runtime_dir_problem(path)):
+                return self._append_app_name_and_version(path, private=True)
+            _warn_once(f"XDG_RUNTIME_DIR {problem}, falling back to the platform default")
         return super().user_runtime_dir
 
     @property
     def site_runtime_dir(self) -> str:
-        """Runtime directory shared by users, from ``$XDG_RUNTIME_DIR`` if set and private, else platform default."""
-        if path := self._xdg_runtime_dir():
+        """Runtime directory shared by users, from ``$XDG_RUNTIME_DIR`` if set, else platform default."""
+        if path := _xdg_dir("XDG_RUNTIME_DIR"):
             return self._append_app_name_and_version(path, private=False)
         return super().site_runtime_dir
-
-    def _xdg_runtime_dir(self) -> str | None:
-        from .unix import _runtime_dir_problem, _warn_once  # ruff:ignore[import-outside-top-level]  # unix imports _xdg
-
-        if not (path := _xdg_dir("XDG_RUNTIME_DIR")):
-            return None
-        with suppress(OSError):
-            self._optionally_create_directory(path, private=True)
-        # Another user can pre-create the path in a shared parent, and XDG requires an owned runtime dir with mode 0700.
-        if problem := _runtime_dir_problem(path):
-            _warn_once(f"XDG_RUNTIME_DIR {problem}, falling back to the platform default", stacklevel=4)
-            return None
-        return path
 
     @property
     def user_documents_dir(self) -> str:
