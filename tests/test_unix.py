@@ -779,6 +779,19 @@ def test_place_runtime_file_rejects_temp_fallback_of_other_owner(mocker: MockerF
         Unix(appname="foo").place_runtime_file("app.sock")
 
 
+_MEDIA_DIR_CASES: typing.Final = [
+    ("XDG_DOCUMENTS_DIR", "user_documents_dir", "Documents"),
+    ("XDG_DOWNLOAD_DIR", "user_downloads_dir", "Downloads"),
+    ("XDG_PICTURES_DIR", "user_pictures_dir", "Pictures"),
+    ("XDG_VIDEOS_DIR", "user_videos_dir", "Videos"),
+    ("XDG_MUSIC_DIR", "user_music_dir", "Music"),
+    ("XDG_DESKTOP_DIR", "user_desktop_dir", "Desktop"),
+    ("XDG_PROJECTS_DIR", "user_projects_dir", "Projects"),
+    ("XDG_PUBLICSHARE_DIR", "user_publicshare_dir", "Public"),
+    ("XDG_TEMPLATES_DIR", "user_templates_dir", "Templates"),
+]
+
+
 @pytest.mark.parametrize(
     ("source", "ensure_exists", "created"),
     [
@@ -789,20 +802,7 @@ def test_place_runtime_file_rejects_temp_fallback_of_other_owner(mocker: MockerF
         pytest.param("user-dirs", False, False, id="user-dirs-off"),
     ],
 )
-@pytest.mark.parametrize(
-    ("key", "prop", "default"),
-    [
-        pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", "Documents", id="user_documents_dir"),
-        pytest.param("XDG_DOWNLOAD_DIR", "user_downloads_dir", "Downloads", id="user_downloads_dir"),
-        pytest.param("XDG_PICTURES_DIR", "user_pictures_dir", "Pictures", id="user_pictures_dir"),
-        pytest.param("XDG_VIDEOS_DIR", "user_videos_dir", "Videos", id="user_videos_dir"),
-        pytest.param("XDG_MUSIC_DIR", "user_music_dir", "Music", id="user_music_dir"),
-        pytest.param("XDG_DESKTOP_DIR", "user_desktop_dir", "Desktop", id="user_desktop_dir"),
-        pytest.param("XDG_PROJECTS_DIR", "user_projects_dir", "Projects", id="user_projects_dir"),
-        pytest.param("XDG_PUBLICSHARE_DIR", "user_publicshare_dir", "Public", id="user_publicshare_dir"),
-        pytest.param("XDG_TEMPLATES_DIR", "user_templates_dir", "Templates", id="user_templates_dir"),
-    ],
-)
+@pytest.mark.parametrize(("key", "prop", "default"), [pytest.param(*case, id=case[1]) for case in _MEDIA_DIR_CASES])
 def test_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[too-many-arguments]
     monkeypatch: pytest.MonkeyPatch,
     user_dirs_file: Path,
@@ -823,6 +823,25 @@ def test_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[too-man
     assert result == tmp_path / ("parent/media" if source != "default" else default)
     made = sorted(path.relative_to(tmp_path).as_posix() for path in tmp_path.rglob("*") if ".config" not in path.parts)
     assert made == (["parent", "parent/media"] if created else [])
+
+
+@pytest.mark.parametrize("ensure_exists", [pytest.param(True, id="on"), pytest.param(False, id="off")])
+@pytest.mark.parametrize("suffix", ["dir", "path"])
+@pytest.mark.parametrize(("key", "prop"), [pytest.param(key, prop, id=prop) for key, prop, _ in _MEDIA_DIR_CASES])
+def test_ensure_exists_reaches_the_media_function(  # ruff:ignore[too-many-arguments]
+    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    posix_tmp_path: str,
+    key: str,
+    prop: str,
+    suffix: str,
+    ensure_exists: bool,
+) -> None:
+    mocker.patch("platformdirs.PlatformDirs", Unix)
+    monkeypatch.setenv(key, f"{posix_tmp_path}/parent/media")
+    getattr(platformdirs, prop.removesuffix("dir") + suffix)(ensure_exists=ensure_exists)
+    assert (tmp_path / "parent" / "media").is_dir() is ensure_exists
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="creating symlinks needs elevated rights on Windows")
