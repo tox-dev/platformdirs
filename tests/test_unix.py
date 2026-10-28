@@ -608,6 +608,131 @@ def test_runtime_dir_site_redirect_skips_checks(session_dir: Path, mocker: Mocke
     assert Unix(appname="app", use_site_for_root=True).user_runtime_dir == "/run/app"
 
 
+@_POSIX_ONLY
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+@pytest.mark.parametrize(
+    "create",
+    [
+        pytest.param(lambda: Unix(appname="app", ensure_exists=True).user_runtime_dir, id="ensure-exists"),
+        pytest.param(lambda: Unix(appname="app").place_runtime_file("app.sock"), id="place"),
+    ],
+)
+def test_runtime_dir_temp_fallback_rejects_dir_hidden_from_check(
+    mocker: MockerFixture, temp_dir: Path, create: Callable[[], object]
+) -> None:
+    _hide_during_check(mocker, temp_dir)
+    with pytest.raises(PermissionError, match=f"^runtime directory {re.escape(str(temp_dir))} is missing; set "):
+        create()
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("temp_dir")
+def test_runtime_dir_xdg_runtime_dir_hidden_from_check_warns(mocker: MockerFixture, session_dir: Path) -> None:
+    _hide_during_check(mocker, session_dir)
+    with pytest.warns(RuntimeDirWarning, match=f"^XDG_RUNTIME_DIR {re.escape(str(session_dir))} is missing, falling"):
+        _ = Unix(appname="app", ensure_exists=True).user_runtime_dir
+
+
+@_POSIX_ONLY
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+def test_place_runtime_file_creates_runtime_dir_before_check(mocker: MockerFixture, runtime_base: Path) -> None:
+    _plant_after_check(mocker, runtime_base)
+    Unix(appname="app").place_runtime_file("app.sock")
+    assert not runtime_base.is_symlink()
+
+
+@_POSIX_ONLY
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+def test_find_runtime_file_returns_file_in_own_runtime_dir(runtime_base: Path) -> None:
+    Unix(appname="app").place_runtime_file("app.sock").touch()
+    assert Unix(appname="app").find_runtime_file("app.sock") == runtime_base / "app" / "app.sock"
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("runtime_uid")
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+def test_find_runtime_file_returns_file_outside_runtime_dirs(mocker: MockerFixture, runtime_temp_dir: Path) -> None:
+    mocker.patch.object(Unix, "site_runtime_dir", str(site := runtime_temp_dir / "site"))
+    site.mkdir()
+    (site / "app.sock").touch()
+    assert Unix(appname="app").find_runtime_file("app.sock") == site / "app.sock"
+
+
+_NOT_FOUND: typing.Final = [pytest.param("file", None, id="file"), pytest.param("files", [], id="files")]
+
+
+@_POSIX_ONLY
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+@pytest.mark.parametrize(("suffix", "expected"), _NOT_FOUND)
+def test_find_runtime_file_skips_runtime_dir_planted_after_check(
+    mocker: MockerFixture, runtime_base: Path, suffix: str, expected: list[Path] | None
+) -> None:
+    _plant_after_check(mocker, runtime_base)
+    assert getattr(Unix(appname="app"), f"find_runtime_{suffix}")("app.sock") == expected
+
+
+@_POSIX_ONLY
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+@pytest.mark.parametrize(("suffix", "expected"), _NOT_FOUND)
+def test_find_runtime_file_skips_runtime_dir_hidden_from_check(
+    mocker: MockerFixture, runtime_base: Path, suffix: str, expected: list[Path] | None
+) -> None:
+    _hide_during_check(mocker, runtime_base)
+    (runtime_base / "app").mkdir()
+    (runtime_base / "app" / "app.sock").touch()
+    assert getattr(Unix(appname="app"), f"find_runtime_{suffix}")("app.sock") == expected
+
+
+def _plant_after_check(mocker: MockerFixture, base: Path) -> None:
+    """Link ``base`` to a directory with ``app/app.sock`` once an lstat finds it missing, as another user can."""
+    lstat: typing.Final = os.lstat
+
+    def plant(path: str) -> os.stat_result:
+        try:
+            return lstat(path)
+        except FileNotFoundError:
+            if path == str(base):
+                _create(base, "symlink")
+                (base / "app").mkdir()
+                (base / "app" / "app.sock").touch()
+            raise
+
+    mocker.patch("os.lstat", side_effect=plant)
+
+
+def _hide_during_check(mocker: MockerFixture, base: Path) -> None:
+    """Move ``base`` away for each lstat of it, as its owner can in a shared sticky directory."""
+    lstat: typing.Final = os.lstat
+    _create(base, "private")
+
+    def hide(path: str) -> os.stat_result:
+        if path != str(base):
+            return lstat(path)
+        base.rename(hidden := base.with_name(f"{base.name}-hidden"))
+        try:
+            return lstat(path)
+        finally:
+            hidden.rename(base)
+
+    mocker.patch("os.lstat", side_effect=hide)
+
+
+@pytest.fixture(params=["temp_dir", "session_dir", "temp_dir_in_session_dir"])
+def runtime_base(request: pytest.FixtureRequest) -> Path:
+    return request.getfixturevalue(request.param)
+
+
+@pytest.fixture
+def temp_dir_in_session_dir(
+    runtime_temp_dir: Path, runtime_uid: int, mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch
+) -> Path:
+    # Like XDG_RUNTIME_DIR=/tmp, which fails the check while the fallback inside it passes.
+    _create(session := runtime_temp_dir / "session", "symlink")
+    mocker.patch("tempfile.tempdir", str(session))
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(session))
+    return session / f"runtime-{runtime_uid}"
+
+
 @pytest.fixture
 def session_dir(runtime_temp_dir: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("XDG_RUNTIME_DIR", str(path := runtime_temp_dir / "session"))
@@ -777,6 +902,7 @@ def test_without_home_site_dir_applies(dirs_class: type[Unix | MacOS], prop: str
 
 
 @pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.parametrize("home", [pytest.param("", id="empty"), pytest.param("relhome", id="relative")])
 @pytest.mark.parametrize(
     ("dirs_class", "expected"),
     [
@@ -784,17 +910,30 @@ def test_without_home_site_dir_applies(dirs_class: type[Unix | MacOS], prop: str
         pytest.param(MacOS, "/home/app-user/Library/Application Support/app", id="macos"),
     ],
 )
-def test_empty_home_uses_passwd_entry(
+def test_unusable_home_uses_passwd_entry(  # ruff:ignore[too-many-arguments]
     monkeypatch: pytest.MonkeyPatch,
     mocker: MockerFixture,
     pwd: ModuleType,
     dirs_class: type[Unix | MacOS],
     expected: str,
+    home: str,
 ) -> None:
-    monkeypatch.setenv("HOME", "")
+    monkeypatch.setenv("HOME", home)
     entry = pwd.struct_passwd(("app-user", "x", 12345, 12345, "", "/home/app-user", "/bin/sh"))
     mocker.patch.object(pwd, "getpwuid", return_value=entry)
     assert dirs_class(appname="app").user_config_dir == expected
+
+
+@pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.parametrize("dirs_class", _CLASSES)
+def test_relative_passwd_home_raises(
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, pwd: ModuleType, dirs_class: type[Unix | MacOS]
+) -> None:
+    monkeypatch.delenv("HOME", raising=False)
+    entry = pwd.struct_passwd(("app-user", "x", 12345, 12345, "", "relhome", "/bin/sh"))
+    mocker.patch.object(pwd, "getpwuid", return_value=entry)
+    with pytest.raises(RuntimeError, match=r"^could not determine the home directory for '~/"):
+        _ = dirs_class(appname="app").user_config_dir
 
 
 @pytest.mark.usefixtures("_clear_xdg_env", "_unknown_home")

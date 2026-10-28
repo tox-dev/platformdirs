@@ -124,7 +124,14 @@ def modes() -> Callable[[Path], dict[str, int]]:
     return collect
 
 
-@pytest.fixture(params=[pytest.param(None, id="home-unset"), pytest.param("", id="home-empty")])
+@pytest.fixture(
+    params=[
+        pytest.param(None, id="home-unset"),
+        pytest.param("", id="home-empty"),
+        pytest.param("relhome", id="home-relative"),
+        pytest.param(".", id="home-dot"),
+    ]
+)
 def _unknown_home(
     request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, pwd: ModuleType
 ) -> None:
