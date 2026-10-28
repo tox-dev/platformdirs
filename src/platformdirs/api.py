@@ -566,6 +566,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
         :raises ValueError: if ``name`` is empty, absolute, has a drive or climbs out through ``..``.
         :raises RuntimeError: if the user directory starts with ``~`` because the home directory is unknown.
+        :raises OSError: if it cannot create a missing directory, e.g. one on a missing drive or network share.
 
         """
         return self._place_file(lambda dirs: dirs.user_config_path, name)
@@ -717,6 +718,8 @@ def _make_private_directories(path: Path) -> None:
     try:
         path.mkdir(mode=0o700, exist_ok=True)
     except FileNotFoundError:
+        if path.parent == path:  # a missing drive or network share has no parent to create
+            raise
         _make_private_directories(path.parent)
         path.mkdir(mode=0o700, exist_ok=True)
 
