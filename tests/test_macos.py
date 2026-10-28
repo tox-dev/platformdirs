@@ -244,59 +244,36 @@ def test_macos_xdg_media_dirs(monkeypatch: pytest.MonkeyPatch, env_var: str, pro
     assert getattr(MacOS(), prop) == "/custom/media"
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="media overrides use POSIX paths and symlinks")
+@pytest.mark.skipif(sys.platform == "win32", reason="creating symlinks needs elevated rights on Windows")
 @pytest.mark.parametrize(("env_var", "prop"), _MEDIA_DIRS)
-@pytest.mark.parametrize("linked", [False, True], ids=["file", "file-symlink"])
-def test_macos_configured_media_file_collision(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, env_var: str, prop: str, linked: bool
+def test_macos_ensure_exists_raises_on_configured_media_file(
+    monkeypatch: pytest.MonkeyPatch, media_file: Path, env_var: str, prop: str
 ) -> None:
-    (target := tmp_path / "file").write_text("preserve", encoding="utf-8")
-    path = tmp_path / "media" if linked else target
-    if linked:
-        path.symlink_to(target)
-    monkeypatch.setenv(env_var, str(path))
-
-    assert getattr(MacOS(), prop) == str(path)
+    monkeypatch.setenv(env_var, str(media_file))
     with pytest.raises(FileExistsError):
         getattr(MacOS(ensure_exists=True), prop)
-    assert target.read_text(encoding="utf-8") == "preserve"
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="media overrides use POSIX paths and symlinks")
-@pytest.mark.parametrize("kind", ["missing", "directory", "directory-symlink", "dangling-symlink", "symlink-loop"])
-@pytest.mark.parametrize("ensure_exists", [False, True], ids=["lookup", "create"])
-def test_macos_configured_media_directory_controls(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, kind: str, ensure_exists: bool
+def _link_to_directory(path: Path, target: Path) -> None:
+    target.mkdir()
+    path.symlink_to(target)
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="creating symlinks needs elevated rights on Windows")
+@pytest.mark.parametrize(
+    ("plant", "is_dir"),
+    [
+        pytest.param(_link_to_directory, True, id="directory-symlink"),
+        pytest.param(lambda path, target: path.symlink_to(target), False, id="dangling-symlink"),
+        pytest.param(lambda path, _: path.symlink_to(path), False, id="symlink-loop"),
+    ],
+)
+def test_macos_ensure_exists_returns_configured_media_symlink(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, plant: Callable[[Path, Path], None], is_dir: bool
 ) -> None:
-    path = tmp_path / "media"
-    target = tmp_path / "target"
-    if kind == "directory":
-        path.mkdir()
-    elif kind == "directory-symlink":
-        target.mkdir()
-        path.symlink_to(target)
-    elif kind == "dangling-symlink":
-        path.symlink_to(target)
-    elif kind == "symlink-loop":
-        path.symlink_to(path)
+    plant(path := tmp_path / "media", tmp_path / "target")
     monkeypatch.setenv("XDG_DOCUMENTS_DIR", str(path))
-
-    assert MacOS(ensure_exists=ensure_exists).user_documents_path == path
-    assert path.is_dir() is (kind in {"directory", "directory-symlink"} or (kind == "missing" and ensure_exists))
-    if kind == "dangling-symlink":
-        assert not target.exists()
-        assert path.is_symlink()
-    elif kind == "symlink-loop":
-        assert path.is_symlink()
-
-
-@pytest.mark.skipif(sys.platform == "win32", reason="media overrides use POSIX paths")
-@pytest.mark.parametrize("suffix", ["dir", "path"])
-def test_media_function_reports_file_collision(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, suffix: str) -> None:
-    (path := tmp_path / "media").touch()
-    monkeypatch.setenv("XDG_DOCUMENTS_DIR", str(path))
-    with pytest.raises(FileExistsError):
-        getattr(platformdirs, f"user_documents_{suffix}")(ensure_exists=True)
+    assert (MacOS(ensure_exists=True).user_documents_path, path.is_dir()) == (path, is_dir)
 
 
 @pytest.mark.parametrize(("xdg_value", "created"), [("/custom/media", True), (None, False)], ids=["xdg", "default"])

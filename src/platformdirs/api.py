@@ -158,8 +158,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         try:
             self._optionally_create_directory(path, private=False)
         except FileExistsError:
-            directory = Path(path)
-            if not directory.is_symlink() or directory.exists():
+            if not (directory := Path(path)).is_symlink() or directory.exists():
                 raise
 
     def _select_site_dirs(self, dirs: list[str]) -> str:
