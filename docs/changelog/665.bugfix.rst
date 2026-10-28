@@ -1,0 +1,2 @@
+Refuse a symlink as ``XDG_RUNTIME_DIR`` in :func:`~platformdirs.user_runtime_dir` when the value ends with ``/`` or
+``/.``, which made the check follow the link.
