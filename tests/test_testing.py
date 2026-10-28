@@ -52,6 +52,26 @@ def test_isolated_dirs_yields_root_as_path(tmp_path: Path) -> None:
         assert root == tmp_path
 
 
+@pytest.fixture(params=[pytest.param(".", id="dot"), pytest.param("isolated", id="named")])
+def relative_root(request: pytest.FixtureRequest, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> str:
+    (start := tmp_path / "start").mkdir()
+    monkeypatch.chdir(start)
+    return request.param
+
+
+def test_isolated_dirs_relative_root_yields_absolute(tmp_path: Path, relative_root: str) -> None:
+    with isolated_dirs(relative_root) as root:
+        assert root == tmp_path / "start" / relative_root
+
+
+def test_isolated_dirs_relative_root_survives_chdir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, relative_root: str
+) -> None:
+    with isolated_dirs(relative_root):
+        monkeypatch.chdir(tmp_path)
+        assert _outside(tmp_path / "start" / relative_root) == {}
+
+
 def test_isolated_dirs_redirects_every_accessor(tmp_path: Path) -> None:
     with isolated_dirs(tmp_path):
         assert _outside(tmp_path) == {}

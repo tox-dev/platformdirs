@@ -1,0 +1,2 @@
+Keep ``isolated_dirs`` paths under a relative root after the working directory changes, and yield the root as an
+absolute path.
