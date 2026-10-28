@@ -1,3 +1,0 @@
-Return the media and fonts directories under root's home for root with ``use_site_for_root``, ignoring the invoking
-user's ``XDG_*_DIR``, ``user-dirs.dirs`` and ``XDG_DATA_HOME``, and create no inherited media directory under
-``ensure_exists``.

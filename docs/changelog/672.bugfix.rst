@@ -1,2 +1,0 @@
-With ``ensure_exists``, raise ``FileExistsError`` when a configured media directory such as ``user_documents_dir`` is a
-regular file or a symlink to one, instead of returning the file's path. Dangling symlinks are still returned unchanged.

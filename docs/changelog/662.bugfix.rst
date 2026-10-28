@@ -1,2 +1,0 @@
-Raise ``ValueError`` from ``site_data_dir`` and ``site_config_dir`` under ``multipath=True`` when ``appname`` or
-``version`` contains ``os.pathsep``, rather than returning a string that splits into a directory outside the site base.

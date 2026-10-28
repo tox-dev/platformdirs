@@ -1,2 +1,0 @@
-Accept a keyword-only ``ensure_exists`` in the module-level media directory functions, such as
-:func:`~platformdirs.user_documents_path`, to create a directory set through ``XDG_*_DIR`` or ``user-dirs.dirs``.

@@ -6,6 +6,58 @@
 
 .. towncrier release notes start
 
+.. _release-4-14-0:
+
+*********************
+ 4.14.0 (2026-10-28)
+*********************
+
+.. _release-4-14-0-added:
+
+Added
+=====
+
+- Accept a keyword-only ``ensure_exists`` in the module-level media directory functions, such as
+  :func:`~platformdirs.user_documents_path`, to create a directory set through ``XDG_*_DIR`` or ``user-dirs.dirs``
+  (:pr:`656`) by :user:`darrenhuai` and :user:`gaborbernat`.
+
+.. _release-4-14-0-fixed:
+
+Fixed
+=====
+
+- Return the media and fonts directories under root's home for root with ``use_site_for_root``, ignoring the invoking
+  user's ``XDG_*_DIR``, ``user-dirs.dirs`` and ``XDG_DATA_HOME``, and create no inherited media directory under
+  ``ensure_exists`` (:pr:`661`) by :user:`gaborbernat`.
+- Raise ``ValueError`` from ``site_data_dir`` and ``site_config_dir`` under ``multipath=True`` when ``appname`` or
+  ``version`` contains ``os.pathsep``, rather than returning a string that splits into a directory outside the site base
+  (:pr:`662`) by :user:`gaborbernat`.
+- Parse an unquoted ``user-dirs.dirs`` value with a long run of blanks in linear time, rather than in time quadratic in
+  the run's length on every Unix media directory lookup (:pr:`663`) by :user:`gaborbernat`.
+- Treat a relative ``HOME`` as unset on Unix, macOS and iOS, taking the home from the password database or raising
+  ``RuntimeError``, rather than resolving user directories against the working directory (:pr:`664`) by
+  :user:`gaborbernat`.
+- Refuse a symlink as ``XDG_RUNTIME_DIR`` in :func:`~platformdirs.user_runtime_dir` when the value ends with ``/`` or
+  ``/.``, which made the check follow the link (:pr:`665`) by :user:`gaborbernat`.
+- Redirect ``user_*_dir`` calls with ``use_site_for_root=True`` when the effective uid is 0, so a setuid-root process
+  gets the site directories, and name and check the runtime directory by the effective uid (:pr:`666`) by
+  :user:`gaborbernat`.
+- Apply the ``XDG_RUNTIME_DIR`` check of the Unix :func:`~platformdirs.user_runtime_dir` to the macOS one, so it no
+  longer uses a directory that is a symlink, owned by another user or not mode ``0700`` (:pr:`667`) by
+  :user:`gaborbernat`.
+- Reject an ``XDG_RUNTIME_DIR`` below a parent that another user can replace, such as their own entry in ``/tmp``,
+  instead of creating the runtime directory through it (:pr:`668`) by :user:`gaborbernat`.
+- Stop accepting a Unix runtime directory that another user creates between the owner check and its use:
+  ``ensure_exists`` and :meth:`~platformdirs.unix.Unix.place_runtime_file` create it before checking it, and
+  :meth:`~platformdirs.api.PlatformDirsABC.find_runtime_file` checks it again after a hit (:pr:`669`) by
+  :user:`gaborbernat`.
+- Raise ``PermissionError`` on macOS when ``ensure_exists`` would create the site cache through a
+  ``/Library/Caches/$appname`` that is a symlink, not a directory, or owned by a user other than root and the current
+  one (:pr:`670`) by :user:`gaborbernat`.
+- With ``ensure_exists``, raise ``FileExistsError`` when a configured media directory such as ``user_documents_dir`` is
+  a regular file or a symlink to one, instead of returning the file's path. Dangling symlinks are still returned
+  unchanged (:pr:`672`) by :user:`rupayon123` and :user:`gaborbernat`.
+
 .. _release-4-13-7:
 
 *********************

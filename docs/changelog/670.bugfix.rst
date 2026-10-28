@@ -1,2 +1,0 @@
-Raise ``PermissionError`` on macOS when ``ensure_exists`` would create the site cache through a
-``/Library/Caches/$appname`` that is a symlink, not a directory, or owned by a user other than root and the current one.
