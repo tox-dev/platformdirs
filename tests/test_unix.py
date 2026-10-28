@@ -10,6 +10,7 @@ import stat
 import sys
 import typing
 import warnings
+from operator import attrgetter, methodcaller
 from pathlib import Path
 from tempfile import gettempdir
 
@@ -491,6 +492,98 @@ def test_runtime_dir_unreachable_xdg_runtime_dir_warns(
     )
     assert [str(warning.message) for warning in record] == [expected]
     assert (temp_dir / "app").is_dir() is ensure_exists
+
+
+@_POSIX_ONLY
+@pytest.mark.parametrize("kind", ["symlink", "private"])
+def test_runtime_dir_parent_of_other_user_in_shared_dir_warns(
+    shared_dir: Path, temp_dir: Path, runtime_uid: int, foreign: set[Path], kind: str
+) -> None:
+    _create(planted := shared_dir / "run", kind)
+    foreign.add(planted)
+    with pytest.warns(RuntimeDirWarning) as record:
+        _ = Unix(appname="app", ensure_exists=True).user_runtime_dir
+    expected: typing.Final = (
+        f"XDG_RUNTIME_DIR {planted / 'user'} is below {planted}, owned by uid {runtime_uid + 1}, "
+        f"falling back to {temp_dir}"
+    )
+    assert [str(warning.message) for warning in record] == [expected]
+
+
+@_POSIX_ONLY
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+@pytest.mark.parametrize(
+    ("ensure_exists", "access"),
+    [
+        pytest.param(True, attrgetter("user_runtime_dir"), id="ensure-exists"),
+        pytest.param(False, methodcaller("place_runtime_file", "app.sock"), id="place-runtime-file"),
+    ],
+)
+def test_runtime_dir_parent_of_other_user_in_shared_dir_creates_nothing(
+    shared_dir: Path, foreign: set[Path], ensure_exists: bool, access: Callable[[Unix], str | Path]
+) -> None:
+    _create(planted := shared_dir / "run", "symlink")
+    foreign.add(planted)
+    access(Unix(appname="app", ensure_exists=ensure_exists))
+    assert not list((shared_dir / "run-target").iterdir())
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("runtime_uid")
+@pytest.mark.filterwarnings("error::platformdirs.RuntimeDirWarning")
+def test_runtime_dir_own_parent_in_shared_dir_is_used(shared_dir: Path) -> None:
+    _create(shared_dir / "run", "private")
+    assert Unix(appname="app", ensure_exists=True).user_runtime_dir == str(shared_dir / "run" / "user" / "app")
+
+
+@_POSIX_ONLY
+def test_runtime_dir_parent_writable_by_everyone_warns(
+    runtime_temp_dir: Path, temp_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (open_dir := runtime_temp_dir / "open").mkdir()
+    open_dir.chmod(0o777)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(session := open_dir / "session"))
+    with pytest.warns(RuntimeDirWarning) as record:
+        _ = Unix(appname="app").user_runtime_dir
+    expected: typing.Final = (
+        f"XDG_RUNTIME_DIR {session} is below {open_dir}, writable by every user, falling back to {temp_dir}"
+    )
+    assert [str(warning.message) for warning in record] == [expected]
+
+
+@pytest.fixture
+def shared_dir(runtime_temp_dir: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    # Sticky and writable by every user, like /tmp, with XDG_RUNTIME_DIR two levels below it.
+    (path := runtime_temp_dir / "shared").mkdir()
+    path.chmod(0o1777)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(path / "run" / "user"))
+    return path
+
+
+@pytest.fixture
+def foreign(runtime_uid: int, mocker: MockerFixture, tmp_path: Path) -> set[Path]:
+    # Creating a file as another user needs root, so report the paths added here as owned by another uid.
+    paths: set[Path] = set()
+    lstat: typing.Final = os.lstat
+    mocker.patch(
+        "os.lstat",
+        side_effect=lambda path: (
+            os.stat_result((*(info := lstat(path))[:4], runtime_uid + 1, *info[5:]))
+            if Path(path) in paths
+            else lstat(path)
+        ),
+    )
+    # fs.protected_symlinks refuses even root to follow another user's symlink in a sticky directory as the last
+    # component, so following one fails here the way following a symlink loop does.
+    (loop := tmp_path / "loop").symlink_to(loop)
+    follow: typing.Final = os.stat
+    mocker.patch(
+        "os.stat",
+        side_effect=lambda path, **kwargs: follow(
+            loop if Path(path) in paths and Path(path).is_symlink() else path, **kwargs
+        ),
+    )
+    return paths
 
 
 @_POSIX_ONLY

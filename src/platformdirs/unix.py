@@ -260,10 +260,11 @@ class Unix(XDGMixin, _UnixDefaults):
         """Runtime directory tied to the user, e.g. ``$XDG_RUNTIME_DIR/$appname/$version``.
 
         Accepts ``$XDG_RUNTIME_DIR`` only as a directory, not a symlink, that the user owns with mode ``0700``, as the
-        XDG spec requires, and creates a missing one that way under ``ensure_exists``. When the variable is unset or
-        fails that check, emits one :class:`~platformdirs.RuntimeDirWarning` per cause and falls back to the platform
-        default (``/tmp/run/user/<uid>`` on OpenBSD, ``/var/run/user/<uid>`` on FreeBSD/NetBSD, ``/run/user/<uid>``
-        elsewhere) if it passes the same check, else to ``runtime-<uid>`` in the temporary directory. Root with
+        XDG spec requires, and only below parents no other user can replace. Creates a missing one that way under
+        ``ensure_exists``. When the variable is unset or fails that check, emits one
+        :class:`~platformdirs.RuntimeDirWarning` per cause and falls back to the platform default
+        (``/tmp/run/user/<uid>`` on OpenBSD, ``/var/run/user/<uid>`` on FreeBSD/NetBSD, ``/run/user/<uid>`` elsewhere)
+        if it passes the same check, else to ``runtime-<uid>`` in the temporary directory. Root with
         ``use_site_for_root`` gets the site equivalent.
 
         :raises PermissionError: if the temporary fallback is a symlink, not a directory, or owned by another user.
@@ -275,9 +276,11 @@ class Unix(XDGMixin, _UnixDefaults):
         if not (path := _xdg_dir("XDG_RUNTIME_DIR")):
             reason = "XDG_RUNTIME_DIR is not set"
         else:
-            with suppress(OSError):
-                self._optionally_create_directory(path, private=True)
-            if not (problem := _runtime_dir_problem(path)):
+            # Creating the missing levels follows whatever symlink sits at a parent, so check the parents first.
+            if not _runtime_dir_parent_problem(path):
+                with suppress(OSError):
+                    self._optionally_create_directory(path, private=True)
+            if not (problem := _runtime_dir_problem(path) or _runtime_dir_parent_problem(path)):
                 return self._append_app_name_and_version(path, private=True)
             reason = f"XDG_RUNTIME_DIR {problem}"
         _warn_once(f"{reason}, falling back to {(fallback := self._default_runtime_dir())}")
@@ -376,6 +379,22 @@ def _runtime_dir_problem(path: str, *, check_mode: bool = True) -> str | None:
         (check_mode and mode != _RUNTIME_DIR_MODE, f"has mode {mode:04o}, not {_RUNTIME_DIR_MODE:04o}"),
     )
     return next((f"{path} {problem}" for failed, problem in checks if failed), None)
+
+
+def _runtime_dir_parent_problem(path: str) -> str | None:
+    if sys.platform == "win32":  # every directory reports as writable by everyone there
+        return None
+    in_shared_dir = False
+    for parent in reversed(Path(path).parents):
+        try:
+            if in_shared_dir and (owner := os.lstat(parent).st_uid) not in {0, getuid()}:
+                return f"{path} is below {parent}, owned by uid {owner}"
+            mode = parent.stat().st_mode  # a symlink that got past the owner check is judged by its target
+        except OSError:
+            return None  # the missing rest gets created, or _runtime_dir_problem reports the path itself
+        if (in_shared_dir := bool(mode & stat.S_IWOTH)) and not mode & stat.S_ISVTX:
+            return f"{path} is below {parent}, writable by every user"
+    return None
 
 
 def _warn_once(message: str) -> None:
