@@ -1,2 +1,2 @@
-Describe the Homebrew prefix in the macOS ``_HOMEBREW_PYTHON`` pattern comment without hardcoding ``/opt/homebrew``, so
-Homebrew formulae that bundle platformdirs can share one bottle across macOS and Linux.
+Remove the literal ``/opt/homebrew`` from a macOS source comment. Homebrew replaces it with a placeholder when bottling
+on Apple Silicon but not on Linux, so formulae that bundle platformdirs could not share one bottle across both.

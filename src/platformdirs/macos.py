@@ -183,6 +183,7 @@ class MacOS(XDGMixin, _MacOSDefaults):
 
 # Homebrew links each Python formula as a framework build, and a virtual environment keeps it as sys.base_prefix.
 # Homebrew's sitecustomize rewrites the Cellar keg path to the opt link, so -S or PYTHONHOME leaves the Cellar one.
+# Homebrew rewrites its own prefix when bottling, so naming one here would make the macOS and Linux bottles differ.
 _HOMEBREW_PYTHON: Final = re.compile(
     r"""
     (?P<prefix>.+)                          # $HOMEBREW_PREFIX, as printed by `brew --prefix`
