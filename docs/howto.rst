@@ -193,7 +193,8 @@ Both search the directories of :meth:`~platformdirs.api.PlatformDirsABC.iter_con
 so a directory named ``config.toml`` is skipped. They never create a directory, even with ``ensure_exists=True``. The
 name may contain subdirectories; an absolute path, a drive or a ``..`` component raises :class:`ValueError`. The same
 pair exists for data, cache, state, log and runtime files, e.g.
-:meth:`~platformdirs.api.PlatformDirsABC.find_data_file`.
+:meth:`~platformdirs.api.PlatformDirsABC.find_data_file`. A subclass that overrides an ``iter_*_paths`` method changes
+where the matching pair searches.
 
 Testing code that uses platformdirs
 ===================================

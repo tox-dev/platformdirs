@@ -478,6 +478,24 @@ def test_find_config_files_orders_user_before_site(dirs: Unix, config_paths: lis
     assert dirs.find_config_files("app.toml") == expected
 
 
+@pytest.mark.parametrize(
+    ("suffix", "expected"),
+    [
+        pytest.param("file", Path("second", "app.toml"), id="file"),
+        pytest.param("files", [Path("second", "app.toml"), Path("first", "app.toml")], id="files"),
+    ],
+)
+@pytest.mark.parametrize("kind", _KINDS)
+def test_find_searches_overridden_path_iterator(
+    dirs: Unix, kind: str, suffix: str, expected: Path | list[Path]
+) -> None:
+    directories = [Path("second"), Path("first")]
+    for directory in directories:
+        _touch(directory / "app.toml")
+    custom_class = type("CustomDirs", (Unix,), {f"iter_{kind}_paths": lambda _: iter(directories)})
+    assert getattr(custom_class(dirs.appname), f"find_{kind}_{suffix}")("app.toml") == expected
+
+
 def test_find_config_file_accepts_nested_path_like(dirs: Unix, config_paths: list[Path]) -> None:
     nested = _touch(config_paths[1] / "sub" / "app.toml")
     assert dirs.find_config_file(Path("sub", "app.toml")) == nested

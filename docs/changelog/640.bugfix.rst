@@ -1,0 +1,2 @@
+Search the directories of a subclass's overridden ``iter_*_paths`` method in ``find_*_file`` and ``find_*_files``,
+rather than the base class ones.
