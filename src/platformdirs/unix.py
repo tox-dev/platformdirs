@@ -17,12 +17,12 @@ from .api import PlatformDirsABC, RuntimeDirWarning
 
 if sys.platform == "win32":
 
-    def getuid() -> NoReturn:
+    def geteuid() -> NoReturn:
         msg = "should only be used on Unix"
         raise RuntimeError(msg)
 
 else:
-    from os import getuid
+    from os import geteuid
 
 
 class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
@@ -34,7 +34,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def _use_site(self) -> bool:
-        return self.use_site_for_root and getuid() == 0
+        return self.use_site_for_root and geteuid() == 0
 
     @property
     def user_data_dir(self) -> str:
@@ -174,16 +174,16 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     def _default_runtime_dir(self) -> str:
         if sys.platform.startswith("openbsd"):
-            path = f"/tmp/run/user/{getuid()}"  # ruff:ignore[hardcoded-temp-file]
+            path = f"/tmp/run/user/{geteuid()}"  # ruff:ignore[hardcoded-temp-file]
         elif sys.platform.startswith(("freebsd", "netbsd")):
-            path = f"/var/run/user/{getuid()}"
+            path = f"/var/run/user/{geteuid()}"
         else:
-            path = f"/run/user/{getuid()}"
+            path = f"/run/user/{geteuid()}"
         return path if os.path.lexists(path) and not _runtime_dir_problem(path) else self._temp_runtime_dir()
 
     def _temp_runtime_dir(self) -> str:
         # Another user can pre-create this predictable name, and XDG requires an owned runtime dir with mode 0700.
-        path = f"{gettempdir()}/runtime-{getuid()}"
+        path = f"{gettempdir()}/runtime-{geteuid()}"
         with suppress(FileExistsError):
             self._optionally_create_directory(path, private=True)
         if problem := _runtime_dir_problem(path, check_mode=False):
@@ -372,7 +372,7 @@ def _runtime_dir_problem(path: str, *, check_mode: bool = True) -> str | None:
     checks = (
         (stat.S_ISLNK(info.st_mode), "is a symlink"),
         (not stat.S_ISDIR(info.st_mode), "is not a directory"),
-        (info.st_uid != (uid := getuid()), f"is owned by uid {info.st_uid}, not {uid}"),
+        (info.st_uid != (uid := geteuid()), f"is owned by uid {info.st_uid}, not {uid}"),
         (check_mode and mode != _RUNTIME_DIR_MODE, f"has mode {mode:04o}, not {_RUNTIME_DIR_MODE:04o}"),
     )
     return next((f"{path} {problem}" for failed, problem in checks if failed), None)

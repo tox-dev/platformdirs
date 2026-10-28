@@ -403,7 +403,7 @@ def test_place_file_on_missing_root_raises_file_not_found(mocker: MockerFixture)
 
 _SUFFIXES: Final = [pytest.param("file", id="file"), pytest.param("files", id="files")]
 _MISSING: Final = [pytest.param("file", None, id="file"), pytest.param("files", [], id="files")]
-# Unix checks the owner of an existing XDG_RUNTIME_DIR against getuid, which Windows lacks.
+# Unix checks the owner of an existing XDG_RUNTIME_DIR against geteuid, which Windows lacks.
 _EXISTING_KINDS: Final = [
     *(pytest.param(kind, id=kind) for kind in ("config", "data", "cache", "state", "log")),
     pytest.param("runtime", id="runtime", marks=_POSIX_ONLY),
@@ -506,7 +506,7 @@ def test_find_config_file_accepts_nested_path_like(dirs: Unix, config_paths: lis
 def test_find_file_finds_root_placed_file_in_first_site_dir(
     dirs: Unix, mocker: MockerFixture, kind: str, multipath: bool
 ) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=0)
+    mocker.patch("platformdirs.unix.geteuid", return_value=0)
     dirs.use_site_for_root = True
     dirs.multipath = multipath
     getattr(dirs, f"place_{kind}_file")("app.toml").touch()
