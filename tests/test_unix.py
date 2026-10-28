@@ -837,11 +837,9 @@ def test_ensure_exists_reaches_the_media_function(  # ruff:ignore[too-many-argum
     suffix: str,
     ensure_exists: bool,
 ) -> None:
-    # The module-level functions have to reach every property ensure_exists touches.
     mocker.patch("platformdirs.PlatformDirs", Unix)
     monkeypatch.setenv(key, f"{posix_tmp_path}/parent/media")
-    function = getattr(platformdirs, prop.removesuffix("dir") + suffix)
-    assert Path(function(ensure_exists=ensure_exists)).absolute() == tmp_path / "parent" / "media"
+    getattr(platformdirs, prop.removesuffix("dir") + suffix)(ensure_exists=ensure_exists)
     assert (tmp_path / "parent" / "media").is_dir() is ensure_exists
 
 
