@@ -1,2 +1,2 @@
-Ignore incomplete UNC paths without a share name in Windows folder overrides instead of treating the application name as
-the share.
+Ignore Windows folder overrides with a UNC path missing its server or share name, such as ``\\server``, instead of
+treating the application name as the share.
