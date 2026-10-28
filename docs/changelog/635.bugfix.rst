@@ -1,0 +1,2 @@
+Resolve the Windows Projects directory from ``USERPROFILE`` when ``HOME`` is empty, rather than raising
+``RuntimeError``.

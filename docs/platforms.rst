@@ -506,8 +506,7 @@ to xdg-user-dirs).
 
        ``C:\Users\<User>\Projects``
 
-       The home directory comes from ``USERPROFILE``, or ``HOMEDRIVE`` and ``HOMEPATH``. ``HOME`` is ignored, including
-       when it is empty.
+       The home directory comes from ``USERPROFILE``, else ``HOMEDRIVE`` and ``HOMEPATH``; ``HOME`` is ignored.
 
     .. tab-item:: Android
        :sync: android
