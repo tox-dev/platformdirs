@@ -1,0 +1,2 @@
+Parse an unquoted ``user-dirs.dirs`` value with a long run of blanks in linear time, rather than in time quadratic in
+the run's length on every Unix media directory lookup.
