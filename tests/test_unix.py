@@ -37,12 +37,12 @@ def _reload_after_test() -> typing.Iterator[None]:
 
 @pytest.fixture
 def _as_root(mocker: MockerFixture, _clear_xdg_env: None) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=0)
+    mocker.patch("platformdirs.unix.geteuid", return_value=0)
 
 
 @pytest.fixture
 def _as_non_root(mocker: MockerFixture) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=1000)
+    mocker.patch("platformdirs.unix.geteuid", return_value=1000)
 
 
 @pytest.fixture
@@ -234,11 +234,11 @@ def dirs_instance() -> Unix:
 
 
 @pytest.fixture
-def _getuid(mocker: MockerFixture) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=1234)
+def _geteuid(mocker: MockerFixture) -> None:
+    mocker.patch("platformdirs.unix.geteuid", return_value=1234)
 
 
-@pytest.mark.usefixtures("_getuid")
+@pytest.mark.usefixtures("_geteuid")
 def test_xdg_variable_not_set(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
     xdg_variable = _func_to_path(func)
     if xdg_variable is None:
@@ -250,7 +250,7 @@ def test_xdg_variable_not_set(monkeypatch: pytest.MonkeyPatch, dirs_instance: Un
     assert result == os.path.expanduser(xdg_variable.default_value)  # ruff:ignore[os-path-expanduser]
 
 
-@pytest.mark.usefixtures("_getuid")
+@pytest.mark.usefixtures("_geteuid")
 def test_xdg_variable_empty_value(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
     xdg_variable = _func_to_path(func)
     if xdg_variable is None:
@@ -268,7 +268,7 @@ def _fallback_warning(*, expected: bool) -> contextlib.AbstractContextManager[ob
     return contextlib.nullcontext()
 
 
-@pytest.mark.usefixtures("_getuid")
+@pytest.mark.usefixtures("_geteuid")
 def test_xdg_variable_custom_value(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
     xdg_variable = _func_to_path(func)
     if xdg_variable is None:
@@ -279,7 +279,7 @@ def test_xdg_variable_custom_value(monkeypatch: pytest.MonkeyPatch, dirs_instanc
     assert result == "/custom-dir"
 
 
-@pytest.mark.usefixtures("_getuid")
+@pytest.mark.usefixtures("_geteuid")
 def test_xdg_variable_padded_value(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
     xdg_variable = _func_to_path(func)
     if xdg_variable is None:
@@ -290,7 +290,7 @@ def test_xdg_variable_padded_value(monkeypatch: pytest.MonkeyPatch, dirs_instanc
     assert result == "/custom-dir"
 
 
-@pytest.mark.usefixtures("_getuid")
+@pytest.mark.usefixtures("_geteuid")
 @pytest.mark.parametrize(
     ("env_var", "prop", "default"),
     [
@@ -359,7 +359,7 @@ def test_site_dir_multipath_rejects_path_separator_before_creating(
     assert not Path(posix_tmp_path, "site").exists()
 
 
-@pytest.mark.usefixtures("_getuid")
+@pytest.mark.usefixtures("_geteuid")
 @pytest.mark.parametrize("platform", [pytest.param("freebsd", id="freebsd"), pytest.param("netbsd", id="netbsd")])
 def test_freebsd_netbsd_site_runtime_dir(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, platform: str) -> None:
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
@@ -367,7 +367,7 @@ def test_freebsd_netbsd_site_runtime_dir(monkeypatch: pytest.MonkeyPatch, mocker
     assert Unix().site_runtime_dir == "/var/run"
 
 
-@pytest.mark.usefixtures("_getuid")
+@pytest.mark.usefixtures("_geteuid")
 def test_openbsd_site_runtime_dir(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> None:
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     mocker.patch("sys.platform", "openbsd")
@@ -398,7 +398,7 @@ def test_platform_on_win32(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixtur
 def test_user_runtime_dir_temp_fallback_mode(
     mocker: MockerFixture, runtime_temp_dir: Path, existing_mode: int | None, ensure_exists: bool, expected_mode: int
 ) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=(uid := runtime_temp_dir.stat().st_uid))
+    mocker.patch("platformdirs.unix.geteuid", return_value=(uid := runtime_temp_dir.stat().st_uid))
     base: typing.Final = runtime_temp_dir / f"runtime-{uid}"
     if existing_mode is not None:
         base.mkdir()
@@ -414,7 +414,7 @@ def test_user_runtime_dir_temp_fallback_rejects_other_owner(
 ) -> None:
     owner: typing.Final = runtime_temp_dir.stat().st_uid
     (runtime_temp_dir / f"runtime-{owner + 1}").mkdir()
-    mocker.patch("platformdirs.unix.getuid", return_value=owner + 1)
+    mocker.patch("platformdirs.unix.geteuid", return_value=owner + 1)
     with pytest.raises(PermissionError, match=f"owned by uid {owner},"):
         Unix(appname="foo", ensure_exists=ensure_exists).user_runtime_dir  # ruff:ignore[useless-expression]
 
@@ -436,6 +436,19 @@ _DEFAULT_PREFIXES: typing.Final = {
     "netbsd": "var/run/user",
     "openbsd": "tmp/run/user",
 }
+
+
+@_POSIX_ONLY
+def test_user_runtime_dir_temp_fallback_named_after_effective_uid(
+    mocker: MockerFixture, runtime_temp_dir: Path
+) -> None:
+    owner: typing.Final = runtime_temp_dir.stat().st_uid
+    mocker.patch("os.getuid", return_value=owner + 1)
+    mocker.patch("os.geteuid", return_value=owner)
+    importlib.reload(unix)
+    with pytest.warns(RuntimeDirWarning):
+        result = unix.Unix(appname="foo").user_runtime_dir
+    assert result == f"{runtime_temp_dir}/runtime-{owner}/foo"
 
 
 @_POSIX_ONLY
@@ -533,7 +546,7 @@ def test_runtime_dir_xdg_runtime_dir_of_other_user_warns(
 ) -> None:
     _create(session_dir, "private")
     owner: typing.Final = session_dir.stat().st_uid
-    mocker.patch("platformdirs.unix.getuid", return_value=owner + 1)
+    mocker.patch("platformdirs.unix.geteuid", return_value=owner + 1)
     with pytest.warns(RuntimeDirWarning) as record:
         _ = Unix(appname="app").user_runtime_dir
     fallback: typing.Final = runtime_temp_dir / f"runtime-{owner + 1}"
@@ -597,7 +610,7 @@ def test_runtime_dir_default_dir_of_other_user_falls_back(
     mocker.patch("sys.platform", "linux")
     owner: typing.Final = runtime_temp_dir.stat().st_uid
     _create(system_root / "run" / "user" / str(owner + 1), "private")
-    mocker.patch("platformdirs.unix.getuid", return_value=owner + 1)
+    mocker.patch("platformdirs.unix.geteuid", return_value=owner + 1)
     assert Unix(appname="app").user_runtime_dir == str(runtime_temp_dir / f"runtime-{owner + 1}" / "app")
 
 
@@ -634,7 +647,7 @@ def test_runtime_dir_warning_points_at_caller() -> None:
 @pytest.mark.filterwarnings("error::platformdirs.RuntimeDirWarning")
 def test_runtime_dir_site_redirect_skips_checks(session_dir: Path, mocker: MockerFixture) -> None:
     _create(session_dir, "mode-755")
-    mocker.patch("platformdirs.unix.getuid", return_value=0)
+    mocker.patch("platformdirs.unix.geteuid", return_value=0)
     mocker.patch("sys.platform", "linux")
     assert Unix(appname="app", use_site_for_root=True).user_runtime_dir == "/run/app"
 
@@ -783,7 +796,7 @@ def temp_dir(runtime_temp_dir: Path, runtime_uid: int) -> Path:
 
 @pytest.fixture
 def runtime_uid(tmp_path: Path, mocker: MockerFixture) -> int:
-    mocker.patch("platformdirs.unix.getuid", return_value=(owner := tmp_path.stat().st_uid))
+    mocker.patch("platformdirs.unix.geteuid", return_value=(owner := tmp_path.stat().st_uid))
     return owner
 
 
@@ -981,7 +994,7 @@ def test_place_file_without_home_creates_nothing(
 def test_place_runtime_file_rejects_temp_fallback_of_other_owner(mocker: MockerFixture, runtime_temp_dir: Path) -> None:
     owner: typing.Final = runtime_temp_dir.stat().st_uid
     (runtime_temp_dir / f"runtime-{owner + 1}").mkdir()
-    mocker.patch("platformdirs.unix.getuid", return_value=owner + 1)
+    mocker.patch("platformdirs.unix.geteuid", return_value=owner + 1)
     with pytest.raises(PermissionError, match=f"owned by uid {owner},"):
         Unix(appname="foo").place_runtime_file("app.sock")
 
@@ -1190,7 +1203,7 @@ def test_site_data_dir_multipath_falls_back_when_xdg_var_is_all_separators(monke
     assert Unix(appname="foo", multipath=True).site_data_dir == os.pathsep.join(dirs)
 
 
-@pytest.mark.usefixtures("_getuid", "runtime_temp_dir")
+@pytest.mark.usefixtures("_geteuid", "runtime_temp_dir")
 @pytest.mark.parametrize("prop", ["user_runtime_dir", "site_runtime_dir"])
 def test_runtime_dir_rejects_relative_value(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, prop: str) -> None:
     monkeypatch.setenv("XDG_RUNTIME_DIR", "relative/runtime")
@@ -1327,6 +1340,29 @@ def test_use_site_for_root_as_non_root(prop: str, expected: str) -> None:
     dirs = Unix(appname="foo", use_site_for_root=True)
     result = getattr(dirs, prop)
     assert result != expected
+
+
+@pytest.fixture
+def _credentials(request: pytest.FixtureRequest, mocker: MockerFixture) -> None:
+    real, effective = typing.cast("tuple[int, int]", request.param)
+    mocker.patch("os.getuid", return_value=real)
+    mocker.patch("os.geteuid", return_value=effective)
+    importlib.reload(unix)
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("_clear_xdg_env", "_credentials")
+@pytest.mark.parametrize(
+    ("_credentials", "expected"),
+    [
+        pytest.param((1000, 0), "/etc/xdg/foo", id="setuid-root"),
+        pytest.param((0, 1000), "/home/alice/.config/foo", id="dropped-root"),
+    ],
+    indirect=["_credentials"],
+)
+def test_use_site_for_root_follows_effective_uid(monkeypatch: pytest.MonkeyPatch, expected: str) -> None:
+    monkeypatch.setenv("HOME", "/home/alice")
+    assert unix.Unix(appname="foo", use_site_for_root=True).user_config_dir == expected
 
 
 @pytest.mark.usefixtures("_as_root", "_no_xdg_runtime_dir")
@@ -1557,7 +1593,7 @@ def test_place_file_with_use_site_for_root_keeps_site_dir_readable(
 @pytest.fixture
 def uid(request: pytest.FixtureRequest, mocker: MockerFixture) -> int:
     value: typing.Final = typing.cast("int", request.param)
-    mocker.patch("platformdirs.unix.getuid", return_value=value)
+    mocker.patch("platformdirs.unix.geteuid", return_value=value)
     return value
 
 

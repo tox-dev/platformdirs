@@ -1,0 +1,2 @@
+Redirect ``user_*_dir`` calls with ``use_site_for_root=True`` when the effective uid is 0, so a setuid-root process gets
+the site directories, and name and check the runtime directory by the effective uid.

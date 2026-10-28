@@ -80,7 +80,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
         """
         self.use_site_for_root = use_site_for_root
-        """Whether to redirect ``user_*_dir`` calls to their ``site_*_dir`` equivalents when running as root (uid 0).
+        """Whether to redirect ``user_*_dir`` calls to their ``site_*_dir`` equivalents when the effective uid is 0.
 
         Only has an effect on Unix. Disabled by default for backwards compatibility. When enabled, XDG user environment
         variables (e.g. ``XDG_DATA_HOME``) are bypassed for the redirected directories.

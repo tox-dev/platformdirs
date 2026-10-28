@@ -775,7 +775,7 @@ def runtime_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerF
 @pytest.fixture
 def foreign_runtime_dir(runtime_dir: Path, mocker: MockerFixture) -> Path:
     runtime_dir.mkdir(mode=0o700)
-    mocker.patch("platformdirs.unix.getuid", return_value=runtime_dir.stat().st_uid + 1)
+    mocker.patch("platformdirs.unix.geteuid", return_value=runtime_dir.stat().st_uid + 1)
     return runtime_dir
 
 

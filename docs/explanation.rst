@@ -491,8 +491,8 @@ When ``multipath=True``, ``site_data_dir`` and ``site_config_dir`` return all pa
 
 Writing to ``site_*`` directories typically requires root privileges. Normal users can only read from these locations.
 
-``user_runtime_dir`` uses ``XDG_RUNTIME_DIR`` only if it names a directory, not a symlink, that the user owns with mode
-``0700``, as the spec requires. If the variable is unset or fails that check, ``platformdirs`` emits a
+``user_runtime_dir`` uses ``XDG_RUNTIME_DIR`` only if it names a directory, not a symlink, that the effective user owns
+with mode ``0700``, as the spec requires. If the variable is unset or fails that check, ``platformdirs`` emits a
 :class:`~platformdirs.RuntimeDirWarning` once for each distinct cause and tries ``/run/user/<uid>``
 (``/var/run/user/<uid>`` on FreeBSD and NetBSD, ``/tmp/run/user/<uid>`` on OpenBSD) under the same check. When that
 directory is missing or fails the check, it falls back to ``runtime-<uid>`` in :func:`tempfile.gettempdir`, created with
@@ -507,12 +507,13 @@ turn warnings into errors and run without a login session, such as in a containe
 
     **Running as root**
 
-    When ``use_site_for_root=True`` is passed and the process is running as root (uid 0), ``user_*_dir`` calls are
-    redirected to their ``site_*_dir`` equivalents. This is useful for system daemons and installers that should write
-    to system-wide directories rather than ``/root/.local/...``. XDG user environment variables (e.g. ``XDG_DATA_HOME``)
-    and ``user-dirs.dirs`` are bypassed when the redirect is active, since they are typically inherited from the calling
-    user via ``sudo`` and would defeat the purpose. The media and fonts directories, which have no site equivalent,
-    return their default under root's home. The parameter is accepted on all platforms but only has an effect on Unix.
+    When ``use_site_for_root=True`` is passed and the process is running as root (effective uid 0), ``user_*_dir``
+    calls are redirected to their ``site_*_dir`` equivalents. This is useful for system daemons and installers that
+    should write to system-wide directories rather than ``/root/.local/...``. XDG user environment variables (e.g.
+    ``XDG_DATA_HOME``) and ``user-dirs.dirs`` are bypassed when the redirect is active, since they are typically
+    inherited from the calling user via ``sudo`` and would defeat the purpose. The media and fonts directories, which
+    have no site equivalent, return their default under root's home. The parameter is accepted on all platforms but
+    only has an effect on Unix.
 
 See :class:`platformdirs.unix.Unix` for the full API reference.
 
