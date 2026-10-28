@@ -3,11 +3,23 @@
 from __future__ import annotations
 
 import re
+import stat
 import sys
-from typing import Final
+from contextlib import suppress
+from pathlib import Path
+from typing import Final, NoReturn
 
 from ._xdg import XDGMixin, _expand_user
 from .api import PlatformDirsABC
+
+if sys.platform == "win32":
+
+    def geteuid() -> NoReturn:
+        msg = "should only be used on macOS"
+        raise RuntimeError(msg)
+
+else:
+    from os import geteuid
 
 
 class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
@@ -18,6 +30,30 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     The XDG env var handling is in :class:`~platformdirs._xdg.XDGMixin`.
 
     """
+
+    def _optionally_create_directory(self, path: str, *, private: bool) -> None:
+        if self.ensure_exists and (shared := Path(_SITE_CACHE)) in (target := Path(path)).parents:
+            # Every user can write to /Library/Caches, so another one may have created this entry first.
+            entry = shared / target.relative_to(shared).parts[0]
+            with suppress(FileExistsError):
+                super()._optionally_create_directory(str(entry), private=private)
+            if problem := self._shared_entry_problem(entry):
+                msg = f"site cache directory {problem}"
+                raise PermissionError(msg)
+            if target == entry:
+                return
+        super()._optionally_create_directory(path, private=private)
+
+    @staticmethod
+    def _shared_entry_problem(path: Path) -> str | None:
+        info = path.lstat()
+        if stat.S_ISLNK(info.st_mode):
+            return f"{path} is a symlink"
+        if not stat.S_ISDIR(info.st_mode):
+            return f"{path} is not a directory"
+        if info.st_uid != 0 and info.st_uid != (euid := geteuid()):
+            return f"{path} is owned by uid {info.st_uid}, not root or {euid}"
+        return None
 
     def _base_user_app_support_dir(self) -> str:
         return self._append_app_name_and_version(_expand_user("~/Library/Application Support"), private=True)
@@ -53,12 +89,18 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def _site_cache_dirs(self) -> list[str]:
         path_list = [self._join_app_name_and_version(f"{prefix}/var/cache")] if (prefix := _homebrew_prefix()) else []
-        path_list.append(self._join_app_name_and_version("/Library/Caches"))
+        path_list.append(self._join_app_name_and_version(_SITE_CACHE))
         return path_list
 
     @property
     def site_cache_dir(self) -> str:
-        """Cache directory shared by users, e.g. ``/Library/Caches/$appname/$version``. If we're using a Python binary managed by `Homebrew <https://brew.sh>`_, the directory will be under the Homebrew prefix, e.g. ``$homebrew_prefix/var/cache/$appname/$version``. If `multipath <platformdirs.api.PlatformDirsABC.multipath>` is enabled, and we're in Homebrew, the response is a multi-path string separated by ":", e.g. ``$homebrew_prefix/var/cache/$appname/$version:/Library/Caches/$appname/$version``."""
+        """Cache directory shared by users, e.g. ``/Library/Caches/$appname/$version``. If we're using a Python binary managed by `Homebrew <https://brew.sh>`_, the directory will be under the Homebrew prefix, e.g. ``$homebrew_prefix/var/cache/$appname/$version``. If `multipath <platformdirs.api.PlatformDirsABC.multipath>` is enabled, and we're in Homebrew, the response is a multi-path string separated by ":", e.g. ``$homebrew_prefix/var/cache/$appname/$version:/Library/Caches/$appname/$version``.
+
+        :raises PermissionError: under `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`, if
+            ``/Library/Caches/$appname`` is a symlink, not a directory or owned by a user other than root and the
+            current one.
+
+        """
         return self._select_site_dirs(self._site_cache_dirs)
 
     @property
@@ -200,6 +242,10 @@ def _homebrew_prefix() -> str | None:
     if match := _HOMEBREW_PYTHON.fullmatch(sys.base_prefix):
         return match["prefix"]
     return None
+
+
+# Unlike the other /Library site bases, macOS ships this one world-writable and sticky, like /tmp.
+_SITE_CACHE: Final = "/Library/Caches"
 
 
 __all__ = [

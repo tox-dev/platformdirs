@@ -203,6 +203,11 @@ alone.
 
 Without a resolvable home directory, ``ensure_exists`` raises ``RuntimeError`` for a path that would start with ``~``.
 
+On macOS every user can write to ``/Library/Caches``, the base of ``site_cache_dir``, so ``ensure_exists`` checks
+``/Library/Caches/$appname`` before creating anything below it. It raises :exc:`PermissionError` if that entry is a
+symlink, not a directory, or owned by a user other than root and the current one. On Windows every user can create
+folders in ``C:\ProgramData``, and platformdirs does not check who created an existing site directory there.
+
 .. code-block:: python
 
     from platformdirs import PlatformDirs
@@ -219,8 +224,8 @@ Without a resolvable home directory, ``ensure_exists`` raises ``RuntimeError`` f
 ``use_site_for_root``
 =====================
 
-Unix-only. When ``True``, redirects ``user_*_dir`` calls to their ``site_*_dir`` equivalents when running as root (uid
-0). Defaults to ``False`` for backwards compatibility.
+Unix-only. When ``True``, redirects ``user_*_dir`` calls to their ``site_*_dir`` equivalents when running as root
+(effective uid 0). Defaults to ``False`` for backwards compatibility.
 
 When enabled, XDG user environment variables (e.g., ``XDG_DATA_HOME``) are bypassed for the redirected directories. This
 is useful for system services running as root that should use system-wide directories rather than root's home directory.

@@ -215,4 +215,4 @@ def test_isolated_dirs_nested_root_restores_after_exception(tmp_path: Path) -> N
 @pytest.fixture
 def _unix_root(mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.PlatformDirs", Unix)
-    mocker.patch("platformdirs.unix.getuid", return_value=0)
+    mocker.patch("platformdirs.unix.geteuid", return_value=0)

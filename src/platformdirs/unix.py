@@ -20,12 +20,12 @@ if TYPE_CHECKING:
 
 if sys.platform == "win32":
 
-    def getuid() -> NoReturn:
+    def geteuid() -> NoReturn:
         msg = "should only be used on Unix"
         raise RuntimeError(msg)
 
 else:
-    from os import getuid
+    from os import geteuid
 
 
 class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
@@ -37,7 +37,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def _use_site(self) -> bool:
-        return self.use_site_for_root and getuid() == 0
+        return self.use_site_for_root and geteuid() == 0
 
     @property
     def user_data_dir(self) -> str:
@@ -177,16 +177,16 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     def _default_runtime_dir(self) -> str:
         if sys.platform.startswith("openbsd"):
-            path = f"/tmp/run/user/{getuid()}"  # ruff:ignore[hardcoded-temp-file]
+            path = f"/tmp/run/user/{geteuid()}"  # ruff:ignore[hardcoded-temp-file]
         elif sys.platform.startswith(("freebsd", "netbsd")):
-            path = f"/var/run/user/{getuid()}"
+            path = f"/var/run/user/{geteuid()}"
         else:
-            path = f"/run/user/{getuid()}"
+            path = f"/run/user/{geteuid()}"
         return self._temp_runtime_dir() if _runtime_dir_problem(path, missing_ok=False) else path
 
     def _temp_runtime_dir(self) -> str:
         # Another user can pre-create this predictable name, and XDG requires an owned runtime dir with mode 0700.
-        path = f"{gettempdir()}/runtime-{getuid()}"
+        path = f"{gettempdir()}/runtime-{geteuid()}"
         with suppress(FileExistsError):
             self._optionally_create_directory(path, private=True)
         if problem := _runtime_dir_problem(path, missing_ok=not self.ensure_exists, check_mode=False):
@@ -406,7 +406,7 @@ def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
 def _in_own_runtime_dir(path: Path) -> bool:
     # The lookup let a missing runtime directory pass, so another user may have created it since. The fallback goes
     # first because a rejected XDG_RUNTIME_DIR, such as /tmp, contains it.
-    for base in (f"{gettempdir()}/runtime-{getuid()}", _xdg_dir("XDG_RUNTIME_DIR")):
+    for base in (f"{gettempdir()}/runtime-{geteuid()}", _xdg_dir("XDG_RUNTIME_DIR")):
         if base and path.is_relative_to(base):
             return not _runtime_dir_problem(base, missing_ok=False, check_mode=False)
     return True
@@ -430,7 +430,7 @@ def _runtime_dir_problem(path: str, *, missing_ok: bool, check_mode: bool = True
     checks = (
         (stat.S_ISLNK(info.st_mode), "is a symlink"),
         (not stat.S_ISDIR(info.st_mode), "is not a directory"),
-        (info.st_uid != (uid := getuid()), f"is owned by uid {info.st_uid}, not {uid}"),
+        (info.st_uid != (uid := geteuid()), f"is owned by uid {info.st_uid}, not {uid}"),
         (check_mode and mode != _RUNTIME_DIR_MODE, f"has mode {mode:04o}, not {_RUNTIME_DIR_MODE:04o}"),
     )
     return next((f"{path} {problem}" for failed, problem in checks if failed), None)
@@ -442,7 +442,7 @@ def _runtime_dir_parent_problem(path: str) -> str | None:
     in_shared_dir = False
     for parent in reversed(Path(path).parents):
         try:
-            if in_shared_dir and (owner := os.lstat(parent).st_uid) not in {0, getuid()}:
+            if in_shared_dir and (owner := os.lstat(parent).st_uid) not in {0, geteuid()}:
                 return f"{path} is below {parent}, owned by uid {owner}"
             mode = parent.stat().st_mode  # a symlink that got past the owner check is judged by its target
         except OSError:

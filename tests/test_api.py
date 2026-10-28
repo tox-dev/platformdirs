@@ -279,7 +279,7 @@ def test_appname_within_base_is_accepted(appname: str) -> None:
 
 _KINDS: Final = [pytest.param(kind, id=kind) for kind in ("config", "data", "cache", "state", "log", "runtime")]
 _POSIX_ONLY: Final = pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
-# Unix checks the owner of the runtime directory against getuid, which Windows lacks.
+# Unix checks the owner of the runtime directory against geteuid, which Windows lacks.
 _EXISTING_KINDS: Final = [
     *(pytest.param(kind, id=kind) for kind in ("config", "data", "cache", "state", "log")),
     pytest.param("runtime", id="runtime", marks=_POSIX_ONLY),
@@ -510,7 +510,7 @@ def test_find_config_file_accepts_nested_path_like(dirs: Unix, config_paths: lis
 def test_find_file_finds_root_placed_file_in_first_site_dir(
     dirs: Unix, mocker: MockerFixture, kind: str, multipath: bool
 ) -> None:
-    mocker.patch("platformdirs.unix.getuid", return_value=0)
+    mocker.patch("platformdirs.unix.geteuid", return_value=0)
     dirs.use_site_for_root = True
     dirs.multipath = multipath
     getattr(dirs, f"place_{kind}_file")("app.toml").touch()
