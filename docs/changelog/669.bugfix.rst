@@ -1,0 +1,3 @@
+Stop accepting a Unix runtime directory that another user creates between the owner check and its use:
+``ensure_exists`` and :meth:`~platformdirs.unix.Unix.place_runtime_file` create it before checking it, and
+:meth:`~platformdirs.api.PlatformDirsABC.find_runtime_file` checks it again after a hit.

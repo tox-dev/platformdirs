@@ -73,7 +73,7 @@ class XDGMixin(PlatformDirsABC):
             with suppress(OSError):
                 self._optionally_create_directory(path, private=True)
             # Another user can pre-create the path in a shared parent, and XDG requires an owned runtime dir with mode 0700.
-            if not (problem := _runtime_dir_problem(path)):
+            if not (problem := _runtime_dir_problem(path, missing_ok=not self.ensure_exists)):
                 return self._append_app_name_and_version(path, private=True)
             _warn_once(f"XDG_RUNTIME_DIR {problem}, falling back to the platform default")
         return super().user_runtime_dir
