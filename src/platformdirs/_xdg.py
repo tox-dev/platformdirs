@@ -174,7 +174,7 @@ def _expand_user(path: str) -> str:
     :raises RuntimeError: if the home directory cannot be resolved to an absolute path.
 
     """
-    if sys.platform != "win32" and "HOME" in os.environ and not posixpath.isabs(os.environ["HOME"]):
+    if sys.platform != "win32" and "HOME" in os.environ and not _is_absolute(os.environ["HOME"]):
         # expanduser uses HOME verbatim, so an empty one roots the path at / and a relative one at the working directory
         expanded = path
         with suppress(ImportError, KeyError):
@@ -183,11 +183,15 @@ def _expand_user(path: str) -> str:
             expanded = pwd.getpwuid(os.getuid()).pw_dir.rstrip("/") + path[1:] or "/"
     else:
         expanded = os.path.expanduser(path)  # ruff:ignore[os-path-expanduser]  # str(Path) rewrites separators on Windows
-    # is_absolute accepts a Windows drive path, posixpath.isabs the POSIX home the Unix class gets on any host
-    if not (posixpath.isabs(expanded) or Path(expanded).is_absolute()):
+    if not _is_absolute(expanded):
         msg = f"could not determine the home directory for {path!r}, set an absolute HOME or XDG variable"
         raise RuntimeError(msg)
     return expanded
+
+
+def _is_absolute(path: str) -> bool:
+    # is_absolute accepts a Windows drive path, posixpath.isabs the POSIX home the Unix class gets on any host
+    return posixpath.isabs(path) or Path(path).is_absolute()
 
 
 __all__ = [
