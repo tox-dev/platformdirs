@@ -155,6 +155,10 @@ Unix/macOS only. When ``True``, ``site_data_dir`` and ``site_config_dir`` return
     >>> site_data_dir("SuperApp", multipath=True)  # on Linux
     '/usr/local/share/SuperApp:/usr/share/SuperApp'
 
+With ``multipath=True``, an ``appname`` or ``version`` that contains ``os.pathsep`` raises :class:`ValueError`, since
+the joined string could not be split back into its directories. The ``*_path`` properties return a single directory and
+keep such names.
+
 **Type**: ``bool``
 
 **Default**: ``False``

@@ -334,6 +334,30 @@ def test_site_cache_path_multipath_keeps_path_separator_in_app_arguments() -> No
     assert dirs.site_cache_path == Path("/var/cache", f"org{os.pathsep}app", f"1{os.pathsep}2")
 
 
+@pytest.mark.parametrize("prop", ["site_data_dir", "site_config_dir"])
+@pytest.mark.parametrize(
+    ("appname", "version"),
+    [
+        pytest.param(f"x{os.pathsep}/etc/evil", None, id="appname"),
+        pytest.param("foo", f"1{os.pathsep}/etc/evil", id="version"),
+    ],
+)
+def test_site_dir_multipath_rejects_path_separator_in_app_arguments(
+    prop: str, appname: str, version: str | None
+) -> None:
+    with pytest.raises(ValueError, match="multipath cannot join"):
+        getattr(Unix(appname=appname, version=version, multipath=True), prop)
+
+
+def test_site_dir_multipath_rejects_path_separator_before_creating(
+    monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str
+) -> None:
+    monkeypatch.setenv("XDG_DATA_DIRS", f"{posix_tmp_path}/site")
+    with pytest.raises(ValueError, match="multipath cannot join"):
+        _ = Unix(appname=f"x{os.pathsep}y", multipath=True, ensure_exists=True).site_data_dir
+    assert not Path(posix_tmp_path, "site").exists()
+
+
 @pytest.mark.usefixtures("_getuid")
 @pytest.mark.parametrize("platform", [pytest.param("freebsd", id="freebsd"), pytest.param("netbsd", id="netbsd")])
 def test_freebsd_netbsd_site_runtime_dir(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, platform: str) -> None:
