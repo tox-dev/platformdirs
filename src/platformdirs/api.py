@@ -725,4 +725,4 @@ def _make_private_directories(path: Path) -> None:
 
 
 class RuntimeDirWarning(UserWarning):
-    """Emitted when the Unix :attr:`~platformdirs.unix.Unix.user_runtime_dir` cannot use ``$XDG_RUNTIME_DIR``."""
+    """Emitted when a Unix or macOS runtime directory cannot use ``$XDG_RUNTIME_DIR``."""
