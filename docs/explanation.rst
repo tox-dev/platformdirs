@@ -497,8 +497,11 @@ Writing to ``site_*`` directories typically requires root privileges. Normal use
 (``/var/run/user/<uid>`` on FreeBSD and NetBSD, ``/tmp/run/user/<uid>`` on OpenBSD) under the same check. When that
 directory is missing or fails the check, it falls back to ``runtime-<uid>`` in :func:`tempfile.gettempdir`, created with
 mode ``0700`` under ``ensure_exists``. It raises :exc:`PermissionError` if that fallback is a symlink, not a directory,
-or owned by another user. Test suites that turn warnings into errors and run without a login session, such as in a
-container, can silence the warning with ``warnings.filterwarnings("ignore", category=platformdirs.RuntimeDirWarning)``.
+or owned by another user. ``ensure_exists`` and ``place_runtime_file`` create the runtime directory before checking it,
+so one that is missing right after also fails. ``find_runtime_file`` and ``find_runtime_files`` skip a file below
+``XDG_RUNTIME_DIR`` or ``runtime-<uid>`` unless that directory exists and passes the owner check. Test suites that
+turn warnings into errors and run without a login session, such as in a container, can silence the warning with
+``warnings.filterwarnings("ignore", category=platformdirs.RuntimeDirWarning)``.
 
 .. note::
 
@@ -507,8 +510,9 @@ container, can silence the warning with ``warnings.filterwarnings("ignore", cate
     When ``use_site_for_root=True`` is passed and the process is running as root (uid 0), ``user_*_dir`` calls are
     redirected to their ``site_*_dir`` equivalents. This is useful for system daemons and installers that should write
     to system-wide directories rather than ``/root/.local/...``. XDG user environment variables (e.g. ``XDG_DATA_HOME``)
-    are bypassed when the redirect is active, since they are typically inherited from the calling user via ``sudo`` and
-    would defeat the purpose. The parameter is accepted on all platforms but only has an effect on Unix.
+    and ``user-dirs.dirs`` are bypassed when the redirect is active, since they are typically inherited from the calling
+    user via ``sudo`` and would defeat the purpose. The media and fonts directories, which have no site equivalent,
+    return their default under root's home. The parameter is accepted on all platforms but only has an effect on Unix.
 
 See :class:`platformdirs.unix.Unix` for the full API reference.
 

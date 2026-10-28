@@ -229,6 +229,8 @@ Unix-only. When ``True``, redirects ``user_*_dir`` calls to their ``site_*_dir``
 
 When enabled, XDG user environment variables (e.g., ``XDG_DATA_HOME``) are bypassed for the redirected directories. This
 is useful for system services running as root that should use system-wide directories rather than root's home directory.
+The media and fonts directories have no site equivalent, so they ignore ``XDG_*_DIR``, ``user-dirs.dirs`` and
+``XDG_DATA_HOME`` and return their default under root's home, such as ``/root/Documents``, without creating it.
 
 .. code-block:: python
 
@@ -273,9 +275,9 @@ Supported XDG variables:
 - ``XDG_CONFIG_DIRS`` - system config directories (colon-separated).
 - ``XDG_RUNTIME_DIR`` - user runtime directory.
 
-On Unix and macOS the home directory comes from ``HOME``, or from the password database when ``HOME`` is unset or empty.
-Without either, a directory under the home raises ``RuntimeError``, while site directories and absolute XDG values still
-resolve.
+On Unix, macOS and iOS the home directory comes from ``HOME``, or from the password database when ``HOME`` is unset,
+empty or relative. Without an absolute home from either, a directory under the home raises ``RuntimeError``, while site
+directories and absolute XDG values still resolve.
 
 **Windows environment variable overrides**: On Windows, ``WIN_PD_OVERRIDE_*`` environment variables can override default
 paths. See the :ref:`explanation:Windows` section for details.

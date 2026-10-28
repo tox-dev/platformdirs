@@ -10,10 +10,13 @@ import warnings
 from contextlib import suppress
 from pathlib import Path
 from tempfile import gettempdir
-from typing import Final, NoReturn
+from typing import TYPE_CHECKING, Final, NoReturn
 
 from ._xdg import XDGMixin, _expand_user, _xdg_dir
 from .api import PlatformDirsABC, RuntimeDirWarning
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 if sys.platform == "win32":
 
@@ -179,14 +182,14 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
             path = f"/var/run/user/{getuid()}"
         else:
             path = f"/run/user/{getuid()}"
-        return path if os.path.lexists(path) and not _runtime_dir_problem(path) else self._temp_runtime_dir()
+        return self._temp_runtime_dir() if _runtime_dir_problem(path, missing_ok=False) else path
 
     def _temp_runtime_dir(self) -> str:
         # Another user can pre-create this predictable name, and XDG requires an owned runtime dir with mode 0700.
         path = f"{gettempdir()}/runtime-{getuid()}"
         with suppress(FileExistsError):
             self._optionally_create_directory(path, private=True)
-        if problem := _runtime_dir_problem(path, check_mode=False):
+        if problem := _runtime_dir_problem(path, missing_ok=not self.ensure_exists, check_mode=False):
             msg = f"runtime directory {problem}; set XDG_RUNTIME_DIR instead"
             raise PermissionError(msg)
         # Earlier releases created this directory with the default 0755.
@@ -266,7 +269,8 @@ class Unix(XDGMixin, _UnixDefaults):
         elsewhere) if it passes the same check, else to ``runtime-<uid>`` in the temporary directory. Root with
         ``use_site_for_root`` gets the site equivalent.
 
-        :raises PermissionError: if the temporary fallback is a symlink, not a directory, or owned by another user.
+        :raises PermissionError: if the temporary fallback is a symlink, not a directory, owned by another user, or
+            missing right after its creation.
 
         """
         if self._use_site:
@@ -277,16 +281,47 @@ class Unix(XDGMixin, _UnixDefaults):
         else:
             with suppress(OSError):
                 self._optionally_create_directory(path, private=True)
-            if not (problem := _runtime_dir_problem(path)):
+            if not (problem := _runtime_dir_problem(path, missing_ok=not self.ensure_exists)):
                 return self._append_app_name_and_version(path, private=True)
             reason = f"XDG_RUNTIME_DIR {problem}"
         _warn_once(f"{reason}, falling back to {(fallback := self._default_runtime_dir())}")
         return self._append_app_name_and_version(fallback, private=True)
 
+    def place_runtime_file(self, name: str | os.PathLike[str]) -> Path:
+        """Like :meth:`~platformdirs.api.PlatformDirsABC.place_runtime_file`.
+
+        Creates the runtime directory before checking it, so another user cannot create it in between.
+
+        :raises PermissionError: if the temporary fallback is a symlink, not a directory, owned by another user, or
+            missing right after its creation.
+
+        """
+
+        def created(lookup: PlatformDirsABC) -> Path:
+            lookup.ensure_exists = True
+            return lookup.user_runtime_path
+
+        return self._place_file(created, name)
+
+    def _find_runtime_files(self, name: str | os.PathLike[str]) -> Iterator[Path]:
+        return filter(_in_own_runtime_dir, super()._find_runtime_files(name))
+
     @property
     def user_bin_dir(self) -> str:
         """Bin directory tied to the user, or site equivalent when root with ``use_site_for_root``."""
         return self.site_bin_dir if self._use_site else super().user_bin_dir
+
+    @property
+    def user_fonts_dir(self) -> str:
+        """Fonts directory tied to the user, ignoring ``$XDG_DATA_HOME`` when root with ``use_site_for_root``."""
+        return super(XDGMixin, self).user_fonts_dir if self._use_site else super().user_fonts_dir
+
+    def _xdg_media_dir(self, env_var: str) -> str | None:
+        # The XDG_*_DIR variables and user-dirs.dirs belong to the user who started the root process.
+        return None if self._use_site else super()._xdg_media_dir(env_var)
+
+    def _user_media_dir(self, key: str, default: str) -> str:
+        return _expand_user(default) if self._use_site else super()._user_media_dir(key, default)
 
     @property
     def user_data_path(self) -> Path:
@@ -314,8 +349,9 @@ _USER_DIRS_LINE: Final = re.compile(
     [ \t]*(?P<key>\w+)[ \t]*=[ \t]*  # KEY=, blanks allowed around the key and after the =
     (?:
         "(?P<quoted>(?:[^"\\]|\\.)*)"  # a double-quoted value with backslash escapes, text after it ignored
-        |(?P<bare>[^"\s].*?)          # or an unquoted value, up to
-        (?:[ \t]+\#.*|[ \t]*)$         # a comment, which sh starts at a word-initial #, or the line end
+        |(?P<bare>[^"\s](?:[^ \t\n]|[ \t]+[^ \t\n\#])*)  # or an unquoted value; blanks join it only before a word
+                                                         # that starts no comment, and each run is matched once so
+                                                         # long runs stay linear
     )
     """,
     re.VERBOSE,
@@ -360,12 +396,27 @@ def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
     return f"{prefix}{value}" or "/"
 
 
-def _runtime_dir_problem(path: str, *, check_mode: bool = True) -> str | None:
-    """Return why ``path`` fails the checks of Qt's ``checkXdgRuntimeDir``, or ``None`` if it passes or is missing."""
+def _in_own_runtime_dir(path: Path) -> bool:
+    # The lookup let a missing runtime directory pass, so another user may have created it since. The fallback goes
+    # first because a rejected XDG_RUNTIME_DIR, such as /tmp, contains it.
+    for base in (f"{gettempdir()}/runtime-{getuid()}", _xdg_dir("XDG_RUNTIME_DIR")):
+        if base and path.is_relative_to(base):
+            return not _runtime_dir_problem(base, missing_ok=False, check_mode=False)
+    return True
+
+
+def _runtime_dir_problem(path: str, *, missing_ok: bool, check_mode: bool = True) -> str | None:
+    """Return why ``path`` fails the checks of Qt's ``checkXdgRuntimeDir``, or ``None`` if it passes.
+
+    A missing ``path`` passes under ``missing_ok``. A caller that then creates it or reads below it has to check again,
+    since another user can create it in between.
+
+    """
     try:
-        info = os.lstat(path)
+        # A trailing / or /. makes lstat follow a final symlink, while Path, which creates the directory, drops it.
+        info = os.lstat(str(Path(path)))
     except FileNotFoundError:
-        return None
+        return None if missing_ok else f"{path} is missing"
     except OSError as error:
         return f"{path} cannot be checked: {error.strerror}"
     mode = info.st_mode & 0o777
