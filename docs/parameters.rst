@@ -263,9 +263,9 @@ Supported XDG variables:
 - ``XDG_CONFIG_DIRS`` - system config directories (colon-separated).
 - ``XDG_RUNTIME_DIR`` - user runtime directory.
 
-On Unix and macOS the home directory comes from ``HOME``, or from the password database when ``HOME`` is unset or empty.
-Without either, a directory under the home raises ``RuntimeError``, while site directories and absolute XDG values still
-resolve.
+On Unix, macOS and iOS the home directory comes from ``HOME``, or from the password database when ``HOME`` is unset,
+empty or relative. Without an absolute home from either, a directory under the home raises ``RuntimeError``, while site
+directories and absolute XDG values still resolve.
 
 **Windows environment variable overrides**: On Windows, ``WIN_PD_OVERRIDE_*`` environment variables can override default
 paths. See the :ref:`explanation:Windows` section for details.

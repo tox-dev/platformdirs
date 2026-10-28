@@ -740,6 +740,7 @@ def test_without_home_site_dir_applies(dirs_class: type[Unix | MacOS], prop: str
 
 
 @pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.parametrize("home", [pytest.param("", id="empty"), pytest.param("relhome", id="relative")])
 @pytest.mark.parametrize(
     ("dirs_class", "expected"),
     [
@@ -747,17 +748,30 @@ def test_without_home_site_dir_applies(dirs_class: type[Unix | MacOS], prop: str
         pytest.param(MacOS, "/home/app-user/Library/Application Support/app", id="macos"),
     ],
 )
-def test_empty_home_uses_passwd_entry(
+def test_unusable_home_uses_passwd_entry(  # ruff:ignore[too-many-arguments]
     monkeypatch: pytest.MonkeyPatch,
     mocker: MockerFixture,
     pwd: ModuleType,
     dirs_class: type[Unix | MacOS],
     expected: str,
+    home: str,
 ) -> None:
-    monkeypatch.setenv("HOME", "")
+    monkeypatch.setenv("HOME", home)
     entry = pwd.struct_passwd(("app-user", "x", 12345, 12345, "", "/home/app-user", "/bin/sh"))
     mocker.patch.object(pwd, "getpwuid", return_value=entry)
     assert dirs_class(appname="app").user_config_dir == expected
+
+
+@pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.parametrize("dirs_class", _CLASSES)
+def test_relative_passwd_home_raises(
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, pwd: ModuleType, dirs_class: type[Unix | MacOS]
+) -> None:
+    monkeypatch.delenv("HOME", raising=False)
+    entry = pwd.struct_passwd(("app-user", "x", 12345, 12345, "", "relhome", "/bin/sh"))
+    mocker.patch.object(pwd, "getpwuid", return_value=entry)
+    with pytest.raises(RuntimeError, match=r"^could not determine the home directory for '~/"):
+        _ = dirs_class(appname="app").user_config_dir
 
 
 @pytest.mark.usefixtures("_clear_xdg_env", "_unknown_home")

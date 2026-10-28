@@ -6,6 +6,7 @@ import os
 import posixpath
 import sys
 from contextlib import suppress
+from pathlib import Path
 from typing import Final
 
 from .api import PlatformDirsABC
@@ -168,13 +169,13 @@ def _xdg_dir_list(env_var: str) -> list[str]:
 
 
 def _expand_user(path: str) -> str:
-    """Expand the leading ``~`` of ``path`` like :func:`os.path.expanduser`, treating an empty ``HOME`` as unset on POSIX.
+    """Expand the leading ``~`` of ``path`` like :func:`os.path.expanduser`, treating a relative ``HOME`` as unset on POSIX.
 
-    :raises RuntimeError: if the home directory cannot be resolved.
+    :raises RuntimeError: if the home directory cannot be resolved to an absolute path.
 
     """
-    if sys.platform != "win32" and "HOME" in os.environ and not os.environ["HOME"]:
-        # expanduser roots the path at / for an empty HOME; Rust's std::env::home_dir treats it as unset too
+    if sys.platform != "win32" and "HOME" in os.environ and not posixpath.isabs(os.environ["HOME"]):
+        # expanduser uses HOME verbatim, so an empty one roots the path at / and a relative one at the working directory
         expanded = path
         with suppress(ImportError, KeyError):
             import pwd  # ruff:ignore[import-outside-top-level]  # missing on WASI
@@ -182,8 +183,9 @@ def _expand_user(path: str) -> str:
             expanded = pwd.getpwuid(os.getuid()).pw_dir.rstrip("/") + path[1:] or "/"
     else:
         expanded = os.path.expanduser(path)  # ruff:ignore[os-path-expanduser]  # str(Path) rewrites separators on Windows
-    if expanded.startswith("~"):
-        msg = f"could not determine the home directory for {path!r}, set HOME or an absolute XDG variable"
+    # is_absolute accepts a Windows drive path, posixpath.isabs the POSIX home the Unix class gets on any host
+    if not (posixpath.isabs(expanded) or Path(expanded).is_absolute()):
+        msg = f"could not determine the home directory for {path!r}, set an absolute HOME or XDG variable"
         raise RuntimeError(msg)
     return expanded
 
