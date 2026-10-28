@@ -319,6 +319,18 @@ class Unix(XDGMixin, _UnixDefaults):
         return self.site_bin_dir if self._use_site else super().user_bin_dir
 
     @property
+    def user_fonts_dir(self) -> str:
+        """Fonts directory tied to the user, ignoring ``$XDG_DATA_HOME`` when root with ``use_site_for_root``."""
+        return super(XDGMixin, self).user_fonts_dir if self._use_site else super().user_fonts_dir
+
+    def _xdg_media_dir(self, env_var: str) -> str | None:
+        # The XDG_*_DIR variables and user-dirs.dirs belong to the user who started the root process.
+        return None if self._use_site else super()._xdg_media_dir(env_var)
+
+    def _user_media_dir(self, key: str, default: str) -> str:
+        return _expand_user(default) if self._use_site else super()._user_media_dir(key, default)
+
+    @property
     def user_data_path(self) -> Path:
         """Data path tied to the user, or the first site entry when root with ``use_site_for_root``."""
         return self.site_data_path if self._use_site else super().user_data_path
@@ -344,8 +356,9 @@ _USER_DIRS_LINE: Final = re.compile(
     [ \t]*(?P<key>\w+)[ \t]*=[ \t]*  # KEY=, blanks allowed around the key and after the =
     (?:
         "(?P<quoted>(?:[^"\\]|\\.)*)"  # a double-quoted value with backslash escapes, text after it ignored
-        |(?P<bare>[^"\s].*?)          # or an unquoted value, up to
-        (?:[ \t]+\#.*|[ \t]*)$         # a comment, which sh starts at a word-initial #, or the line end
+        |(?P<bare>[^"\s](?:[^ \t\n]|[ \t]+[^ \t\n\#])*)  # or an unquoted value; blanks join it only before a word
+                                                         # that starts no comment, and each run is matched once so
+                                                         # long runs stay linear
     )
     """,
     re.VERBOSE,
