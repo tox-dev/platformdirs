@@ -1,2 +1,2 @@
-Keep the diagnostic command running when a user directory cannot resolve the home, printing the error alongside the
-remaining directory paths.
+Print the error and keep listing directories in ``python -m platformdirs`` when the home directory is unknown, rather
+than stopping with ``RuntimeError``.

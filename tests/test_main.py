@@ -35,7 +35,7 @@ def test_run_prints_missing_home_and_continues(
     mocker.patch("platformdirs.__main__.PlatformDirs", Unix)
     monkeypatch.setenv("XDG_RUNTIME_DIR", str(tmp_path))
     main()
-    output = capsys.readouterr().out
+    output: Final = capsys.readouterr().out
     assert output.count("user_data_dir: could not determine the home directory") == 4
     assert output.count("site_data_dir: /usr/local/share/MyApp") == 4
 
