@@ -1,1 +1,2 @@
-Fall back to the default media directories when ``user-dirs.dirs`` exists but can't be read, instead of raising.
+Fall back to the default media directories when ``user-dirs.dirs`` exists but cannot be read, rather than raising
+``PermissionError`` or ``IsADirectoryError`` - by :user:`Debasishhh`.

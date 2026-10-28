@@ -334,15 +334,14 @@ def _get_user_dirs_folder(key: str) -> str | None:
     config_home = _xdg_dir("XDG_CONFIG_HOME") or _expand_user("~/.config")
     user_dirs_config_path = Path(config_home) / "user-dirs.dirs"
     folder = None
-    # the file holds raw path bytes, and surrogateescape round-trips undecodable ones like os.fsdecode
     try:
-        stream = user_dirs_config_path.open(encoding=sys.getfilesystemencoding(), errors="surrogateescape")
-    except OSError:  # missing or unreadable, so fall back to the default
+        # the file holds raw path bytes, and surrogateescape round-trips undecodable ones like os.fsdecode
+        with user_dirs_config_path.open(encoding=sys.getfilesystemencoding(), errors="surrogateescape") as stream:
+            for line in stream:
+                if (entry := _USER_DIRS_LINE.match(line)) and entry["key"] == key:
+                    folder = _resolve_user_dirs_value(entry) or folder
+    except OSError:  # a missing or unreadable file leaves the defaults in place
         return None
-    with stream:
-        for line in stream:
-            if (entry := _USER_DIRS_LINE.match(line)) and entry["key"] == key:
-                folder = _resolve_user_dirs_value(entry) or folder
     return folder
 
 

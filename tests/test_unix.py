@@ -1002,15 +1002,6 @@ def test_user_media_dir_missing_key_in_user_dirs_file(tmp_path: Path, monkeypatc
     assert Unix().user_documents_dir == f"{tmp_path}/Documents"
 
 
-def test_user_media_dir_unreadable_user_dirs_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
-    (tmp_path / ".config" / "user-dirs.dirs").mkdir(parents=True)
-    monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    monkeypatch.setenv("XDG_CONFIG_HOME", "")
-    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
-
-
 def test_user_media_dir_no_user_dirs_file(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1375,6 +1366,12 @@ def test_user_dirs_read_like_xdg_user_dir(content: str, expected: str, tmp_path:
 def test_user_dirs_undecodable_bytes(content: bytes, expected: str, tmp_path: Path, user_dirs_file: Path) -> None:
     user_dirs_file.write_bytes(content)
     assert Unix().user_documents_dir == expected.replace("~", str(tmp_path), 1)
+
+
+def test_user_dirs_unreadable_file_uses_default(tmp_path: Path, user_dirs_file: Path) -> None:
+    # a directory stands in for an unreadable file because root ignores a chmod 000
+    user_dirs_file.mkdir()
+    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
 
 
 @pytest.fixture
