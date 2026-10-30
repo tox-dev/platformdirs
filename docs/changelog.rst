@@ -6,6 +6,20 @@
 
 .. towncrier release notes start
 
+.. _release-4-14-1:
+
+*********************
+ 4.14.1 (2026-10-30)
+*********************
+
+.. _release-4-14-1-fixed:
+
+Fixed
+=====
+
+- Fall back to the real user ID on platforms without an effective user ID, restoring imports and Unix directory lookups
+  on Pyodide (:pr:`676`) by :user:`mayankdhingra02`.
+
 .. _release-4-14-0:
 
 *********************
