@@ -387,6 +387,23 @@ def test_platform_on_win32(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixtur
         sys.modules["platformdirs.unix"] = prev_unix
 
 
+@pytest.mark.parametrize("uid", [0, 1234])
+def test_platform_without_geteuid(
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, runtime_temp_dir: Path, uid: int
+) -> None:
+    monkeypatch.setattr(sys, "platform", "emscripten")
+    monkeypatch.delattr(os, "geteuid", raising=False)
+    getuid = mocker.patch("os.getuid", return_value=uid, create=True)
+    importlib.reload(unix)
+
+    assert unix.geteuid is getuid
+    dirs = unix.Unix(appname="app")
+    with _fallback_warning(expected=True):
+        assert Path(dirs.user_runtime_dir) == runtime_temp_dir / f"runtime-{uid}" / "app"
+    config_dir = unix.Unix(appname="app", use_site_for_root=True).user_config_dir
+    assert Path(config_dir) == Path("/etc/xdg/app" if uid == 0 else dirs.user_config_dir)
+
+
 @pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
 @pytest.mark.parametrize(
     ("existing_mode", "ensure_exists", "expected_mode"),

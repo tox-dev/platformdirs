@@ -5,6 +5,9 @@
 ``platformdirs`` auto-detects the current platform and returns the correct directory paths. This page describes the
 default paths for each platform and any platform-specific behavior.
 
+Unix runtime directory names, ownership checks and ``use_site_for_root`` use the effective user ID. On platforms
+without ``os.geteuid()``, such as Pyodide, they use ``os.getuid()`` instead.
+
 All examples below assume ``appname="SuperApp"`` and ``appauthor="Acme"`` unless stated otherwise. On iOS, ``~`` is the
 app's data container.
 

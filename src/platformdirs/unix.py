@@ -25,7 +25,10 @@ if sys.platform == "win32":
         raise RuntimeError(msg)
 
 else:
-    from os import geteuid
+    try:
+        from os import geteuid
+    except ImportError:
+        from os import getuid as geteuid
 
 
 class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
