@@ -399,9 +399,9 @@ def test_platform_without_geteuid(
     assert unix.geteuid is getuid
     dirs = unix.Unix(appname="app")
     with _fallback_warning(expected=True):
-        assert dirs.user_runtime_dir == str(runtime_temp_dir / f"runtime-{uid}" / "app")
+        assert Path(dirs.user_runtime_dir) == runtime_temp_dir / f"runtime-{uid}" / "app"
     config_dir = unix.Unix(appname="app", use_site_for_root=True).user_config_dir
-    assert config_dir == ("/etc/xdg/app" if uid == 0 else dirs.user_config_dir)
+    assert Path(config_dir) == Path("/etc/xdg/app" if uid == 0 else dirs.user_config_dir)
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
