@@ -6,6 +6,20 @@
 
 .. towncrier release notes start
 
+.. _release-4-14-2:
+
+*********************
+ 4.14.2 (2026-10-31)
+*********************
+
+.. _release-4-14-2-fixed:
+
+Fixed
+=====
+
+- Deduplicate equivalent XDG directory spellings across string and path iterators and file searches (:pr:`677`) by
+  :user:`AlvaroBalbin` and :user:`gaborbernat`.
+
 .. _release-4-14-1:
 
 *********************
