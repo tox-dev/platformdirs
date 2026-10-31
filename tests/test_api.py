@@ -444,6 +444,54 @@ def _touch(path: Path) -> Path:
     return path
 
 
+@pytest.mark.parametrize("dirs_class", [pytest.param(Unix, id="unix"), pytest.param(MacOS, id="macos")])
+@pytest.mark.parametrize("kind", [pytest.param("config", id="config"), pytest.param("data", id="data")])
+@pytest.mark.parametrize(
+    "suffix", [pytest.param("", id="same"), pytest.param("/", id="slash"), pytest.param("/.", id="dot")]
+)
+def test_equivalent_xdg_dirs_keep_first_spelling(equivalent_xdg_dirs: tuple[Unix | MacOS, str], kind: str) -> None:
+    dirs, home = equivalent_xdg_dirs
+    assert list(getattr(dirs, f"iter_{kind}_dirs")()) == [home]
+
+
+@pytest.fixture
+def equivalent_xdg_dirs(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    dirs_class: type[Unix | MacOS],
+    kind: str,
+    suffix: str,
+) -> tuple[Unix | MacOS, str]:
+    monkeypatch.chdir(tmp_path)
+    root = tmp_path.as_posix().removeprefix(tmp_path.drive)
+    home = f"{root}{suffix}"
+    monkeypatch.setenv(f"XDG_{kind.upper()}_HOME", home)
+    monkeypatch.setenv(f"XDG_{kind.upper()}_DIRS", root)
+    return dirs_class(), home
+
+
+@pytest.mark.parametrize("dirs_class", [pytest.param(Unix, id="unix"), pytest.param(MacOS, id="macos")])
+@pytest.mark.parametrize("kind", [pytest.param("config", id="config"), pytest.param("data", id="data")])
+@pytest.mark.parametrize(
+    "suffix", [pytest.param("", id="same"), pytest.param("/", id="slash"), pytest.param("/.", id="dot")]
+)
+def test_equivalent_xdg_paths_appear_once(equivalent_xdg_dirs: tuple[Unix | MacOS, str], kind: str) -> None:
+    dirs, home = equivalent_xdg_dirs
+    assert list(getattr(dirs, f"iter_{kind}_paths")()) == [Path(home)]
+
+
+@pytest.mark.parametrize("dirs_class", [pytest.param(Unix, id="unix"), pytest.param(MacOS, id="macos")])
+@pytest.mark.parametrize("kind", [pytest.param("config", id="config"), pytest.param("data", id="data")])
+@pytest.mark.parametrize(
+    "suffix", [pytest.param("", id="same"), pytest.param("/", id="slash"), pytest.param("/.", id="dot")]
+)
+def test_equivalent_xdg_files_appear_once(equivalent_xdg_dirs: tuple[Unix | MacOS, str], kind: str) -> None:
+    dirs, home = equivalent_xdg_dirs
+    expected = Path(home) / "app.toml"
+    expected.touch()
+    assert getattr(dirs, f"find_{kind}_files")("app.toml") == [expected]
+
+
 @pytest.mark.parametrize("kind", _EXISTING_KINDS)
 def test_find_file_returns_user_file(dirs: Unix, kind: str, user_file: Path) -> None:
     assert getattr(dirs, f"find_{kind}_file")("app.toml") == user_file

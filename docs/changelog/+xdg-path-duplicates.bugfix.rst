@@ -1,1 +1,1 @@
-Deduplicate equivalent XDG directory spellings in path iterators and file searches.
+Deduplicate equivalent XDG directory spellings across string and path iterators and file searches.
