@@ -717,10 +717,10 @@ def _unique(dirs: Iterable[str]) -> Iterator[str]:
     """:yield: ``dirs`` in order, skipping any directory already yielded."""
     # Lazy on purpose: under ensure_exists reading a site_*_dir creates it, so draining ``dirs`` up front would
     # create directories for a caller that stops after the first entry.
-    seen: set[str] = set()
+    seen: set[Path] = set()
     for path in dirs:
-        if path not in seen:
-            seen.add(path)
+        if (normalized := Path(path)) not in seen:
+            seen.add(normalized)
             yield path
 
 
