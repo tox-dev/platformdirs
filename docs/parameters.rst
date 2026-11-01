@@ -276,6 +276,9 @@ Supported XDG variables:
 - ``XDG_CONFIG_DIRS`` - system config directories (colon-separated).
 - ``XDG_RUNTIME_DIR`` - user runtime directory.
 
+XDG values must be absolute paths. ``platformdirs`` keeps whitespace in accepted values, so a trailing space or tab is
+part of the directory name. A value with whitespace before the initial ``/`` is relative and ignored.
+
 On Unix, macOS and iOS the home directory comes from ``HOME``, or from the password database when ``HOME`` is unset,
 empty or relative. Without an absolute home from either, a directory under the home raises ``RuntimeError``, while site
 directories and absolute XDG values still resolve.

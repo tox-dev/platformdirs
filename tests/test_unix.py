@@ -280,15 +280,50 @@ def test_xdg_variable_custom_value(monkeypatch: pytest.MonkeyPatch, dirs_instanc
     assert result == "/custom-dir"
 
 
-@pytest.mark.usefixtures("_geteuid")
-def test_xdg_variable_trailing_whitespace(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
-    xdg_variable = _func_to_path(func)
-    if xdg_variable is None:
-        return
+@pytest.mark.parametrize("dirs_class", [pytest.param(Unix, id="unix"), pytest.param(MacOS, id="macos")])
+@pytest.mark.parametrize(
+    "kind",
+    [
+        pytest.param("data", id="data"),
+        pytest.param("config", id="config"),
+        pytest.param("cache", id="cache"),
+        pytest.param("state", id="state"),
+    ],
+)
+@pytest.mark.parametrize("whitespace", [pytest.param(" ", id="space"), pytest.param("\t", id="tab")])
+def test_xdg_home_preserves_trailing_whitespace(
+    monkeypatch: pytest.MonkeyPatch, dirs_class: type[Unix | MacOS], kind: str, whitespace: str
+) -> None:
+    home: typing.Final = f"/xdg-fixture/home{whitespace}"
+    monkeypatch.setenv(f"XDG_{kind.upper()}_HOME", home)
+    assert getattr(dirs_class(appname="demo"), f"user_{kind}_dir") == f"{home}{os.sep}demo"
 
-    monkeypatch.setenv(xdg_variable.name, "/custom-dir ")
-    result = getattr(dirs_instance, func)
-    assert result == "/custom-dir "
+
+@pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.parametrize("dirs_class", [pytest.param(Unix, id="unix"), pytest.param(MacOS, id="macos")])
+@pytest.mark.parametrize(
+    "kind",
+    [
+        pytest.param("data", id="data"),
+        pytest.param("config", id="config"),
+        pytest.param("cache", id="cache"),
+        pytest.param("state", id="state"),
+    ],
+)
+def test_xdg_home_rejects_leading_whitespace(
+    monkeypatch: pytest.MonkeyPatch, dirs_class: type[Unix | MacOS], kind: str
+) -> None:
+    expected: typing.Final = getattr(dirs_class(appname="demo"), f"user_{kind}_dir")
+    monkeypatch.setenv(f"XDG_{kind.upper()}_HOME", " /xdg-fixture/home")
+    assert getattr(dirs_class(appname="demo"), f"user_{kind}_dir") == expected
+
+
+@pytest.mark.parametrize("dirs_class", [pytest.param(Unix, id="unix"), pytest.param(MacOS, id="macos")])
+def test_xdg_media_preserves_trailing_whitespace(
+    monkeypatch: pytest.MonkeyPatch, dirs_class: type[Unix | MacOS]
+) -> None:
+    monkeypatch.setenv("XDG_DOCUMENTS_DIR", "/xdg-fixture/documents ")
+    assert dirs_class().user_documents_dir == "/xdg-fixture/documents "
 
 
 @pytest.mark.usefixtures("_geteuid")
@@ -1319,18 +1354,38 @@ def test_site_dirs_fall_back_when_xdg_var_has_no_absolute_paths(
 
 
 @pytest.mark.parametrize("dirs_class", [pytest.param(Unix, id="unix"), pytest.param(MacOS, id="macos")])
-@pytest.mark.parametrize("prop", ["site_data_dir", "site_config_dir", "site_applications_dir"])
-@pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="singlepath")])
+@pytest.mark.parametrize(
+    ("prop", "suffix"),
+    [
+        pytest.param("site_data_dir", "foo", id="data"),
+        pytest.param("site_config_dir", "foo", id="config"),
+        pytest.param("site_applications_dir", "applications", id="applications"),
+    ],
+)
 def test_site_dirs_filter_relative_entries(
-    monkeypatch: pytest.MonkeyPatch, dirs_class: type[Unix | MacOS], prop: str, multipath: bool
+    monkeypatch: pytest.MonkeyPatch, dirs_class: type[Unix | MacOS], prop: str, suffix: str
 ) -> None:
     value: typing.Final = os.pathsep.join(("relative", "/custom/first", "", "~/relative", " /custom/second "))
     monkeypatch.setenv("XDG_DATA_DIRS", value)
     monkeypatch.setenv("XDG_CONFIG_DIRS", value)
-    suffix: typing.Final = "applications" if prop == "site_applications_dir" else "foo"
-    expected: typing.Final = [f"/custom/first{os.sep}{suffix}"]
-    assert getattr(dirs_class(appname="foo", multipath=multipath), prop) == (
-        os.pathsep.join(expected) if multipath else expected[0]
+    assert getattr(dirs_class(appname="foo", multipath=True), prop) == f"/custom/first{os.sep}{suffix}"
+
+
+@pytest.mark.parametrize("dirs_class", [pytest.param(Unix, id="unix"), pytest.param(MacOS, id="macos")])
+@pytest.mark.parametrize(
+    "kind",
+    [
+        pytest.param("data", id="data"),
+        pytest.param("config", id="config"),
+    ],
+)
+@pytest.mark.parametrize("whitespace", [pytest.param(" ", id="space"), pytest.param("\t", id="tab")])
+def test_xdg_site_preserves_trailing_whitespace(
+    monkeypatch: pytest.MonkeyPatch, dirs_class: type[Unix | MacOS], kind: str, whitespace: str
+) -> None:
+    monkeypatch.setenv(f"XDG_{kind.upper()}_DIRS", f"/xdg-fixture/first{whitespace}{os.pathsep}/xdg-fixture/second")
+    assert getattr(dirs_class(appname="demo", multipath=True), f"site_{kind}_dir") == (
+        f"/xdg-fixture/first{whitespace}{os.sep}demo{os.pathsep}/xdg-fixture/second{os.sep}demo"
     )
 
 
