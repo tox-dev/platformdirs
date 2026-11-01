@@ -6,6 +6,20 @@
 
 .. towncrier release notes start
 
+.. _release-4-14-3:
+
+*********************
+ 4.14.3 (2026-11-01)
+*********************
+
+.. _release-4-14-3-fixed:
+
+Fixed
+=====
+
+- Preserve trailing whitespace in absolute XDG directory values instead of resolving a different directory (:pr:`679`)
+  by :user:`mikegit123git` and :user:`gaborbernat`.
+
 .. _release-4-14-2:
 
 *********************
