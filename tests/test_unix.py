@@ -281,14 +281,14 @@ def test_xdg_variable_custom_value(monkeypatch: pytest.MonkeyPatch, dirs_instanc
 
 
 @pytest.mark.usefixtures("_geteuid")
-def test_xdg_variable_padded_value(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
+def test_xdg_variable_trailing_whitespace(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
     xdg_variable = _func_to_path(func)
     if xdg_variable is None:
         return
 
-    monkeypatch.setenv(xdg_variable.name, " /custom-dir ")
+    monkeypatch.setenv(xdg_variable.name, "/custom-dir ")
     result = getattr(dirs_instance, func)
-    assert result == "/custom-dir"
+    assert result == "/custom-dir "
 
 
 @pytest.mark.usefixtures("_geteuid")
@@ -1328,7 +1328,7 @@ def test_site_dirs_filter_relative_entries(
     monkeypatch.setenv("XDG_DATA_DIRS", value)
     monkeypatch.setenv("XDG_CONFIG_DIRS", value)
     suffix: typing.Final = "applications" if prop == "site_applications_dir" else "foo"
-    expected: typing.Final = [f"/custom/{name}{os.sep}{suffix}" for name in ("first", "second")]
+    expected: typing.Final = [f"/custom/first{os.sep}{suffix}"]
     assert getattr(dirs_class(appname="foo", multipath=multipath), prop) == (
         os.pathsep.join(expected) if multipath else expected[0]
     )

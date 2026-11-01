@@ -165,14 +165,12 @@ class XDGMixin(PlatformDirsABC):
 
 
 def _xdg_dir(env_var: str) -> str | None:
-    path: Final = os.environ.get(env_var, "").strip()
+    path: Final = os.environ.get(env_var, "")
     return path if posixpath.isabs(path) else None
 
 
 def _xdg_dir_list(env_var: str) -> list[str]:
-    return [
-        stripped for path in os.environ.get(env_var, "").split(os.pathsep) if posixpath.isabs(stripped := path.strip())
-    ]
+    return [path for path in os.environ.get(env_var, "").split(os.pathsep) if posixpath.isabs(path)]
 
 
 def _expand_user(path: str) -> str:
