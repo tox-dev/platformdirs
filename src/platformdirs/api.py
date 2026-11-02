@@ -693,7 +693,9 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         _ensure_inside_base("name", relative := os.fspath(name))
         # The iterators create each directory they yield under ensure_exists, and a lookup must only read the disk.
         (lookup := copy(self)).ensure_exists = False
-        return (path for directory in iter_paths(lookup) if (path := directory / relative).is_file())
+        paths = (directory / relative for directory in iter_paths(lookup))
+        # Before Python 3.14 Path.is_file raises when a directory on the way denies access, os.path.isfile never does.
+        return (path for path in paths if os.path.isfile(path))  # ruff:ignore[os-path-isfile]
 
 
 def _ensure_inside_base(name: str, value: str | Literal[False] | None) -> None:
