@@ -472,6 +472,20 @@ def test_user_runtime_dir_temp_fallback_rejects_other_owner(
         Unix(appname="foo", ensure_exists=ensure_exists).user_runtime_dir  # ruff:ignore[useless-expression]
 
 
+@pytest.mark.usefixtures("_geteuid", "runtime_temp_dir")
+@pytest.mark.parametrize(
+    ("temp", "expected"),
+    [
+        pytest.param("/", "/runtime-1234", id="root"),
+        pytest.param("/xdg-fixture/temp/", "/xdg-fixture/temp/runtime-1234", id="trailing-slash"),
+    ],
+)
+def test_user_runtime_dir_temp_fallback_single_slash(mocker: MockerFixture, temp: str, expected: str) -> None:
+    mocker.patch("tempfile.tempdir", temp)
+    with pytest.warns(RuntimeDirWarning, match=f"^XDG_RUNTIME_DIR is not set, falling back to {re.escape(expected)}$"):
+        assert Unix().user_runtime_dir == expected
+
+
 _POSIX_ONLY: typing.Final = pytest.mark.skipif(sys.platform == "win32", reason="Windows has no POSIX owners or modes")
 _PROBLEMS: typing.Final = {
     "symlink": "is a symlink",
@@ -870,6 +884,15 @@ def test_find_runtime_file_skips_runtime_dir_hidden_from_check(
     (runtime_base / "app").mkdir()
     (runtime_base / "app" / "app.sock").touch()
     assert getattr(Unix(appname="app"), f"find_runtime_{suffix}")("app.sock") == expected
+
+
+@pytest.mark.usefixtures("_geteuid", "runtime_temp_dir")
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+def test_find_runtime_files_skips_missing_temp_fallback_at_root(mocker: MockerFixture) -> None:
+    mocker.patch("tempfile.tempdir", "/")
+    # Only root can create /runtime-1234, so count every app.sock as found while the fallback stays missing.
+    mocker.patch.object(Path, "is_file", lambda path: path.name == "app.sock")
+    assert Unix(appname="app").find_runtime_files("app.sock") == [Path("/run/app/app.sock")]
 
 
 def _plant_after_check(mocker: MockerFixture, base: Path) -> None:
