@@ -1641,16 +1641,19 @@ def test_use_site_for_root_bypasses_xdg_user_vars(
 
 
 @pytest.fixture
-def inherited_media_target(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> Path:
+def inherited_media_target(
+    tmp_path: Path, posix_tmp_path: str, monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest
+) -> Path:
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    target = tmp_path / "inherited" / "media"
+    # The Unix class ignores an XDG path with a Windows drive, so inherit drive-less ones.
+    target = Path(f"{posix_tmp_path}/inherited/media")
     if (key := request.param) == "user-dirs":
         (config := tmp_path / "inherited-config").mkdir()
         (config / "user-dirs.dirs").write_text(f'XDG_DOCUMENTS_DIR="{target.as_posix()}"\n', encoding="utf-8")
-        monkeypatch.setenv("XDG_CONFIG_HOME", str(config))
+        monkeypatch.setenv("XDG_CONFIG_HOME", f"{posix_tmp_path}/inherited-config")
     else:
-        monkeypatch.setenv(key, str(target))
+        monkeypatch.setenv(key, target.as_posix())
     return target
 
 
@@ -1680,6 +1683,25 @@ def test_use_site_for_root_bypasses_xdg_media_vars(tmp_path: Path, prop: str, de
 def test_use_site_for_root_creates_no_inherited_media_dir(inherited_media_target: Path, prop: str) -> None:
     getattr(Unix(use_site_for_root=True, ensure_exists=True), prop)
     assert not inherited_media_target.parent.exists()
+
+
+@pytest.mark.usefixtures("_as_root")
+@pytest.mark.parametrize("suffix", ["dir", "path"])
+@pytest.mark.parametrize(
+    ("inherited_media_target", "prop", "default"),
+    [
+        *(pytest.param(*case, id=case[1]) for case in _MEDIA_DIR_CASES),
+        pytest.param("XDG_DATA_HOME", "user_fonts_dir", ".local/share/fonts", id="user_fonts_dir"),
+    ],
+    indirect=["inherited_media_target"],
+)
+def test_use_site_for_root_reaches_the_media_function(
+    mocker: MockerFixture, inherited_media_target: Path, prop: str, default: str, suffix: str
+) -> None:
+    mocker.patch("platformdirs.PlatformDirs", Unix)
+    function = getattr(platformdirs, prop.removesuffix("dir") + suffix)
+    assert Path(function()).is_relative_to(inherited_media_target)
+    assert Path(function(use_site_for_root=True)) == Path.home() / default
 
 
 @pytest.mark.usefixtures("_as_root")
