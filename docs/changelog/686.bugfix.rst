@@ -1,0 +1,2 @@
+Accept ``use_site_for_root`` in :func:`~platformdirs.user_fonts_dir`, :func:`~platformdirs.user_fonts_path` and the media
+directory and path functions, so they can return root's own directories as the matching properties do.
