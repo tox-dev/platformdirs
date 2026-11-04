@@ -125,50 +125,30 @@ jobs:
           name: html-report
           path: .tox/htmlcov
   check:
-    name: 🔍 ${{ matrix.tox_env }} - ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-24.04
-          - windows-2025-vs2026
-        tox_env:
-          - dev
-          - type
-          - docs
-          - pkg_meta
-        exclude:
-          - {os: windows-2025-vs2026, tox_env: pkg_meta}
-    steps:
-      - name: 📥 Check out code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: 🐍 Install uv
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
-        with:
-          version: latest-known
-          python-version: "3.15"
-          enable-cache: false
-      - name: 📦 Install tox
-        run: uv tool install --python-preference only-managed --python 3.15 tox --with tox-uv
-      - name: 📦 Set up check suite
-        run: tox run -vv --notest --skip-missing-interpreters false -e ${{ matrix.tox_env }}
-        env:
-          UV_PYTHON_PREFERENCE: only-managed
-      - name: 🧪 Run check for ${{ matrix.tox_env }}
-        run: tox run --skip-pkg-install -e ${{ matrix.tox_env }}
-        env:
-          UV_PYTHON_PREFERENCE: only-managed
+    name: 🔍 check
+    uses: tox-dev/github-workflows/.github/workflows/check.yaml@bceb5c005e19823dc8835f536f53f172ae223927 # 6.5.0
+    permissions:
+      contents: read
+    with:
+      os: ubuntu-24.04
+      include: |
+        [
+          {"env": "dev"},
+          {"env": "dev", "os": "windows-2025-vs2026"},
+          {"env": "type"},
+          {"env": "type", "os": "windows-2025-vs2026"},
+          {"env": "docs"},
+          {"env": "docs", "os": "windows-2025-vs2026"},
+          {"env": "pkg_meta"}
+        ]
   gate:
     name: 🚦 ${{ github.event_name == 'pull_request' && 'Required checks pass' || 'Non-PR checks pass' }}
     if: ${{ !cancelled() }} # codespell:ignore cancelled
     needs: [test, coverage, check]
     runs-on: ubuntu-24.04
+    permissions: {}
     steps:
       - name: 🚦 Require all needed jobs to pass
-        env:
-          NEEDS_JSON: ${{ toJSON(needs) }}
-        run: jq -e 'all(to_entries[]; .value.result == "success")' <<<"$NEEDS_JSON"
+        uses: tox-dev/github-workflows/required-checks@bceb5c005e19823dc8835f536f53f172ae223927 # 6.5.0
+        with:
+          needs: ${{ toJSON(needs) }}
