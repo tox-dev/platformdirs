@@ -1618,16 +1618,19 @@ def test_use_site_for_root_bypasses_xdg_user_vars(
 
 
 @pytest.fixture
-def inherited_media_target(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> Path:
+def inherited_media_target(
+    tmp_path: Path, posix_tmp_path: str, monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest
+) -> Path:
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    target = tmp_path / "inherited" / "media"
+    # The Unix class ignores an XDG path with a Windows drive, so inherit drive-less ones.
+    target = Path(f"{posix_tmp_path}/inherited/media")
     if (key := request.param) == "user-dirs":
         (config := tmp_path / "inherited-config").mkdir()
         (config / "user-dirs.dirs").write_text(f'XDG_DOCUMENTS_DIR="{target.as_posix()}"\n', encoding="utf-8")
-        monkeypatch.setenv("XDG_CONFIG_HOME", str(config))
+        monkeypatch.setenv("XDG_CONFIG_HOME", f"{posix_tmp_path}/inherited-config")
     else:
-        monkeypatch.setenv(key, str(target))
+        monkeypatch.setenv(key, target.as_posix())
     return target
 
 
@@ -1659,39 +1662,23 @@ def test_use_site_for_root_creates_no_inherited_media_dir(inherited_media_target
     assert not inherited_media_target.parent.exists()
 
 
-_ROOT_HOME_CASES: typing.Final = [
-    pytest.param("documents", "XDG_DOCUMENTS_DIR", "Documents", id="documents"),
-    pytest.param("downloads", "XDG_DOWNLOAD_DIR", "Downloads", id="downloads"),
-    pytest.param("pictures", "XDG_PICTURES_DIR", "Pictures", id="pictures"),
-    pytest.param("videos", "XDG_VIDEOS_DIR", "Videos", id="videos"),
-    pytest.param("music", "XDG_MUSIC_DIR", "Music", id="music"),
-    pytest.param("desktop", "XDG_DESKTOP_DIR", "Desktop", id="desktop"),
-    pytest.param("projects", "XDG_PROJECTS_DIR", "Projects", id="projects"),
-    pytest.param("publicshare", "XDG_PUBLICSHARE_DIR", "Public", id="publicshare"),
-    pytest.param("templates", "XDG_TEMPLATES_DIR", "Templates", id="templates"),
-    pytest.param("fonts", "XDG_DATA_HOME", ".local/share/fonts", id="fonts"),
-]
-
-
 @pytest.mark.usefixtures("_as_root")
 @pytest.mark.parametrize("suffix", ["dir", "path"])
-@pytest.mark.parametrize(("name", "xdg_var", "default"), _ROOT_HOME_CASES)
-def test_use_site_for_root_reaches_the_media_and_fonts_functions(  # ruff:ignore[too-many-arguments]
-    mocker: MockerFixture,
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-    name: str,
-    xdg_var: str,
-    default: str,
-    suffix: str,
+@pytest.mark.parametrize(
+    ("inherited_media_target", "prop", "default"),
+    [
+        *(pytest.param(*case, id=case[1]) for case in _MEDIA_DIR_CASES),
+        pytest.param("XDG_DATA_HOME", "user_fonts_dir", ".local/share/fonts", id="user_fonts_dir"),
+    ],
+    indirect=["inherited_media_target"],
+)
+def test_use_site_for_root_reaches_the_media_function(
+    mocker: MockerFixture, inherited_media_target: Path, prop: str, default: str, suffix: str
 ) -> None:
-    # Like the bin functions, the module-level functions have to reach the root handling of their property.
     mocker.patch("platformdirs.PlatformDirs", Unix)
-    monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv(xdg_var, str(inherited := tmp_path / "inherited"))
-    function = getattr(platformdirs, f"user_{name}_{suffix}")
-    assert Path(function(use_site_for_root=True)) == tmp_path / default
-    assert Path(function()).is_relative_to(inherited)
+    function = getattr(platformdirs, prop.removesuffix("dir") + suffix)
+    assert Path(function()).is_relative_to(inherited_media_target)
+    assert Path(function(use_site_for_root=True)) == Path.home() / default
 
 
 @pytest.mark.usefixtures("_as_root")

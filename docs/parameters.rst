@@ -232,6 +232,8 @@ When enabled, XDG user environment variables (e.g., ``XDG_DATA_HOME``) are bypas
 is useful for system services running as root that should use system-wide directories rather than root's home directory.
 The media and fonts directories have no site equivalent, so they ignore ``XDG_*_DIR``, ``user-dirs.dirs`` and
 ``XDG_DATA_HOME`` and return their default under root's home, such as ``/root/Documents``, without creating it.
+The module-level media and fonts functions, such as :func:`~platformdirs.user_documents_path`, take it as a
+keyword-only argument.
 
 .. code-block:: python
 
