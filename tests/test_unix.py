@@ -890,8 +890,11 @@ def test_find_runtime_file_skips_runtime_dir_hidden_from_check(
 @pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
 def test_find_runtime_files_skips_missing_temp_fallback_at_root(mocker: MockerFixture) -> None:
     mocker.patch("tempfile.tempdir", "/")
-    # Only root can create /runtime-1234, so count every app.sock as found while the fallback stays missing.
-    mocker.patch.object(Path, "is_file", lambda path: path.name == "app.sock")
+    # Only root can create /runtime-1234, so let every candidate through the file check while the fallback stays missing.
+    mocker.patch(
+        "platformdirs.api.PlatformDirsABC._find_files",
+        lambda self, iter_paths, name: (directory / name for directory in iter_paths(self)),
+    )
     assert Unix(appname="app").find_runtime_files("app.sock") == [Path("/run/app/app.sock")]
 
 
