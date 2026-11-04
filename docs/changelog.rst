@@ -6,6 +6,20 @@
 
 .. towncrier release notes start
 
+.. _release-4-14-5:
+
+*********************
+ 4.14.5 (2026-11-04)
+*********************
+
+.. _release-4-14-5-fixed:
+
+Fixed
+=====
+
+- Resolve the temporary :func:`~platformdirs.user_runtime_dir` fallback to ``/runtime-<uid>`` instead of
+  ``//runtime-<uid>`` when the temporary directory is ``/`` (:pr:`687`) by :user:`darrenhuai` and :user:`gaborbernat`.
+
 .. _release-4-14-4:
 
 *********************
