@@ -141,10 +141,18 @@ jobs:
           {"env": "docs", "os": "windows-2025-vs2026"},
           {"env": "pkg_meta"}
         ]
+  release:
+    name: 🏷️ Release dry run
+    uses: $/.github/workflows/prepare-release.yaml
+    permissions:
+      contents: read
+      pull-requests: read
+    with:
+      dry-run: true
   gate:
     name: 🚦 ${{ github.event_name == 'pull_request' && 'Required checks pass' || 'Non-PR checks pass' }}
     if: ${{ !cancelled() }} # codespell:ignore cancelled
-    needs: [test, coverage, check]
+    needs: [test, coverage, check, release]
     runs-on: ubuntu-24.04
     permissions: {}
     steps:
