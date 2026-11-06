@@ -240,7 +240,7 @@ def _shared_storage() -> str:
 
 def _python_for_android_folder() -> str | None:
     with suppress(ImportError):
-        from jnius import JavaException, autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[unresolved-import]
+        from jnius import JavaException, autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[import-not-found]
 
         with suppress(JavaException):
             # A python-for-android service runs in its own process, where the activity is null.
@@ -254,7 +254,7 @@ def _python_for_android_folder() -> str | None:
 @cache
 def _android_public_folder(name: str) -> str:
     with suppress(ImportError):
-        from jnius import JavaException, autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[unresolved-import]
+        from jnius import JavaException, autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[import-not-found]
 
         with suppress(JavaException):
             return autoclass("android.os.Environment").getExternalStoragePublicDirectory(name).getAbsolutePath()
