@@ -70,7 +70,7 @@ test = [
   "pytest-mock>=3.15.1",
 ]
 type = [
-  "ty>=0.0.19",
+  "ty>=0.0.99",
   { include-group = "docs-core" },
   { include-group = "release" },
   { include-group = "test" },
@@ -248,3 +248,6 @@ matrix.python = ">=3.15,<3.16"
 matrix.platforms = [ "linux_x86_64" ]
 # release-creator 4.4.0 needs a seven-day cutoff exception through 2026-11-09.
 packages.release-creator.uploaded-prior-to = 2026-11-02T21:45:00Z
+# ty 0.0.99, which renamed unresolved-import to import-not-found, needs one through 2026-11-13.
+# expires 2026-11-13
+packages.ty.uploaded-prior-to = 2026-11-06T10:14:00Z
