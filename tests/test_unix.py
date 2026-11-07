@@ -208,53 +208,33 @@ def _geteuid(mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.unix.geteuid", return_value=1234, autospec=True)
 
 
-@pytest.mark.usefixtures("_geteuid")
-def test_xdg_variable_not_set(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
-    xdg_variable = _func_to_path(func)
-    if xdg_variable is None:
-        return
-
-    monkeypatch.delenv(xdg_variable.name, raising=False)
-    with _fallback_warning(expected=func == "user_runtime_dir"):
-        result = getattr(dirs_instance, func)
-    assert result == os.path.expanduser(xdg_variable.default_value)  # ruff:ignore[os-path-expanduser]  # the expected value uses the same expansion the code calls
-
-
-def _func_to_path(func: str) -> XDGVariable | None:
-    mapping = {
-        "user_data_dir": XDGVariable("XDG_DATA_HOME", "~/.local/share"),
-        "site_data_dir": XDGVariable("XDG_DATA_DIRS", f"/usr/local/share{os.pathsep}/usr/share"),
-        "user_config_dir": XDGVariable("XDG_CONFIG_HOME", "~/.config"),
-        "site_config_dir": XDGVariable("XDG_CONFIG_DIRS", "/etc/xdg"),
-        "user_cache_dir": XDGVariable("XDG_CACHE_HOME", "~/.cache"),
-        "user_state_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
-        "user_log_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
-        "user_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", f"{gettempdir()}/runtime-1234"),
-        "user_bin_dir": None,
-        "site_bin_dir": None,
-        "user_applications_dir": None,
-        "site_applications_dir": None,
-        "site_log_dir": None,
-        "site_state_dir": None,
-        "site_runtime_dir": XDGVariable(
-            "XDG_RUNTIME_DIR", "/var/run" if sys.platform.startswith(("freebsd", "openbsd", "netbsd")) else "/run"
-        ),
-    }
-    return mapping.get(func)
-
-
 class XDGVariable(typing.NamedTuple):
     name: str
     default_value: str
 
 
-@pytest.mark.usefixtures("_geteuid")
-def test_xdg_variable_empty_value(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
-    xdg_variable = _func_to_path(func)
-    if xdg_variable is None:
-        return
+_XDG_VARIABLES: typing.Final[dict[str, XDGVariable]] = {
+    "user_data_dir": XDGVariable("XDG_DATA_HOME", "~/.local/share"),
+    "site_data_dir": XDGVariable("XDG_DATA_DIRS", f"/usr/local/share{os.pathsep}/usr/share"),
+    "user_config_dir": XDGVariable("XDG_CONFIG_HOME", "~/.config"),
+    "site_config_dir": XDGVariable("XDG_CONFIG_DIRS", "/etc/xdg"),
+    "user_cache_dir": XDGVariable("XDG_CACHE_HOME", "~/.cache"),
+    "user_state_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
+    "user_log_dir": XDGVariable("XDG_STATE_HOME", "~/.local/state"),
+    "user_runtime_dir": XDGVariable("XDG_RUNTIME_DIR", f"{gettempdir()}/runtime-1234"),
+    "site_runtime_dir": XDGVariable(
+        "XDG_RUNTIME_DIR", "/var/run" if sys.platform.startswith(("freebsd", "openbsd", "netbsd")) else "/run"
+    ),
+}
+_XDG_CASES: typing.Final = list(_XDG_VARIABLES.items())
 
-    monkeypatch.setenv(xdg_variable.name, "")
+
+@pytest.mark.usefixtures("_geteuid")
+@pytest.mark.parametrize(("func", "xdg_variable"), _XDG_CASES, ids=list(_XDG_VARIABLES))
+def test_xdg_variable_not_set(
+    monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str, xdg_variable: XDGVariable
+) -> None:
+    monkeypatch.delenv(xdg_variable.name, raising=False)
     with _fallback_warning(expected=func == "user_runtime_dir"):
         result = getattr(dirs_instance, func)
     assert result == os.path.expanduser(xdg_variable.default_value)  # ruff:ignore[os-path-expanduser]  # the expected value uses the same expansion the code calls
@@ -267,11 +247,21 @@ def _fallback_warning(*, expected: bool) -> contextlib.AbstractContextManager[py
 
 
 @pytest.mark.usefixtures("_geteuid")
-def test_xdg_variable_custom_value(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
-    xdg_variable = _func_to_path(func)
-    if xdg_variable is None:
-        return
+@pytest.mark.parametrize(("func", "xdg_variable"), _XDG_CASES, ids=list(_XDG_VARIABLES))
+def test_xdg_variable_empty_value(
+    monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str, xdg_variable: XDGVariable
+) -> None:
+    monkeypatch.setenv(xdg_variable.name, "")
+    with _fallback_warning(expected=func == "user_runtime_dir"):
+        result = getattr(dirs_instance, func)
+    assert result == os.path.expanduser(xdg_variable.default_value)  # ruff:ignore[os-path-expanduser]  # the expected value uses the same expansion the code calls
 
+
+@pytest.mark.usefixtures("_geteuid")
+@pytest.mark.parametrize(("func", "xdg_variable"), _XDG_CASES, ids=list(_XDG_VARIABLES))
+def test_xdg_variable_custom_value(
+    monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str, xdg_variable: XDGVariable
+) -> None:
     monkeypatch.setenv(xdg_variable.name, "/custom-dir")
     result = getattr(dirs_instance, func)
     assert result == "/custom-dir"
