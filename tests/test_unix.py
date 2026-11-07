@@ -754,7 +754,10 @@ def test_runtime_dir_unset_warns(default_dir: Path, runtime_uid: int) -> None:
 @_POSIX_ONLY
 @pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
 @pytest.mark.parametrize("platform", list(_DEFAULT_PREFIXES))
-@pytest.mark.parametrize("kind", [*_PROBLEMS, "missing"])
+@pytest.mark.parametrize(
+    "kind",
+    [*(pytest.param(kind, id=kind) for kind in _PROBLEMS), pytest.param("missing", id="missing")],
+)
 def test_runtime_dir_invalid_default_dir_falls_back(default_dir: Path, temp_dir: Path, kind: str) -> None:
     _create(default_dir, kind)
     assert Unix(appname="app").user_runtime_dir == str(temp_dir / "app")
@@ -1308,7 +1311,11 @@ def test_iter_data_dirs_creates_only_the_consumed_dir(monkeypatch: pytest.Monkey
     [pytest.param(False, {"first"}, id="single"), pytest.param(True, {"first", "second"}, id="multipath")],
 )
 @pytest.mark.parametrize(
-    ("prop", "env_var"), [("site_data_dir", "XDG_DATA_DIRS"), ("site_config_dir", "XDG_CONFIG_DIRS")]
+    ("prop", "env_var"),
+    [
+        pytest.param("site_data_dir", "XDG_DATA_DIRS", id="site_data_dir"),
+        pytest.param("site_config_dir", "XDG_CONFIG_DIRS", id="site_config_dir"),
+    ],
 )
 def test_site_dir_ensure_exists_creates_only_the_returned_entries(  # ruff:ignore[too-many-arguments]
     monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str, prop: str, env_var: str, multipath: bool, created: set[str]
@@ -1319,7 +1326,11 @@ def test_site_dir_ensure_exists_creates_only_the_returned_entries(  # ruff:ignor
 
 
 @pytest.mark.parametrize(
-    ("prop", "env_var"), [("site_data_path", "XDG_DATA_DIRS"), ("site_config_path", "XDG_CONFIG_DIRS")]
+    ("prop", "env_var"),
+    [
+        pytest.param("site_data_path", "XDG_DATA_DIRS", id="site_data_path"),
+        pytest.param("site_config_path", "XDG_CONFIG_DIRS", id="site_config_path"),
+    ],
 )
 def test_site_path_ensure_exists_ignores_multipath(
     monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str, prop: str, env_var: str
@@ -1332,7 +1343,10 @@ def test_site_path_ensure_exists_ignores_multipath(
 
 @pytest.mark.parametrize(
     ("method", "home_var", "dirs_var"),
-    [("iter_data_dirs", "XDG_DATA_HOME", "XDG_DATA_DIRS"), ("iter_config_dirs", "XDG_CONFIG_HOME", "XDG_CONFIG_DIRS")],
+    [
+        pytest.param("iter_data_dirs", "XDG_DATA_HOME", "XDG_DATA_DIRS", id="iter_data_dirs"),
+        pytest.param("iter_config_dirs", "XDG_CONFIG_HOME", "XDG_CONFIG_DIRS", id="iter_config_dirs"),
+    ],
 )
 def test_iter_dirs_create_site_dirs_only_as_consumed(
     monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str, method: str, home_var: str, dirs_var: str
@@ -1621,11 +1635,36 @@ def test_use_site_for_root_disabled_as_root(prop: str, expected: str) -> None:
 @pytest.mark.parametrize(
     ("xdg_var", "prop", "expected_site"),
     [
-        ("XDG_DATA_HOME", "user_data_dir", os.path.join("/usr/local/share", "foo")),  # ruff:ignore[os-path-join]
-        ("XDG_CONFIG_HOME", "user_config_dir", os.path.join("/etc/xdg", "foo")),  # ruff:ignore[os-path-join]
-        ("XDG_CACHE_HOME", "user_cache_dir", os.path.join("/var/cache", "foo")),  # ruff:ignore[os-path-join]
-        ("XDG_STATE_HOME", "user_state_dir", os.path.join("/var/lib", "foo")),  # ruff:ignore[os-path-join]
-        ("XDG_STATE_HOME", "user_log_dir", os.path.join("/var/log", "foo")),  # ruff:ignore[os-path-join]
+        pytest.param(
+            "XDG_DATA_HOME",
+            "user_data_dir",
+            os.path.join("/usr/local/share", "foo"),  # ruff:ignore[os-path-join]
+            id="user_data_dir",
+        ),
+        pytest.param(
+            "XDG_CONFIG_HOME",
+            "user_config_dir",
+            os.path.join("/etc/xdg", "foo"),  # ruff:ignore[os-path-join]
+            id="user_config_dir",
+        ),
+        pytest.param(
+            "XDG_CACHE_HOME",
+            "user_cache_dir",
+            os.path.join("/var/cache", "foo"),  # ruff:ignore[os-path-join]
+            id="user_cache_dir",
+        ),
+        pytest.param(
+            "XDG_STATE_HOME",
+            "user_state_dir",
+            os.path.join("/var/lib", "foo"),  # ruff:ignore[os-path-join]
+            id="user_state_dir",
+        ),
+        pytest.param(
+            "XDG_STATE_HOME",
+            "user_log_dir",
+            os.path.join("/var/log", "foo"),  # ruff:ignore[os-path-join]
+            id="user_log_dir",
+        ),
         pytest.param("XDG_RUNTIME_DIR", "user_runtime_dir", _SITE_RUNTIME_DIR, id="XDG_RUNTIME_DIR-user_runtime_dir"),
     ],
 )
@@ -1705,8 +1744,8 @@ def test_use_site_for_root_reaches_the_media_function(
 @pytest.mark.parametrize(
     ("xdg_var", "func"),
     [
-        ("XDG_DATA_DIRS", Unix.iter_data_dirs),
-        ("XDG_CONFIG_DIRS", Unix.iter_config_dirs),
+        pytest.param("XDG_DATA_DIRS", Unix.iter_data_dirs, id="XDG_DATA_DIRS"),
+        pytest.param("XDG_CONFIG_DIRS", Unix.iter_config_dirs, id="XDG_CONFIG_DIRS"),
     ],
 )
 def test_use_site_iter_dirs_no_duplicates(
@@ -1771,8 +1810,8 @@ def test_iter_dirs_as_non_root_keeps_user_dir(func: Callable[[Unix], Iterator[st
 @pytest.mark.parametrize(
     ("xdg_var", "func"),
     [
-        ("XDG_CONFIG_DIRS", Unix.iter_config_dirs),
-        ("XDG_DATA_DIRS", Unix.iter_data_dirs),
+        pytest.param("XDG_CONFIG_DIRS", Unix.iter_config_dirs, id="XDG_CONFIG_DIRS"),
+        pytest.param("XDG_DATA_DIRS", Unix.iter_data_dirs, id="XDG_DATA_DIRS"),
     ],
 )
 def test_iter_dirs_as_root_with_multipath_skips_joined_user_dir(

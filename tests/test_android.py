@@ -267,8 +267,8 @@ def test_android_folder_not_found_raises(mocker: MockerFixture, prop: str) -> No
 @pytest.mark.parametrize(
     ("prop", "subdir"),
     [
-        ("user_log_dir", "log"),
-        ("user_runtime_dir", "tmp"),
+        pytest.param("user_log_dir", "log", id="user_log_dir"),
+        pytest.param("user_runtime_dir", "tmp", id="user_runtime_dir"),
     ],
 )
 def test_android_ensure_exists_creates_opinion_subdir(
