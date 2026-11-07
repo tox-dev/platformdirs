@@ -333,6 +333,10 @@ class Unix(XDGMixin, _UnixDefaults):
 
         Creates the runtime directory before checking it, so another user cannot create it in between.
 
+        :param name: see :meth:`~platformdirs.api.PlatformDirsABC.place_runtime_file`.
+
+        :returns: the path of ``name`` under the user runtime directory.
+
         :raises PermissionError: if the temporary fallback is a symlink, not a directory, owned by another user, or
             missing right after its creation.
 

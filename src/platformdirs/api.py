@@ -468,12 +468,12 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class
         return os.pathsep.join(selected)
 
     def iter_config_paths(self) -> Iterator[Path]:
-        """:yield: all user and site configuration paths."""
+        """:yields: all user and site configuration paths."""
         for path in self.iter_config_dirs():
             yield Path(path)
 
     def iter_config_dirs(self) -> Iterator[str]:
-        """:yield: all user and site configuration directories."""
+        """:yields: all user and site configuration directories."""
         yield from _unique(self._iter_config_dirs())
 
     def _iter_config_dirs(self) -> Iterator[str]:
@@ -493,12 +493,12 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class
             yield path
 
     def iter_data_paths(self) -> Iterator[Path]:
-        """:yield: all user and site data paths."""
+        """:yields: all user and site data paths."""
         for path in self.iter_data_dirs():
             yield Path(path)
 
     def iter_data_dirs(self) -> Iterator[str]:
-        """:yield: all user and site data directories."""
+        """:yields: all user and site data directories."""
         yield from _unique(self._iter_data_dirs())
 
     def _iter_data_dirs(self) -> Iterator[str]:
@@ -507,12 +507,12 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class
         yield from self._create_as_yielded(self._site_data_dirs)
 
     def iter_cache_paths(self) -> Iterator[Path]:
-        """:yield: all user and site cache paths."""
+        """:yields: all user and site cache paths."""
         for path in self.iter_cache_dirs():
             yield Path(path)
 
     def iter_cache_dirs(self) -> Iterator[str]:
-        """:yield: all user and site cache directories."""
+        """:yields: all user and site cache directories."""
         yield from _unique(self._iter_cache_dirs())
 
     def _iter_cache_dirs(self) -> Iterator[str]:
@@ -521,12 +521,12 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class
         yield from self._create_as_yielded(self._site_cache_dirs)
 
     def iter_state_paths(self) -> Iterator[Path]:
-        """:yield: all user and site state paths."""
+        """:yields: all user and site state paths."""
         for path in self.iter_state_dirs():
             yield Path(path)
 
     def iter_state_dirs(self) -> Iterator[str]:
-        """:yield: all user and site state directories."""
+        """:yields: all user and site state directories."""
         yield from _unique(self._iter_state_dirs())
 
     def _iter_state_dirs(self) -> Iterator[str]:
@@ -535,12 +535,12 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class
         yield self.site_state_dir
 
     def iter_log_paths(self) -> Iterator[Path]:
-        """:yield: all user and site log paths."""
+        """:yields: all user and site log paths."""
         for path in self.iter_log_dirs():
             yield Path(path)
 
     def iter_log_dirs(self) -> Iterator[str]:
-        """:yield: all user and site log directories."""
+        """:yields: all user and site log directories."""
         yield from _unique(self._iter_log_dirs())
 
     def _iter_log_dirs(self) -> Iterator[str]:
@@ -549,12 +549,12 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class
         yield self.site_log_dir
 
     def iter_runtime_paths(self) -> Iterator[Path]:
-        """:yield: all user and site runtime paths."""
+        """:yields: all user and site runtime paths."""
         for path in self.iter_runtime_dirs():
             yield Path(path)
 
     def iter_runtime_dirs(self) -> Iterator[str]:
-        """:yield: all user and site runtime directories."""
+        """:yields: all user and site runtime directories."""
         yield from _unique(self._iter_runtime_dirs())
 
     def _iter_runtime_dirs(self) -> Iterator[str]:
@@ -572,6 +572,8 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class
         other users can read them. It does not create the file.
 
         :param name: file path relative to the user directory, e.g. ``"sub/app.toml"``.
+
+        :returns: the path of ``name`` under the user directory.
 
         :raises ValueError: if ``name`` is empty, absolute, has a drive or climbs out through ``..``.
         :raises RuntimeError: if the user directory starts with ``~`` because the home directory is unknown.
@@ -598,23 +600,51 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class
         return path
 
     def place_data_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_data_path`."""
+        """Like `place_config_file`, under `user_data_path`.
+
+        :param name: see `place_config_file`.
+
+        :returns: the path of ``name`` under the user data directory.
+
+        """
         return self._place_file(lambda dirs: dirs.user_data_path, name)
 
     def place_cache_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_cache_path`."""
+        """Like `place_config_file`, under `user_cache_path`.
+
+        :param name: see `place_config_file`.
+
+        :returns: the path of ``name`` under the user cache directory.
+
+        """
         return self._place_file(lambda dirs: dirs.user_cache_path, name)
 
     def place_state_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_state_path`."""
+        """Like `place_config_file`, under `user_state_path`.
+
+        :param name: see `place_config_file`.
+
+        :returns: the path of ``name`` under the user state directory.
+
+        """
         return self._place_file(lambda dirs: dirs.user_state_path, name)
 
     def place_log_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_log_path`."""
+        """Like `place_config_file`, under `user_log_path`.
+
+        :param name: see `place_config_file`.
+
+        :returns: the path of ``name`` under the user log directory.
+
+        """
         return self._place_file(lambda dirs: dirs.user_log_path, name)
 
     def place_runtime_file(self, name: str | os.PathLike[str]) -> Path:
         """Like `place_config_file`, under `user_runtime_path`.
+
+        :param name: see `place_config_file`.
+
+        :returns: the path of ``name`` under the user runtime directory.
 
         :raises PermissionError: on Unix, if another user owns the temporary fallback directory.
 
@@ -654,46 +684,106 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class
         return list(self._find_files(lambda dirs: dirs.iter_config_paths(), name))
 
     def find_data_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_data_paths`."""
+        """Like :meth:`find_config_file`, searching :meth:`iter_data_paths`.
+
+        :param name: see :meth:`find_config_file`.
+
+        :returns: the first ``name`` file in the data paths, or ``None`` when no directory holds one.
+
+        """
         return next(self._find_files(lambda dirs: dirs.iter_data_paths(), name), None)
 
     def find_data_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_data_paths`."""
+        """Like :meth:`find_config_files`, searching :meth:`iter_data_paths`.
+
+        :param name: see :meth:`find_config_file`.
+
+        :returns: every ``name`` file in the data paths, in iteration order.
+
+        """
         return list(self._find_files(lambda dirs: dirs.iter_data_paths(), name))
 
     def find_cache_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_cache_paths`."""
+        """Like :meth:`find_config_file`, searching :meth:`iter_cache_paths`.
+
+        :param name: see :meth:`find_config_file`.
+
+        :returns: the first ``name`` file in the cache paths, or ``None`` when no directory holds one.
+
+        """
         return next(self._find_files(lambda dirs: dirs.iter_cache_paths(), name), None)
 
     def find_cache_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_cache_paths`."""
+        """Like :meth:`find_config_files`, searching :meth:`iter_cache_paths`.
+
+        :param name: see :meth:`find_config_file`.
+
+        :returns: every ``name`` file in the cache paths, in iteration order.
+
+        """
         return list(self._find_files(lambda dirs: dirs.iter_cache_paths(), name))
 
     def find_state_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_state_paths`."""
+        """Like :meth:`find_config_file`, searching :meth:`iter_state_paths`.
+
+        :param name: see :meth:`find_config_file`.
+
+        :returns: the first ``name`` file in the state paths, or ``None`` when no directory holds one.
+
+        """
         return next(self._find_files(lambda dirs: dirs.iter_state_paths(), name), None)
 
     def find_state_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_state_paths`."""
+        """Like :meth:`find_config_files`, searching :meth:`iter_state_paths`.
+
+        :param name: see :meth:`find_config_file`.
+
+        :returns: every ``name`` file in the state paths, in iteration order.
+
+        """
         return list(self._find_files(lambda dirs: dirs.iter_state_paths(), name))
 
     def find_log_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_log_paths`."""
+        """Like :meth:`find_config_file`, searching :meth:`iter_log_paths`.
+
+        :param name: see :meth:`find_config_file`.
+
+        :returns: the first ``name`` file in the log paths, or ``None`` when no directory holds one.
+
+        """
         return next(self._find_files(lambda dirs: dirs.iter_log_paths(), name), None)
 
     def find_log_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_log_paths`."""
+        """Like :meth:`find_config_files`, searching :meth:`iter_log_paths`.
+
+        :param name: see :meth:`find_config_file`.
+
+        :returns: every ``name`` file in the log paths, in iteration order.
+
+        """
         return list(self._find_files(lambda dirs: dirs.iter_log_paths(), name))
 
     def find_runtime_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_runtime_paths`."""
+        """Like :meth:`find_config_file`, searching :meth:`iter_runtime_paths`.
+
+        :param name: see :meth:`find_config_file`.
+
+        :returns: the first ``name`` file in the runtime paths, or ``None`` when no directory holds one.
+
+        """
         return next(self._find_runtime_files(name), None)
 
     def _find_runtime_files(self, name: str | os.PathLike[str]) -> Iterator[Path]:
         return self._find_files(lambda dirs: dirs.iter_runtime_paths(), name)
 
     def find_runtime_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_runtime_paths`."""
+        """Like :meth:`find_config_files`, searching :meth:`iter_runtime_paths`.
+
+        :param name: see :meth:`find_config_file`.
+
+        :returns: every ``name`` file in the runtime paths, in iteration order.
+
+        """
         return list(self._find_runtime_files(name))
 
 

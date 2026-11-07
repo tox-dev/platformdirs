@@ -15,7 +15,9 @@ if TYPE_CHECKING:
 def platformdirs_isolated(tmp_path: Path) -> Iterator[Path]:
     """Redirect every platformdirs directory under ``tmp_path`` with :func:`~platformdirs.testing.isolated_dirs`.
 
-    :returns: the isolation root, ``tmp_path``
+    :param tmp_path: the directory that holds the redirected directories.
+
+    :yields: the isolation root, ``tmp_path``
 
     """
     # pytest imports every installed pytest11 plugin at startup, so load the helper only for tests that ask for it.

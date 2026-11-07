@@ -29,7 +29,7 @@ def isolated_dirs(root: str | os.PathLike[str]) -> Generator[Path, None, None]:
 
     :param root: directory that holds the redirected directories
 
-    :returns: the absolute isolation root as a :class:`~pathlib.Path`
+    :yields: the absolute isolation root as a :class:`~pathlib.Path`
 
     """
     app_kinds: Final[frozenset[str]] = frozenset({
