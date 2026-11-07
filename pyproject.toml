@@ -166,6 +166,12 @@ lint.ignore = [
   "multi-line-summary-second-line",    # `multi-line-summary-second-line` (D213) conflicts with docstrfmt which uses D212 style
   "non-empty-init-module",             # `__init__` module should only contain docstrings and re-exports
   "non-imperative-mood",               # The first line of docstring should be in imperative mood
+  "undocumented-magic-method",         # undocumented-public-api (simplint SMP903) covers the public API instead
+  "undocumented-public-class",         # undocumented-public-api (simplint SMP903) covers the public API instead
+  "undocumented-public-function",      # undocumented-public-api (simplint SMP903) covers the public API instead
+  "undocumented-public-init",          # undocumented-public-api (simplint SMP903) covers the public API instead
+  "undocumented-public-method",        # undocumented-public-api (simplint SMP903) covers the public API instead
+  "undocumented-public-nested-class",  # undocumented-public-api (simplint SMP903) covers the public API instead
 ]
 lint.per-file-ignores."tests/**/*.py" = [
   "assert",                               # asserts allowed in tests
@@ -252,3 +258,6 @@ packages.release-creator.uploaded-prior-to = 2026-11-02T21:45:00Z
 # ty 0.0.99, which renamed unresolved-import to import-not-found, needs one through 2026-11-13.
 # expires 2026-11-13
 packages.ty.uploaded-prior-to = 2026-11-06T10:14:00Z
+
+[tool.simplint]
+docstring-style = "rst"
