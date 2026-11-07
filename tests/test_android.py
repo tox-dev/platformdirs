@@ -126,7 +126,7 @@ def test_android_folder_from_sys_path(
 
 @pytest.fixture
 def _clear_android_caches() -> None:
-    for cached in vars(android).values():
+    for cached in android.__dict__.values():
         if hasattr(cached, "cache_clear"):
             cached.cache_clear()
 
@@ -230,15 +230,12 @@ def test_android_folder_without_python_for_android_uses_sys_path(
     ],
 )
 def test_android_media_dir_from_environment(mocker: MockerFixture, prop: str, expected: str) -> None:
-    mocker.patch.dict(sys.modules, {"jnius": _pyjnius({"android.os.Environment": _environment()})})
-    assert getattr(Android(), prop) == expected
-
-
-def _environment() -> MagicMock:
     def public_directory(name: str) -> MagicMock:
         return MagicMock(getAbsolutePath=MagicMock(return_value=f"/storage/emulated/10/{name}"))
 
-    return MagicMock(getExternalStoragePublicDirectory=MagicMock(side_effect=public_directory))
+    environment = MagicMock(getExternalStoragePublicDirectory=MagicMock(side_effect=public_directory))
+    mocker.patch.dict(sys.modules, {"jnius": _pyjnius({"android.os.Environment": environment})})
+    assert getattr(Android(), prop) == expected
 
 
 @pytest.mark.usefixtures("_clear_android_caches")

@@ -387,7 +387,7 @@ def test_get_win_folder_via_ctypes_queries_known_folder(
     _setup_ctypes_mocks(mocker)
     dlls = {"ole32": MagicMock(), "shell32": MagicMock()}
     mocker.patch.object(ctypes, "WinDLL", MagicMock(side_effect=dlls.__getitem__))
-    mocker.patch("ctypes.byref", side_effect=lambda x: x)
+    mocker.patch("ctypes.byref", side_effect=lambda arg: arg)
     mocker.patch("ctypes.wintypes.LPWSTR", return_value=MagicMock(value=r"D:\Moved"))
 
     try:
@@ -413,7 +413,7 @@ def test_get_win_folder_via_ctypes_passes_dont_verify_flag(mocker: MockerFixture
         MagicMock(side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32}[name]),
     )
 
-    mocker.patch("ctypes.byref", side_effect=lambda x: x)
+    mocker.patch("ctypes.byref", side_effect=lambda arg: arg)
 
     mocker.patch("ctypes.wintypes.LPWSTR", return_value=MagicMock(value=r"C:\Users\Test\AppData\Local"))
 
@@ -453,7 +453,7 @@ def test_get_win_folder_via_ctypes_builds_once(mocker: MockerFixture) -> None:
 
     win_dll = MagicMock(side_effect=lambda _name: MagicMock())
     mocker.patch.object(ctypes, "WinDLL", win_dll)
-    mocker.patch("ctypes.byref", side_effect=lambda x: x)
+    mocker.patch("ctypes.byref", side_effect=lambda arg: arg)
     mocker.patch("ctypes.wintypes.LPWSTR", return_value=MagicMock(value=r"C:\Users\Test\AppData\Local"))
 
     try:
@@ -480,7 +480,7 @@ def test_get_win_folder_via_ctypes_null_result(mocker: MockerFixture) -> None:
         MagicMock(side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32}[name]),
     )
 
-    mocker.patch("ctypes.byref", side_effect=lambda x: x)
+    mocker.patch("ctypes.byref", side_effect=lambda arg: arg)
 
     mocker.patch("ctypes.wintypes.LPWSTR", return_value=MagicMock(value=None))
 
@@ -503,7 +503,7 @@ def test_get_win_folder_via_ctypes_frees_path_on_error(mocker: MockerFixture, pa
     error = OSError("SHGetKnownFolderPath failed")
     dlls = {"ole32": MagicMock(), "shell32": MagicMock(SHGetKnownFolderPath=MagicMock(side_effect=error))}
     mocker.patch.object(ctypes, "WinDLL", MagicMock(side_effect=dlls.__getitem__))
-    mocker.patch("ctypes.byref", side_effect=lambda x: x)
+    mocker.patch("ctypes.byref", side_effect=lambda arg: arg)
     path_ptr = MagicMock(value=path)
     mocker.patch("ctypes.wintypes.LPWSTR", return_value=path_ptr)
 
@@ -540,7 +540,7 @@ def test_get_win_folder_via_ctypes_keeps_non_latin1_path(
         "kernel32": MagicMock(GetShortPathNameW=MagicMock(side_effect=get_short_path_name)),
     }
     mocker.patch.object(ctypes, "WinDLL", MagicMock(side_effect=dlls.__getitem__))
-    mocker.patch("ctypes.byref", side_effect=lambda x: x)
+    mocker.patch("ctypes.byref", side_effect=lambda arg: arg)
     mocker.patch("ctypes.wintypes.LPWSTR", return_value=MagicMock(value=r"C:\Users\Łukasz\AppData\Local"))
 
     try:
@@ -641,6 +641,11 @@ def test_pick_get_win_folder_ctypes(mocker: MockerFixture) -> None:
     finally:
         if sys.platform != "win32":
             _cleanup_ctypes_mocks()
+
+
+def test_pick_get_win_folder_without_ctypes_or_winreg(mocker: MockerFixture) -> None:
+    mocker.patch.dict(sys.modules, {"ctypes": None, "winreg": None})
+    assert windows._pick_get_win_folder() is windows.get_win_folder_from_env_vars  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
 
 
 @pytest.mark.parametrize(
