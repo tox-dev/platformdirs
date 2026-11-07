@@ -130,50 +130,61 @@ def test_macos(home: str, params: dict[str, Any], func: str) -> None:
     ],
 )
 @pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="singlepath")])
+@pytest.mark.parametrize(
+    "prefix",
+    [
+        pytest.param(
+            {
+                "sys_prefix": "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13",
+                "homebrew_prefix": "/opt/homebrew",
+            },
+            id="apple_silicon",
+        ),
+        pytest.param(
+            {
+                "sys_prefix": "/usr/local/opt/python@3.13/Frameworks/Python.framework/Versions/3.13",
+                "homebrew_prefix": "/usr/local",
+            },
+            id="intel",
+        ),
+        pytest.param(
+            {
+                "sys_prefix": "/myown/arbitrary/prefix/opt/python@3.13/Frameworks/Python.framework/Versions/3.13",
+                "homebrew_prefix": "/myown/arbitrary/prefix",
+            },
+            id="arbitrary",
+        ),
+    ],
+)
 @pytest.mark.usefixtures("_clear_xdg_env")
-def test_macos_homebrew(
-    mocker: MockerFixture, home: str, params: dict[str, Any], multipath: bool, site_func: str
+def test_macos_homebrew(  # ruff:ignore[too-many-arguments]  # one argument per parametrized input
+    mocker: MockerFixture, home: str, params: dict[str, Any], multipath: bool, site_func: str, prefix: dict[str, str]
 ) -> None:
-    test_data = [
-        {
-            "sys_prefix": "/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13",
-            "homebrew_prefix": "/opt/homebrew",
-        },
-        {
-            "sys_prefix": "/usr/local/opt/python@3.13/Frameworks/Python.framework/Versions/3.13",
-            "homebrew_prefix": "/usr/local",
-        },
-        {
-            "sys_prefix": "/myown/arbitrary/prefix/opt/python@3.13/Frameworks/Python.framework/Versions/3.13",
-            "homebrew_prefix": "/myown/arbitrary/prefix",
-        },
-    ]
-    for prefix in test_data:
-        mocker.patch("sys.base_prefix", prefix["sys_prefix"])
+    mocker.patch("sys.base_prefix", prefix["sys_prefix"])
 
-        result = getattr(MacOS(multipath=multipath, **params), site_func)
+    result = getattr(MacOS(multipath=multipath, **params), site_func)
 
-        suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-        suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+    suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
+    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
 
-        expected_path_map = {
-            "site_cache_path": Path(f"{prefix['homebrew_prefix']}/var/cache{suffix}"),
-            "site_data_path": Path(f"{prefix['homebrew_prefix']}/share{suffix}"),
-            "site_config_path": Path(f"{prefix['homebrew_prefix']}/share{suffix}"),
-        }
-        expected_map = {
-            "site_data_dir": f"{prefix['homebrew_prefix']}/share{suffix}",
-            "site_config_dir": f"{prefix['homebrew_prefix']}/share{suffix}",
-            "site_cache_dir": f"{prefix['homebrew_prefix']}/var/cache{suffix}",
-            "site_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
-        }
-        if multipath:
-            expected_map["site_data_dir"] += f":/Library/Application Support{suffix}"
-            expected_map["site_config_dir"] += f":/Library/Application Support{suffix}"
-            expected_map["site_cache_dir"] += f":/Library/Caches{suffix}"
-        expected = expected_path_map[site_func] if site_func.endswith("_path") else expected_map[site_func]
+    expected_path_map = {
+        "site_cache_path": Path(f"{prefix['homebrew_prefix']}/var/cache{suffix}"),
+        "site_data_path": Path(f"{prefix['homebrew_prefix']}/share{suffix}"),
+        "site_config_path": Path(f"{prefix['homebrew_prefix']}/share{suffix}"),
+    }
+    expected_map = {
+        "site_data_dir": f"{prefix['homebrew_prefix']}/share{suffix}",
+        "site_config_dir": f"{prefix['homebrew_prefix']}/share{suffix}",
+        "site_cache_dir": f"{prefix['homebrew_prefix']}/var/cache{suffix}",
+        "site_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
+    }
+    if multipath:
+        expected_map["site_data_dir"] += f":/Library/Application Support{suffix}"
+        expected_map["site_config_dir"] += f":/Library/Application Support{suffix}"
+        expected_map["site_cache_dir"] += f":/Library/Caches{suffix}"
+    expected = expected_path_map[site_func] if site_func.endswith("_path") else expected_map[site_func]
 
-        assert result == expected
+    assert result == expected
 
 
 @pytest.mark.usefixtures("_clear_xdg_env", "_homebrew_py_prefix")
