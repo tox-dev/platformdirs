@@ -6,7 +6,7 @@ from ._xdg import _expand_user
 from .api import PlatformDirsABC
 
 
-class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
+class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
     """Platform directories for iOS and iPadOS.
 
     Follows the app container layout from `Apple's File System Programming Guide

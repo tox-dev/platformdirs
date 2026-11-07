@@ -12,7 +12,7 @@ from typing import Final
 from .api import PlatformDirsABC
 
 
-class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
+class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
     """Platform directories for Android.
 
     Follows the guidance `from here <https://android.stackexchange.com/a/216132>`_. Directories are typically located
@@ -74,7 +74,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         """Log directory tied to the user, same as `user_cache_dir` if not opinionated else ``log`` in it, e.g. ``/data/user/<userid>/<packagename>/cache/<AppName>/log``."""
         path = self.user_cache_dir
         if self.opinion:
-            path = os.path.join(path, "log")  # ruff:ignore[os-path-join]
+            path = os.path.join(path, "log")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
             self._optionally_create_directory(path, private=True)
         return path
 
@@ -142,7 +142,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_bin_dir(self) -> str:
         """Bin directory tied to the user, e.g. ``/data/user/<userid>/<packagename>/files/bin``."""
-        return os.path.join(_require_android_folder(), "files", "bin")  # ruff:ignore[os-path-join]
+        return os.path.join(_require_android_folder(), "files", "bin")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
 
     @property
     def site_applications_dir(self) -> str:
@@ -164,7 +164,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         """Runtime directory tied to the user, same as `user_cache_dir` if not opinionated else ``tmp`` in it, e.g. ``/data/user/<userid>/<packagename>/cache/<AppName>/tmp``."""
         path = self.user_cache_dir
         if self.opinion:
-            path = os.path.join(path, "tmp")  # ruff:ignore[os-path-join]
+            path = os.path.join(path, "tmp")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
             self._optionally_create_directory(path, private=True)
         return path
 
@@ -181,7 +181,7 @@ def _android_folder() -> str | None:
     # :returns: base folder for the Android OS or None if it cannot be found
     result = None
     with suppress(ImportError):
-        from jnius import JavaException, autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[import-not-found]
+        from jnius import JavaException, autoclass  # ruff:ignore[import-outside-top-level]  # jnius exists only on Android  # ty: ignore[import-not-found]
 
         with suppress(JavaException):
             # A python-for-android service runs in its own process, where the activity is null.
@@ -234,7 +234,7 @@ def _android_folder() -> str | None:
 @cache
 def _android_public_folder(name: str) -> str:
     with suppress(ImportError):
-        from jnius import JavaException, autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[import-not-found]
+        from jnius import JavaException, autoclass  # ruff:ignore[import-outside-top-level]  # jnius exists only on Android  # ty: ignore[import-not-found]
 
         with suppress(JavaException):
             return autoclass("android.os.Environment").getExternalStoragePublicDirectory(name).getAbsolutePath()

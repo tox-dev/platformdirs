@@ -149,7 +149,7 @@ class XDGMixin(PlatformDirsABC):
     def user_applications_dir(self) -> str:
         """Applications directory tied to the user, from ``$XDG_DATA_HOME`` if set, else platform default."""
         if path := _xdg_dir("XDG_DATA_HOME"):
-            return os.path.join(os.path.expanduser(path), "applications")  # ruff:ignore[os-path-expanduser, os-path-join]
+            return os.path.join(os.path.expanduser(path), "applications")  # ruff:ignore[os-path-expanduser, os-path-join]  # the XDG value may start with ~
         return super().user_applications_dir
 
     @property
@@ -161,7 +161,7 @@ class XDGMixin(PlatformDirsABC):
     @property
     def _site_applications_dirs(self) -> list[str]:
         if xdg_dirs := _xdg_dir_list("XDG_DATA_DIRS"):
-            return [os.path.join(p, "applications") for p in xdg_dirs]  # ruff:ignore[os-path-join]
+            return [os.path.join(p, "applications") for p in xdg_dirs]  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
         return super()._site_applications_dirs
 
 

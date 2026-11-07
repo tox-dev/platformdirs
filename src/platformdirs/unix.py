@@ -32,7 +32,7 @@ else:
         from os import getuid as geteuid
 
 
-class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
+class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
     """Default directories for Unix/Linux without XDG environment variable overrides.
 
     The XDG env var handling is in :class:`~platformdirs._xdg.XDGMixin`.
@@ -76,7 +76,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         """Log directory tied to the user, same as `user_state_dir` if not opinionated else ``log`` in it."""
         path = self.user_state_dir
         if self.opinion:
-            path = os.path.join(path, "log")  # ruff:ignore[os-path-join]
+            path = os.path.join(path, "log")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
             self._optionally_create_directory(path, private=True)
         return path
 
@@ -177,7 +177,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def _site_applications_dirs(self) -> list[str]:
-        return [os.path.join(p, "applications") for p in ["/usr/local/share", "/usr/share"]]  # ruff:ignore[os-path-join]
+        return [os.path.join(p, "applications") for p in ["/usr/local/share", "/usr/share"]]  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
 
     @property
     def site_runtime_dir(self) -> str:
@@ -200,7 +200,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     def _default_runtime_dir(self) -> str:
         if sys.platform.startswith("openbsd"):
-            path = f"/tmp/run/user/{geteuid()}"  # ruff:ignore[hardcoded-temp-file]
+            path = f"/tmp/run/user/{geteuid()}"  # ruff:ignore[hardcoded-temp-file]  # OpenBSD runtime dir default, a fixed path rather than a temp file
         elif sys.platform.startswith(("freebsd", "netbsd")):
             path = f"/var/run/user/{geteuid()}"
         else:

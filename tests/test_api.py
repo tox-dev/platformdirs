@@ -96,7 +96,7 @@ def test_function_matches_its_property_for_app_arguments(func: str) -> None:
 @pytest.mark.parametrize("path", ["/data/data/a/files", "/C"])
 @pytest.mark.parametrize("shell", ["/data/data/com.app/files/usr/bin/sh", "/usr/bin/sh", None])
 @pytest.mark.parametrize("prefix", ["/data/data/com.termux/files/usr", None])
-def test_android_active(  # ruff:ignore[too-many-arguments]
+def test_android_active(  # ruff:ignore[too-many-arguments]  # one argument per parametrized input
     monkeypatch: pytest.MonkeyPatch,
     root: str | None,
     data: str | None,
@@ -110,22 +110,22 @@ def test_android_active(  # ruff:ignore[too-many-arguments]
         else:
             monkeypatch.setenv(env_var, value)
 
-    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]
+    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]  # the test reads a private helper
 
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", ["/A", "/B", path])
 
     if root == "/system" and data == "/data" and shell is None and prefix is None and _android_folder() is not None:
-        assert platformdirs._set_platform_dir_class() is Android  # ruff:ignore[private-member-access]
+        assert platformdirs._set_platform_dir_class() is Android  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
     else:
-        assert platformdirs._set_platform_dir_class() is not Android  # ruff:ignore[private-member-access]
+        assert platformdirs._set_platform_dir_class() is not Android  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
 
 
 @pytest.mark.parametrize(
     ("prefix", "expected"),
     [
         pytest.param(None, Android, id="cleared-environment"),
-        pytest.param("/data/data/com.termux/files/usr", platformdirs._Result, id="termux"),  # ruff:ignore[private-member-access]
+        pytest.param("/data/data/com.termux/files/usr", platformdirs._Result, id="termux"),  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
     ],
 )
 def test_android_build_detected_without_environment(
@@ -137,16 +137,16 @@ def test_android_build_detected_without_environment(
         monkeypatch.setenv("PREFIX", prefix)
     monkeypatch.setattr(sys, "getandroidapilevel", lambda: 34, raising=False)
     monkeypatch.setattr(sys, "path", ["/data/user/0/org.example.app/files/app"])
-    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]
+    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]  # the test reads a private helper
 
     _android_folder.cache_clear()
-    assert platformdirs._set_platform_dir_class() is expected  # ruff:ignore[private-member-access]
+    assert platformdirs._set_platform_dir_class() is expected  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
 
 
 def _fake_import(
     name: str,
-    globals: Mapping[str, object] | None = None,  # ruff:ignore[builtin-argument-shadowing]
-    locals: Mapping[str, object] | None = None,  # ruff:ignore[builtin-argument-shadowing]
+    globals: Mapping[str, object] | None = None,  # ruff:ignore[builtin-argument-shadowing]  # mirrors the signature of builtins.__import__
+    locals: Mapping[str, object] | None = None,  # ruff:ignore[builtin-argument-shadowing]  # mirrors the signature of builtins.__import__
     fromlist: Sequence[str] | None = (),
     level: int = 0,
 ) -> ModuleType:
@@ -158,10 +158,10 @@ def _fake_import(
 
 def mock_import(func: Callable[..., None]) -> Callable[..., None]:
     @functools.wraps(func)
-    def wrap(*args: Any, **kwargs: Any) -> None:  # ruff:ignore[any-type]
+    def wrap(*args: Any, **kwargs: Any) -> None:  # ruff:ignore[any-type]  # the decorator forwards any signature unchanged
         platformdirs_module_items = [item for item in sys.modules.items() if item[0].startswith("platformdirs")]
         try:
-            builtins.__import__ = _fake_import  # ty: ignore[invalid-assignment]
+            builtins.__import__ = _fake_import  # ty: ignore[invalid-assignment]  # the stub types the builtin narrowly; the swap is intentional
             for name, _ in platformdirs_module_items:
                 del sys.modules[name]
             return func(*args, **kwargs)
@@ -176,7 +176,7 @@ def mock_import(func: Callable[..., None]) -> Callable[..., None]:
 
 @mock_import
 def test_no_ctypes(func: str) -> None:
-    import platformdirs  # ruff:ignore[import-outside-top-level]
+    import platformdirs  # ruff:ignore[import-outside-top-level]  # imported under the patched import hook
 
     result = getattr(platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0"), func)
     assert isinstance(result, str)

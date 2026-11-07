@@ -22,7 +22,7 @@ else:
     from os import geteuid
 
 
-class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
+class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
     """Default platform directories for macOS without XDG environment variable overrides.
 
     Follows the guidance from `Apple's File System Programming Guide

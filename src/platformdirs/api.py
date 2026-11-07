@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from typing import Literal
 
 
-class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
+class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
     """Abstract base class defining all platform directory properties, their :class:`~pathlib.Path` variants, and
     iterators.
 
@@ -23,16 +23,16 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
     """
 
-    def __init__(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]
+    def __init__(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # released signature, callers pass these by position
         self,
         appname: str | None = None,
         appauthor: str | Literal[False] | None = None,
         version: str | None = None,
-        roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
-        multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
-        opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
-        ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
-        use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
+        roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+        multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+        opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+        ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+        use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
     ) -> None:
         """Create a new platform directory.
 
@@ -445,7 +445,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
             params.append(self.appname)
             if self.version:
                 params.append(self.version)
-        return os.path.join(base[0], *params)  # ruff:ignore[os-path-join]
+        return os.path.join(base[0], *params)  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
 
     def _optionally_create_media_directory(self, path: str) -> None:
         # Only called for a media directory the user configured. Media directories are often symlinks to removable or

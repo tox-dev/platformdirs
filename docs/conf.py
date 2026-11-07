@@ -1,4 +1,4 @@
-# ruff:ignore[implicit-namespace-package]
+# ruff:ignore[implicit-namespace-package]  # config module, not a package
 """Configuration for Sphinx."""
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 author: Final[str] = "The platformdirs team"
 project: Final[str] = "platformdirs"
-copyright: Final[str] = "2021, The platformdirs team"  # ruff:ignore[builtin-variable-shadowing]
+copyright: Final[str] = "2021, The platformdirs team"  # ruff:ignore[builtin-variable-shadowing]  # Sphinx reads the variable by this name
 
 release = __version__
 version = release

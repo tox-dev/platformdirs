@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 _KF_FLAG_DONT_VERIFY: Final[int] = 0x00004000
 
 
-class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
+class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
     """`MSDN on where to store app data files <https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid>`_.
 
     Makes use of the `appname <platformdirs.api.PlatformDirsABC.appname>`, `appauthor
@@ -49,7 +49,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
                 params.append(opinion_value)
             if self.version:
                 params.append(self.version)
-        path = os.path.join(path, *params)  # ruff:ignore[os-path-join]
+        path = os.path.join(path, *params)  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
         self._optionally_create_directory(path, private=False)
         return path
 
@@ -84,7 +84,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         """Log directory tied to the user, same as `user_data_dir` if not opinionated else ``Logs`` in it."""
         path = self.user_data_dir
         if self.opinion:
-            path = os.path.join(path, "Logs")  # ruff:ignore[os-path-join]
+            path = os.path.join(path, "Logs")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
             self._optionally_create_directory(path, private=False)
         return path
 
@@ -93,7 +93,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         """Log directory shared by users, same as `site_data_dir` if not opinionated else ``Logs`` in it."""
         path = self.site_data_dir
         if self.opinion:
-            path = os.path.join(path, "Logs")  # ruff:ignore[os-path-join]
+            path = os.path.join(path, "Logs")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
             self._optionally_create_directory(path, private=False)
         return path
 
@@ -165,7 +165,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def site_bin_dir(self) -> str:
         r"""Bin directory shared by users, e.g. ``C:\ProgramData\bin``."""
-        return os.path.normpath(os.path.join(get_win_folder("CSIDL_COMMON_APPDATA"), "bin"))  # ruff:ignore[os-path-join]
+        return os.path.normpath(os.path.join(get_win_folder("CSIDL_COMMON_APPDATA"), "bin"))  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
 
     @property
     def user_applications_dir(self) -> str:
@@ -185,7 +185,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_runtime_dir(self) -> str:
         r"""Runtime directory tied to the user, e.g. ``%USERPROFILE%\AppData\Local\Temp\$appauthor\$appname``."""
-        path = os.path.normpath(os.path.join(get_win_folder("CSIDL_LOCAL_APPDATA"), "Temp"))  # ruff:ignore[os-path-join]
+        path = os.path.normpath(os.path.join(get_win_folder("CSIDL_LOCAL_APPDATA"), "Temp"))  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
         return self._append_parts(path)
 
 
@@ -249,13 +249,13 @@ def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
         env_var, *parts = env_var_and_parts
         if not (value := os.environ.get(env_var)):
             raise KeyError(env_var)  # same error os.environ[env_var] gives for an unset variable
-        return os.path.join(os.path.normpath(value), *parts)  # ruff:ignore[os-path-join]
+        return os.path.join(os.path.normpath(value), *parts)  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
 
     if csidl_name == "CSIDL_PUBLIC":
         return os.environ.get("PUBLIC") or str(Path("~").expanduser().parent / "Public")
 
     if csidl_name == "CSIDL_COMMON_PROGRAMS":
-        return os.path.join(  # ruff:ignore[os-path-join]
+        return os.path.join(  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
             os.path.normpath(os.environ.get("PROGRAMDATA") or os.environ.get("ALLUSERSPROFILE") or "C:\\ProgramData"),
             "Microsoft",
             "Windows",
@@ -294,7 +294,7 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
         return get_win_folder_from_env_vars(csidl_name)
     if sys.platform != "win32":  # only needed for mypy type checker to know that this code runs only on Windows
         raise NotImplementedError
-    import winreg  # ruff:ignore[import-outside-top-level]
+    import winreg  # ruff:ignore[import-outside-top-level]  # optional Windows module, imported only where it exists
 
     # Use HKEY_LOCAL_MACHINE for system-wide folders, HKEY_CURRENT_USER for user-specific folders
     hkey = winreg.HKEY_LOCAL_MACHINE if csidl_name in machine_names else winreg.HKEY_CURRENT_USER
@@ -329,7 +329,7 @@ def _build_get_win_folder_via_ctypes() -> Callable[[str], str]:
     # See https://github.com/tox-dev/platformdirs/issues/501.
     if sys.platform != "win32":  # only needed for type checker to know that this code runs only on Windows
         raise NotImplementedError
-    from ctypes import (  # ruff:ignore[import-outside-top-level]
+    from ctypes import (  # ruff:ignore[import-outside-top-level]  # optional Windows module, imported only where it exists
         HRESULT,
         POINTER,
         Structure,
@@ -393,13 +393,13 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
 def _pick_get_win_folder() -> Callable[[str], str]:
     # Select the best method to resolve Windows folder paths: ctypes, then registry, then environment variables.
     try:
-        import ctypes  # ruff:ignore[import-outside-top-level, unused-import]
+        import ctypes  # ruff:ignore[import-outside-top-level, unused-import]  # optional Windows module, imported only where it exists
     except ImportError:
         pass
     else:
         return get_win_folder_via_ctypes
     try:
-        import winreg  # ruff:ignore[import-outside-top-level, unused-import]
+        import winreg  # ruff:ignore[import-outside-top-level, unused-import]  # optional Windows module, imported only where it exists
     except ImportError:
         return get_win_folder_from_env_vars
     else:

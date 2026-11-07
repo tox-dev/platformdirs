@@ -54,7 +54,7 @@ def test_android(params: dict[str, Any], func: str) -> None:
         suffix_elements.insert(0, "")
     suffix = "/".join(suffix_elements)
 
-    val = "/tmp"  # ruff:ignore[hardcoded-temp-file]
+    val = "/tmp"  # ruff:ignore[hardcoded-temp-file]  # test value only, nothing is written there
     expected_map = {
         "user_data_dir": f"/data/data/com.example/files{suffix}",
         "site_data_dir": f"/data/data/com.example/files{suffix}",
@@ -116,7 +116,7 @@ def test_android_folder_from_sys_path(
     mocker.patch.dict(sys.modules, {"android": MagicMock(side_effect=ModuleNotFoundError)})
     monkeypatch.delitem(__import__("sys").modules, "android")
 
-    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]
+    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]  # the test reads a private helper
 
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", ["/A", "/B", path])
@@ -247,7 +247,7 @@ def test_android_media_dir_without_environment_falls_back(mocker: MockerFixture)
 def test_android_folder_not_found(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch) -> None:
     mocker.patch.dict(sys.modules, {"jnius": None})
 
-    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]
+    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]  # the test reads a private helper
 
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", [])

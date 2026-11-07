@@ -11,7 +11,7 @@ import platformdirs
 
 
 def test_has_backward_compatible_class() -> None:
-    from platformdirs import AppDirs  # ruff:ignore[import-outside-top-level]
+    from platformdirs import AppDirs  # ruff:ignore[import-outside-top-level]  # the test checks this alias itself
 
     assert AppDirs is platformdirs.PlatformDirs
 
@@ -58,17 +58,17 @@ def test_compatibility(params: dict[str, Any], func: str, monkeypatch: pytest.Mo
         pytest.skip(f"`{func}` does not exist in `appdirs`")
 
     if sys.platform == "darwin":
-        msg = {  # pragma: no cover
+        msg = {  # pragma: no cover  # macOS only
             "user_log_dir": "without appname produces NoneType error",
         }
-        if func in msg:  # pragma: no cover
-            pytest.skip(f"`appdirs.{func}` {msg[func]} on macOS")  # pragma: no cover
+        if func in msg:  # pragma: no cover  # macOS only
+            pytest.skip(f"`appdirs.{func}` {msg[func]} on macOS")  # pragma: no cover  # macOS only
     elif sys.platform != "win32":
-        msg = {  # pragma: no cover
+        msg = {  # pragma: no cover  # Unix only
             "user_log_dir": "Uses XDG_STATE_DIR instead of appdirs.user_data_dir per the XDG spec",
         }
-        if func in msg:  # pragma: no cover
-            pytest.skip(f"`appdirs.{func}` {msg[func]} on Unix")  # pragma: no cover
+        if func in msg:  # pragma: no cover  # Unix only
+            pytest.skip(f"`appdirs.{func}` {msg[func]} on Unix")  # pragma: no cover  # Unix only
 
     new = getattr(platformdirs, func)(*params)
     old = getattr(appdirs, func)(*params)

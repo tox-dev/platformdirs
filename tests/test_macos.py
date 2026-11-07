@@ -73,7 +73,7 @@ def test_macos(home: str, params: dict[str, Any], func: str) -> None:
     result = getattr(MacOS(**params), func)
 
     suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]
+    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
 
     expected_map = {
         "user_data_dir": f"{home}/Library/Application Support{suffix}",
@@ -154,7 +154,7 @@ def test_macos_homebrew(
         result = getattr(MacOS(multipath=multipath, **params), site_func)
 
         suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-        suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]
+        suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
 
         expected_path_map = {
             "site_cache_path": Path(f"{prefix['homebrew_prefix']}/var/cache{suffix}"),
@@ -215,7 +215,7 @@ def test_macos_xdg_env_vars(
     monkeypatch.setenv(env_var, xdg_path)
     result = getattr(MacOS(**params), prop)
     suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]
+    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
     assert result == f"{xdg_path}{suffix}"
 
 
@@ -281,7 +281,7 @@ def test_macos_ensure_exists_returns_configured_media_symlink(
 
 @pytest.mark.parametrize(("xdg_value", "created"), [("/custom/media", True), (None, False)], ids=["xdg", "default"])
 @pytest.mark.parametrize(("env_var", "prop"), _MEDIA_DIRS)
-def test_macos_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[too-many-arguments]
+def test_macos_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[too-many-arguments]  # one argument per parametrized input
     mocker: MockerFixture,
     monkeypatch: pytest.MonkeyPatch,
     env_var: str,
@@ -473,8 +473,8 @@ def test_site_dirs_fall_back_when_xdg_var_has_no_absolute_paths(
 ) -> None:
     monkeypatch.setenv("XDG_CONFIG_DIRS" if prop == "site_config_dir" else "XDG_DATA_DIRS", value)
     expected = {
-        "site_data_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]
-        "site_config_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]
+        "site_data_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+        "site_config_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
         "site_applications_dir": "/Applications",
     }[prop]
     assert getattr(MacOS(appname="foo"), prop) == expected
