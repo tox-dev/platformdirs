@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final, TypedDict
 from unittest.mock import MagicMock
 
 import pytest
@@ -24,6 +24,12 @@ def _example_android_folder(mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
 
 
+class AppParams(TypedDict, total=False):
+    appname: str
+    version: str
+    appauthor: str
+
+
 @pytest.mark.parametrize(
     "params",
     [
@@ -42,7 +48,7 @@ def _example_android_folder(mocker: MockerFixture) -> None:
     ],
 )
 @pytest.mark.usefixtures("_example_android_folder")
-def test_android(params: dict[str, Any], func: str) -> None:
+def test_android(params: AppParams, func: str) -> None:
     result = getattr(Android(**params), func)
 
     suffix_elements = []

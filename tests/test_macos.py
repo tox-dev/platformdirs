@@ -5,7 +5,7 @@ import re
 import stat
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final, TypedDict
 
 import pytest
 
@@ -60,6 +60,12 @@ def _builtin_py_prefix(mocker: MockerFixture) -> None:
     )
 
 
+class AppParams(TypedDict, total=False):
+    appname: str
+    version: str
+    appauthor: str
+
+
 @pytest.mark.parametrize(
     "params",
     [
@@ -69,7 +75,7 @@ def _builtin_py_prefix(mocker: MockerFixture) -> None:
     ],
 )
 @pytest.mark.usefixtures("_clear_xdg_env", "_builtin_py_prefix")
-def test_macos(home: str, params: dict[str, Any], func: str) -> None:
+def test_macos(home: str, params: AppParams, func: str) -> None:
     result = getattr(MacOS(**params), func)
 
     suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
@@ -158,7 +164,7 @@ def test_macos(home: str, params: dict[str, Any], func: str) -> None:
 )
 @pytest.mark.usefixtures("_clear_xdg_env")
 def test_macos_homebrew(  # ruff:ignore[too-many-arguments]  # one argument per parametrized input
-    mocker: MockerFixture, home: str, params: dict[str, Any], multipath: bool, site_func: str, prefix: dict[str, str]
+    mocker: MockerFixture, home: str, params: AppParams, multipath: bool, site_func: str, prefix: dict[str, str]
 ) -> None:
     mocker.patch("sys.base_prefix", prefix["sys_prefix"])
 
@@ -221,7 +227,7 @@ def test_macos_xdg_env_vars(
     env_var: str,
     prop: str,
     xdg_path: str,
-    params: dict[str, Any],
+    params: AppParams,
 ) -> None:
     monkeypatch.setenv(env_var, xdg_path)
     result = getattr(MacOS(**params), prop)

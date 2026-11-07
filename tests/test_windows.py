@@ -6,7 +6,7 @@ import os
 import pathlib
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final, TypedDict
 from unittest.mock import MagicMock
 
 import pytest
@@ -54,6 +54,12 @@ def _mock_get_win_folder(mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.windows.get_win_folder", side_effect=lambda csidl: _WIN_FOLDERS[csidl])
 
 
+class AppParams(TypedDict, total=False):
+    appname: str
+    version: str
+    appauthor: str
+
+
 @pytest.mark.parametrize(
     "params",
     [
@@ -62,7 +68,7 @@ def _mock_get_win_folder(mocker: MockerFixture) -> None:
         pytest.param({"appname": "foo", "version": "v1.0"}, id="app_name_version"),
     ],
 )
-def test_windows(params: dict[str, Any], func: str) -> None:
+def test_windows(params: AppParams, func: str) -> None:
     result = getattr(Windows(**params), func)
 
     suffix_parts = []

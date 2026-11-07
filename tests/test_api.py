@@ -8,7 +8,7 @@ import re
 import stat
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final, ParamSpec
 
 import pytest
 
@@ -18,7 +18,8 @@ from platformdirs.macos import MacOS
 from platformdirs.unix import Unix
 from platformdirs.windows import Windows
 
-_BUILTIN_IMPORT = builtins.__import__
+_BUILTIN_IMPORT: Final = builtins.__import__
+P = ParamSpec("P")
 
 
 if TYPE_CHECKING:
@@ -156,9 +157,9 @@ def _fake_import(
     return _BUILTIN_IMPORT(name, globals, locals, fromlist, level)
 
 
-def mock_import(func: Callable[..., None]) -> Callable[..., None]:
+def mock_import(func: Callable[P, None]) -> Callable[P, None]:
     @functools.wraps(func)
-    def wrap(*args: Any, **kwargs: Any) -> None:  # ruff:ignore[any-type]  # the decorator forwards any signature unchanged
+    def wrap(*args: P.args, **kwargs: P.kwargs) -> None:
         platformdirs_module_items = [item for item in sys.modules.items() if item[0].startswith("platformdirs")]
         try:
             builtins.__import__ = _fake_import  # ty: ignore[invalid-assignment]  # the stub types the builtin narrowly; the swap is intentional

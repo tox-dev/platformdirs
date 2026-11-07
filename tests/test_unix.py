@@ -260,7 +260,7 @@ def test_xdg_variable_empty_value(monkeypatch: pytest.MonkeyPatch, dirs_instance
     assert result == os.path.expanduser(xdg_variable.default_value)  # ruff:ignore[os-path-expanduser]  # the expected value uses the same expansion the code calls
 
 
-def _fallback_warning(*, expected: bool) -> contextlib.AbstractContextManager[object]:
+def _fallback_warning(*, expected: bool) -> contextlib.AbstractContextManager[pytest.WarningsRecorder | None]:
     if expected:
         return pytest.warns(RuntimeDirWarning, match="^XDG_RUNTIME_DIR is not set, falling back to ")
     return contextlib.nullcontext()

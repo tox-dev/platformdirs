@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 from inspect import getmembers, isfunction
-from typing import Any
+from typing import TypedDict
 
 import appdirs
 import pytest
@@ -34,6 +34,12 @@ def test_has_all_properties() -> None:
         getattr(platformdirs.AppDirs, property_name)
 
 
+class AppParams(TypedDict, total=False):
+    appname: str
+    version: str
+    appauthor: str
+
+
 @pytest.mark.parametrize(
     "params",
     [
@@ -50,7 +56,7 @@ def test_has_all_properties() -> None:
     ],
 )
 @pytest.mark.usefixtures("_clear_xdg_env")
-def test_compatibility(params: dict[str, Any], func: str, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_compatibility(params: AppParams, func: str, monkeypatch: pytest.MonkeyPatch) -> None:
     # Compare system defaults here; appdirs has no Homebrew-specific locations.
     monkeypatch.setattr(sys, "base_prefix", "/usr")
     # Only test functions that are part of appdirs
