@@ -71,9 +71,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def user_log_dir(self) -> str:
-        """Log directory tied to the user, same as `user_cache_dir` if not opinionated else ``log`` in it, e.g.
-        ``/data/user/<userid>/<packagename>/cache/<AppName>/log``.
-        """
+        """Log directory tied to the user, same as `user_cache_dir` if not opinionated else ``log`` in it, e.g. ``/data/user/<userid>/<packagename>/cache/<AppName>/log``."""
         path = self.user_cache_dir
         if self.opinion:
             path = os.path.join(path, "log")  # ruff:ignore[os-path-join]
@@ -163,9 +161,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     @property
     def user_runtime_dir(self) -> str:
-        """Runtime directory tied to the user, same as `user_cache_dir` if not opinionated else ``tmp`` in it, e.g.
-        ``/data/user/<userid>/<packagename>/cache/<AppName>/tmp``.
-        """
+        """Runtime directory tied to the user, same as `user_cache_dir` if not opinionated else ``tmp`` in it, e.g. ``/data/user/<userid>/<packagename>/cache/<AppName>/tmp``."""
         path = self.user_cache_dir
         if self.opinion:
             path = os.path.join(path, "tmp")  # ruff:ignore[os-path-join]

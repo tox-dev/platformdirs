@@ -573,7 +573,6 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
         :param name: file path relative to the user directory, e.g. ``"sub/app.toml"``.
 
-        :returns:
         :raises ValueError: if ``name`` is empty, absolute, has a drive or climbs out through ``..``.
         :raises RuntimeError: if the user directory starts with ``~`` because the home directory is unknown.
         :raises OSError: if it cannot create a missing directory, e.g. one on a missing drive or network share.
@@ -599,42 +598,24 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         return path
 
     def place_data_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_data_path`.
-
-        :param name:
-        :returns:
-        """
+        """Like `place_config_file`, under `user_data_path`."""
         return self._place_file(lambda dirs: dirs.user_data_path, name)
 
     def place_cache_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_cache_path`.
-
-        :param name:
-        :returns:
-        """
+        """Like `place_config_file`, under `user_cache_path`."""
         return self._place_file(lambda dirs: dirs.user_cache_path, name)
 
     def place_state_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_state_path`.
-
-        :param name:
-        :returns:
-        """
+        """Like `place_config_file`, under `user_state_path`."""
         return self._place_file(lambda dirs: dirs.user_state_path, name)
 
     def place_log_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_log_path`.
-
-        :param name:
-        :returns:
-        """
+        """Like `place_config_file`, under `user_log_path`."""
         return self._place_file(lambda dirs: dirs.user_log_path, name)
 
     def place_runtime_file(self, name: str | os.PathLike[str]) -> Path:
         """Like `place_config_file`, under `user_runtime_path`.
 
-        :param name:
-        :returns:
         :raises PermissionError: on Unix, if another user owns the temporary fallback directory.
 
         """
@@ -673,86 +654,46 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         return list(self._find_files(lambda dirs: dirs.iter_config_paths(), name))
 
     def find_data_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_data_paths`.
-
-        :param name:
-        :returns:
-        """
+        """Like :meth:`find_config_file`, searching :meth:`iter_data_paths`."""
         return next(self._find_files(lambda dirs: dirs.iter_data_paths(), name), None)
 
     def find_data_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_data_paths`.
-
-        :param name:
-        :returns:
-        """
+        """Like :meth:`find_config_files`, searching :meth:`iter_data_paths`."""
         return list(self._find_files(lambda dirs: dirs.iter_data_paths(), name))
 
     def find_cache_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_cache_paths`.
-
-        :param name:
-        :returns:
-        """
+        """Like :meth:`find_config_file`, searching :meth:`iter_cache_paths`."""
         return next(self._find_files(lambda dirs: dirs.iter_cache_paths(), name), None)
 
     def find_cache_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_cache_paths`.
-
-        :param name:
-        :returns:
-        """
+        """Like :meth:`find_config_files`, searching :meth:`iter_cache_paths`."""
         return list(self._find_files(lambda dirs: dirs.iter_cache_paths(), name))
 
     def find_state_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_state_paths`.
-
-        :param name:
-        :returns:
-        """
+        """Like :meth:`find_config_file`, searching :meth:`iter_state_paths`."""
         return next(self._find_files(lambda dirs: dirs.iter_state_paths(), name), None)
 
     def find_state_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_state_paths`.
-
-        :param name:
-        :returns:
-        """
+        """Like :meth:`find_config_files`, searching :meth:`iter_state_paths`."""
         return list(self._find_files(lambda dirs: dirs.iter_state_paths(), name))
 
     def find_log_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_log_paths`.
-
-        :param name:
-        :returns:
-        """
+        """Like :meth:`find_config_file`, searching :meth:`iter_log_paths`."""
         return next(self._find_files(lambda dirs: dirs.iter_log_paths(), name), None)
 
     def find_log_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_log_paths`.
-
-        :param name:
-        :returns:
-        """
+        """Like :meth:`find_config_files`, searching :meth:`iter_log_paths`."""
         return list(self._find_files(lambda dirs: dirs.iter_log_paths(), name))
 
     def find_runtime_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_runtime_paths`.
-
-        :param name:
-        :returns:
-        """
+        """Like :meth:`find_config_file`, searching :meth:`iter_runtime_paths`."""
         return next(self._find_runtime_files(name), None)
 
     def _find_runtime_files(self, name: str | os.PathLike[str]) -> Iterator[Path]:
         return self._find_files(lambda dirs: dirs.iter_runtime_paths(), name)
 
     def find_runtime_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_runtime_paths`.
-
-        :param name:
-        :returns:
-        """
+        """Like :meth:`find_config_files`, searching :meth:`iter_runtime_paths`."""
         return list(self._find_runtime_files(name))
 
 
@@ -797,9 +738,3 @@ def _make_private_directories(path: Path) -> None:
 
 class RuntimeDirWarning(UserWarning):
     """Emitted when the Unix or macOS ``user_runtime_dir`` cannot use ``$XDG_RUNTIME_DIR``."""
-
-
-__all__ = [
-    "PlatformDirsABC",
-    "RuntimeDirWarning",
-]

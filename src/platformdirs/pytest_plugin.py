@@ -13,10 +13,11 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def platformdirs_isolated(tmp_path: Path) -> Iterator[Path]:
-    # Redirect every platformdirs directory under ``tmp_path`` with :func:`~platformdirs.testing.isolated_dirs`.
-    #
-    # :param tmp_path:
-    # :yields: the isolation root, ``tmp_path``
+    """Redirect every platformdirs directory under ``tmp_path`` with :func:`~platformdirs.testing.isolated_dirs`.
+
+    :returns: the isolation root, ``tmp_path``
+
+    """
     # pytest imports every installed pytest11 plugin at startup, so load the helper only for tests that ask for it.
     from .testing import isolated_dirs  # ruff:ignore[import-outside-top-level]
 
@@ -24,4 +25,6 @@ def platformdirs_isolated(tmp_path: Path) -> Iterator[Path]:
         yield root
 
 
-__all__ = []
+__all__ = [
+    "platformdirs_isolated",
+]

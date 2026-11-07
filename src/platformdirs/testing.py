@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 import platformdirs
 
@@ -13,6 +13,22 @@ from .api import PlatformDirsABC
 if TYPE_CHECKING:
     import os
     from collections.abc import Generator
+
+_APP_KINDS: Final[frozenset[str]] = frozenset({
+    "user_data",
+    "site_data",
+    "user_config",
+    "site_config",
+    "user_cache",
+    "site_cache",
+    "user_state",
+    "site_state",
+    "user_log",
+    "site_log",
+    "user_runtime",
+    "site_runtime",
+    "user_preference",
+})
 
 
 @contextmanager
@@ -29,28 +45,13 @@ def isolated_dirs(root: str | os.PathLike[str]) -> Generator[Path, None, None]:
 
     :param root: directory that holds the redirected directories
 
-    :yields: the absolute isolation root as a :class:`~pathlib.Path`
+    :returns: the absolute isolation root as a :class:`~pathlib.Path`
 
     """
     base = Path(root).absolute()
-    app_kinds: frozenset[str] = frozenset({
-        "user_data",
-        "site_data",
-        "user_config",
-        "site_config",
-        "user_cache",
-        "site_cache",
-        "user_state",
-        "site_state",
-        "user_log",
-        "site_log",
-        "user_runtime",
-        "site_runtime",
-        "user_preference",
-    })
     patches = {
         name: _redirect(
-            base / (kind := name.removesuffix("_dir")), app=kind in app_kinds, private=kind.startswith("user_")
+            base / (kind := name.removesuffix("_dir")), app=kind in _APP_KINDS, private=kind.startswith("user_")
         )
         for name in PlatformDirsABC.__abstractmethods__
     }
