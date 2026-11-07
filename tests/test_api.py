@@ -198,12 +198,12 @@ def test_iter_dirs_yields_user_before_site(kind: str) -> None:
     assert next(getattr(dirs, f"iter_{kind}_dirs")()) == getattr(dirs, f"user_{kind}_dir")
 
 
-_APP_FIELDS: Final = [
+_APP_FIELDS: Final[list[pytest.ParameterSet]] = [
     pytest.param("appname", id="appname"),
     pytest.param("appauthor", id="appauthor"),
     pytest.param("version", id="version"),
 ]
-_ESCAPING_VALUES: Final = [
+_ESCAPING_VALUES: Final[list[pytest.ParameterSet]] = [
     pytest.param("../evil", id="parent"),
     pytest.param("nested/../../evil", id="nested-parent"),
     pytest.param("..\\evil", id="backslash-parent"),
@@ -269,10 +269,14 @@ def test_appname_within_base_is_accepted(appname: str) -> None:
     assert platformdirs.PlatformDirs(appname).user_data_dir.endswith(appname)
 
 
-_KINDS: Final = [pytest.param(kind, id=kind) for kind in ("config", "data", "cache", "state", "log", "runtime")]
-_POSIX_ONLY: Final = pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
+_KINDS: Final[list[pytest.ParameterSet]] = [
+    pytest.param(kind, id=kind) for kind in ("config", "data", "cache", "state", "log", "runtime")
+]
+_POSIX_ONLY: Final[pytest.MarkDecorator] = pytest.mark.skipif(
+    sys.platform == "win32", reason="Windows ignores POSIX mode bits"
+)
 # Unix checks the owner of the runtime directory against geteuid, which Windows lacks.
-_EXISTING_KINDS: Final = [
+_EXISTING_KINDS: Final[list[pytest.ParameterSet]] = [
     *(pytest.param(kind, id=kind) for kind in ("config", "data", "cache", "state", "log")),
     pytest.param("runtime", id="runtime", marks=_POSIX_ONLY),
 ]
@@ -354,7 +358,7 @@ def test_place_file_keeps_mode_of_existing_directories(home: Path) -> None:
     assert stat.S_IMODE(home.stat().st_mode) == 0o755
 
 
-_ESCAPING_NAMES: Final = [
+_ESCAPING_NAMES: Final[list[pytest.ParameterSet]] = [
     pytest.param("../evil", id="parent"),
     pytest.param("sub/../../evil", id="nested-parent"),
     pytest.param("..\\evil", id="backslash-parent"),
@@ -402,8 +406,11 @@ def test_place_file_on_missing_root_raises_file_not_found(mocker: MockerFixture)
         _place("config")("app.toml")
 
 
-_SUFFIXES: Final = [pytest.param("file", id="file"), pytest.param("files", id="files")]
-_MISSING: Final = [pytest.param("file", None, id="file"), pytest.param("files", [], id="files")]
+_SUFFIXES: Final[list[pytest.ParameterSet]] = [pytest.param("file", id="file"), pytest.param("files", id="files")]
+_MISSING: Final[list[pytest.ParameterSet]] = [
+    pytest.param("file", None, id="file"),
+    pytest.param("files", [], id="files"),
+]
 
 
 @pytest.fixture

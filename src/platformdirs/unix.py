@@ -355,7 +355,7 @@ class Unix(XDGMixin, _UnixDefaults):
         return _expand_user(default) if self._use_site else super()._user_media_dir(key, default)
 
 
-_USER_DIRS_LINE: Final = re.compile(
+_USER_DIRS_LINE: Final[re.Pattern[str]] = re.compile(
     r"""
     [ \t]*(?P<key>\w+)[ \t]*=[ \t]*  # KEY=, blanks allowed around the key and after the =
     (?:

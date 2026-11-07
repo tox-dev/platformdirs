@@ -250,7 +250,7 @@ def _shared_storage() -> str:
     return f"/storage/emulated/{(match['user'] if (match := _USER_ID.search(_android_folder() or '')) else '0')}"
 
 
-_USER_ID: Final = re.compile(
+_USER_ID: Final[re.Pattern[str]] = re.compile(
     r"""
     /user/         # the per-user data root, under /data or an adopted /mnt/expand volume
     (?P<user>\d+)  # the Android user id

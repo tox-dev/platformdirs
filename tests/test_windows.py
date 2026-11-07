@@ -45,8 +45,8 @@ _WIN_FOLDERS: Final[dict[str, str]] = {
     "CSIDL_USER_PROGRAM_FILES": r"C:\Users\Test\AppData\Local\Programs",
 }
 
-_LOCAL = os.path.normpath(_WIN_FOLDERS["CSIDL_LOCAL_APPDATA"])
-_COMMON = os.path.normpath(_WIN_FOLDERS["CSIDL_COMMON_APPDATA"])
+_LOCAL: Final[str] = os.path.normpath(_WIN_FOLDERS["CSIDL_LOCAL_APPDATA"])
+_COMMON: Final[str] = os.path.normpath(_WIN_FOLDERS["CSIDL_COMMON_APPDATA"])
 
 
 @pytest.fixture(autouse=True)
@@ -207,7 +207,7 @@ def test_get_win_folder_from_env_vars_direct(
     assert get_win_folder_from_env_vars(csidl_name) == value
 
 
-_USERPROFILE_CSIDL_PARAMS = [
+_USERPROFILE_CSIDL_PARAMS: Final[list[pytest.ParameterSet]] = [
     pytest.param("CSIDL_PERSONAL", "Documents", id="personal"),
     pytest.param("CSIDL_DOWNLOADS", "Downloads", id="downloads"),
     pytest.param("CSIDL_MYPICTURES", "Pictures", id="pictures"),
@@ -662,7 +662,7 @@ def test_pick_get_win_folder_ctypes(mocker: MockerFixture) -> None:
     ],
 )
 def test_get_win_folder_override(monkeypatch: pytest.MonkeyPatch, csidl_name: str, env_suffix: str) -> None:
-    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda _csidl: _WIN_FOLDERS[_csidl])
+    monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda _csidl: _WIN_FOLDERS[_csidl])
     override_path = r"X:\custom\override"
     monkeypatch.setenv(f"WIN_PD_OVERRIDE_{env_suffix}", override_path)
     assert get_win_folder(csidl_name) == override_path
@@ -686,7 +686,7 @@ def test_get_win_folder_override(monkeypatch: pytest.MonkeyPatch, csidl_name: st
     ],
 )
 def test_get_win_folder_override_ignored(monkeypatch: pytest.MonkeyPatch, value: str) -> None:
-    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda csidl: _WIN_FOLDERS[csidl])
+    monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda csidl: _WIN_FOLDERS[csidl])
     monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", value)
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == _WIN_FOLDERS["CSIDL_LOCAL_APPDATA"]
 
@@ -705,19 +705,19 @@ def test_get_win_folder_override_ignored(monkeypatch: pytest.MonkeyPatch, value:
     ],
 )
 def test_get_win_folder_override_absolute(monkeypatch: pytest.MonkeyPatch, value: str) -> None:
-    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda csidl: _WIN_FOLDERS[csidl])
+    monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda csidl: _WIN_FOLDERS[csidl])
     monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", value)
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == value
 
 
 def test_get_win_folder_override_not_set_falls_back(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda csidl: _WIN_FOLDERS[csidl])
+    monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda csidl: _WIN_FOLDERS[csidl])
     monkeypatch.delenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", raising=False)
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == _WIN_FOLDERS["CSIDL_LOCAL_APPDATA"]
 
 
 def test_get_win_folder_override_strips_whitespace(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda csidl: _WIN_FOLDERS[csidl])
+    monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda csidl: _WIN_FOLDERS[csidl])
     monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", "  X:\\custom  ")
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == r"X:\custom"
 

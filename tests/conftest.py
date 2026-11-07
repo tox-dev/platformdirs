@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from _pytest.fixtures import SubRequest
     from pytest_mock import MockerFixture
 
-_PROPS = (
+_PROPS: Final[tuple[str, ...]] = (
     "user_data_dir",
     "user_config_dir",
     "user_cache_dir",

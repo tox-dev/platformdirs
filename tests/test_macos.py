@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
     from pytest_mock import MockerFixture
 
-_MEDIA_DIRS: Final = [
+_MEDIA_DIRS: Final[list[pytest.ParameterSet]] = [
     pytest.param("XDG_DOCUMENTS_DIR", "user_documents_dir", id="user_documents_dir"),
     pytest.param("XDG_DOWNLOAD_DIR", "user_downloads_dir", id="user_downloads_dir"),
     pytest.param("XDG_PICTURES_DIR", "user_pictures_dir", id="user_pictures_dir"),
@@ -709,7 +709,7 @@ def test_macos_user_log_dir_creates_missing_components_private(
     assert modes(tmp_path) == {"Library": 0o700, "Library/Logs": 0o700, "Library/Logs/app": 0o700}
 
 
-_SITE_CACHE_READS: Final = [
+_SITE_CACHE_READS: Final[list[pytest.ParameterSet]] = [
     pytest.param(lambda dirs: dirs.site_cache_dir, id="dir"),
     pytest.param(lambda dirs: dirs.site_cache_path, id="path"),
     pytest.param(lambda dirs: list(dirs.iter_cache_dirs()), id="iter-dirs"),
@@ -793,7 +793,9 @@ def test_site_cache_lookup_leaves_planted_entry_alone(site_cache: Path, tmp_path
     assert MacOS(appname="app").site_cache_path == site_cache / "app"
 
 
-_POSIX_ONLY: Final = pytest.mark.skipif(sys.platform == "win32", reason="Windows has no POSIX owners or modes")
+_POSIX_ONLY: Final[pytest.MarkDecorator] = pytest.mark.skipif(
+    sys.platform == "win32", reason="Windows has no POSIX owners or modes"
+)
 
 
 @pytest.fixture

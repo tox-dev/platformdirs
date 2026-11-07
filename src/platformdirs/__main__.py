@@ -7,9 +7,11 @@ from typing import TYPE_CHECKING
 from platformdirs import PlatformDirs, __version__
 
 if TYPE_CHECKING:
+    from typing import Final
+
     from platformdirs.api import PlatformDirsABC
 
-PROPS = (
+PROPS: Final[tuple[str, ...]] = (
     "user_data_dir",
     "user_config_dir",
     "user_cache_dir",

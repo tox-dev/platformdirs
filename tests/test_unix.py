@@ -483,18 +483,20 @@ def test_user_runtime_dir_temp_fallback_single_slash(mocker: MockerFixture, temp
         assert Unix().user_runtime_dir == expected
 
 
-_POSIX_ONLY: typing.Final = pytest.mark.skipif(sys.platform == "win32", reason="Windows has no POSIX owners or modes")
-_PROBLEMS: typing.Final = {
+_POSIX_ONLY: typing.Final[pytest.MarkDecorator] = pytest.mark.skipif(
+    sys.platform == "win32", reason="Windows has no POSIX owners or modes"
+)
+_PROBLEMS: typing.Final[dict[str, str]] = {
     "symlink": "is a symlink",
     "file": "is not a directory",
     "mode-755": "has mode 0755, not 0700",
     "mode-500": "has mode 0500, not 0700",
 }
-_UNREACHABLE: typing.Final = {
+_UNREACHABLE: typing.Final[dict[str, str]] = {
     "file": os.strerror(errno.ENOTDIR),
     "symlink-loop": os.strerror(errno.ELOOP),
 }
-_DEFAULT_PREFIXES: typing.Final = {
+_DEFAULT_PREFIXES: typing.Final[dict[str, str]] = {
     "linux": "run/user",
     "freebsd": "var/run/user",
     "netbsd": "var/run/user",
@@ -561,7 +563,7 @@ def test_runtime_dir_invalid_xdg_runtime_dir_warns(
     assert [str(warning.message) for warning in record] == [expected]
 
 
-_TRAILING_SEPARATORS: typing.Final = ["/", "//", "/.", "/./"]
+_TRAILING_SEPARATORS: typing.Final[list[str]] = ["/", "//", "/.", "/./"]
 
 
 @_POSIX_ONLY
@@ -858,7 +860,10 @@ def test_find_runtime_file_returns_file_outside_runtime_dirs(mocker: MockerFixtu
     assert Unix(appname="app").find_runtime_file("app.sock") == site / "app.sock"
 
 
-_NOT_FOUND: typing.Final = [pytest.param("file", None, id="file"), pytest.param("files", [], id="files")]
+_NOT_FOUND: typing.Final[list[pytest.ParameterSet]] = [
+    pytest.param("file", None, id="file"),
+    pytest.param("files", [], id="files"),
+]
 
 
 @_POSIX_ONLY
@@ -997,7 +1002,7 @@ def test_folder_not_created_without_ensure_exists(monkeypatch: pytest.MonkeyPatc
     assert not (Path(posix_tmp_path) / "acme").exists()
 
 
-_CLASSES: typing.Final = [pytest.param(Unix, id="unix"), pytest.param(MacOS, id="macos")]
+_CLASSES: typing.Final[list[pytest.ParameterSet]] = [pytest.param(Unix, id="unix"), pytest.param(MacOS, id="macos")]
 
 
 @pytest.mark.usefixtures("_clear_xdg_env", "_unknown_home")
@@ -1164,7 +1169,7 @@ def test_place_runtime_file_rejects_temp_fallback_of_other_owner(mocker: MockerF
         Unix(appname="foo").place_runtime_file("app.sock")
 
 
-_MEDIA_DIR_CASES: typing.Final = [
+_MEDIA_DIR_CASES: typing.Final[list[tuple[str, str, str]]] = [
     ("XDG_DOCUMENTS_DIR", "user_documents_dir", "Documents"),
     ("XDG_DOWNLOAD_DIR", "user_downloads_dir", "Downloads"),
     ("XDG_PICTURES_DIR", "user_pictures_dir", "Pictures"),
@@ -1533,7 +1538,7 @@ _SITE_REDIRECT_CASES: typing.Final[list[tuple[str, str]]] = [
     ("user_bin_dir", "/usr/local/bin"),
     ("user_applications_dir", f"/usr/local/share{os.sep}applications"),
 ]
-_SITE_RUNTIME_DIR: typing.Final = dict(_SITE_REDIRECT_CASES)["user_runtime_dir"]
+_SITE_RUNTIME_DIR: typing.Final[str] = dict(_SITE_REDIRECT_CASES)["user_runtime_dir"]
 
 
 @pytest.mark.usefixtures("_as_root", "_no_xdg_runtime_dir")
@@ -1714,7 +1719,7 @@ def test_use_site_iter_dirs_no_duplicates(
     assert list(result) == [os.path.join("/custom/xdg/path", "foo")]  # ruff:ignore[os-path-join]
 
 
-_SINGLE_SITE_ITER_CASES = [
+_SINGLE_SITE_ITER_CASES: typing.Final[list[tuple[Callable[[Unix], Iterator[str]], str]]] = [
     (Unix.iter_cache_dirs, os.path.join("/var/cache", "foo")),  # ruff:ignore[os-path-join]
     (Unix.iter_state_dirs, os.path.join("/var/lib", "foo")),  # ruff:ignore[os-path-join]
     (Unix.iter_log_dirs, os.path.join("/var/log", "foo")),  # ruff:ignore[os-path-join]
@@ -1947,7 +1952,7 @@ def user_dirs_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     return config / "user-dirs.dirs"
 
 
-_APP_COMPONENTS: typing.Final = ["home", "home/base", "home/base/app", "home/base/app/1.0"]
+_APP_COMPONENTS: typing.Final[list[str]] = ["home", "home/base", "home/base/app", "home/base/app/1.0"]
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
