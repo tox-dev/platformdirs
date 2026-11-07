@@ -43,7 +43,6 @@ PROPS: Final[tuple[str, ...]] = (
 
 
 def main() -> None:
-    """Run the main entry point."""
     app_name = "MyApp"
     app_author = "MyCompany"
 

@@ -190,11 +190,6 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the c
 
 
 def get_win_folder(csidl_name: str) -> str:
-    """Get a Windows folder path, checking for ``WIN_PD_OVERRIDE_*`` environment variable overrides first.
-
-    For example, ``CSIDL_LOCAL_APPDATA`` can be overridden by setting ``WIN_PD_OVERRIDE_LOCAL_APPDATA``.
-
-    """
     env_var = f"WIN_PD_OVERRIDE_{csidl_name.removeprefix('CSIDL_')}"
     if _is_fully_qualified(override := os.environ.get(env_var, "").strip()):
         return override
@@ -212,7 +207,6 @@ def _is_fully_qualified(path: str) -> bool:
 
 
 def get_win_folder_from_env_vars(csidl_name: str) -> str:
-    """Get folder from environment variables."""
     result = get_win_folder_if_csidl_name_not_env_var(csidl_name)
     if result is not None:
         return result
@@ -232,7 +226,6 @@ def get_win_folder_from_env_vars(csidl_name: str) -> str:
 
 
 def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
-    """Get a folder for a CSIDL name that does not exist as an environment variable."""
     if (
         env_var_and_parts := {
             "CSIDL_PERSONAL": ("USERPROFILE", "Documents"),
@@ -265,13 +258,8 @@ def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
     return None
 
 
+# The registry is a fallback at best, it does not guarantee the right answer for every CSIDL_* name.
 def get_win_folder_from_registry(csidl_name: str) -> str:
-    """Get folder from the registry.
-
-    This is a fallback technique at best. I'm not sure if using the registry for these guarantees us the correct answer
-    for all CSIDL_* names.
-
-    """
     machine_names = {
         "CSIDL_COMMON_APPDATA",
         "CSIDL_COMMON_PROGRAMS",
@@ -382,11 +370,6 @@ def _build_get_win_folder_via_ctypes() -> Callable[[str], str]:
 
 
 def get_win_folder_via_ctypes(csidl_name: str) -> str:
-    """Get folder via :func:`SHGetKnownFolderPath`.
-
-    See https://learn.microsoft.com/en-us/windows/win32/api/shlobj_core/nf-shlobj_core-shgetknownfolderpath.
-
-    """
     return _build_get_win_folder_via_ctypes()(csidl_name)
 
 

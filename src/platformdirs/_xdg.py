@@ -13,8 +13,6 @@ from .api import PlatformDirsABC
 
 
 class XDGMixin(PlatformDirsABC):
-    """Mixin that checks XDG environment variables, falling back to platform-specific defaults via ``super()``."""
-
     @property
     def user_data_dir(self) -> str:
         """Data directory tied to the user, from ``$XDG_DATA_HOME`` if set, else platform default."""
