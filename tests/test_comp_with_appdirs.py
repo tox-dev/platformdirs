@@ -55,27 +55,28 @@ class AppParams(TypedDict, total=False):
         "app_name_author_version",
     ],
 )
+@pytest.mark.parametrize(
+    "func",
+    [
+        "site_config_dir",
+        "site_data_dir",
+        "user_cache_dir",
+        "user_config_dir",
+        "user_data_dir",
+        pytest.param(
+            "user_log_dir",
+            marks=pytest.mark.skipif(
+                sys.platform != "win32",
+                reason="appdirs.user_log_dir fails without an appname on macOS and uses XDG_STATE_DIR on Unix",
+            ),
+        ),
+        "user_state_dir",
+    ],
+)
 @pytest.mark.usefixtures("_clear_xdg_env")
 def test_compatibility(params: AppParams, func: str, monkeypatch: pytest.MonkeyPatch) -> None:
     # Compare system defaults here; appdirs has no Homebrew-specific locations.
     monkeypatch.setattr(sys, "base_prefix", "/usr")
-    # Only test functions that are part of appdirs
-    if getattr(appdirs, func, None) is None:
-        pytest.skip(f"`{func}` does not exist in `appdirs`")
-
-    if sys.platform == "darwin":
-        msg = {  # pragma: no cover  # macOS only
-            "user_log_dir": "without appname produces NoneType error",
-        }
-        if func in msg:  # pragma: no cover  # macOS only
-            pytest.skip(f"`appdirs.{func}` {msg[func]} on macOS")  # pragma: no cover  # macOS only
-    elif sys.platform != "win32":
-        msg = {  # pragma: no cover  # Unix only
-            "user_log_dir": "Uses XDG_STATE_DIR instead of appdirs.user_data_dir per the XDG spec",
-        }
-        if func in msg:  # pragma: no cover  # Unix only
-            pytest.skip(f"`appdirs.{func}` {msg[func]} on Unix")  # pragma: no cover  # Unix only
-
     new = getattr(platformdirs, func)(*params)
     old = getattr(appdirs, func)(*params)
 

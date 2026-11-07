@@ -51,16 +51,12 @@ class AppParams(TypedDict, total=False):
 def test_android(params: AppParams, func: str) -> None:
     result = getattr(Android(**params), func)
 
-    suffix_elements = []
-    if "appname" in params:
-        suffix_elements.append(params["appname"])
-    if "version" in params:
-        suffix_elements.append(params["version"])
-    if suffix_elements:
-        suffix_elements.insert(0, "")
-    suffix = "/".join(suffix_elements)
-
+    suffix = "/".join(("", *(params[key] for key in ("appname", "version") if key in params)))
+    opinion = params.get("opinion", True)
+    log_dir = {True: "/log", False: ""}[opinion]
     val = "/tmp"  # ruff:ignore[hardcoded-temp-file]  # test value only, nothing is written there
+    runtime_dir = {True: val, False: ""}[opinion]
+
     expected_map = {
         "user_data_dir": f"/data/data/com.example/files{suffix}",
         "site_data_dir": f"/data/data/com.example/files{suffix}",
@@ -70,8 +66,8 @@ def test_android(params: AppParams, func: str) -> None:
         "site_cache_dir": f"/data/data/com.example/cache{suffix}",
         "user_state_dir": f"/data/data/com.example/files{suffix}",
         "site_state_dir": f"/data/data/com.example/files{suffix}",
-        "user_log_dir": f"/data/data/com.example/cache{suffix}{'' if params.get('opinion', True) is False else '/log'}",
-        "site_log_dir": f"/data/data/com.example/cache{suffix}{'' if params.get('opinion', True) is False else '/log'}",
+        "user_log_dir": f"/data/data/com.example/cache{suffix}{log_dir}",
+        "site_log_dir": f"/data/data/com.example/cache{suffix}{log_dir}",
         "user_documents_dir": "/storage/emulated/0/Documents",
         "user_downloads_dir": "/storage/emulated/0/Download",
         "user_pictures_dir": "/storage/emulated/0/Pictures",
@@ -87,8 +83,8 @@ def test_android(params: AppParams, func: str) -> None:
         "site_bin_dir": "/data/data/com.example/files/bin",
         "user_applications_dir": f"/data/data/com.example/files{suffix}",
         "site_applications_dir": f"/data/data/com.example/files{suffix}",
-        "user_runtime_dir": f"/data/data/com.example/cache{suffix}{'' if not params.get('opinion', True) else val}",
-        "site_runtime_dir": f"/data/data/com.example/cache{suffix}{'' if not params.get('opinion', True) else val}",
+        "user_runtime_dir": f"/data/data/com.example/cache{suffix}{runtime_dir}",
+        "site_runtime_dir": f"/data/data/com.example/cache{suffix}{runtime_dir}",
     }
     expected = expected_map[func]
 

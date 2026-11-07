@@ -24,7 +24,7 @@ from platformdirs.windows import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterator
 
     from pytest_mock import MockerFixture
 
@@ -76,9 +76,9 @@ def test_windows(params: AppParams, func: str) -> None:
         suffix_parts.extend((appname, appname))
         if version := params.get("version"):
             suffix_parts.append(version)
-    local = os.path.join(_LOCAL, *suffix_parts) if suffix_parts else _LOCAL  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
-    common = os.path.join(_COMMON, *suffix_parts) if suffix_parts else _COMMON  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
-    temp = os.path.join(_LOCAL, "Temp", *suffix_parts) if suffix_parts else os.path.join(_LOCAL, "Temp")  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
+    local = os.path.join(_LOCAL, *suffix_parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
+    common = os.path.join(_COMMON, *suffix_parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
+    temp = os.path.join(_LOCAL, "Temp", *suffix_parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
     cache_local = os.path.join(  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
         _LOCAL, *suffix_parts[:2], *(["Cache"] if suffix_parts else []), *suffix_parts[2:]
     )
@@ -342,6 +342,16 @@ def _cleanup_ctypes_mocks() -> None:
             delattr(ctypes, attr)
 
 
+@pytest.fixture
+def _non_windows_ctypes(mocker: MockerFixture) -> Iterator[None]:
+    if sys.platform == "win32":
+        yield
+        return
+    _setup_ctypes_mocks(mocker, win_dll=mocker.MagicMock(side_effect=lambda _name: mocker.MagicMock()))
+    yield
+    _cleanup_ctypes_mocks()
+
+
 @pytest.mark.skipif(sys.platform != "win32", reason="real ctypes test only runs on Windows")
 @pytest.mark.parametrize("csidl_name", list(_KNOWN_FOLDER_GUIDS.keys()), ids=list(_KNOWN_FOLDER_GUIDS.keys()))
 def test_get_win_folder_via_ctypes_real(csidl_name: str) -> None:
@@ -441,19 +451,13 @@ def test_get_win_folder_via_ctypes_passes_dont_verify_flag(mocker: MockerFixture
     assert flags_arg == _KF_FLAG_DONT_VERIFY
 
 
-def test_get_win_folder_via_ctypes_unknown_csidl(mocker: MockerFixture) -> None:
-    if sys.platform != "win32":
-        _setup_ctypes_mocks(mocker, win_dll=mocker.MagicMock(side_effect=lambda _name: mocker.MagicMock()))
+@pytest.mark.usefixtures("_non_windows_ctypes")
+def test_get_win_folder_via_ctypes_unknown_csidl() -> None:
+    importlib.reload(windows)
+    from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]  # imported after the module is reloaded
 
-    try:
-        importlib.reload(windows)
-        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]  # imported after the module is reloaded
-
-        with pytest.raises(ValueError, match="Unknown CSIDL name"):
-            fresh_fn("CSIDL_BOGUS")
-    finally:
-        if sys.platform != "win32":
-            _cleanup_ctypes_mocks()
+    with pytest.raises(ValueError, match="Unknown CSIDL name"):
+        fresh_fn("CSIDL_BOGUS")
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="mock-based call counting only runs on non-Windows")
@@ -648,16 +652,10 @@ def test_known_folder_guids_has_all_csidl_names() -> None:
     assert set(_KNOWN_FOLDER_GUIDS.keys()) == expected
 
 
-def test_pick_get_win_folder_ctypes(mocker: MockerFixture) -> None:
-    if sys.platform != "win32":
-        _setup_ctypes_mocks(mocker, win_dll=mocker.MagicMock())
-
-    try:
-        importlib.reload(windows)
-        assert windows._pick_get_win_folder() is windows.get_win_folder_via_ctypes  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
-    finally:
-        if sys.platform != "win32":
-            _cleanup_ctypes_mocks()
+@pytest.mark.usefixtures("_non_windows_ctypes")
+def test_pick_get_win_folder_ctypes() -> None:
+    importlib.reload(windows)
+    assert windows._pick_get_win_folder() is windows.get_win_folder_via_ctypes  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
 
 
 def test_pick_get_win_folder_without_ctypes_or_winreg(mocker: MockerFixture) -> None:

@@ -92,6 +92,14 @@ def test_function_matches_its_property_for_app_arguments(func: str) -> None:
         assert scoped == getattr(platformdirs.PlatformDirs(), func)
 
 
+def _set_android_env(monkeypatch: pytest.MonkeyPatch, values: Mapping[str, str | None]) -> None:
+    for env_var, value in values.items():
+        if value is None:
+            monkeypatch.delenv(env_var, raising=False)
+        else:
+            monkeypatch.setenv(env_var, value)
+
+
 @pytest.mark.parametrize("root", ["A", "/system", None])
 @pytest.mark.parametrize("data", ["D", "/data", None])
 @pytest.mark.parametrize("path", ["/data/data/a/files", "/C"])
@@ -105,11 +113,7 @@ def test_android_active(  # ruff:ignore[too-many-arguments]  # one argument per 
     shell: str | None,
     prefix: str | None,
 ) -> None:
-    for env_var, value in {"ANDROID_DATA": data, "ANDROID_ROOT": root, "SHELL": shell, "PREFIX": prefix}.items():
-        if value is None:
-            monkeypatch.delenv(env_var, raising=False)
-        else:
-            monkeypatch.setenv(env_var, value)
+    _set_android_env(monkeypatch, {"ANDROID_DATA": data, "ANDROID_ROOT": root, "SHELL": shell, "PREFIX": prefix})
 
     from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]  # the test reads a private helper
 
@@ -123,19 +127,23 @@ def test_android_active(  # ruff:ignore[too-many-arguments]  # one argument per 
 
 
 @pytest.mark.parametrize(
-    ("prefix", "expected"),
+    ("env", "expected"),
     [
-        pytest.param(None, Android, id="cleared-environment"),
-        pytest.param("/data/data/com.termux/files/usr", platformdirs._Result, id="termux"),  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
+        pytest.param({}, Android, id="cleared-environment"),
+        pytest.param(
+            {"PREFIX": "/data/data/com.termux/files/usr"},
+            platformdirs._Result,  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
+            id="termux",
+        ),
     ],
 )
 def test_android_build_detected_without_environment(
-    monkeypatch: pytest.MonkeyPatch, prefix: str | None, expected: type[platformdirs.PlatformDirsABC]
+    monkeypatch: pytest.MonkeyPatch, env: dict[str, str], expected: type[platformdirs.PlatformDirsABC]
 ) -> None:
     for env_var in ("ANDROID_DATA", "ANDROID_ROOT", "SHELL", "PREFIX"):
         monkeypatch.delenv(env_var, raising=False)
-    if prefix is not None:
-        monkeypatch.setenv("PREFIX", prefix)
+    for env_var, value in env.items():
+        monkeypatch.setenv(env_var, value)
     monkeypatch.setattr(sys, "getandroidapilevel", lambda: 34, raising=False)
     monkeypatch.setattr(sys, "path", ["/data/user/0/org.example.app/files/app"])
     from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]  # the test reads a private helper

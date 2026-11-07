@@ -79,7 +79,7 @@ def test_macos(home: str, params: AppParams, func: str) -> None:
     result = getattr(MacOS(**params), func)
 
     suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+    suffix = os.sep.join(("", *suffix_elements))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
 
     expected_map = {
         "user_data_dir": f"{home}/Library/Application Support{suffix}",
@@ -171,7 +171,7 @@ def test_macos_homebrew(  # ruff:ignore[too-many-arguments]  # one argument per 
     result = getattr(MacOS(multipath=multipath, **params), site_func)
 
     suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+    suffix = os.sep.join(("", *suffix_elements))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
 
     expected_path_map = {
         "site_cache_path": Path(f"{prefix['homebrew_prefix']}/var/cache{suffix}"),
@@ -188,7 +188,7 @@ def test_macos_homebrew(  # ruff:ignore[too-many-arguments]  # one argument per 
         expected_map["site_data_dir"] += f":/Library/Application Support{suffix}"
         expected_map["site_config_dir"] += f":/Library/Application Support{suffix}"
         expected_map["site_cache_dir"] += f":/Library/Caches{suffix}"
-    expected = expected_path_map[site_func] if site_func.endswith("_path") else expected_map[site_func]
+    expected = {**expected_map, **expected_path_map}[site_func]
 
     assert result == expected
 
@@ -232,7 +232,7 @@ def test_macos_xdg_env_vars(
     monkeypatch.setenv(env_var, xdg_path)
     result = getattr(MacOS(**params), prop)
     suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-    suffix = os.sep.join(("", *suffix_elements)) if suffix_elements else ""  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+    suffix = os.sep.join(("", *suffix_elements))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
     assert result == f"{xdg_path}{suffix}"
 
 
@@ -243,19 +243,22 @@ def test_macos_xdg_env_vars(
         pytest.param("XDG_CONFIG_DIRS", "site_config_dir", id="site_config_dir"),
     ],
 )
-@pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="singlepath")])
+@pytest.mark.parametrize(
+    ("multipath", "expected"),
+    [
+        pytest.param(True, "/custom/first:/custom/second", id="multipath"),
+        pytest.param(False, "/custom/first", id="singlepath"),
+    ],
+)
 def test_macos_xdg_site_dirs(
     monkeypatch: pytest.MonkeyPatch,
     env_var: str,
     prop: str,
     multipath: bool,
+    expected: str,
 ) -> None:
     monkeypatch.setenv(env_var, "/custom/first:/custom/second")
-    result = getattr(MacOS(multipath=multipath), prop)
-    if multipath:
-        assert result == "/custom/first:/custom/second"
-    else:
-        assert result == "/custom/first"
+    assert getattr(MacOS(multipath=multipath), prop) == expected
 
 
 @pytest.mark.parametrize(("env_var", "prop"), _MEDIA_DIRS)
@@ -484,11 +487,18 @@ def test_site_applications_path_multipath_returns_first_path(monkeypatch: pytest
         pytest.param("relative/dir:another/dir", id="all-relative"),
     ],
 )
-@pytest.mark.parametrize("prop", ["site_data_dir", "site_config_dir", "site_applications_dir"])
+@pytest.mark.parametrize(
+    ("env_var", "prop"),
+    [
+        ("XDG_DATA_DIRS", "site_data_dir"),
+        ("XDG_CONFIG_DIRS", "site_config_dir"),
+        ("XDG_DATA_DIRS", "site_applications_dir"),
+    ],
+)
 def test_site_dirs_fall_back_when_xdg_var_has_no_absolute_paths(
-    monkeypatch: pytest.MonkeyPatch, prop: str, value: str
+    monkeypatch: pytest.MonkeyPatch, env_var: str, prop: str, value: str
 ) -> None:
-    monkeypatch.setenv("XDG_CONFIG_DIRS" if prop == "site_config_dir" else "XDG_DATA_DIRS", value)
+    monkeypatch.setenv(env_var, value)
     expected = {
         "site_data_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
         "site_config_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
