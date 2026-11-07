@@ -247,7 +247,9 @@ def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
         }.get(csidl_name)
     ) is not None:
         env_var, *parts = env_var_and_parts
-        return os.path.join(os.path.normpath(_non_empty_env(env_var)), *parts)  # ruff:ignore[os-path-join]
+        if not (value := os.environ.get(env_var)):
+            raise KeyError(env_var)  # same error os.environ[env_var] gives for an unset variable
+        return os.path.join(os.path.normpath(value), *parts)  # ruff:ignore[os-path-join]
 
     if csidl_name == "CSIDL_PUBLIC":
         return os.environ.get("PUBLIC") or str(Path("~").expanduser().parent / "Public")
@@ -261,12 +263,6 @@ def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
             "Programs",
         )
     return None
-
-
-def _non_empty_env(name: str) -> str:
-    if value := os.environ.get(name):
-        return value
-    raise KeyError(name)  # same error os.environ[name] gives for an unset variable
 
 
 def get_win_folder_from_registry(csidl_name: str) -> str:

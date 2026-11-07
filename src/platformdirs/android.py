@@ -179,7 +179,16 @@ def _require_android_folder() -> str:
 @lru_cache(maxsize=1)
 def _android_folder() -> str | None:
     # :returns: base folder for the Android OS or None if it cannot be found
-    result = _python_for_android_folder()
+    result = None
+    with suppress(ImportError):
+        from jnius import JavaException, autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[import-not-found]
+
+        with suppress(JavaException):
+            # A python-for-android service runs in its own process, where the activity is null.
+            if (context := autoclass("org.kivy.android.PythonActivity").mActivity) is None:
+                context = autoclass("org.kivy.android.PythonService").mService
+            if context is not None:
+                result = context.getFilesDir().getParentFile().getAbsolutePath()
     if result is None:
         # and if that fails, too, find an android folder looking at path on the sys.path
         # warning: only works for apps installed under /data, not adopted storage etc.
@@ -220,19 +229,6 @@ def _android_folder() -> str | None:
         else:
             result = None
     return result
-
-
-def _python_for_android_folder() -> str | None:
-    with suppress(ImportError):
-        from jnius import JavaException, autoclass  # ruff:ignore[import-outside-top-level]  # ty: ignore[import-not-found]
-
-        with suppress(JavaException):
-            # A python-for-android service runs in its own process, where the activity is null.
-            if (context := autoclass("org.kivy.android.PythonActivity").mActivity) is None:
-                context = autoclass("org.kivy.android.PythonService").mService
-            if context is not None:
-                return context.getFilesDir().getParentFile().getAbsolutePath()
-    return None
 
 
 @cache
