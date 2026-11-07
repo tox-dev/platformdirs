@@ -53,6 +53,7 @@ def _set_platform_dir_class() -> type[PlatformDirsABC]:
 
 if TYPE_CHECKING:
     # Work around mypy issue: https://github.com/python/mypy/issues/10962
+    #: Currently active platform
     PlatformDirs = _Result
 else:
     PlatformDirs = _set_platform_dir_class()  #: Currently active platform
