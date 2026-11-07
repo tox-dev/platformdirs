@@ -415,7 +415,7 @@ def test_platform_without_geteuid(
 ) -> None:
     monkeypatch.setattr(sys, "platform", "emscripten")
     monkeypatch.delattr(os, "geteuid", raising=False)
-    getuid = mocker.patch("os.getuid", return_value=uid, create=True, autospec=True)
+    getuid = mocker.patch("os.getuid", return_value=uid, create=True)
     importlib.reload(unix)
 
     assert unix.geteuid is getuid
