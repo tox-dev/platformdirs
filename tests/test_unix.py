@@ -72,8 +72,8 @@ def _missing_xdg_runtime_dir(monkeypatch: pytest.MonkeyPatch, posix_tmp_path: st
     ],
 )
 def test_user_media_dir(mocker: MockerFixture, prop: str) -> None:
-    example_path = "/home/example/ExampleMediaFolder"
     mock = mocker.patch("platformdirs.unix._get_user_dirs_folder")
+    example_path = "/home/example/ExampleMediaFolder"
     mock.return_value = example_path
     assert getattr(Unix(), prop) == example_path
 
@@ -94,8 +94,7 @@ def test_user_media_dir(mocker: MockerFixture, prop: str) -> None:
 )
 def test_user_media_dir_env_var(mocker: MockerFixture, env_var: str, prop: str) -> None:
     # Mock media dir not being in user-dirs.dirs file
-    mock = mocker.patch("platformdirs.unix._get_user_dirs_folder")
-    mock.return_value = None
+    mocker.patch("platformdirs.unix._get_user_dirs_folder").return_value = None
 
     example_path = "/home/example/ExampleMediaFolder"
     mocker.patch.dict(os.environ, {env_var: example_path})
@@ -119,8 +118,7 @@ def test_user_media_dir_env_var(mocker: MockerFixture, env_var: str, prop: str) 
 )
 def test_user_media_dir_default(mocker: MockerFixture, env_var: str, prop: str, default_abs_path: str) -> None:
     # Mock media dir not being in user-dirs.dirs file
-    mock = mocker.patch("platformdirs.unix._get_user_dirs_folder")
-    mock.return_value = None
+    mocker.patch("platformdirs.unix._get_user_dirs_folder").return_value = None
 
     # Mock no XDG env variable being set
     mocker.patch.dict(os.environ, {env_var: ""})
@@ -160,8 +158,7 @@ def test_user_media_dir_relative_env_var_falls_back(
     mocker: MockerFixture, env_var: str, prop: str, default_abs_path: str, value: str
 ) -> None:
     # Mock media dir not being in user-dirs.dirs file
-    mock = mocker.patch("platformdirs.unix._get_user_dirs_folder")
-    mock.return_value = None
+    mocker.patch("platformdirs.unix._get_user_dirs_folder").return_value = None
 
     mocker.patch.dict(os.environ, {env_var: value, "HOME": "/home/example", "USERPROFILE": "/home/example"})
 
@@ -201,9 +198,26 @@ def test_user_preference_dir_is_config_dir() -> None:
     assert dirs.user_preference_dir == dirs.user_config_dir
 
 
-class XDGVariable(typing.NamedTuple):
-    name: str
-    default_value: str
+@pytest.fixture
+def dirs_instance() -> Unix:
+    return Unix(multipath=True, opinion=False)
+
+
+@pytest.fixture
+def _geteuid(mocker: MockerFixture) -> None:
+    mocker.patch("platformdirs.unix.geteuid", return_value=1234)
+
+
+@pytest.mark.usefixtures("_geteuid")
+def test_xdg_variable_not_set(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
+    xdg_variable = _func_to_path(func)
+    if xdg_variable is None:
+        return
+
+    monkeypatch.delenv(xdg_variable.name, raising=False)
+    with _fallback_warning(expected=func == "user_runtime_dir"):
+        result = getattr(dirs_instance, func)
+    assert result == os.path.expanduser(xdg_variable.default_value)  # ruff:ignore[os-path-expanduser]
 
 
 def _func_to_path(func: str) -> XDGVariable | None:
@@ -229,26 +243,9 @@ def _func_to_path(func: str) -> XDGVariable | None:
     return mapping.get(func)
 
 
-@pytest.fixture
-def dirs_instance() -> Unix:
-    return Unix(multipath=True, opinion=False)
-
-
-@pytest.fixture
-def _geteuid(mocker: MockerFixture) -> None:
-    mocker.patch("platformdirs.unix.geteuid", return_value=1234)
-
-
-@pytest.mark.usefixtures("_geteuid")
-def test_xdg_variable_not_set(monkeypatch: pytest.MonkeyPatch, dirs_instance: Unix, func: str) -> None:
-    xdg_variable = _func_to_path(func)
-    if xdg_variable is None:
-        return
-
-    monkeypatch.delenv(xdg_variable.name, raising=False)
-    with _fallback_warning(expected=func == "user_runtime_dir"):
-        result = getattr(dirs_instance, func)
-    assert result == os.path.expanduser(xdg_variable.default_value)  # ruff:ignore[os-path-expanduser]
+class XDGVariable(typing.NamedTuple):
+    name: str
+    default_value: str
 
 
 @pytest.mark.usefixtures("_geteuid")
@@ -896,7 +893,7 @@ def test_find_runtime_files_skips_missing_temp_fallback_at_root(mocker: MockerFi
 
 
 def _plant_after_check(mocker: MockerFixture, base: Path) -> None:
-    """Link ``base`` to a directory with ``app/app.sock`` once an lstat finds it missing, as another user can."""
+    # Link ``base`` to a directory with ``app/app.sock`` once an lstat finds it missing, as another user can.
     lstat: typing.Final = os.lstat
 
     def plant(path: str) -> os.stat_result:
@@ -913,7 +910,7 @@ def _plant_after_check(mocker: MockerFixture, base: Path) -> None:
 
 
 def _hide_during_check(mocker: MockerFixture, base: Path) -> None:
-    """Move ``base`` away for each lstat of it, as its owner can in a shared sticky directory."""
+    # Move ``base`` away for each lstat of it, as its owner can in a shared sticky directory.
     lstat: typing.Final = os.lstat
     _create(base, "private")
 
@@ -1437,8 +1434,7 @@ def test_user_media_dir_from_user_dirs_file(tmp_path: Path, monkeypatch: pytest.
     monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
     config_dir = tmp_path / ".config"
     config_dir.mkdir()
-    user_dirs_file = config_dir / "user-dirs.dirs"
-    user_dirs_file.write_text('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n')
+    (config_dir / "user-dirs.dirs").write_text('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n')
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.setenv("XDG_CONFIG_HOME", "")
@@ -1449,8 +1445,7 @@ def test_user_media_dir_missing_key_in_user_dirs_file(tmp_path: Path, monkeypatc
     monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
     config_dir = tmp_path / ".config"
     config_dir.mkdir()
-    user_dirs_file = config_dir / "user-dirs.dirs"
-    user_dirs_file.write_text('XDG_DESKTOP_DIR="$HOME/Desktop"\n')
+    (config_dir / "user-dirs.dirs").write_text('XDG_DESKTOP_DIR="$HOME/Desktop"\n')
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.setenv("XDG_CONFIG_HOME", "")
@@ -1471,8 +1466,7 @@ def test_user_dirs_respects_xdg_config_home(posix_tmp_path: str, monkeypatch: py
     monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
     custom_config: typing.Final = Path(posix_tmp_path) / "custom_config"
     custom_config.mkdir()
-    user_dirs_file = custom_config / "user-dirs.dirs"
-    user_dirs_file.write_text('XDG_DOCUMENTS_DIR="$HOME/CustomDocs"\n')
+    (custom_config / "user-dirs.dirs").write_text('XDG_DOCUMENTS_DIR="$HOME/CustomDocs"\n')
     monkeypatch.setenv("HOME", posix_tmp_path)
     monkeypatch.setenv("USERPROFILE", posix_tmp_path)
     monkeypatch.setenv("XDG_CONFIG_HOME", custom_config.as_posix())
@@ -1523,7 +1517,7 @@ def test_user_dirs_ignores_relative_xdg_config_home(tmp_path: Path, monkeypatch:
     assert Unix().user_documents_dir == f"{tmp_path}/HomeDocs"
 
 
-_SITE_REDIRECT_CASES: list[tuple[str, str]] = [
+_SITE_REDIRECT_CASES: typing.Final[list[tuple[str, str]]] = [
     ("user_data_dir", os.path.join("/usr/local/share", "foo")),  # ruff:ignore[os-path-join]
     ("user_config_dir", os.path.join("/etc/xdg", "foo")),  # ruff:ignore[os-path-join]
     ("user_cache_dir", os.path.join("/var/cache", "foo")),  # ruff:ignore[os-path-join]
@@ -1552,8 +1546,7 @@ def test_use_site_for_root_as_root(prop: str, expected: str) -> None:
 @pytest.mark.usefixtures("_as_non_root", "_missing_xdg_runtime_dir")
 @pytest.mark.parametrize(("prop", "expected"), _SITE_REDIRECT_CASES)
 def test_use_site_for_root_as_non_root(prop: str, expected: str) -> None:
-    dirs = Unix(appname="foo", use_site_for_root=True)
-    result = getattr(dirs, prop)
+    result = getattr(Unix(appname="foo", use_site_for_root=True), prop)
     assert result != expected
 
 
@@ -1615,8 +1608,7 @@ def test_use_site_for_root_follows_attribute_change(
 @pytest.mark.usefixtures("_as_root", "_missing_xdg_runtime_dir")
 @pytest.mark.parametrize(("prop", "expected"), _SITE_REDIRECT_CASES)
 def test_use_site_for_root_disabled_as_root(prop: str, expected: str) -> None:
-    dirs = Unix(appname="foo", use_site_for_root=False)
-    result = getattr(dirs, prop)
+    result = getattr(Unix(appname="foo", use_site_for_root=False), prop)
     assert result != expected
 
 

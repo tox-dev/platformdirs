@@ -33,7 +33,7 @@ _MEDIA_DIRS: Final = [
 
 @pytest.fixture(autouse=True)
 def _fix_os_pathsep(mocker: MockerFixture) -> None:
-    """If we're not running on macOS, set `os.pathsep` to what it should be on macOS."""
+    # If we're not running on macOS, set `os.pathsep` to what it should be on macOS.
     if sys.platform != "darwin":  # pragma: darwin no cover
         mocker.patch("os.pathsep", ":")
         mocker.patch("os.path.pathsep", ":")
@@ -51,7 +51,7 @@ def _homebrew_py_prefix(mocker: MockerFixture) -> None:
 
 @pytest.fixture
 def _builtin_py_prefix(mocker: MockerFixture) -> None:
-    """Keep ``sys.base_prefix`` off the Homebrew Python layout so directories use the system defaults."""
+    # Keep ``sys.base_prefix`` off the Homebrew Python layout so directories use the system defaults.
     py_version = sys.version_info
     mocker.patch(
         "sys.base_prefix",

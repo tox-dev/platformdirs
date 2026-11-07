@@ -18,7 +18,7 @@ from platformdirs.macos import MacOS
 from platformdirs.unix import Unix
 from platformdirs.windows import Windows
 
-builtin_import = builtins.__import__
+_BUILTIN_IMPORT = builtins.__import__
 
 
 if TYPE_CHECKING:
@@ -34,26 +34,22 @@ def test_package_metadata() -> None:
 
 
 def test_method_result_is_str(func: str) -> None:
-    method = getattr(platformdirs, func)
-    result = method()
+    result = getattr(platformdirs, func)()
     assert isinstance(result, str)
 
 
 def test_property_result_is_str(func: str) -> None:
-    dirs = platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0")
-    result = getattr(dirs, func)
+    result = getattr(platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0"), func)
     assert isinstance(result, str)
 
 
 def test_method_result_is_path(func_path: str) -> None:
-    method = getattr(platformdirs, func_path)
-    result = method()
+    result = getattr(platformdirs, func_path)()
     assert isinstance(result, Path)
 
 
 def test_property_result_is_path(func_path: str) -> None:
-    dirs = platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0")
-    result = getattr(dirs, func_path)
+    result = getattr(platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0"), func_path)
     assert isinstance(result, Path)
 
 
@@ -119,10 +115,7 @@ def test_android_active(  # ruff:ignore[too-many-arguments]
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", ["/A", "/B", path])
 
-    expected = (
-        root == "/system" and data == "/data" and shell is None and prefix is None and _android_folder() is not None
-    )
-    if expected:
+    if root == "/system" and data == "/data" and shell is None and prefix is None and _android_folder() is not None:
         assert platformdirs._set_platform_dir_class() is Android  # ruff:ignore[private-member-access]
     else:
         assert platformdirs._set_platform_dir_class() is not Android  # ruff:ignore[private-member-access]
@@ -160,7 +153,7 @@ def _fake_import(
     if name == "ctypes":
         msg = f"No module named {name}"
         raise ModuleNotFoundError(msg)
-    return builtin_import(name, globals, locals, fromlist, level)
+    return _BUILTIN_IMPORT(name, globals, locals, fromlist, level)
 
 
 def mock_import(func: Callable[..., None]) -> Callable[..., None]:
@@ -174,7 +167,7 @@ def mock_import(func: Callable[..., None]) -> Callable[..., None]:
             return func(*args, **kwargs)
         finally:
             # restore original modules
-            builtins.__import__ = builtin_import
+            builtins.__import__ = _BUILTIN_IMPORT
             for name, module in platformdirs_module_items:
                 sys.modules[name] = module
 
@@ -185,8 +178,7 @@ def mock_import(func: Callable[..., None]) -> Callable[..., None]:
 def test_no_ctypes(func: str) -> None:
     import platformdirs  # ruff:ignore[import-outside-top-level]
 
-    dirs = platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0")
-    result = getattr(dirs, func)
+    result = getattr(platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0"), func)
     assert isinstance(result, str)
 
 

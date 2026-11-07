@@ -189,13 +189,6 @@ def _context(app_folder: str) -> MagicMock:
     return MagicMock(getFilesDir=MagicMock(return_value=MagicMock(getParentFile=MagicMock(return_value=app_dir))))
 
 
-def _environment() -> MagicMock:
-    def public_directory(name: str) -> MagicMock:
-        return MagicMock(getAbsolutePath=MagicMock(return_value=f"/storage/emulated/10/{name}"))
-
-    return MagicMock(getExternalStoragePublicDirectory=MagicMock(side_effect=public_directory))
-
-
 @pytest.mark.usefixtures("_clear_android_caches", "_posix_path_join")
 @pytest.mark.parametrize(
     ("activity", "service"),
@@ -237,9 +230,15 @@ def test_android_folder_without_python_for_android_uses_sys_path(
     ],
 )
 def test_android_media_dir_from_environment(mocker: MockerFixture, prop: str, expected: str) -> None:
-    classes = {"android.os.Environment": _environment()}
-    mocker.patch.dict(sys.modules, {"jnius": _pyjnius(classes)})
+    mocker.patch.dict(sys.modules, {"jnius": _pyjnius({"android.os.Environment": _environment()})})
     assert getattr(Android(), prop) == expected
+
+
+def _environment() -> MagicMock:
+    def public_directory(name: str) -> MagicMock:
+        return MagicMock(getAbsolutePath=MagicMock(return_value=f"/storage/emulated/10/{name}"))
+
+    return MagicMock(getExternalStoragePublicDirectory=MagicMock(side_effect=public_directory))
 
 
 @pytest.mark.usefixtures("_clear_android_caches")
@@ -282,8 +281,7 @@ def test_android_ensure_exists_creates_opinion_subdir(
     cache_dir = tmp_path / "cache"
     cache_dir.mkdir()
 
-    dirs = Android(appname="myapp", ensure_exists=True)
-    result = getattr(dirs, prop)
+    result = getattr(Android(appname="myapp", ensure_exists=True), prop)
 
     expected = str(cache_dir / "myapp" / subdir)
     assert result == expected

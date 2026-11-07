@@ -14,7 +14,8 @@ if TYPE_CHECKING:
 
 
 class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
-    """Abstract base class defining all platform directory properties, their :class:`~pathlib.Path` variants, and iterators.
+    """Abstract base class defining all platform directory properties, their :class:`~pathlib.Path` variants, and
+    iterators.
 
     Platform-specific subclasses (e.g. :class:`~platformdirs.windows.Windows`, :class:`~platformdirs.macos.MacOS`,
     :class:`~platformdirs.unix.Unix`) implement the abstract properties to return the appropriate paths for each
@@ -132,6 +133,307 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         _ensure_inside_base("version", value)
         self._version = value
 
+    @property
+    def user_data_path(self) -> Path:
+        """Data path tied to the user."""
+        return Path(self.user_data_dir)
+
+    @property
+    @abstractmethod
+    def user_data_dir(self) -> str:
+        """Data directory tied to the user."""
+
+    @property
+    def site_data_path(self) -> Path:
+        """Data path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
+        return self._first_site_dir_as_path(self._site_data_dirs)
+
+    def _first_site_dir_as_path(self, dirs: list[str]) -> Path:
+        # A *_path property always returns the first entry, regardless of multipath, so only that entry is created.
+        path = dirs[0]
+        self._optionally_create_directory(path, private=False)
+        return Path(path)
+
+    def _optionally_create_directory(self, path: str, *, private: bool) -> None:
+        if not self.ensure_exists:
+            return
+        _ensure_home_known(path)
+        if private:
+            _make_private_directories(Path(path))
+        else:
+            Path(path).mkdir(parents=True, exist_ok=True)
+
+    @property
+    def _site_data_dirs(self) -> list[str]:
+        return [self.site_data_dir]
+
+    @property
+    @abstractmethod
+    def site_data_dir(self) -> str:
+        """Data directory shared by users."""
+
+    @property
+    def user_config_path(self) -> Path:
+        """Config path tied to the user."""
+        return Path(self.user_config_dir)
+
+    @property
+    @abstractmethod
+    def user_config_dir(self) -> str:
+        """Config directory tied to the user."""
+
+    @property
+    def site_config_path(self) -> Path:
+        """Config path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
+        return self._first_site_dir_as_path(self._site_config_dirs)
+
+    @property
+    def _site_config_dirs(self) -> list[str]:
+        return [self.site_config_dir]
+
+    @property
+    @abstractmethod
+    def site_config_dir(self) -> str:
+        """Config directory shared by users."""
+
+    @property
+    def user_cache_path(self) -> Path:
+        """Cache path tied to the user."""
+        return Path(self.user_cache_dir)
+
+    @property
+    @abstractmethod
+    def user_cache_dir(self) -> str:
+        """Cache directory tied to the user."""
+
+    @property
+    def site_cache_path(self) -> Path:
+        """Cache path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
+        return self._first_site_dir_as_path(self._site_cache_dirs)
+
+    @property
+    def _site_cache_dirs(self) -> list[str]:
+        return [self.site_cache_dir]
+
+    @property
+    @abstractmethod
+    def site_cache_dir(self) -> str:
+        """Cache directory shared by users."""
+
+    @property
+    def user_state_path(self) -> Path:
+        """State path tied to the user."""
+        return Path(self.user_state_dir)
+
+    @property
+    @abstractmethod
+    def user_state_dir(self) -> str:
+        """State directory tied to the user."""
+
+    @property
+    def site_state_path(self) -> Path:
+        """State path shared by users."""
+        return Path(self.site_state_dir)
+
+    @property
+    @abstractmethod
+    def site_state_dir(self) -> str:
+        """State directory shared by users."""
+
+    @property
+    def user_log_path(self) -> Path:
+        """Log path tied to the user."""
+        return Path(self.user_log_dir)
+
+    @property
+    @abstractmethod
+    def user_log_dir(self) -> str:
+        """Log directory tied to the user."""
+
+    @property
+    def site_log_path(self) -> Path:
+        """Log path shared by users."""
+        return Path(self.site_log_dir)
+
+    @property
+    @abstractmethod
+    def site_log_dir(self) -> str:
+        """Log directory shared by users."""
+
+    @property
+    def user_documents_path(self) -> Path:
+        """Documents path tied to the user."""
+        return Path(self.user_documents_dir)
+
+    @property
+    @abstractmethod
+    def user_documents_dir(self) -> str:
+        """Documents directory tied to the user."""
+
+    @property
+    def user_downloads_path(self) -> Path:
+        """Downloads path tied to the user."""
+        return Path(self.user_downloads_dir)
+
+    @property
+    @abstractmethod
+    def user_downloads_dir(self) -> str:
+        """Downloads directory tied to the user."""
+
+    @property
+    def user_pictures_path(self) -> Path:
+        """Pictures path tied to the user."""
+        return Path(self.user_pictures_dir)
+
+    @property
+    @abstractmethod
+    def user_pictures_dir(self) -> str:
+        """Pictures directory tied to the user."""
+
+    @property
+    def user_videos_path(self) -> Path:
+        """Videos path tied to the user."""
+        return Path(self.user_videos_dir)
+
+    @property
+    @abstractmethod
+    def user_videos_dir(self) -> str:
+        """Videos directory tied to the user."""
+
+    @property
+    def user_music_path(self) -> Path:
+        """Music path tied to the user."""
+        return Path(self.user_music_dir)
+
+    @property
+    @abstractmethod
+    def user_music_dir(self) -> str:
+        """Music directory tied to the user."""
+
+    @property
+    def user_desktop_path(self) -> Path:
+        """Desktop path tied to the user."""
+        return Path(self.user_desktop_dir)
+
+    @property
+    @abstractmethod
+    def user_desktop_dir(self) -> str:
+        """Desktop directory tied to the user."""
+
+    @property
+    def user_projects_path(self) -> Path:
+        """Projects path tied to the user."""
+        return Path(self.user_projects_dir)
+
+    @property
+    @abstractmethod
+    def user_projects_dir(self) -> str:
+        """Projects directory tied to the user."""
+
+    @property
+    def user_publicshare_path(self) -> Path:
+        """Public share path tied to the user."""
+        return Path(self.user_publicshare_dir)
+
+    @property
+    @abstractmethod
+    def user_publicshare_dir(self) -> str:
+        """Public share directory tied to the user."""
+
+    @property
+    def user_templates_path(self) -> Path:
+        """Templates path tied to the user."""
+        return Path(self.user_templates_dir)
+
+    @property
+    @abstractmethod
+    def user_templates_dir(self) -> str:
+        """Templates directory tied to the user."""
+
+    @property
+    def user_fonts_path(self) -> Path:
+        """Fonts path tied to the user."""
+        return Path(self.user_fonts_dir)
+
+    @property
+    @abstractmethod
+    def user_fonts_dir(self) -> str:
+        """Fonts directory tied to the user."""
+
+    @property
+    def user_preference_path(self) -> Path:
+        """Preference path tied to the user."""
+        return Path(self.user_preference_dir)
+
+    @property
+    @abstractmethod
+    def user_preference_dir(self) -> str:
+        """Preference directory tied to the user."""
+
+    @property
+    def user_bin_path(self) -> Path:
+        """Bin path tied to the user."""
+        return Path(self.user_bin_dir)
+
+    @property
+    @abstractmethod
+    def user_bin_dir(self) -> str:
+        """Bin directory tied to the user."""
+
+    @property
+    def site_bin_path(self) -> Path:
+        """Bin path shared by users."""
+        return Path(self.site_bin_dir)
+
+    @property
+    @abstractmethod
+    def site_bin_dir(self) -> str:
+        """Bin directory shared by users."""
+
+    @property
+    def user_applications_path(self) -> Path:
+        """Applications path tied to the user."""
+        return Path(self.user_applications_dir)
+
+    @property
+    @abstractmethod
+    def user_applications_dir(self) -> str:
+        """Applications directory tied to the user."""
+
+    @property
+    def site_applications_path(self) -> Path:
+        """Applications path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
+        return Path(self._site_applications_dirs[0])
+
+    @property
+    def _site_applications_dirs(self) -> list[str]:
+        return [self.site_applications_dir]
+
+    @property
+    @abstractmethod
+    def site_applications_dir(self) -> str:
+        """Applications directory shared by users."""
+
+    @property
+    def user_runtime_path(self) -> Path:
+        """Runtime path tied to the user."""
+        return Path(self.user_runtime_dir)
+
+    @property
+    @abstractmethod
+    def user_runtime_dir(self) -> str:
+        """Runtime directory tied to the user."""
+
+    @property
+    def site_runtime_path(self) -> Path:
+        """Runtime path shared by users."""
+        return Path(self.site_runtime_dir)
+
+    @property
+    @abstractmethod
+    def site_runtime_dir(self) -> str:
+        """Runtime directory shared by users."""
+
     def _append_app_name_and_version(self, *base: str, private: bool) -> str:
         path = self._join_app_name_and_version(*base)
         self._optionally_create_directory(path, private=private)
@@ -144,15 +446,6 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
             if self.version:
                 params.append(self.version)
         return os.path.join(base[0], *params)  # ruff:ignore[os-path-join]
-
-    def _optionally_create_directory(self, path: str, *, private: bool) -> None:
-        if not self.ensure_exists:
-            return
-        _ensure_home_known(path)
-        if private:
-            _make_private_directories(Path(path))
-        else:
-            Path(path).mkdir(parents=True, exist_ok=True)
 
     def _optionally_create_media_directory(self, path: str) -> None:
         # Only called for a media directory the user configured. Media directories are often symlinks to removable or
@@ -174,302 +467,10 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
             self._optionally_create_directory(path, private=False)
         return os.pathsep.join(selected)
 
-    def _create_as_yielded(self, dirs: Iterable[str]) -> Iterator[str]:
-        for path in dirs:
-            self._optionally_create_directory(path, private=False)
-            yield path
-
-    def _first_site_dir_as_path(self, dirs: list[str]) -> Path:
-        # A *_path property always returns the first entry, regardless of multipath, so only that entry is created.
-        path = dirs[0]
-        self._optionally_create_directory(path, private=False)
-        return Path(path)
-
-    @property
-    @abstractmethod
-    def user_data_dir(self) -> str:
-        """Data directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def site_data_dir(self) -> str:
-        """Data directory shared by users."""
-
-    @property
-    def _site_data_dirs(self) -> list[str]:
-        return [self.site_data_dir]
-
-    @property
-    @abstractmethod
-    def user_config_dir(self) -> str:
-        """Config directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def site_config_dir(self) -> str:
-        """Config directory shared by users."""
-
-    @property
-    def _site_config_dirs(self) -> list[str]:
-        return [self.site_config_dir]
-
-    @property
-    @abstractmethod
-    def user_cache_dir(self) -> str:
-        """Cache directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def site_cache_dir(self) -> str:
-        """Cache directory shared by users."""
-
-    @property
-    def _site_cache_dirs(self) -> list[str]:
-        return [self.site_cache_dir]
-
-    @property
-    @abstractmethod
-    def user_state_dir(self) -> str:
-        """State directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def site_state_dir(self) -> str:
-        """State directory shared by users."""
-
-    @property
-    @abstractmethod
-    def user_log_dir(self) -> str:
-        """Log directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def site_log_dir(self) -> str:
-        """Log directory shared by users."""
-
-    @property
-    @abstractmethod
-    def user_documents_dir(self) -> str:
-        """Documents directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def user_downloads_dir(self) -> str:
-        """Downloads directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def user_pictures_dir(self) -> str:
-        """Pictures directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def user_videos_dir(self) -> str:
-        """Videos directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def user_music_dir(self) -> str:
-        """Music directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def user_desktop_dir(self) -> str:
-        """Desktop directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def user_projects_dir(self) -> str:
-        """Projects directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def user_publicshare_dir(self) -> str:
-        """Public share directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def user_templates_dir(self) -> str:
-        """Templates directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def user_fonts_dir(self) -> str:
-        """Fonts directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def user_preference_dir(self) -> str:
-        """Preference directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def user_bin_dir(self) -> str:
-        """Bin directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def site_bin_dir(self) -> str:
-        """Bin directory shared by users."""
-
-    @property
-    @abstractmethod
-    def user_applications_dir(self) -> str:
-        """Applications directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def site_applications_dir(self) -> str:
-        """Applications directory shared by users."""
-
-    @property
-    def _site_applications_dirs(self) -> list[str]:
-        return [self.site_applications_dir]
-
-    @property
-    @abstractmethod
-    def user_runtime_dir(self) -> str:
-        """Runtime directory tied to the user."""
-
-    @property
-    @abstractmethod
-    def site_runtime_dir(self) -> str:
-        """Runtime directory shared by users."""
-
-    @property
-    def user_data_path(self) -> Path:
-        """Data path tied to the user."""
-        return Path(self.user_data_dir)
-
-    @property
-    def site_data_path(self) -> Path:
-        """Data path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
-        return self._first_site_dir_as_path(self._site_data_dirs)
-
-    @property
-    def user_config_path(self) -> Path:
-        """Config path tied to the user."""
-        return Path(self.user_config_dir)
-
-    @property
-    def site_config_path(self) -> Path:
-        """Config path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
-        return self._first_site_dir_as_path(self._site_config_dirs)
-
-    @property
-    def user_cache_path(self) -> Path:
-        """Cache path tied to the user."""
-        return Path(self.user_cache_dir)
-
-    @property
-    def site_cache_path(self) -> Path:
-        """Cache path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
-        return self._first_site_dir_as_path(self._site_cache_dirs)
-
-    @property
-    def user_state_path(self) -> Path:
-        """State path tied to the user."""
-        return Path(self.user_state_dir)
-
-    @property
-    def site_state_path(self) -> Path:
-        """State path shared by users."""
-        return Path(self.site_state_dir)
-
-    @property
-    def user_log_path(self) -> Path:
-        """Log path tied to the user."""
-        return Path(self.user_log_dir)
-
-    @property
-    def site_log_path(self) -> Path:
-        """Log path shared by users."""
-        return Path(self.site_log_dir)
-
-    @property
-    def user_documents_path(self) -> Path:
-        """Documents path tied to the user."""
-        return Path(self.user_documents_dir)
-
-    @property
-    def user_downloads_path(self) -> Path:
-        """Downloads path tied to the user."""
-        return Path(self.user_downloads_dir)
-
-    @property
-    def user_pictures_path(self) -> Path:
-        """Pictures path tied to the user."""
-        return Path(self.user_pictures_dir)
-
-    @property
-    def user_videos_path(self) -> Path:
-        """Videos path tied to the user."""
-        return Path(self.user_videos_dir)
-
-    @property
-    def user_music_path(self) -> Path:
-        """Music path tied to the user."""
-        return Path(self.user_music_dir)
-
-    @property
-    def user_desktop_path(self) -> Path:
-        """Desktop path tied to the user."""
-        return Path(self.user_desktop_dir)
-
-    @property
-    def user_projects_path(self) -> Path:
-        """Projects path tied to the user."""
-        return Path(self.user_projects_dir)
-
-    @property
-    def user_publicshare_path(self) -> Path:
-        """Public share path tied to the user."""
-        return Path(self.user_publicshare_dir)
-
-    @property
-    def user_templates_path(self) -> Path:
-        """Templates path tied to the user."""
-        return Path(self.user_templates_dir)
-
-    @property
-    def user_fonts_path(self) -> Path:
-        """Fonts path tied to the user."""
-        return Path(self.user_fonts_dir)
-
-    @property
-    def user_preference_path(self) -> Path:
-        """Preference path tied to the user."""
-        return Path(self.user_preference_dir)
-
-    @property
-    def user_bin_path(self) -> Path:
-        """Bin path tied to the user."""
-        return Path(self.user_bin_dir)
-
-    @property
-    def site_bin_path(self) -> Path:
-        """Bin path shared by users."""
-        return Path(self.site_bin_dir)
-
-    @property
-    def user_applications_path(self) -> Path:
-        """Applications path tied to the user."""
-        return Path(self.user_applications_dir)
-
-    @property
-    def site_applications_path(self) -> Path:
-        """Applications path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
-        return Path(self._site_applications_dirs[0])
-
-    @property
-    def user_runtime_path(self) -> Path:
-        """Runtime path tied to the user."""
-        return Path(self.user_runtime_dir)
-
-    @property
-    def site_runtime_path(self) -> Path:
-        """Runtime path shared by users."""
-        return Path(self.site_runtime_dir)
+    def iter_config_paths(self) -> Iterator[Path]:
+        """:yield: all user and site configuration paths."""
+        for path in self.iter_config_dirs():
+            yield Path(path)
 
     def iter_config_dirs(self) -> Iterator[str]:
         """:yield: all user and site configuration directories."""
@@ -480,6 +481,22 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
             yield self.user_config_dir
         yield from self._create_as_yielded(self._site_config_dirs)
 
+    @property
+    def _use_site(self) -> bool:
+        # Only Unix redirects root's user dirs to the site ones. The iterators then skip the user dir, since under
+        # multipath it is the joined site string that _unique cannot match against any single entry.
+        return False
+
+    def _create_as_yielded(self, dirs: Iterable[str]) -> Iterator[str]:
+        for path in dirs:
+            self._optionally_create_directory(path, private=False)
+            yield path
+
+    def iter_data_paths(self) -> Iterator[Path]:
+        """:yield: all user and site data paths."""
+        for path in self.iter_data_dirs():
+            yield Path(path)
+
     def iter_data_dirs(self) -> Iterator[str]:
         """:yield: all user and site data directories."""
         yield from _unique(self._iter_data_dirs())
@@ -488,6 +505,11 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         if not self._use_site:
             yield self.user_data_dir
         yield from self._create_as_yielded(self._site_data_dirs)
+
+    def iter_cache_paths(self) -> Iterator[Path]:
+        """:yield: all user and site cache paths."""
+        for path in self.iter_cache_dirs():
+            yield Path(path)
 
     def iter_cache_dirs(self) -> Iterator[str]:
         """:yield: all user and site cache directories."""
@@ -498,6 +520,11 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
             yield self.user_cache_dir
         yield from self._create_as_yielded(self._site_cache_dirs)
 
+    def iter_state_paths(self) -> Iterator[Path]:
+        """:yield: all user and site state paths."""
+        for path in self.iter_state_dirs():
+            yield Path(path)
+
     def iter_state_dirs(self) -> Iterator[str]:
         """:yield: all user and site state directories."""
         yield from _unique(self._iter_state_dirs())
@@ -507,6 +534,11 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
             yield self.user_state_dir
         yield self.site_state_dir
 
+    def iter_log_paths(self) -> Iterator[Path]:
+        """:yield: all user and site log paths."""
+        for path in self.iter_log_dirs():
+            yield Path(path)
+
     def iter_log_dirs(self) -> Iterator[str]:
         """:yield: all user and site log directories."""
         yield from _unique(self._iter_log_dirs())
@@ -515,6 +547,11 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         if not self._use_site:
             yield self.user_log_dir
         yield self.site_log_dir
+
+    def iter_runtime_paths(self) -> Iterator[Path]:
+        """:yield: all user and site runtime paths."""
+        for path in self.iter_runtime_dirs():
+            yield Path(path)
 
     def iter_runtime_dirs(self) -> Iterator[str]:
         """:yield: all user and site runtime directories."""
@@ -526,42 +563,6 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         if not self._use_site:
             yield self.site_runtime_dir
 
-    @property
-    def _use_site(self) -> bool:
-        # Only Unix redirects root's user dirs to the site ones. The iterators then skip the user dir, since under
-        # multipath it is the joined site string that _unique cannot match against any single entry.
-        return False
-
-    def iter_config_paths(self) -> Iterator[Path]:
-        """:yield: all user and site configuration paths."""
-        for path in self.iter_config_dirs():
-            yield Path(path)
-
-    def iter_data_paths(self) -> Iterator[Path]:
-        """:yield: all user and site data paths."""
-        for path in self.iter_data_dirs():
-            yield Path(path)
-
-    def iter_cache_paths(self) -> Iterator[Path]:
-        """:yield: all user and site cache paths."""
-        for path in self.iter_cache_dirs():
-            yield Path(path)
-
-    def iter_state_paths(self) -> Iterator[Path]:
-        """:yield: all user and site state paths."""
-        for path in self.iter_state_dirs():
-            yield Path(path)
-
-    def iter_log_paths(self) -> Iterator[Path]:
-        """:yield: all user and site log paths."""
-        for path in self.iter_log_dirs():
-            yield Path(path)
-
-    def iter_runtime_paths(self) -> Iterator[Path]:
-        """:yield: all user and site runtime paths."""
-        for path in self.iter_runtime_dirs():
-            yield Path(path)
-
     def place_config_file(self, name: str | os.PathLike[str]) -> Path:
         """Return the path of ``name`` under `user_config_path`, creating the missing directories on the way.
 
@@ -572,36 +573,13 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
         :param name: file path relative to the user directory, e.g. ``"sub/app.toml"``.
 
+        :returns:
         :raises ValueError: if ``name`` is empty, absolute, has a drive or climbs out through ``..``.
         :raises RuntimeError: if the user directory starts with ``~`` because the home directory is unknown.
         :raises OSError: if it cannot create a missing directory, e.g. one on a missing drive or network share.
 
         """
         return self._place_file(lambda dirs: dirs.user_config_path, name)
-
-    def place_data_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_data_path`."""
-        return self._place_file(lambda dirs: dirs.user_data_path, name)
-
-    def place_cache_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_cache_path`."""
-        return self._place_file(lambda dirs: dirs.user_cache_path, name)
-
-    def place_state_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_state_path`."""
-        return self._place_file(lambda dirs: dirs.user_state_path, name)
-
-    def place_log_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_log_path`."""
-        return self._place_file(lambda dirs: dirs.user_log_path, name)
-
-    def place_runtime_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_runtime_path`.
-
-        :raises PermissionError: on Unix, if another user owns the temporary fallback directory.
-
-        """
-        return self._place_file(lambda dirs: dirs.user_runtime_path, name)
 
     def _place_file(self, user_path: Callable[[PlatformDirsABC], Path], name: str | os.PathLike[str]) -> Path:
         _ensure_inside_base("name", relative := os.fspath(name))
@@ -620,6 +598,48 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
             _make_private_directories(path.parent)
         return path
 
+    def place_data_file(self, name: str | os.PathLike[str]) -> Path:
+        """Like `place_config_file`, under `user_data_path`.
+
+        :param name:
+        :returns:
+        """
+        return self._place_file(lambda dirs: dirs.user_data_path, name)
+
+    def place_cache_file(self, name: str | os.PathLike[str]) -> Path:
+        """Like `place_config_file`, under `user_cache_path`.
+
+        :param name:
+        :returns:
+        """
+        return self._place_file(lambda dirs: dirs.user_cache_path, name)
+
+    def place_state_file(self, name: str | os.PathLike[str]) -> Path:
+        """Like `place_config_file`, under `user_state_path`.
+
+        :param name:
+        :returns:
+        """
+        return self._place_file(lambda dirs: dirs.user_state_path, name)
+
+    def place_log_file(self, name: str | os.PathLike[str]) -> Path:
+        """Like `place_config_file`, under `user_log_path`.
+
+        :param name:
+        :returns:
+        """
+        return self._place_file(lambda dirs: dirs.user_log_path, name)
+
+    def place_runtime_file(self, name: str | os.PathLike[str]) -> Path:
+        """Like `place_config_file`, under `user_runtime_path`.
+
+        :param name:
+        :returns:
+        :raises PermissionError: on Unix, if another user owns the temporary fallback directory.
+
+        """
+        return self._place_file(lambda dirs: dirs.user_runtime_path, name)
+
     def find_config_file(self, name: str | os.PathLike[str]) -> Path | None:
         """Find the first ``name`` file in :meth:`iter_config_paths` order, without creating any directory.
 
@@ -631,6 +651,14 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
 
         """
         return next(self._find_files(lambda dirs: dirs.iter_config_paths(), name), None)
+
+    def _find_files(
+        self, iter_paths: Callable[[PlatformDirsABC], Iterator[Path]], name: str | os.PathLike[str]
+    ) -> Iterator[Path]:
+        _ensure_inside_base("name", relative := os.fspath(name))
+        # The iterators create each directory they yield under ensure_exists, and a lookup must only read the disk.
+        (lookup := copy(self)).ensure_exists = False
+        return (path for directory in iter_paths(lookup) if (path := directory / relative).is_file())
 
     def find_config_files(self, name: str | os.PathLike[str]) -> list[Path]:
         """Find every ``name`` file in :meth:`iter_config_paths` order, without creating any directory.
@@ -645,55 +673,87 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         return list(self._find_files(lambda dirs: dirs.iter_config_paths(), name))
 
     def find_data_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_data_paths`."""
+        """Like :meth:`find_config_file`, searching :meth:`iter_data_paths`.
+
+        :param name:
+        :returns:
+        """
         return next(self._find_files(lambda dirs: dirs.iter_data_paths(), name), None)
 
     def find_data_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_data_paths`."""
+        """Like :meth:`find_config_files`, searching :meth:`iter_data_paths`.
+
+        :param name:
+        :returns:
+        """
         return list(self._find_files(lambda dirs: dirs.iter_data_paths(), name))
 
     def find_cache_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_cache_paths`."""
+        """Like :meth:`find_config_file`, searching :meth:`iter_cache_paths`.
+
+        :param name:
+        :returns:
+        """
         return next(self._find_files(lambda dirs: dirs.iter_cache_paths(), name), None)
 
     def find_cache_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_cache_paths`."""
+        """Like :meth:`find_config_files`, searching :meth:`iter_cache_paths`.
+
+        :param name:
+        :returns:
+        """
         return list(self._find_files(lambda dirs: dirs.iter_cache_paths(), name))
 
     def find_state_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_state_paths`."""
+        """Like :meth:`find_config_file`, searching :meth:`iter_state_paths`.
+
+        :param name:
+        :returns:
+        """
         return next(self._find_files(lambda dirs: dirs.iter_state_paths(), name), None)
 
     def find_state_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_state_paths`."""
+        """Like :meth:`find_config_files`, searching :meth:`iter_state_paths`.
+
+        :param name:
+        :returns:
+        """
         return list(self._find_files(lambda dirs: dirs.iter_state_paths(), name))
 
     def find_log_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_log_paths`."""
+        """Like :meth:`find_config_file`, searching :meth:`iter_log_paths`.
+
+        :param name:
+        :returns:
+        """
         return next(self._find_files(lambda dirs: dirs.iter_log_paths(), name), None)
 
     def find_log_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_log_paths`."""
+        """Like :meth:`find_config_files`, searching :meth:`iter_log_paths`.
+
+        :param name:
+        :returns:
+        """
         return list(self._find_files(lambda dirs: dirs.iter_log_paths(), name))
 
     def find_runtime_file(self, name: str | os.PathLike[str]) -> Path | None:
-        """Like :meth:`find_config_file`, searching :meth:`iter_runtime_paths`."""
-        return next(self._find_runtime_files(name), None)
+        """Like :meth:`find_config_file`, searching :meth:`iter_runtime_paths`.
 
-    def find_runtime_files(self, name: str | os.PathLike[str]) -> list[Path]:
-        """Like :meth:`find_config_files`, searching :meth:`iter_runtime_paths`."""
-        return list(self._find_runtime_files(name))
+        :param name:
+        :returns:
+        """
+        return next(self._find_runtime_files(name), None)
 
     def _find_runtime_files(self, name: str | os.PathLike[str]) -> Iterator[Path]:
         return self._find_files(lambda dirs: dirs.iter_runtime_paths(), name)
 
-    def _find_files(
-        self, iter_paths: Callable[[PlatformDirsABC], Iterator[Path]], name: str | os.PathLike[str]
-    ) -> Iterator[Path]:
-        _ensure_inside_base("name", relative := os.fspath(name))
-        # The iterators create each directory they yield under ensure_exists, and a lookup must only read the disk.
-        (lookup := copy(self)).ensure_exists = False
-        return (path for directory in iter_paths(lookup) if (path := directory / relative).is_file())
+    def find_runtime_files(self, name: str | os.PathLike[str]) -> list[Path]:
+        """Like :meth:`find_config_files`, searching :meth:`iter_runtime_paths`.
+
+        :param name:
+        :returns:
+        """
+        return list(self._find_runtime_files(name))
 
 
 def _ensure_inside_base(name: str, value: str | Literal[False] | None) -> None:
@@ -714,7 +774,7 @@ def _ensure_home_known(path: str) -> None:
 
 
 def _unique(dirs: Iterable[str]) -> Iterator[str]:
-    """:yield: ``dirs`` in order, skipping any directory already yielded."""
+    # :yield: ``dirs`` in order, skipping any directory already yielded.
     # Lazy on purpose: under ensure_exists reading a site_*_dir creates it, so draining ``dirs`` up front would
     # create directories for a caller that stops after the first entry.
     seen: set[Path] = set()
@@ -737,3 +797,9 @@ def _make_private_directories(path: Path) -> None:
 
 class RuntimeDirWarning(UserWarning):
     """Emitted when the Unix or macOS ``user_runtime_dir`` cannot use ``$XDG_RUNTIME_DIR``."""
+
+
+__all__ = [
+    "PlatformDirsABC",
+    "RuntimeDirWarning",
+]

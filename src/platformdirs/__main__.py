@@ -41,7 +41,6 @@ PROPS = (
 
 
 def main() -> None:
-    """Run the main entry point."""
     app_name = "MyApp"
     app_author = "MyCompany"
 
@@ -71,6 +70,12 @@ def _dir_or_error(dirs: PlatformDirsABC, prop: str) -> str:
         return getattr(dirs, prop)
     except (PermissionError, RuntimeError) as error:
         return str(error)
+
+
+__all__ = [
+    "PROPS",
+    "main",
+]
 
 
 if __name__ == "__main__":

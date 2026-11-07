@@ -24,13 +24,13 @@ if TYPE_CHECKING:
     from typing import Literal
 
 if sys.platform == "win32":
-    from platformdirs.windows import Windows as _Result
+    from .windows import Windows as _Result
 elif sys.platform == "darwin":
-    from platformdirs.macos import MacOS as _Result
+    from .macos import MacOS as _Result
 elif sys.platform == "ios":
-    from platformdirs.ios import IOS as _Result  # ruff:ignore[constant-imported-as-non-constant]  # a class, PEP 8 acronym
+    from .ios import IOS as _Result  # ruff:ignore[constant-imported-as-non-constant]  # a class, PEP 8 acronym
 else:
-    from platformdirs.unix import Unix as _Result
+    from .unix import Unix as _Result
 
 
 def _set_platform_dir_class() -> type[PlatformDirsABC]:
@@ -41,10 +41,10 @@ def _set_platform_dir_class() -> type[PlatformDirsABC]:
         if os.getenv("SHELL") or os.getenv("PREFIX"):
             return _Result
 
-        from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]
+        from .android import _android_folder  # ruff:ignore[import-outside-top-level]
 
         if _android_folder() is not None:
-            from platformdirs.android import Android  # ruff:ignore[import-outside-top-level]
+            from .android import Android  # ruff:ignore[import-outside-top-level]
 
             return Android  # return to avoid redefinition of a result
 

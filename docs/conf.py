@@ -6,7 +6,7 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from docutils import nodes
 
@@ -15,9 +15,9 @@ from platformdirs.version import __version__
 if TYPE_CHECKING:
     from sphinx.application import Sphinx
 
-author = "The platformdirs team"
-project = "platformdirs"
-copyright = "2021, The platformdirs team"  # ruff:ignore[builtin-variable-shadowing]
+author: Final[str] = "The platformdirs team"
+project: Final[str] = "platformdirs"
+copyright: Final[str] = "2021, The platformdirs team"  # ruff:ignore[builtin-variable-shadowing]
 
 release = __version__
 version = release
@@ -36,7 +36,7 @@ extensions = [
     "sphinxcontrib.towncrier.ext",  # render unreleased news fragments as a draft "Unreleased" section
     "sphinxext.opengraph",
 ]
-html_theme = "furo"
+html_theme: Final[str] = "furo"
 html_logo = html_favicon = "platformdirs.svg"
 html_title, html_last_updated_fmt = "platformdirs", datetime.now(tz=UTC).isoformat()
 pygments_style, pygments_dark_style = "sphinx", "monokai"
@@ -46,23 +46,25 @@ autodoc_default_options = {
     "undoc-members": True,
     "show-inheritance": True,
 }
-default_role = "any"
-autosectionlabel_prefix_document = True
+default_role: Final[str] = "any"
+autosectionlabel_prefix_document: Final[bool] = True
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 extlinks = {
     "issue": ("https://github.com/tox-dev/platformdirs/issues/%s", "issue #%s"),
     "pr": ("https://github.com/tox-dev/platformdirs/issues/%s", "PR #%s"),
     "user": ("https://github.com/%s", "@%s"),
 }
-copybutton_prompt_text = r">>> |\.\.\. |\$ "
-copybutton_prompt_is_regexp = True
-html_baseurl = "https://platformdirs.readthedocs.io/en/latest/"
-sitemap_url_scheme = "{link}"
-ogp_site_url = "https://platformdirs.readthedocs.io/en/latest/"
-ogp_site_name = "platformdirs"
-ogp_enable_meta_description = True
-towncrier_draft_autoversion_mode = "draft"
-towncrier_draft_include_empty = True  # keep the docs build green right after a release, when no fragments remain
+copybutton_prompt_text: Final[str] = r">>> |\.\.\. |\$ "
+copybutton_prompt_is_regexp: Final[bool] = True
+html_baseurl: Final[str] = "https://platformdirs.readthedocs.io/en/latest/"
+sitemap_url_scheme: Final[str] = "{link}"
+ogp_site_url: Final[str] = "https://platformdirs.readthedocs.io/en/latest/"
+ogp_site_name: Final[str] = "platformdirs"
+ogp_enable_meta_description: Final[bool] = True
+towncrier_draft_autoversion_mode: Final[str] = "draft"
+towncrier_draft_include_empty: Final[bool] = (
+    True  # keep the docs build green right after a release, when no fragments remain
+)
 towncrier_draft_working_directory = Path(__file__).parent.parent
 # Towncrier news fragments are rST snippets folded into changelog.rst at release; they are not standalone pages.
 exclude_patterns = ["changelog/*"]
@@ -71,7 +73,7 @@ markdown_http_base = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
 
 
 def setup(app: Sphinx) -> None:
-    """Give repeated release categories stable, version-scoped labels."""
+    # Give repeated release categories stable, version-scoped labels.
     app.connect("doctree-read", _label_release_categories, priority=400)
 
 

@@ -39,14 +39,6 @@ _ORIGINAL: Final = _resolve_all()
 _ANDROID_ORIGINAL: Final = dict(vars(Android))
 
 
-def _outside(root: Path) -> dict[str, list[str]]:
-    return {
-        name: outside
-        for name, values in _resolve_all().items()
-        if (outside := [value for value in values if not Path(value).is_relative_to(root)])
-    }
-
-
 def test_isolated_dirs_yields_root_as_path(tmp_path: Path) -> None:
     with isolated_dirs(str(tmp_path)) as root:
         assert root == tmp_path
@@ -70,6 +62,14 @@ def test_isolated_dirs_relative_root_survives_chdir(
     with isolated_dirs(relative_root):
         monkeypatch.chdir(tmp_path)
         assert _outside(tmp_path / "start" / relative_root) == {}
+
+
+def _outside(root: Path) -> dict[str, list[str]]:
+    return {
+        name: outside
+        for name, values in _resolve_all().items()
+        if (outside := [value for value in values if not Path(value).is_relative_to(root)])
+    }
 
 
 def test_isolated_dirs_redirects_every_accessor(tmp_path: Path) -> None:

@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
     from pytest_mock import MockerFixture
 
-_WIN_FOLDERS: dict[str, str] = {
+_WIN_FOLDERS: Final[dict[str, str]] = {
     "CSIDL_APPDATA": r"C:\Users\Test\AppData\Roaming",
     "CSIDL_LOCAL_APPDATA": r"C:\Users\Test\AppData\Local",
     "CSIDL_COMMON_APPDATA": r"C:\ProgramData",
@@ -318,7 +318,7 @@ def test_get_win_folder_if_csidl_name_not_env_var_programs(monkeypatch: pytest.M
 
 
 def _setup_ctypes_mocks(mocker: MockerFixture, *, win_dll: MagicMock | None = None) -> None:
-    """Mock ctypes internals so get_win_folder_via_ctypes can be tested on non-Windows."""
+    # Mock ctypes internals so get_win_folder_via_ctypes can be tested on non-Windows.
     for attr in ("HRESULT", "WinDLL"):
         if not hasattr(ctypes, attr):
             setattr(ctypes, attr, MagicMock())
@@ -415,9 +415,7 @@ def test_get_win_folder_via_ctypes_passes_dont_verify_flag(mocker: MockerFixture
 
     mocker.patch("ctypes.byref", side_effect=lambda x: x)
 
-    mock_path_ptr = MagicMock()
-    mock_path_ptr.value = r"C:\Users\Test\AppData\Local"
-    mocker.patch("ctypes.wintypes.LPWSTR", return_value=mock_path_ptr)
+    mocker.patch("ctypes.wintypes.LPWSTR", return_value=MagicMock(value=r"C:\Users\Test\AppData\Local"))
 
     try:
         importlib.reload(windows)
@@ -450,7 +448,7 @@ def test_get_win_folder_via_ctypes_unknown_csidl(mocker: MockerFixture) -> None:
 
 @pytest.mark.skipif(sys.platform == "win32", reason="mock-based call counting only runs on non-Windows")
 def test_get_win_folder_via_ctypes_builds_once(mocker: MockerFixture) -> None:
-    """Repeated calls must reuse one resolver so ctypes pointer types are not leaked (issue #501)."""
+    # Repeated calls must reuse one resolver so ctypes pointer types are not leaked (issue #501).
     _setup_ctypes_mocks(mocker)
 
     win_dll = MagicMock(side_effect=lambda _name: MagicMock())
@@ -484,9 +482,7 @@ def test_get_win_folder_via_ctypes_null_result(mocker: MockerFixture) -> None:
 
     mocker.patch("ctypes.byref", side_effect=lambda x: x)
 
-    mock_path_ptr = MagicMock()
-    mock_path_ptr.value = None
-    mocker.patch("ctypes.wintypes.LPWSTR", return_value=mock_path_ptr)
+    mocker.patch("ctypes.wintypes.LPWSTR", return_value=MagicMock(value=None))
 
     try:
         importlib.reload(windows)
@@ -666,8 +662,8 @@ def test_pick_get_win_folder_ctypes(mocker: MockerFixture) -> None:
     ],
 )
 def test_get_win_folder_override(monkeypatch: pytest.MonkeyPatch, csidl_name: str, env_suffix: str) -> None:
-    override_path = r"X:\custom\override"
     monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda _csidl: _WIN_FOLDERS[_csidl])
+    override_path = r"X:\custom\override"
     monkeypatch.setenv(f"WIN_PD_OVERRIDE_{env_suffix}", override_path)
     assert get_win_folder(csidl_name) == override_path
 
