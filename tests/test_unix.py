@@ -226,7 +226,7 @@ _XDG_VARIABLES: typing.Final[dict[str, XDGVariable]] = {
         "XDG_RUNTIME_DIR", "/var/run" if sys.platform.startswith(("freebsd", "openbsd", "netbsd")) else "/run"
     ),
 }
-_XDG_CASES: typing.Final = list(_XDG_VARIABLES.items())
+_XDG_CASES: typing.Final[list[tuple[str, XDGVariable]]] = list(_XDG_VARIABLES.items())
 
 
 @pytest.mark.usefixtures("_geteuid")
@@ -1372,9 +1372,9 @@ def test_site_data_dir_default_ensure_exists_creates_only_the_first_entry(
 @pytest.mark.parametrize(
     ("env_var", "prop"),
     [
-        ("XDG_DATA_DIRS", "site_data_dir"),
-        ("XDG_CONFIG_DIRS", "site_config_dir"),
-        ("XDG_DATA_DIRS", "site_applications_dir"),
+        pytest.param("XDG_DATA_DIRS", "site_data_dir", id="site_data_dir"),
+        pytest.param("XDG_CONFIG_DIRS", "site_config_dir", id="site_config_dir"),
+        pytest.param("XDG_DATA_DIRS", "site_applications_dir", id="site_applications_dir"),
     ],
 )
 def test_site_dirs_fall_back_when_xdg_var_has_no_absolute_paths(

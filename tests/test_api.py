@@ -19,7 +19,7 @@ from platformdirs.unix import Unix
 from platformdirs.windows import Windows
 
 _BUILTIN_IMPORT: Final = builtins.__import__
-P = ParamSpec("P")
+_Args = ParamSpec("_Args")
 
 
 if TYPE_CHECKING:
@@ -92,14 +92,6 @@ def test_function_matches_its_property_for_app_arguments(func: str) -> None:
         assert scoped == getattr(platformdirs.PlatformDirs(), func)
 
 
-def _set_android_env(monkeypatch: pytest.MonkeyPatch, values: Mapping[str, str | None]) -> None:
-    for env_var, value in values.items():
-        if value is None:
-            monkeypatch.delenv(env_var, raising=False)
-        else:
-            monkeypatch.setenv(env_var, value)
-
-
 @pytest.mark.parametrize("root", ["A", "/system", None])
 @pytest.mark.parametrize("data", ["D", "/data", None])
 @pytest.mark.parametrize("path", ["/data/data/a/files", "/C"])
@@ -113,7 +105,11 @@ def test_android_active(  # ruff:ignore[too-many-arguments]  # one argument per 
     shell: str | None,
     prefix: str | None,
 ) -> None:
-    _set_android_env(monkeypatch, {"ANDROID_DATA": data, "ANDROID_ROOT": root, "SHELL": shell, "PREFIX": prefix})
+    android_env = {"ANDROID_DATA": data, "ANDROID_ROOT": root, "SHELL": shell, "PREFIX": prefix}
+    for env_var in android_env:
+        monkeypatch.delenv(env_var, raising=False)
+    for env_var, value in {name: value for name, value in android_env.items() if value is not None}.items():
+        monkeypatch.setenv(env_var, value)
 
     from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]  # the test reads a private helper
 
@@ -165,9 +161,9 @@ def _fake_import(
     return _BUILTIN_IMPORT(name, globals, locals, fromlist, level)
 
 
-def mock_import(func: Callable[P, None]) -> Callable[P, None]:
+def mock_import(func: Callable[_Args, None]) -> Callable[_Args, None]:
     @functools.wraps(func)
-    def wrap(*args: P.args, **kwargs: P.kwargs) -> None:
+    def wrap(*args: _Args.args, **kwargs: _Args.kwargs) -> None:
         platformdirs_module_items = [item for item in sys.modules.items() if item[0].startswith("platformdirs")]
         try:
             builtins.__import__ = _fake_import  # ty: ignore[invalid-assignment]  # the stub types the builtin narrowly; the swap is intentional

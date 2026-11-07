@@ -58,19 +58,20 @@ class AppParams(TypedDict, total=False):
 @pytest.mark.parametrize(
     "func",
     [
-        "site_config_dir",
-        "site_data_dir",
-        "user_cache_dir",
-        "user_config_dir",
-        "user_data_dir",
+        pytest.param("site_config_dir", id="site_config_dir"),
+        pytest.param("site_data_dir", id="site_data_dir"),
+        pytest.param("user_cache_dir", id="user_cache_dir"),
+        pytest.param("user_config_dir", id="user_config_dir"),
+        pytest.param("user_data_dir", id="user_data_dir"),
         pytest.param(
             "user_log_dir",
             marks=pytest.mark.skipif(
                 sys.platform != "win32",
                 reason="appdirs.user_log_dir fails without an appname on macOS and uses XDG_STATE_DIR on Unix",
             ),
+            id="user_log_dir",
         ),
-        "user_state_dir",
+        pytest.param("user_state_dir", id="user_state_dir"),
     ],
 )
 @pytest.mark.usefixtures("_clear_xdg_env")

@@ -78,8 +78,7 @@ class AppParams(TypedDict, total=False):
 def test_macos(home: str, params: AppParams, func: str) -> None:
     result = getattr(MacOS(**params), func)
 
-    suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-    suffix = os.sep.join(("", *suffix_elements))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
 
     expected_map = {
         "user_data_dir": f"{home}/Library/Application Support{suffix}",
@@ -170,8 +169,7 @@ def test_macos_homebrew(  # ruff:ignore[too-many-arguments]  # one argument per 
 
     result = getattr(MacOS(multipath=multipath, **params), site_func)
 
-    suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-    suffix = os.sep.join(("", *suffix_elements))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
 
     expected_path_map = {
         "site_cache_path": Path(f"{prefix['homebrew_prefix']}/var/cache{suffix}"),
@@ -231,8 +229,7 @@ def test_macos_xdg_env_vars(
 ) -> None:
     monkeypatch.setenv(env_var, xdg_path)
     result = getattr(MacOS(**params), prop)
-    suffix_elements = tuple(params[i] for i in ("appname", "version") if i in params)
-    suffix = os.sep.join(("", *suffix_elements))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
     assert result == f"{xdg_path}{suffix}"
 
 
@@ -490,9 +487,9 @@ def test_site_applications_path_multipath_returns_first_path(monkeypatch: pytest
 @pytest.mark.parametrize(
     ("env_var", "prop"),
     [
-        ("XDG_DATA_DIRS", "site_data_dir"),
-        ("XDG_CONFIG_DIRS", "site_config_dir"),
-        ("XDG_DATA_DIRS", "site_applications_dir"),
+        pytest.param("XDG_DATA_DIRS", "site_data_dir", id="site_data_dir"),
+        pytest.param("XDG_CONFIG_DIRS", "site_config_dir", id="site_config_dir"),
+        pytest.param("XDG_DATA_DIRS", "site_applications_dir", id="site_applications_dir"),
     ],
 )
 def test_site_dirs_fall_back_when_xdg_var_has_no_absolute_paths(
