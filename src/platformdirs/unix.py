@@ -45,7 +45,11 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
 
     @property
     def user_data_dir(self) -> str:
-        """Data directory tied to the user, e.g. ``~/.local/share/$appname/$version`` or ``$XDG_DATA_HOME/$appname/$version``."""
+        """Data directory tied to the user.
+
+        E.g. ``~/.local/share/$appname/$version`` or ``$XDG_DATA_HOME/$appname/$version``.
+
+        """
         return self._append_app_name_and_version(_expand_user("~/.local/share"), private=True)
 
     @property
@@ -58,7 +62,11 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
 
     @property
     def user_cache_dir(self) -> str:
-        """Cache directory tied to the user, e.g. ``~/.cache/$appname/$version`` or ``$XDG_CACHE_HOME/$appname/$version``."""
+        """Cache directory tied to the user.
+
+        E.g. ``~/.cache/$appname/$version`` or ``$XDG_CACHE_HOME/$appname/$version``.
+
+        """
         return self._append_app_name_and_version(_expand_user("~/.cache"), private=True)
 
     @property
@@ -82,7 +90,11 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
 
     @property
     def user_state_dir(self) -> str:
-        """State directory tied to the user, e.g. ``~/.local/state/$appname/$version`` or ``$XDG_STATE_HOME/$appname/$version``."""
+        """State directory tied to the user.
+
+        E.g. ``~/.local/state/$appname/$version`` or ``$XDG_STATE_HOME/$appname/$version``.
+
+        """
         return self._append_app_name_and_version(_expand_user("~/.local/state"), private=True)
 
     @property
@@ -157,7 +169,11 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
 
     @property
     def user_config_dir(self) -> str:
-        """Config directory tied to the user, e.g. ``~/.config/$appname/$version`` or ``$XDG_CONFIG_HOME/$appname/$version``."""
+        """Config directory tied to the user.
+
+        E.g. ``~/.config/$appname/$version`` or ``$XDG_CONFIG_HOME/$appname/$version``.
+
+        """
         return self._append_app_name_and_version(_expand_user("~/.config"), private=True)
 
     @property

@@ -64,7 +64,14 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
 
     @property
     def site_cache_dir(self) -> str:
-        """Cache directory shared by users, e.g. ``/Library/Caches/$appname/$version``. If we're using a Python binary managed by `Homebrew <https://brew.sh>`_, the directory will be under the Homebrew prefix, e.g. ``$homebrew_prefix/var/cache/$appname/$version``. If `multipath <platformdirs.api.PlatformDirsABC.multipath>` is enabled, and we're in Homebrew, the response is a multi-path string separated by ":", e.g. ``$homebrew_prefix/var/cache/$appname/$version:/Library/Caches/$appname/$version``.
+        """Cache directory shared by users, e.g. ``/Library/Caches/$appname/$version``.
+
+        If we're using a Python binary managed by `Homebrew <https://brew.sh>`_, the directory will be under the
+        Homebrew prefix, e.g. ``$homebrew_prefix/var/cache/$appname/$version``. If
+        `multipath <platformdirs.api.PlatformDirsABC.multipath>` is enabled, and we're in Homebrew, the response is a
+        multi-path string separated by ":", e.g.
+        ``$homebrew_prefix/var/cache/$appname/$version:/Library/Caches/$appname/$version``.
+
 
         :raises PermissionError: under `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`, if
             ``/Library/Caches/$appname`` is a symlink, not a directory or owned by a user other than root and the
@@ -81,12 +88,20 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
 
     @property
     def user_state_dir(self) -> str:
-        """State directory tied to the user, same as `user_data_dir` without ``$XDG_DATA_HOME``, e.g. ``~/Library/Application Support/$appname/$version``."""
+        """State directory tied to the user, same as `user_data_dir` without ``$XDG_DATA_HOME``.
+
+        E.g. ``~/Library/Application Support/$appname/$version``.
+
+        """
         return self._base_user_app_support_dir()
 
     @property
     def site_state_dir(self) -> str:
-        """State directory shared by users, the first entry of `site_data_dir` without ``$XDG_DATA_DIRS``, ignoring `multipath <platformdirs.api.PlatformDirsABC.multipath>`."""
+        """State directory shared by users, the first entry of `site_data_dir` without ``$XDG_DATA_DIRS``.
+
+        Ignores `multipath <platformdirs.api.PlatformDirsABC.multipath>`.
+
+        """
         path = self._base_site_dirs()[0]
         self._optionally_create_directory(path, private=False)
         return path
