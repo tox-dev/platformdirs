@@ -136,7 +136,7 @@ def _unknown_home(
         monkeypatch.delenv("HOME", raising=False)
     else:
         monkeypatch.setenv("HOME", request.param)
-    mocker.patch.object(pwd, "getpwuid", side_effect=KeyError("getpwuid(): uid not found"))
+    mocker.patch.object(pwd, "getpwuid", side_effect=KeyError("getpwuid(): uid not found"), autospec=True)
 
 
 @pytest.fixture

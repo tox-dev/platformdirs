@@ -537,7 +537,9 @@ def test_homebrew_site_dir_ensure_exists_creates_only_the_returned_entries(
     mocker: MockerFixture, prop: str, multipath: bool, created: list[str]
 ) -> None:
     mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
-    mocker.patch.object(Path, "lstat", return_value=mocker.MagicMock(st_mode=stat.S_IFDIR, st_uid=0))
+    mocker.patch.object(
+        Path, "lstat", return_value=mocker.MagicMock(spec=os.stat_result, st_mode=stat.S_IFDIR, st_uid=0), autospec=True
+    )
     getattr(MacOS(appname="foo", multipath=multipath, ensure_exists=True), prop)
     assert [c.args[0] for c in mkdir.call_args_list] == [Path(p) for p in created]
 
@@ -781,8 +783,13 @@ def test_site_cache_ensure_exists_rejects_other_owner(
     mocker: MockerFixture, site_cache: Path, read: Callable[[MacOS], str | Path | list[str] | list[Path]]
 ) -> None:
     (entry := site_cache / "app").mkdir()
-    mocker.patch.object(Path, "lstat", return_value=mocker.MagicMock(st_mode=stat.S_IFDIR, st_uid=501))
-    mocker.patch("platformdirs.macos.geteuid", return_value=502)
+    mocker.patch.object(
+        Path,
+        "lstat",
+        return_value=mocker.MagicMock(spec=os.stat_result, st_mode=stat.S_IFDIR, st_uid=501),
+        autospec=True,
+    )
+    mocker.patch("platformdirs.macos.geteuid", return_value=502, autospec=True)
     expected = f"^site cache directory {re.escape(str(entry))} is owned by uid 501, not root or 502$"
     with pytest.raises(PermissionError, match=expected):
         read(MacOS(appname="app", version="1.0", ensure_exists=True))
@@ -792,8 +799,13 @@ def test_site_cache_ensure_exists_rejects_other_owner(
 @pytest.mark.parametrize("owner", [pytest.param(0, id="root"), pytest.param(502, id="current-user")])
 def test_site_cache_ensure_exists_accepts_trusted_owner(mocker: MockerFixture, site_cache: Path, owner: int) -> None:
     (site_cache / "app").mkdir()
-    mocker.patch.object(Path, "lstat", return_value=mocker.MagicMock(st_mode=stat.S_IFDIR, st_uid=owner))
-    mocker.patch("platformdirs.macos.geteuid", return_value=502)
+    mocker.patch.object(
+        Path,
+        "lstat",
+        return_value=mocker.MagicMock(spec=os.stat_result, st_mode=stat.S_IFDIR, st_uid=owner),
+        autospec=True,
+    )
+    mocker.patch("platformdirs.macos.geteuid", return_value=502, autospec=True)
     assert MacOS(appname="app", version="1.0", ensure_exists=True).site_cache_path.is_dir()
 
 
@@ -826,7 +838,7 @@ def runtime_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerF
 @pytest.fixture
 def foreign_runtime_dir(runtime_dir: Path, mocker: MockerFixture) -> Path:
     runtime_dir.mkdir(mode=0o700)
-    mocker.patch("platformdirs.unix.geteuid", return_value=runtime_dir.stat().st_uid + 1)
+    mocker.patch("platformdirs.unix.geteuid", return_value=runtime_dir.stat().st_uid + 1, autospec=True)
     return runtime_dir
 
 

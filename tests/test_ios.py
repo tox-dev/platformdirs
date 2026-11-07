@@ -129,7 +129,7 @@ def test_ios_ensure_exists_without_home_creates_nothing(
     monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, pwd: ModuleType, tmp_path: Path
 ) -> None:
     monkeypatch.delenv("HOME", raising=False)
-    mocker.patch.object(pwd, "getpwuid", side_effect=KeyError("getpwuid(): uid not found"))
+    mocker.patch.object(pwd, "getpwuid", side_effect=KeyError("getpwuid(): uid not found"), autospec=True)
     monkeypatch.chdir(tmp_path)
     with pytest.raises(RuntimeError, match=r"^could not determine the home directory"):
         _ = IOS(appname="app", ensure_exists=True).user_data_dir

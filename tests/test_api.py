@@ -252,7 +252,7 @@ def test_app_argument_assignment_within_base_changes_the_path(
     mocker: MockerFixture, field: str, value: str | bool | None, parts: tuple[str, ...]
 ) -> None:
     # only Windows paths include appauthor
-    mocker.patch("platformdirs.windows.get_win_folder", return_value="C:/Local")
+    mocker.patch("platformdirs.windows.get_win_folder", return_value="C:/Local", autospec=True)
     dirs = Windows("app", "author", "1.0")
     setattr(dirs, field, value)
     assert Path(dirs.user_data_dir) == Path(os.path.normpath("C:/Local"), *parts)
@@ -558,7 +558,7 @@ def test_find_config_file_accepts_nested_path_like(dirs: Unix, config_paths: lis
 def test_find_file_finds_root_placed_file_in_first_site_dir(
     dirs: Unix, mocker: MockerFixture, kind: str, multipath: bool
 ) -> None:
-    mocker.patch("platformdirs.unix.geteuid", return_value=0)
+    mocker.patch("platformdirs.unix.geteuid", return_value=0, autospec=True)
     dirs.use_site_for_root = True
     dirs.multipath = multipath
     getattr(dirs, f"place_{kind}_file")("app.toml").touch()
