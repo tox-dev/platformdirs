@@ -74,5 +74,10 @@ def _dir_or_error(dirs: PlatformDirsABC, prop: str) -> str:
         return str(error)
 
 
+__all__ = [
+    "PROPS",
+    "main",
+]
+
 if __name__ == "__main__":
     main()

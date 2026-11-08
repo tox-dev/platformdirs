@@ -394,4 +394,9 @@ _RESOLVE_WIN_FOLDER: Final[Callable[[str], str]] = _pick_get_win_folder()
 
 __all__ = [
     "Windows",
+    "get_win_folder",
+    "get_win_folder_from_env_vars",
+    "get_win_folder_from_registry",
+    "get_win_folder_if_csidl_name_not_env_var",
+    "get_win_folder_via_ctypes",
 ]
