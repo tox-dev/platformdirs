@@ -18,13 +18,13 @@ from platformdirs.macos import MacOS
 from platformdirs.unix import Unix
 from platformdirs.windows import Windows
 
-_BUILTIN_IMPORT: Final[BuiltinFunctionType] = builtins.__import__
+_REAL_IMPORT: Final[Callable[..., ModuleType]] = builtins.__import__  # simplint: ignore[SMP603]  # typeshed signature
 _Args = ParamSpec("_Args")
 
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
-    from types import BuiltinFunctionType, ModuleType
+    from types import ModuleType
     from typing import Any
 
     from pytest_mock import MockerFixture
@@ -160,7 +160,7 @@ def _fake_import(
     if name == "ctypes":
         msg = f"No module named {name}"
         raise ModuleNotFoundError(msg)
-    return _BUILTIN_IMPORT(name, globals, locals, fromlist, level)
+    return _REAL_IMPORT(name, globals, locals, fromlist, level)
 
 
 def mock_import(func: Callable[_Args, None]) -> Callable[_Args, None]:
@@ -174,7 +174,7 @@ def mock_import(func: Callable[_Args, None]) -> Callable[_Args, None]:
             return func(*args, **kwargs)
         finally:
             # restore original modules
-            builtins.__import__ = _BUILTIN_IMPORT
+            builtins.__import__ = _REAL_IMPORT  # ty: ignore[invalid-assignment]  # the stored callable is typed loosely
             for name, module in platformdirs_module_items:
                 sys.modules[name] = module
 
