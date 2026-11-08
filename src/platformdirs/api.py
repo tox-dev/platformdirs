@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from typing import Literal
 
 
-class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
+class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API  # simplint: ignore[SMP401]  # adding __all__ would narrow star imports
     """Abstract base class defining all platform directory properties, their :class:`~pathlib.Path` variants, and
     iterators.
 
@@ -826,11 +826,5 @@ def _make_private_directories(path: Path) -> None:
         path.mkdir(mode=0o700, exist_ok=True)
 
 
-class RuntimeDirWarning(UserWarning):
+class RuntimeDirWarning(UserWarning):  # simplint: ignore[SMP401]  # adding __all__ would narrow star imports
     """Emitted when the Unix or macOS ``user_runtime_dir`` cannot use ``$XDG_RUNTIME_DIR``."""
-
-
-__all__ = [
-    "PlatformDirsABC",
-    "RuntimeDirWarning",
-]

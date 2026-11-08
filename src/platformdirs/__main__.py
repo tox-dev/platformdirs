@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
     from platformdirs.api import PlatformDirsABC
 
-PROPS: Final[tuple[str, ...]] = (
+PROPS: Final[tuple[str, ...]] = (  # simplint: ignore[SMP401]  # adding __all__ would narrow star imports
     "user_data_dir",
     "user_config_dir",
     "user_cache_dir",
@@ -42,7 +42,7 @@ PROPS: Final[tuple[str, ...]] = (
 )
 
 
-def main() -> None:
+def main() -> None:  # simplint: ignore[SMP401]  # adding __all__ would narrow star imports
     app_name = "MyApp"
     app_author = "MyCompany"
 
@@ -73,11 +73,6 @@ def _dir_or_error(dirs: PlatformDirsABC, prop: str) -> str:
     except (PermissionError, RuntimeError) as error:
         return str(error)
 
-
-__all__ = [
-    "PROPS",
-    "main",
-]
 
 if __name__ == "__main__":
     main()
