@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, TypedDict
 import pytest
 
 import platformdirs
-from platformdirs import _convenience, _platform
 from platformdirs.ios import IOS
 
 if TYPE_CHECKING:
@@ -31,14 +30,8 @@ def container(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 def _ios_platform() -> Iterator[None]:
     with pytest.MonkeyPatch.context() as patch:
         patch.setattr(sys, "platform", "ios")
-        _reload_platform_selection()
+        importlib.reload(platformdirs)
         yield
-    _reload_platform_selection()
-
-
-def _reload_platform_selection() -> None:
-    importlib.reload(_platform)
-    importlib.reload(_convenience)
     importlib.reload(platformdirs)
 
 

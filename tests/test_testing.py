@@ -82,14 +82,12 @@ def test_isolated_dirs_redirects_every_accessor(tmp_path: Path) -> None:
 
 def test_isolated_dirs_redirects_android(tmp_path: Path, mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.PlatformDirs", Android)
-    mocker.patch("platformdirs._convenience.PlatformDirs", Android)
     with isolated_dirs(tmp_path):
         assert _outside(tmp_path) == {}
 
 
 def test_isolated_dirs_restores_android(tmp_path: Path, mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.PlatformDirs", Android)
-    mocker.patch("platformdirs._convenience.PlatformDirs", Android)
     with isolated_dirs(tmp_path):
         pass
     assert dict(vars(Android)) == _ANDROID_ORIGINAL
@@ -220,5 +218,4 @@ def test_isolated_dirs_nested_root_restores_after_exception(tmp_path: Path) -> N
 @pytest.fixture
 def _unix_root(mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.PlatformDirs", Unix)
-    mocker.patch("platformdirs._convenience.PlatformDirs", Unix)
     mocker.patch("platformdirs.unix.geteuid", return_value=0, autospec=True)

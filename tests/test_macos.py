@@ -195,7 +195,7 @@ def test_macos_homebrew(  # ruff:ignore[too-many-arguments]  # one argument per 
 @pytest.mark.parametrize("suffix", ["dir", "path"])
 @pytest.mark.parametrize("name", ["site_data", "site_config", "site_cache", "site_applications"])
 def test_multipath_reaches_the_module_function(mocker: MockerFixture, name: str, suffix: str) -> None:
-    mocker.patch("platformdirs._convenience.PlatformDirs", MacOS)
+    mocker.patch("platformdirs.PlatformDirs", MacOS)
     function = getattr(platformdirs, f"{name}_{suffix}")
     expected = getattr(MacOS(appname="foo", multipath=True), f"{name}_{suffix}")
     assert function(appname="foo", multipath=True) == expected
