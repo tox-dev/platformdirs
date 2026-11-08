@@ -22,7 +22,7 @@ else:
     from os import geteuid
 
 
-class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
+class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
     """Default platform directories for macOS without XDG environment variable overrides.
 
     Follows the guidance from `Apple's File System Programming Guide
@@ -31,6 +31,86 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     """
 
+    @property
+    def user_data_dir(self) -> str:
+        """Data directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version``."""
+        return self._base_user_app_support_dir()
+
+    def _base_user_app_support_dir(self) -> str:
+        return self._append_app_name_and_version(_expand_user("~/Library/Application Support"), private=True)
+
+    @property
+    def _site_data_dirs(self) -> list[str]:
+        return self._base_site_dirs()
+
+    def _base_site_dirs(self) -> list[str]:
+        path_list = [self._join_app_name_and_version(f"{prefix}/share")] if (prefix := _homebrew_prefix()) else []
+        path_list.append(self._join_app_name_and_version("/Library/Application Support"))
+        return path_list
+
+    @property
+    def user_config_dir(self) -> str:
+        """Config directory tied to the user, same as `user_data_dir`."""
+        return self._base_user_app_support_dir()
+
+    @property
+    def _site_config_dirs(self) -> list[str]:
+        return self._base_site_dirs()
+
+    @property
+    def user_cache_dir(self) -> str:
+        """Cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version``."""
+        return self._append_app_name_and_version(_expand_user("~/Library/Caches"), private=True)
+
+    @property
+    def site_cache_dir(self) -> str:
+        """Cache directory shared by users, e.g. ``/Library/Caches/$appname/$version``.
+
+        If we're using a Python binary managed by `Homebrew <https://brew.sh>`_, the directory will be under the
+        Homebrew prefix, e.g. ``$homebrew_prefix/var/cache/$appname/$version``. If
+        `multipath <platformdirs.api.PlatformDirsABC.multipath>` is enabled, and we're in Homebrew, the response is a
+        multi-path string separated by ":", e.g.
+        ``$homebrew_prefix/var/cache/$appname/$version:/Library/Caches/$appname/$version``.
+
+
+        :raises PermissionError: under `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`, if
+            ``/Library/Caches/$appname`` is a symlink, not a directory or owned by a user other than root and the
+            current one.
+
+        """
+        return self._select_site_dirs(self._site_cache_dirs)
+
+    @property
+    def _site_cache_dirs(self) -> list[str]:
+        path_list = [self._join_app_name_and_version(f"{prefix}/var/cache")] if (prefix := _homebrew_prefix()) else []
+        path_list.append(self._join_app_name_and_version(_SITE_CACHE))
+        return path_list
+
+    @property
+    def user_state_dir(self) -> str:
+        """State directory tied to the user, same as `user_data_dir` without ``$XDG_DATA_HOME``.
+
+        E.g. ``~/Library/Application Support/$appname/$version``.
+
+        """
+        return self._base_user_app_support_dir()
+
+    @property
+    def site_state_dir(self) -> str:
+        """State directory shared by users, the first entry of `site_data_dir` without ``$XDG_DATA_DIRS``.
+
+        Ignores `multipath <platformdirs.api.PlatformDirsABC.multipath>`.
+
+        """
+        path = self._base_site_dirs()[0]
+        self._optionally_create_directory(path, private=False)
+        return path
+
+    # Default platform directories for macOS without XDG environment variable overrides.
+    #
+    # Follows the guidance from `Apple's File System Programming Guide
+    # <https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/MacOSXDirectories/MacOSXDirectories.html>`_.
+    # The XDG env var handling is in :class:`~platformdirs._xdg.XDGMixin`.
     def _optionally_create_directory(self, path: str, *, private: bool) -> None:
         if self.ensure_exists and (shared := Path(_SITE_CACHE)) in (target := Path(path)).parents:
             # Every user can write to /Library/Caches, so another one may have created this entry first.
@@ -54,66 +134,6 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         if info.st_uid != 0 and info.st_uid != (euid := geteuid()):
             return f"{path} is owned by uid {info.st_uid}, not root or {euid}"
         return None
-
-    def _base_user_app_support_dir(self) -> str:
-        return self._append_app_name_and_version(_expand_user("~/Library/Application Support"), private=True)
-
-    def _base_site_dirs(self) -> list[str]:
-        path_list = [self._join_app_name_and_version(f"{prefix}/share")] if (prefix := _homebrew_prefix()) else []
-        path_list.append(self._join_app_name_and_version("/Library/Application Support"))
-        return path_list
-
-    @property
-    def user_data_dir(self) -> str:
-        """Data directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version``."""
-        return self._base_user_app_support_dir()
-
-    @property
-    def _site_data_dirs(self) -> list[str]:
-        return self._base_site_dirs()
-
-    @property
-    def user_config_dir(self) -> str:
-        """Config directory tied to the user, same as `user_data_dir`."""
-        return self._base_user_app_support_dir()
-
-    @property
-    def _site_config_dirs(self) -> list[str]:
-        return self._base_site_dirs()
-
-    @property
-    def user_cache_dir(self) -> str:
-        """Cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version``."""
-        return self._append_app_name_and_version(_expand_user("~/Library/Caches"), private=True)
-
-    @property
-    def _site_cache_dirs(self) -> list[str]:
-        path_list = [self._join_app_name_and_version(f"{prefix}/var/cache")] if (prefix := _homebrew_prefix()) else []
-        path_list.append(self._join_app_name_and_version(_SITE_CACHE))
-        return path_list
-
-    @property
-    def site_cache_dir(self) -> str:
-        """Cache directory shared by users, e.g. ``/Library/Caches/$appname/$version``. If we're using a Python binary managed by `Homebrew <https://brew.sh>`_, the directory will be under the Homebrew prefix, e.g. ``$homebrew_prefix/var/cache/$appname/$version``. If `multipath <platformdirs.api.PlatformDirsABC.multipath>` is enabled, and we're in Homebrew, the response is a multi-path string separated by ":", e.g. ``$homebrew_prefix/var/cache/$appname/$version:/Library/Caches/$appname/$version``.
-
-        :raises PermissionError: under `ensure_exists <platformdirs.api.PlatformDirsABC.ensure_exists>`, if
-            ``/Library/Caches/$appname`` is a symlink, not a directory or owned by a user other than root and the
-            current one.
-
-        """
-        return self._select_site_dirs(self._site_cache_dirs)
-
-    @property
-    def user_state_dir(self) -> str:
-        """State directory tied to the user, same as `user_data_dir` without ``$XDG_DATA_HOME``, e.g. ``~/Library/Application Support/$appname/$version``."""
-        return self._base_user_app_support_dir()
-
-    @property
-    def site_state_dir(self) -> str:
-        """State directory shared by users, the first entry of `site_data_dir` without ``$XDG_DATA_DIRS``, ignoring `multipath <platformdirs.api.PlatformDirsABC.multipath>`."""
-        path = self._base_site_dirs()[0]
-        self._optionally_create_directory(path, private=False)
-        return path
 
     @property
     def user_log_dir(self) -> str:
@@ -200,14 +220,14 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         return ["/Applications"]
 
     @property
-    def user_runtime_dir(self) -> str:
-        """Runtime directory tied to the user, e.g. ``~/Library/Caches/TemporaryItems/$appname/$version``."""
-        return self._append_app_name_and_version(_expand_user("~/Library/Caches/TemporaryItems"), private=True)
-
-    @property
     def site_runtime_dir(self) -> str:
         """Runtime directory shared by users, same as `user_runtime_dir`."""
         return self.user_runtime_dir
+
+    @property
+    def user_runtime_dir(self) -> str:
+        """Runtime directory tied to the user, e.g. ``~/Library/Caches/TemporaryItems/$appname/$version``."""
+        return self._append_app_name_and_version(_expand_user("~/Library/Caches/TemporaryItems"), private=True)
 
 
 class MacOS(XDGMixin, _MacOSDefaults):
@@ -226,7 +246,7 @@ class MacOS(XDGMixin, _MacOSDefaults):
 # Homebrew links each Python formula as a framework build, and a virtual environment keeps it as sys.base_prefix.
 # Homebrew's sitecustomize rewrites the Cellar keg path to the opt link, so -S or PYTHONHOME leaves the Cellar one.
 # Homebrew rewrites its own prefix when bottling, so naming one here would make the macOS and Linux bottles differ.
-_HOMEBREW_PYTHON: Final = re.compile(
+_HOMEBREW_PYTHON: Final[re.Pattern[str]] = re.compile(
     r"""
     (?P<prefix>.+)                          # $HOMEBREW_PREFIX, as printed by `brew --prefix`
     /(?:opt/python[^/]*                     # formula link: python, python3, python@3.13 or python-freethreading
@@ -245,7 +265,7 @@ def _homebrew_prefix() -> str | None:
 
 
 # Unlike the other /Library site bases, macOS ships this one world-writable and sticky, like /tmp.
-_SITE_CACHE: Final = "/Library/Caches"
+_SITE_CACHE: Final[str] = "/Library/Caches"
 
 
 __all__ = [

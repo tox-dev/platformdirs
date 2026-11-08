@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sys
-from subprocess import check_output  # ruff:ignore[suspicious-subprocess-import]
+from subprocess import check_output  # ruff:ignore[suspicious-subprocess-import]  # the test runs the CLI in a subprocess
 from typing import TYPE_CHECKING, Final
 
 import pytest
@@ -46,7 +46,7 @@ def test_run_prints_permission_error_and_continues(
     mocker.patch("platformdirs.__main__.PlatformDirs", Unix)
     owner: Final = runtime_temp_dir.stat().st_uid
     (runtime_temp_dir / f"runtime-{owner + 1}").mkdir()
-    mocker.patch("platformdirs.unix.geteuid", return_value=owner + 1)
+    mocker.patch("platformdirs.unix.geteuid", return_value=owner + 1, autospec=True)
     main()
     error: Final = f"runtime directory {runtime_temp_dir}/runtime-{owner + 1} is owned by uid {owner}, not {owner + 1}"
     # every report section continues past the failing property

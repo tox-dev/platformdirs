@@ -13,8 +13,6 @@ from .api import PlatformDirsABC
 
 
 class XDGMixin(PlatformDirsABC):
-    """Mixin that checks XDG environment variables, falling back to platform-specific defaults via ``super()``."""
-
     @property
     def user_data_dir(self) -> str:
         """Data directory tied to the user, from ``$XDG_DATA_HOME`` if set, else platform default."""
@@ -23,15 +21,15 @@ class XDGMixin(PlatformDirsABC):
         return super().user_data_dir
 
     @property
+    def site_data_dir(self) -> str:
+        """Data directories shared by users, from ``$XDG_DATA_DIRS`` if set, else platform default."""
+        return self._select_site_dirs(self._site_data_dirs)
+
+    @property
     def _site_data_dirs(self) -> list[str]:
         if xdg_dirs := _xdg_dir_list("XDG_DATA_DIRS"):
             return [self._join_app_name_and_version(p) for p in xdg_dirs]
         return super()._site_data_dirs
-
-    @property
-    def site_data_dir(self) -> str:
-        """Data directories shared by users, from ``$XDG_DATA_DIRS`` if set, else platform default."""
-        return self._select_site_dirs(self._site_data_dirs)
 
     @property
     def user_config_dir(self) -> str:
@@ -41,15 +39,15 @@ class XDGMixin(PlatformDirsABC):
         return super().user_config_dir
 
     @property
+    def site_config_dir(self) -> str:
+        """Config directories shared by users, from ``$XDG_CONFIG_DIRS`` if set, else platform default."""
+        return self._select_site_dirs(self._site_config_dirs)
+
+    @property
     def _site_config_dirs(self) -> list[str]:
         if xdg_dirs := _xdg_dir_list("XDG_CONFIG_DIRS"):
             return [self._join_app_name_and_version(p) for p in xdg_dirs]
         return super()._site_config_dirs
-
-    @property
-    def site_config_dir(self) -> str:
-        """Config directories shared by users, from ``$XDG_CONFIG_DIRS`` if set, else platform default."""
-        return self._select_site_dirs(self._site_config_dirs)
 
     @property
     def user_cache_dir(self) -> str:
@@ -73,7 +71,8 @@ class XDGMixin(PlatformDirsABC):
         if path := _xdg_dir("XDG_RUNTIME_DIR"):
             with suppress(OSError):
                 self._optionally_create_directory(path, private=True)
-            # Another user can pre-create the path in a shared parent, and XDG requires an owned runtime dir with mode 0700.
+            # Another user can pre-create the path in a shared parent, and XDG requires an owned runtime dir with mode
+            # 0700.
             if not (problem := _runtime_dir_problem(path, missing_ok=not self.ensure_exists)):
                 return self._append_app_name_and_version(path, private=True)
             _warn_once(f"XDG_RUNTIME_DIR {problem}, falling back to the platform default")
@@ -90,6 +89,11 @@ class XDGMixin(PlatformDirsABC):
     def user_documents_dir(self) -> str:
         """Documents directory tied to the user, from ``$XDG_DOCUMENTS_DIR`` if set, else platform default."""
         return self._xdg_media_dir("XDG_DOCUMENTS_DIR") or super().user_documents_dir
+
+    def _xdg_media_dir(self, env_var: str) -> str | None:
+        if path := _xdg_dir(env_var):
+            self._optionally_create_media_directory(path)
+        return path
 
     @property
     def user_downloads_dir(self) -> str:
@@ -131,11 +135,6 @@ class XDGMixin(PlatformDirsABC):
         """Templates directory tied to the user, from ``$XDG_TEMPLATES_DIR`` if set, else platform default."""
         return self._xdg_media_dir("XDG_TEMPLATES_DIR") or super().user_templates_dir
 
-    def _xdg_media_dir(self, env_var: str) -> str | None:
-        if path := _xdg_dir(env_var):
-            self._optionally_create_media_directory(path)
-        return path
-
     @property
     def user_fonts_dir(self) -> str:
         """Fonts directory tied to the user, from ``$XDG_DATA_HOME/fonts`` if set, else platform default."""
@@ -148,20 +147,20 @@ class XDGMixin(PlatformDirsABC):
     def user_applications_dir(self) -> str:
         """Applications directory tied to the user, from ``$XDG_DATA_HOME`` if set, else platform default."""
         if path := _xdg_dir("XDG_DATA_HOME"):
-            return os.path.join(os.path.expanduser(path), "applications")  # ruff:ignore[os-path-expanduser, os-path-join]
+            return os.path.join(os.path.expanduser(path), "applications")  # ruff:ignore[os-path-expanduser, os-path-join]  # the XDG value may start with ~
         return super().user_applications_dir
-
-    @property
-    def _site_applications_dirs(self) -> list[str]:
-        if xdg_dirs := _xdg_dir_list("XDG_DATA_DIRS"):
-            return [os.path.join(p, "applications") for p in xdg_dirs]  # ruff:ignore[os-path-join]
-        return super()._site_applications_dirs
 
     @property
     def site_applications_dir(self) -> str:
         """Applications directories shared by users, from ``$XDG_DATA_DIRS`` if set, else platform default."""
         dirs = self._site_applications_dirs
         return os.pathsep.join(dirs) if self.multipath else dirs[0]
+
+    @property
+    def _site_applications_dirs(self) -> list[str]:
+        if xdg_dirs := _xdg_dir_list("XDG_DATA_DIRS"):
+            return [os.path.join(p, "applications") for p in xdg_dirs]  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+        return super()._site_applications_dirs
 
 
 def _xdg_dir(env_var: str) -> str | None:
@@ -174,11 +173,10 @@ def _xdg_dir_list(env_var: str) -> list[str]:
 
 
 def _expand_user(path: str) -> str:
-    """Expand the leading ``~`` of ``path`` like :func:`os.path.expanduser`, treating a relative ``HOME`` as unset on POSIX.
-
-    :raises RuntimeError: if the home directory cannot be resolved to an absolute path.
-
-    """
+    # Expand the leading ``~`` of ``path`` like :func:`os.path.expanduser`, treating a relative ``HOME`` as unset on
+    # POSIX.
+    #
+    # :raises RuntimeError: if the home directory cannot be resolved to an absolute path.
     if sys.platform != "win32" and "HOME" in os.environ and not _is_absolute(os.environ["HOME"]):
         # expanduser uses HOME verbatim, so an empty one roots the path at / and a relative one at the working directory
         expanded = path

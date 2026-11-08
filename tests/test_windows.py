@@ -6,10 +6,10 @@ import os
 import pathlib
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Final
-from unittest.mock import MagicMock
+from typing import TYPE_CHECKING, Final, TypedDict
 
 import pytest
+from pytest_mock import MockType
 
 import platformdirs
 from platformdirs import windows
@@ -24,11 +24,11 @@ from platformdirs.windows import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterator
 
     from pytest_mock import MockerFixture
 
-_WIN_FOLDERS: dict[str, str] = {
+_WIN_FOLDERS: Final[dict[str, str]] = {
     "CSIDL_APPDATA": r"C:\Users\Test\AppData\Roaming",
     "CSIDL_LOCAL_APPDATA": r"C:\Users\Test\AppData\Local",
     "CSIDL_COMMON_APPDATA": r"C:\ProgramData",
@@ -45,42 +45,46 @@ _WIN_FOLDERS: dict[str, str] = {
     "CSIDL_USER_PROGRAM_FILES": r"C:\Users\Test\AppData\Local\Programs",
 }
 
-_LOCAL = os.path.normpath(_WIN_FOLDERS["CSIDL_LOCAL_APPDATA"])
-_COMMON = os.path.normpath(_WIN_FOLDERS["CSIDL_COMMON_APPDATA"])
+_LOCAL: Final[str] = os.path.normpath(_WIN_FOLDERS["CSIDL_LOCAL_APPDATA"])
+_COMMON: Final[str] = os.path.normpath(_WIN_FOLDERS["CSIDL_COMMON_APPDATA"])
 
 
 @pytest.fixture(autouse=True)
-def _mock_get_win_folder(mocker: MockerFixture) -> None:
-    mocker.patch("platformdirs.windows.get_win_folder", side_effect=lambda csidl: _WIN_FOLDERS[csidl])
+def win_folder_mock(mocker: MockerFixture) -> MockType:
+    return mocker.patch(
+        "platformdirs.windows.get_win_folder", autospec=True, side_effect=lambda csidl: _WIN_FOLDERS[csidl]
+    )
+
+
+class AppParams(TypedDict, total=False):
+    appname: str
+    version: str
+    appauthor: str
 
 
 @pytest.mark.parametrize(
-    "params",
+    ("params", "suffix_parts", "cache_parts"),
     [
-        pytest.param({}, id="no_args"),
-        pytest.param({"appname": "foo"}, id="app_name"),
-        pytest.param({"appname": "foo", "version": "v1.0"}, id="app_name_version"),
+        pytest.param({}, (), (), id="no_args"),
+        pytest.param({"appname": "foo"}, ("foo", "foo"), ("foo", "foo", "Cache"), id="app_name"),
+        pytest.param(
+            {"appname": "foo", "version": "v1.0"},
+            ("foo", "foo", "v1.0"),
+            ("foo", "foo", "Cache", "v1.0"),
+            id="app_name_version",
+        ),
     ],
 )
-def test_windows(params: dict[str, Any], func: str) -> None:
+def test_windows(params: AppParams, suffix_parts: tuple[str, ...], cache_parts: tuple[str, ...], func: str) -> None:
     result = getattr(Windows(**params), func)
 
-    suffix_parts = []
-    if appname := params.get("appname"):
-        suffix_parts.extend((appname, appname))
-        if version := params.get("version"):
-            suffix_parts.append(version)
-    local = os.path.join(_LOCAL, *suffix_parts) if suffix_parts else _LOCAL  # ruff:ignore[os-path-join]
-    common = os.path.join(_COMMON, *suffix_parts) if suffix_parts else _COMMON  # ruff:ignore[os-path-join]
-    temp = os.path.join(_LOCAL, "Temp", *suffix_parts) if suffix_parts else os.path.join(_LOCAL, "Temp")  # ruff:ignore[os-path-join]
-    cache_local = os.path.join(  # ruff:ignore[os-path-join]
-        _LOCAL, *suffix_parts[:2], *(["Cache"] if suffix_parts else []), *suffix_parts[2:]
-    )
-    cache_common = os.path.join(  # ruff:ignore[os-path-join]
-        _COMMON, *suffix_parts[:2], *(["Cache"] if suffix_parts else []), *suffix_parts[2:]
-    )
-    log = os.path.join(_LOCAL, *suffix_parts, "Logs")  # ruff:ignore[os-path-join]
-    log_common = os.path.join(_COMMON, *suffix_parts, "Logs")  # ruff:ignore[os-path-join]
+    local = os.path.join(_LOCAL, *suffix_parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
+    common = os.path.join(_COMMON, *suffix_parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
+    temp = os.path.join(_LOCAL, "Temp", *suffix_parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
+    cache_local = os.path.join(_LOCAL, *cache_parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
+    cache_common = os.path.join(_COMMON, *cache_parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
+    log = os.path.join(_LOCAL, *suffix_parts, "Logs")  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
+    log_common = os.path.join(_COMMON, *suffix_parts, "Logs")  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
 
     expected_map = {
         "user_data_dir": local,
@@ -105,7 +109,7 @@ def test_windows(params: dict[str, Any], func: str) -> None:
         "user_fonts_dir": os.path.normpath(str(Path(_LOCAL) / "Microsoft" / "Windows" / "Fonts")),
         "user_preference_dir": local,
         "user_bin_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_USER_PROGRAM_FILES"]),
-        "site_bin_dir": os.path.join(_COMMON, "bin"),  # ruff:ignore[os-path-join]
+        "site_bin_dir": os.path.join(_COMMON, "bin"),  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
         "user_applications_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_PROGRAMS"]),
         "site_applications_dir": os.path.normpath(_WIN_FOLDERS["CSIDL_COMMON_PROGRAMS"]),
         "user_runtime_dir": temp,
@@ -128,8 +132,8 @@ def test_site_applications_path_multipath_keeps_pathsep(mocker: MockerFixture) -
         pytest.param("user_bin_dir", "CSIDL_USER_PROGRAM_FILES", id="bin"),
     ],
 )
-def test_windows_dir_follows_known_folder(mocker: MockerFixture, func: str, csidl_name: str) -> None:
-    mocker.patch("platformdirs.windows.get_win_folder", side_effect={csidl_name: r"D:\Moved"}.__getitem__)
+def test_windows_dir_follows_known_folder(win_folder_mock: MockType, func: str, csidl_name: str) -> None:
+    win_folder_mock.side_effect = {csidl_name: r"D:\Moved"}.__getitem__
     assert getattr(Windows(), func) == os.path.normpath(r"D:\Moved")
 
 
@@ -137,21 +141,23 @@ def test_get_win_folder_from_env_vars_public_with_unavailable_home(
     monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
 ) -> None:
     monkeypatch.setenv("PUBLIC", r"C:\Users\Shared")
-    mocker.patch.object(Path, "expanduser", side_effect=RuntimeError("Could not determine home directory."))
+    mocker.patch.object(
+        Path, "expanduser", side_effect=RuntimeError("Could not determine home directory."), autospec=True
+    )
     assert get_win_folder_from_env_vars("CSIDL_PUBLIC") == r"C:\Users\Shared"
 
 
 @pytest.mark.parametrize("env", [pytest.param({}, id="unset"), pytest.param({"PUBLIC": ""}, id="empty")])
 def test_get_win_folder_from_env_vars_public_fallback(mocker: MockerFixture, env: dict[str, str]) -> None:
     mocker.patch.dict(os.environ, env, clear=True)
-    mocker.patch.object(Path, "expanduser", return_value=Path("C:/Users/Test"))
+    mocker.patch.object(Path, "expanduser", return_value=Path("C:/Users/Test"), autospec=True)
     assert get_win_folder_from_env_vars("CSIDL_PUBLIC") == str(Path("C:/Users/Public"))
 
 
 def test_user_projects_dir_raises_without_home(mocker: MockerFixture) -> None:
     # os.path.expanduser leaves the tilde in place when the home is unknown (only Path.expanduser raises),
     # so the Projects directory must not come back as a literal ~ path.
-    mocker.patch.object(os.path, "expanduser", return_value="~/Projects")
+    mocker.patch.object(os.path, "expanduser", return_value="~/Projects", autospec=True)
     with pytest.raises(RuntimeError, match=r"^could not determine the home directory for '~/Projects'"):
         _ = Windows().user_projects_dir
 
@@ -163,16 +169,14 @@ def test_user_projects_dir_ignores_empty_home(monkeypatch: pytest.MonkeyPatch, t
     assert Windows().user_projects_dir == str(tmp_path / "Projects")
 
 
-def test_roaming_uses_appdata(mocker: MockerFixture) -> None:
-    mock = mocker.patch("platformdirs.windows.get_win_folder", side_effect=lambda csidl: _WIN_FOLDERS[csidl])
+def test_roaming_uses_appdata(win_folder_mock: MockType) -> None:
     _result = Windows(appname="foo", roaming=True).user_data_dir
-    mock.assert_called_with("CSIDL_APPDATA")
+    win_folder_mock.assert_called_with("CSIDL_APPDATA")
 
 
-def test_non_roaming_uses_local_appdata(mocker: MockerFixture) -> None:
-    mock = mocker.patch("platformdirs.windows.get_win_folder", side_effect=lambda csidl: _WIN_FOLDERS[csidl])
+def test_non_roaming_uses_local_appdata(win_folder_mock: MockType) -> None:
     _result = Windows(appname="foo", roaming=False).user_data_dir
-    mock.assert_called_with("CSIDL_LOCAL_APPDATA")
+    win_folder_mock.assert_called_with("CSIDL_LOCAL_APPDATA")
 
 
 @pytest.mark.parametrize("suffix", [pytest.param("dir", id="dir"), pytest.param("path", id="path")])
@@ -184,12 +188,12 @@ def test_user_log_function_forwards_roaming(mocker: MockerFixture, suffix: str) 
 
 def test_appauthor_false_skips_author() -> None:
     result = Windows(appname="foo", appauthor=False).user_data_dir
-    assert result == os.path.join(_LOCAL, "foo")  # ruff:ignore[os-path-join]
+    assert result == os.path.join(_LOCAL, "foo")  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
 
 
 def test_appauthor_explicit() -> None:
     result = Windows(appname="foo", appauthor="bar").user_data_dir
-    assert result == os.path.join(_LOCAL, "bar", "foo")  # ruff:ignore[os-path-join]
+    assert result == os.path.join(_LOCAL, "bar", "foo")  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
 
 
 @pytest.mark.parametrize(
@@ -207,7 +211,7 @@ def test_get_win_folder_from_env_vars_direct(
     assert get_win_folder_from_env_vars(csidl_name) == value
 
 
-_USERPROFILE_CSIDL_PARAMS = [
+_USERPROFILE_CSIDL_PARAMS: Final[list[pytest.ParameterSet]] = [
     pytest.param("CSIDL_PERSONAL", "Documents", id="personal"),
     pytest.param("CSIDL_DOWNLOADS", "Downloads", id="downloads"),
     pytest.param("CSIDL_MYPICTURES", "Pictures", id="pictures"),
@@ -244,7 +248,7 @@ def test_get_win_folder_from_env_vars_joined_folder(
     monkeypatch: pytest.MonkeyPatch, csidl_name: str, env_var: str, value: str, parts: tuple[str, ...]
 ) -> None:
     monkeypatch.setenv(env_var, value)
-    assert get_win_folder_from_env_vars(csidl_name) == os.path.join(value, *parts)  # ruff:ignore[os-path-join]
+    assert get_win_folder_from_env_vars(csidl_name) == os.path.join(value, *parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
 
 
 def test_get_win_folder_from_env_vars_programs(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -292,7 +296,7 @@ def test_get_win_folder_from_env_vars_common_programs_empty_programdata(
 ) -> None:
     monkeypatch.setenv("PROGRAMDATA", "")
     monkeypatch.setenv("ALLUSERSPROFILE", all_users_profile)
-    expected = os.path.join(expected_base, "Microsoft", "Windows", "Start Menu", "Programs")  # ruff:ignore[os-path-join]
+    expected = os.path.join(expected_base, "Microsoft", "Windows", "Start Menu", "Programs")  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
     assert get_win_folder_from_env_vars("CSIDL_COMMON_PROGRAMS") == expected
 
 
@@ -317,28 +321,42 @@ def test_get_win_folder_if_csidl_name_not_env_var_programs(monkeypatch: pytest.M
     assert result.endswith("Programs")
 
 
-def _setup_ctypes_mocks(mocker: MockerFixture, *, win_dll: MagicMock | None = None) -> None:
-    """Mock ctypes internals so get_win_folder_via_ctypes can be tested on non-Windows."""
-    for attr in ("HRESULT", "WinDLL"):
+def _dll(mocker: MockerFixture) -> MockType:
+    return mocker.MagicMock(spec=("CLSIDFromString", "CoTaskMemFree", "GetShortPathNameW", "SHGetKnownFolderPath"))
+
+
+def _setup_ctypes_mocks(mocker: MockerFixture, *, win_dll: MockType | None = None) -> None:
+    # Mock ctypes internals so get_win_folder_via_ctypes can be tested on non-Windows.
+    for attr, spec in (("HRESULT", ctypes.c_long), ("WinDLL", ctypes.CDLL)):
         if not hasattr(ctypes, attr):
-            setattr(ctypes, attr, MagicMock())
+            setattr(ctypes, attr, mocker.MagicMock(spec=spec))
     if win_dll is not None:
         mocker.patch.object(ctypes, "WinDLL", win_dll)
     mocker.patch("sys.platform", "win32")
-    mocker.patch("ctypes.POINTER", return_value=MagicMock())
+    mocker.patch("ctypes.POINTER", return_value=mocker.MagicMock(spec=ctypes.c_void_p), autospec=True)
 
 
 def _cleanup_ctypes_mocks() -> None:
     for attr in ("HRESULT", "WinDLL"):
-        if isinstance(getattr(ctypes, attr, None), MagicMock):
+        if isinstance(getattr(ctypes, attr, None), MockType):
             delattr(ctypes, attr)
+
+
+@pytest.fixture
+def _non_windows_ctypes(mocker: MockerFixture) -> Iterator[None]:
+    if sys.platform == "win32":
+        yield
+        return
+    _setup_ctypes_mocks(mocker, win_dll=mocker.MagicMock(spec=ctypes.CDLL, side_effect=lambda _name: _dll(mocker)))
+    yield
+    _cleanup_ctypes_mocks()
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="real ctypes test only runs on Windows")
 @pytest.mark.parametrize("csidl_name", list(_KNOWN_FOLDER_GUIDS.keys()), ids=list(_KNOWN_FOLDER_GUIDS.keys()))
 def test_get_win_folder_via_ctypes_real(csidl_name: str) -> None:
     importlib.reload(windows)
-    from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
+    from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]  # imported after the module is reloaded
 
     result = fresh_fn(csidl_name)
     assert isinstance(result, str)
@@ -357,15 +375,15 @@ def test_get_win_folder_via_ctypes_real_matches_default_layout(
     csidl_name: str, base_csidl_name: str, parts: tuple[str, ...]
 ) -> None:
     importlib.reload(windows)
-    from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
+    from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]  # imported after the module is reloaded
 
-    assert fresh_fn(csidl_name) == os.path.join(fresh_fn(base_csidl_name), *parts)  # ruff:ignore[os-path-join]
+    assert fresh_fn(csidl_name) == os.path.join(fresh_fn(base_csidl_name), *parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="compares against the folders of an unredirected Windows profile")
 def test_get_win_folder_via_ctypes_real_public_matches_old_lookup() -> None:
     importlib.reload(windows)
-    from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
+    from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]  # imported after the module is reloaded
 
     # tox does not pass PUBLIC through, so the old lookup falls back to the home directory's sibling here
     expected = os.path.normpath(os.environ.get("PUBLIC") or str(Path("~").expanduser().parent / "Public"))
@@ -385,14 +403,16 @@ def test_get_win_folder_via_ctypes_queries_known_folder(
     mocker: MockerFixture, csidl_name: str, folder_guid: str
 ) -> None:
     _setup_ctypes_mocks(mocker)
-    dlls = {"ole32": MagicMock(), "shell32": MagicMock()}
-    mocker.patch.object(ctypes, "WinDLL", MagicMock(side_effect=dlls.__getitem__))
-    mocker.patch("ctypes.byref", side_effect=lambda x: x)
-    mocker.patch("ctypes.wintypes.LPWSTR", return_value=MagicMock(value=r"D:\Moved"))
+    dlls = {"ole32": _dll(mocker), "shell32": _dll(mocker)}
+    mocker.patch.object(ctypes, "WinDLL", mocker.MagicMock(spec=ctypes.CDLL, side_effect=dlls.__getitem__))
+    mocker.patch("ctypes.byref", side_effect=lambda arg: arg, autospec=True)
+    mocker.patch(
+        "ctypes.wintypes.LPWSTR", return_value=mocker.MagicMock(spec=ctypes.c_wchar_p, value=r"D:\Moved"), autospec=True
+    )
 
     try:
         importlib.reload(windows)
-        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
+        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]  # imported after the module is reloaded
 
         result = fresh_fn(csidl_name)
     finally:
@@ -405,23 +425,27 @@ def test_get_win_folder_via_ctypes_queries_known_folder(
 def test_get_win_folder_via_ctypes_passes_dont_verify_flag(mocker: MockerFixture) -> None:
     _setup_ctypes_mocks(mocker)
 
-    mock_ole32 = MagicMock()
-    mock_shell32 = MagicMock()
+    mock_ole32 = _dll(mocker)
+    mock_shell32 = _dll(mocker)
     mocker.patch.object(
         ctypes,
         "WinDLL",
-        MagicMock(side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32}[name]),
+        mocker.MagicMock(
+            spec=ctypes.CDLL, side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32}[name]
+        ),
     )
 
-    mocker.patch("ctypes.byref", side_effect=lambda x: x)
+    mocker.patch("ctypes.byref", side_effect=lambda arg: arg, autospec=True)
 
-    mock_path_ptr = MagicMock()
-    mock_path_ptr.value = r"C:\Users\Test\AppData\Local"
-    mocker.patch("ctypes.wintypes.LPWSTR", return_value=mock_path_ptr)
+    mocker.patch(
+        "ctypes.wintypes.LPWSTR",
+        return_value=mocker.MagicMock(spec=ctypes.c_wchar_p, value=r"C:\Users\Test\AppData\Local"),
+        autospec=True,
+    )
 
     try:
         importlib.reload(windows)
-        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
+        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]  # imported after the module is reloaded
 
         result = fresh_fn("CSIDL_LOCAL_APPDATA")
     finally:
@@ -433,34 +457,32 @@ def test_get_win_folder_via_ctypes_passes_dont_verify_flag(mocker: MockerFixture
     assert flags_arg == _KF_FLAG_DONT_VERIFY
 
 
-def test_get_win_folder_via_ctypes_unknown_csidl(mocker: MockerFixture) -> None:
-    if sys.platform != "win32":
-        _setup_ctypes_mocks(mocker, win_dll=MagicMock(side_effect=lambda _name: MagicMock()))
+@pytest.mark.usefixtures("_non_windows_ctypes")
+def test_get_win_folder_via_ctypes_unknown_csidl() -> None:
+    importlib.reload(windows)
+    from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]  # imported after the module is reloaded
 
-    try:
-        importlib.reload(windows)
-        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
-
-        with pytest.raises(ValueError, match="Unknown CSIDL name"):
-            fresh_fn("CSIDL_BOGUS")
-    finally:
-        if sys.platform != "win32":
-            _cleanup_ctypes_mocks()
+    with pytest.raises(ValueError, match="Unknown CSIDL name"):
+        fresh_fn("CSIDL_BOGUS")
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="mock-based call counting only runs on non-Windows")
 def test_get_win_folder_via_ctypes_builds_once(mocker: MockerFixture) -> None:
-    """Repeated calls must reuse one resolver so ctypes pointer types are not leaked (issue #501)."""
+    # Repeated calls must reuse one resolver so ctypes pointer types are not leaked (issue #501).
     _setup_ctypes_mocks(mocker)
 
-    win_dll = MagicMock(side_effect=lambda _name: MagicMock())
+    win_dll = mocker.MagicMock(spec=ctypes.CDLL, side_effect=lambda _name: _dll(mocker))
     mocker.patch.object(ctypes, "WinDLL", win_dll)
-    mocker.patch("ctypes.byref", side_effect=lambda x: x)
-    mocker.patch("ctypes.wintypes.LPWSTR", return_value=MagicMock(value=r"C:\Users\Test\AppData\Local"))
+    mocker.patch("ctypes.byref", side_effect=lambda arg: arg, autospec=True)
+    mocker.patch(
+        "ctypes.wintypes.LPWSTR",
+        return_value=mocker.MagicMock(spec=ctypes.c_wchar_p, value=r"C:\Users\Test\AppData\Local"),
+        autospec=True,
+    )
 
     try:
         importlib.reload(windows)
-        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
+        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]  # imported after the module is reloaded
 
         for _ in range(5):
             fresh_fn("CSIDL_LOCAL_APPDATA")
@@ -474,23 +496,25 @@ def test_get_win_folder_via_ctypes_builds_once(mocker: MockerFixture) -> None:
 def test_get_win_folder_via_ctypes_null_result(mocker: MockerFixture) -> None:
     _setup_ctypes_mocks(mocker)
 
-    mock_ole32 = MagicMock()
-    mock_shell32 = MagicMock()
+    mock_ole32 = _dll(mocker)
+    mock_shell32 = _dll(mocker)
     mocker.patch.object(
         ctypes,
         "WinDLL",
-        MagicMock(side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32}[name]),
+        mocker.MagicMock(
+            spec=ctypes.CDLL, side_effect=lambda name: {"ole32": mock_ole32, "shell32": mock_shell32}[name]
+        ),
     )
 
-    mocker.patch("ctypes.byref", side_effect=lambda x: x)
+    mocker.patch("ctypes.byref", side_effect=lambda arg: arg, autospec=True)
 
-    mock_path_ptr = MagicMock()
-    mock_path_ptr.value = None
-    mocker.patch("ctypes.wintypes.LPWSTR", return_value=mock_path_ptr)
+    mocker.patch(
+        "ctypes.wintypes.LPWSTR", return_value=mocker.MagicMock(spec=ctypes.c_wchar_p, value=None), autospec=True
+    )
 
     try:
         importlib.reload(windows)
-        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
+        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]  # imported after the module is reloaded
 
         with pytest.raises(ValueError, match="SHGetKnownFolderPath returned NULL"):
             fresh_fn("CSIDL_LOCAL_APPDATA")
@@ -505,11 +529,13 @@ def test_get_win_folder_via_ctypes_null_result(mocker: MockerFixture) -> None:
 def test_get_win_folder_via_ctypes_frees_path_on_error(mocker: MockerFixture, path: str | None) -> None:
     _setup_ctypes_mocks(mocker)
     error = OSError("SHGetKnownFolderPath failed")
-    dlls = {"ole32": MagicMock(), "shell32": MagicMock(SHGetKnownFolderPath=MagicMock(side_effect=error))}
-    mocker.patch.object(ctypes, "WinDLL", MagicMock(side_effect=dlls.__getitem__))
-    mocker.patch("ctypes.byref", side_effect=lambda x: x)
-    path_ptr = MagicMock(value=path)
-    mocker.patch("ctypes.wintypes.LPWSTR", return_value=path_ptr)
+    shell32 = _dll(mocker)
+    shell32.SHGetKnownFolderPath.side_effect = error
+    dlls = {"ole32": _dll(mocker), "shell32": shell32}
+    mocker.patch.object(ctypes, "WinDLL", mocker.MagicMock(spec=ctypes.CDLL, side_effect=dlls.__getitem__))
+    mocker.patch("ctypes.byref", side_effect=lambda arg: arg, autospec=True)
+    path_ptr = mocker.MagicMock(spec=ctypes.c_wchar_p, value=path)
+    mocker.patch("ctypes.wintypes.LPWSTR", return_value=path_ptr, autospec=True)
 
     try:
         importlib.reload(windows)
@@ -538,18 +564,19 @@ def test_get_win_folder_via_ctypes_keeps_non_latin1_path(
     mocker: MockerFixture, get_short_path_name: Callable[[str, ctypes.Array[ctypes.c_wchar], int], int]
 ) -> None:
     _setup_ctypes_mocks(mocker)
-    dlls = {
-        "ole32": MagicMock(),
-        "shell32": MagicMock(),
-        "kernel32": MagicMock(GetShortPathNameW=MagicMock(side_effect=get_short_path_name)),
-    }
-    mocker.patch.object(ctypes, "WinDLL", MagicMock(side_effect=dlls.__getitem__))
-    mocker.patch("ctypes.byref", side_effect=lambda x: x)
-    mocker.patch("ctypes.wintypes.LPWSTR", return_value=MagicMock(value=r"C:\Users\Łukasz\AppData\Local"))
+    dlls = {"ole32": _dll(mocker), "shell32": _dll(mocker), "kernel32": _dll(mocker)}
+    dlls["kernel32"].GetShortPathNameW.side_effect = get_short_path_name
+    mocker.patch.object(ctypes, "WinDLL", mocker.MagicMock(spec=ctypes.CDLL, side_effect=dlls.__getitem__))
+    mocker.patch("ctypes.byref", side_effect=lambda arg: arg, autospec=True)
+    mocker.patch(
+        "ctypes.wintypes.LPWSTR",
+        return_value=mocker.MagicMock(spec=ctypes.c_wchar_p, value=r"C:\Users\Łukasz\AppData\Local"),
+        autospec=True,
+    )
 
     try:
         importlib.reload(windows)
-        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]
+        from platformdirs.windows import get_win_folder_via_ctypes as fresh_fn  # ruff:ignore[import-outside-top-level]  # imported after the module is reloaded
 
         result = fresh_fn("CSIDL_LOCAL_APPDATA")
     finally:
@@ -583,7 +610,7 @@ def test_get_win_folder_from_registry_knows_every_known_folder(csidl_name: str) 
             "CSIDL_USER_PROGRAM_FILES",
             "LOCALAPPDATA",
             r"C:\Users\Test\AppData\Local",
-            os.path.join(r"C:\Users\Test\AppData\Local", "Programs"),  # ruff:ignore[os-path-join]
+            os.path.join(r"C:\Users\Test\AppData\Local", "Programs"),  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
             id="user_program_files",
         ),
     ],
@@ -635,16 +662,15 @@ def test_known_folder_guids_has_all_csidl_names() -> None:
     assert set(_KNOWN_FOLDER_GUIDS.keys()) == expected
 
 
-def test_pick_get_win_folder_ctypes(mocker: MockerFixture) -> None:
-    if sys.platform != "win32":
-        _setup_ctypes_mocks(mocker, win_dll=MagicMock())
+@pytest.mark.usefixtures("_non_windows_ctypes")
+def test_pick_get_win_folder_ctypes() -> None:
+    importlib.reload(windows)
+    assert windows._pick_get_win_folder() is windows.get_win_folder_via_ctypes  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
 
-    try:
-        importlib.reload(windows)
-        assert windows._pick_get_win_folder() is windows.get_win_folder_via_ctypes  # ruff:ignore[private-member-access]
-    finally:
-        if sys.platform != "win32":
-            _cleanup_ctypes_mocks()
+
+def test_pick_get_win_folder_without_ctypes_or_winreg(mocker: MockerFixture) -> None:
+    mocker.patch.dict(sys.modules, {"ctypes": None, "winreg": None})
+    assert windows._pick_get_win_folder() is windows.get_win_folder_from_env_vars  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
 
 
 @pytest.mark.parametrize(
@@ -666,8 +692,8 @@ def test_pick_get_win_folder_ctypes(mocker: MockerFixture) -> None:
     ],
 )
 def test_get_win_folder_override(monkeypatch: pytest.MonkeyPatch, csidl_name: str, env_suffix: str) -> None:
+    monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda _csidl: _WIN_FOLDERS[_csidl])
     override_path = r"X:\custom\override"
-    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda _csidl: _WIN_FOLDERS[_csidl])
     monkeypatch.setenv(f"WIN_PD_OVERRIDE_{env_suffix}", override_path)
     assert get_win_folder(csidl_name) == override_path
 
@@ -690,7 +716,7 @@ def test_get_win_folder_override(monkeypatch: pytest.MonkeyPatch, csidl_name: st
     ],
 )
 def test_get_win_folder_override_ignored(monkeypatch: pytest.MonkeyPatch, value: str) -> None:
-    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda csidl: _WIN_FOLDERS[csidl])
+    monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda csidl: _WIN_FOLDERS[csidl])
     monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", value)
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == _WIN_FOLDERS["CSIDL_LOCAL_APPDATA"]
 
@@ -709,19 +735,19 @@ def test_get_win_folder_override_ignored(monkeypatch: pytest.MonkeyPatch, value:
     ],
 )
 def test_get_win_folder_override_absolute(monkeypatch: pytest.MonkeyPatch, value: str) -> None:
-    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda csidl: _WIN_FOLDERS[csidl])
+    monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda csidl: _WIN_FOLDERS[csidl])
     monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", value)
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == value
 
 
 def test_get_win_folder_override_not_set_falls_back(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda csidl: _WIN_FOLDERS[csidl])
+    monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda csidl: _WIN_FOLDERS[csidl])
     monkeypatch.delenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", raising=False)
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == _WIN_FOLDERS["CSIDL_LOCAL_APPDATA"]
 
 
 def test_get_win_folder_override_strips_whitespace(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("platformdirs.windows._resolve_win_folder", lambda csidl: _WIN_FOLDERS[csidl])
+    monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda csidl: _WIN_FOLDERS[csidl])
     monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", "  X:\\custom  ")
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == r"X:\custom"
 

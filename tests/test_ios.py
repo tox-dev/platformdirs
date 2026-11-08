@@ -4,7 +4,7 @@ import importlib
 import re
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, TypedDict
 
 import pytest
 
@@ -40,6 +40,12 @@ def test_ios_platform_uses_the_app_container_library(container: Path) -> None:
     assert Path(platformdirs.user_data_dir("SuperApp")) == container / "Library" / "Application Support" / "SuperApp"
 
 
+class AppParams(TypedDict, total=False):
+    appname: str
+    version: str
+    appauthor: str
+
+
 @pytest.mark.parametrize(
     "params",
     [
@@ -48,7 +54,7 @@ def test_ios_platform_uses_the_app_container_library(container: Path) -> None:
         pytest.param({"appname": "foo", "version": "v1.0"}, id="app_name_version"),
     ],
 )
-def test_ios(container: Path, params: dict[str, Any], func: str) -> None:
+def test_ios(container: Path, params: AppParams, func: str) -> None:
     app = [params[key] for key in ("appname", "version") if key in params]
     app_support = ("Library", "Application Support", *app)
     expected = {
@@ -123,7 +129,7 @@ def test_ios_ensure_exists_without_home_creates_nothing(
     monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, pwd: ModuleType, tmp_path: Path
 ) -> None:
     monkeypatch.delenv("HOME", raising=False)
-    mocker.patch.object(pwd, "getpwuid", side_effect=KeyError("getpwuid(): uid not found"))
+    mocker.patch.object(pwd, "getpwuid", side_effect=KeyError("getpwuid(): uid not found"), autospec=True)
     monkeypatch.chdir(tmp_path)
     with pytest.raises(RuntimeError, match=r"^could not determine the home directory"):
         _ = IOS(appname="app", ensure_exists=True).user_data_dir

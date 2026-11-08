@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from _pytest.fixtures import SubRequest
     from pytest_mock import MockerFixture
 
-PROPS = (
+_PROPS: Final[tuple[str, ...]] = (
     "user_data_dir",
     "user_config_dir",
     "user_cache_dir",
@@ -45,45 +45,42 @@ PROPS = (
 )
 
 
-@pytest.fixture(params=PROPS)
+@pytest.fixture(params=_PROPS)
 def func(request: SubRequest) -> str:
     return cast("str", request.param)
 
 
-@pytest.fixture(params=PROPS)
+@pytest.fixture(params=_PROPS)
 def func_path(request: SubRequest) -> str:
-    prop = cast("str", request.param)
-    return prop.replace("_dir", "_path")
+    return cast("str", request.param).replace("_dir", "_path")
 
 
 @pytest.fixture
 def props() -> tuple[str, ...]:
-    return PROPS
-
-
-_XDG_ENV_VARS: Final[tuple[str, ...]] = (
-    "XDG_DATA_HOME",
-    "XDG_DATA_DIRS",
-    "XDG_CONFIG_HOME",
-    "XDG_CONFIG_DIRS",
-    "XDG_CACHE_HOME",
-    "XDG_STATE_HOME",
-    "XDG_RUNTIME_DIR",
-    "XDG_DOCUMENTS_DIR",
-    "XDG_DOWNLOAD_DIR",
-    "XDG_PICTURES_DIR",
-    "XDG_VIDEOS_DIR",
-    "XDG_MUSIC_DIR",
-    "XDG_DESKTOP_DIR",
-    "XDG_PROJECTS_DIR",
-    "XDG_PUBLICSHARE_DIR",
-    "XDG_TEMPLATES_DIR",
-)
+    return _PROPS
 
 
 @pytest.fixture
 def _clear_xdg_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    for var in _XDG_ENV_VARS:
+    xdg_env_vars: tuple[str, ...] = (
+        "XDG_DATA_HOME",
+        "XDG_DATA_DIRS",
+        "XDG_CONFIG_HOME",
+        "XDG_CONFIG_DIRS",
+        "XDG_CACHE_HOME",
+        "XDG_STATE_HOME",
+        "XDG_RUNTIME_DIR",
+        "XDG_DOCUMENTS_DIR",
+        "XDG_DOWNLOAD_DIR",
+        "XDG_PICTURES_DIR",
+        "XDG_VIDEOS_DIR",
+        "XDG_MUSIC_DIR",
+        "XDG_DESKTOP_DIR",
+        "XDG_PROJECTS_DIR",
+        "XDG_PUBLICSHARE_DIR",
+        "XDG_TEMPLATES_DIR",
+    )
+    for var in xdg_env_vars:
         monkeypatch.delenv(var, raising=False)
 
 
@@ -93,7 +90,7 @@ def runtime_temp_dir(tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.
     mocker.patch("tempfile.tempdir", str(tmp_path))
     # user_runtime_dir checks fixed system paths such as /run/user/<uid> first, so serve those from system_root.
     real_lstat: Final = os.lstat
-    mocker.patch(
+    mocker.patch(  # simplint: ignore[SMP806]  # stacked on the os.lstat patch of runtime_temp_dir, which autospec cannot wrap
         "os.lstat",
         side_effect=lambda path: real_lstat(
             system_root / path[1:]
@@ -139,7 +136,7 @@ def _unknown_home(
         monkeypatch.delenv("HOME", raising=False)
     else:
         monkeypatch.setenv("HOME", request.param)
-    mocker.patch.object(pwd, "getpwuid", side_effect=KeyError("getpwuid(): uid not found"))
+    mocker.patch.object(pwd, "getpwuid", side_effect=KeyError("getpwuid(): uid not found"), autospec=True)
 
 
 @pytest.fixture
