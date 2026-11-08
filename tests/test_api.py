@@ -18,13 +18,14 @@ from platformdirs.macos import MacOS
 from platformdirs.unix import Unix
 from platformdirs.windows import Windows
 
-_BUILTIN_IMPORT: Final = builtins.__import__
+_BUILTIN_IMPORT: Final[BuiltinFunctionType] = builtins.__import__
 _Args = ParamSpec("_Args")
 
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
-    from types import ModuleType
+    from types import BuiltinFunctionType, ModuleType
+    from typing import Any
 
     from pytest_mock import MockerFixture
 
@@ -150,8 +151,8 @@ def test_android_build_detected_without_environment(
 
 def _fake_import(
     name: str,
-    globals: Mapping[str, object] | None = None,  # ruff:ignore[builtin-argument-shadowing]  # mirrors the signature of builtins.__import__
-    locals: Mapping[str, object] | None = None,  # ruff:ignore[builtin-argument-shadowing]  # mirrors the signature of builtins.__import__
+    globals: Mapping[str, Any] | None = None,  # ruff:ignore[builtin-argument-shadowing]  # mirrors the signature of builtins.__import__  # simplint: ignore[SMP602]  # the interpreter passes the module namespace, whose values are arbitrary
+    locals: Mapping[str, Any] | None = None,  # ruff:ignore[builtin-argument-shadowing]  # mirrors the signature of builtins.__import__  # simplint: ignore[SMP602]  # the interpreter passes the module namespace, whose values are arbitrary
     fromlist: Sequence[str] | None = (),
     level: int = 0,
 ) -> ModuleType:
