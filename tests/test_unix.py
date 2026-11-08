@@ -1221,7 +1221,7 @@ def test_ensure_exists_reaches_the_media_function(  # ruff:ignore[too-many-argum
     suffix: str,
     ensure_exists: bool,
 ) -> None:
-    mocker.patch("platformdirs.PlatformDirs", Unix)
+    mocker.patch("platformdirs._convenience.PlatformDirs", Unix)
     monkeypatch.setenv(key, f"{posix_tmp_path}/parent/media")
     getattr(platformdirs, prop.removesuffix("dir") + suffix)(ensure_exists=ensure_exists)
     assert (tmp_path / "parent" / "media").is_dir() is ensure_exists
@@ -1607,7 +1607,7 @@ def test_use_site_for_root_reaches_the_module_function(
     mocker: MockerFixture, prop: str, expected: str, suffix: str
 ) -> None:
     # The module-level functions have to reach every property the site redirect touches.
-    mocker.patch("platformdirs.PlatformDirs", Unix)
+    mocker.patch("platformdirs._convenience.PlatformDirs", Unix)
     function = getattr(platformdirs, prop.removesuffix("dir") + suffix)
     accepted = inspect.Signature.from_callable(function).parameters
     options = {"use_site_for_root": True, "appname": "foo"}
@@ -1742,7 +1742,7 @@ def test_use_site_for_root_creates_no_inherited_media_dir(inherited_media_target
 def test_use_site_for_root_reaches_the_media_function(
     mocker: MockerFixture, inherited_media_target: Path, prop: str, default: str, suffix: str
 ) -> None:
-    mocker.patch("platformdirs.PlatformDirs", Unix)
+    mocker.patch("platformdirs._convenience.PlatformDirs", Unix)
     function = getattr(platformdirs, prop.removesuffix("dir") + suffix)
     assert Path(function()).is_relative_to(inherited_media_target)
     assert Path(function(use_site_for_root=True)) == Path.home() / default

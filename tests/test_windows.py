@@ -185,7 +185,7 @@ def test_non_roaming_uses_local_appdata(mocker: MockerFixture) -> None:
 
 @pytest.mark.parametrize("suffix", [pytest.param("dir", id="dir"), pytest.param("path", id="path")])
 def test_user_log_function_forwards_roaming(mocker: MockerFixture, suffix: str) -> None:
-    mocker.patch("platformdirs.PlatformDirs", Windows)
+    mocker.patch("platformdirs._convenience.PlatformDirs", Windows)
     result = getattr(platformdirs, f"user_log_{suffix}")("foo", roaming=True)
     assert Path(result) == Path(os.path.normpath(_WIN_FOLDERS["CSIDL_APPDATA"]), "foo", "foo", "Logs")
 

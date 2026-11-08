@@ -117,9 +117,9 @@ def test_android_active(  # ruff:ignore[too-many-arguments]  # one argument per 
     monkeypatch.setattr(sys, "path", ["/A", "/B", path])
 
     if root == "/system" and data == "/data" and shell is None and prefix is None and _android_folder() is not None:
-        assert platformdirs._set_platform_dir_class() is Android  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
+        assert platformdirs._platform._set_platform_dir_class() is Android  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
     else:
-        assert platformdirs._set_platform_dir_class() is not Android  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
+        assert platformdirs._platform._set_platform_dir_class() is not Android  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
 
 
 @pytest.mark.parametrize(
@@ -128,7 +128,7 @@ def test_android_active(  # ruff:ignore[too-many-arguments]  # one argument per 
         pytest.param({}, Android, id="cleared-environment"),
         pytest.param(
             {"PREFIX": "/data/data/com.termux/files/usr"},
-            platformdirs._Result,  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
+            platformdirs._platform._Result,  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
             id="termux",
         ),
     ],
@@ -145,7 +145,7 @@ def test_android_build_detected_without_environment(
     from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]  # the test reads a private helper
 
     _android_folder.cache_clear()
-    assert platformdirs._set_platform_dir_class() is expected  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
+    assert platformdirs._platform._set_platform_dir_class() is expected  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
 
 
 def _fake_import(
