@@ -90,7 +90,7 @@ def runtime_temp_dir(tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.
     mocker.patch("tempfile.tempdir", str(tmp_path))
     # user_runtime_dir checks fixed system paths such as /run/user/<uid> first, so serve those from system_root.
     real_lstat: Final = os.lstat
-    mocker.patch(
+    mocker.patch(  # simplint: ignore[SMP806]  # stacked on the os.lstat patch of runtime_temp_dir, which autospec cannot wrap
         "os.lstat",
         side_effect=lambda path: real_lstat(
             system_root / path[1:]

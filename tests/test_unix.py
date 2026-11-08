@@ -415,7 +415,9 @@ def test_platform_without_geteuid(
 ) -> None:
     monkeypatch.setattr(sys, "platform", "emscripten")
     monkeypatch.delattr(os, "geteuid", raising=False)
-    getuid = mocker.patch("os.getuid", return_value=uid, create=True)
+    getuid = mocker.patch(  # simplint: ignore[SMP806]  # absent on Windows, where autospec cannot create it
+        "os.getuid", return_value=uid, create=True
+    )
     importlib.reload(unix)
 
     assert unix.geteuid is getuid
@@ -701,7 +703,7 @@ def foreign(runtime_uid: int, mocker: MockerFixture, tmp_path: Path) -> set[Path
     # Creating a file as another user needs root, so report the paths added here as owned by another uid.
     paths: set[Path] = set()
     lstat: typing.Final = os.lstat
-    mocker.patch(
+    mocker.patch(  # simplint: ignore[SMP806]  # stacked on the os.lstat patch of runtime_temp_dir, which autospec cannot wrap
         "os.lstat",
         side_effect=lambda path: (
             os.stat_result((*(info := lstat(path))[:4], runtime_uid + 1, *info[5:]))
@@ -715,6 +717,7 @@ def foreign(runtime_uid: int, mocker: MockerFixture, tmp_path: Path) -> set[Path
     follow: typing.Final = os.stat
     mocker.patch(
         "os.stat",
+        autospec=True,
         side_effect=lambda path, **kwargs: follow(
             loop if Path(path) in paths and Path(path).is_symlink() else path, **kwargs
         ),
@@ -904,7 +907,9 @@ def _plant_after_check(mocker: MockerFixture, base: Path) -> None:
                 (base / "app" / "app.sock").touch()
             raise
 
-    mocker.patch("os.lstat", side_effect=plant)
+    mocker.patch(  # simplint: ignore[SMP806]  # stacked on the os.lstat patch of runtime_temp_dir, which autospec cannot wrap
+        "os.lstat", side_effect=plant
+    )
 
 
 def _hide_during_check(mocker: MockerFixture, base: Path) -> None:
@@ -921,7 +926,9 @@ def _hide_during_check(mocker: MockerFixture, base: Path) -> None:
         finally:
             hidden.rename(base)
 
-    mocker.patch("os.lstat", side_effect=hide)
+    mocker.patch(  # simplint: ignore[SMP806]  # stacked on the os.lstat patch of runtime_temp_dir, which autospec cannot wrap
+        "os.lstat", side_effect=hide
+    )
 
 
 @pytest.fixture(params=["temp_dir", "session_dir", "temp_dir_in_session_dir"])
