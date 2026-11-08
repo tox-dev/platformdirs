@@ -442,7 +442,7 @@ def test_user_runtime_dir_temp_fallback_mode(
 ) -> None:
     mocker.patch("platformdirs.unix.geteuid", return_value=(uid := runtime_temp_dir.stat().st_uid), autospec=True)
     base: typing.Final = runtime_temp_dir / f"runtime-{uid}"
-    if existing_mode is not None:
+    if existing_mode is not None:  # simplint: ignore[SMP803]  # only the rows that set a mode create the directory
         base.mkdir()
         base.chmod(existing_mode)
     with pytest.warns(RuntimeDirWarning, match=f"^XDG_RUNTIME_DIR is not set, falling back to {re.escape(str(base))}$"):
@@ -1206,13 +1206,13 @@ def test_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[too-man
     created: bool,
 ) -> None:
     monkeypatch.delenv(key, raising=False)
-    user_dirs_file.write_text(f'{key}="$HOME/parent/media"\n' if source == "user-dirs" else "", encoding="utf-8")
-    if source == "env":
+    user_dirs_file.write_text({"user-dirs": f'{key}="$HOME/parent/media"\n'}.get(source, ""), encoding="utf-8")
+    if source == "env":  # simplint: ignore[SMP803]  # env rows set the variable, the others leave it unset
         monkeypatch.setenv(key, f"{posix_tmp_path}/parent/media")
     result = Path(getattr(Unix(ensure_exists=ensure_exists), prop)).absolute()
-    assert result == tmp_path / ("parent/media" if source != "default" else default)
+    assert result == tmp_path / {"default": default}.get(source, "parent/media")
     made = sorted(path.relative_to(tmp_path).as_posix() for path in tmp_path.rglob("*") if ".config" not in path.parts)
-    assert made == (["parent", "parent/media"] if created else [])
+    assert made == {True: ["parent", "parent/media"], False: []}[created]
 
 
 @pytest.mark.parametrize("ensure_exists", [pytest.param(True, id="on"), pytest.param(False, id="off")])
@@ -1248,8 +1248,8 @@ def test_ensure_exists_returns_dangling_media_symlink(  # ruff:ignore[too-many-a
 ) -> None:
     (link := tmp_path / "media").symlink_to(tmp_path / "unmounted")
     monkeypatch.delenv(key, raising=False)
-    user_dirs_file.write_text(f'{key}="$HOME/media"\n' if source == "user-dirs" else "", encoding="utf-8")
-    if source == "env":
+    user_dirs_file.write_text({"user-dirs": f'{key}="$HOME/media"\n'}.get(source, ""), encoding="utf-8")
+    if source == "env":  # simplint: ignore[SMP803]  # env rows set the variable, the others leave it unset
         monkeypatch.setenv(key, str(link))
     assert getattr(Unix(ensure_exists=True), prop) == str(link)
     assert not link.exists()
@@ -1857,8 +1857,10 @@ def test_user_path_site_redirect(
     monkeypatch.setenv("XDG_DATA_HOME", f"/user/with{os.pathsep}separator")
     monkeypatch.setenv("XDG_CONFIG_HOME", f"/user/with{os.pathsep}separator")
     dirs: typing.Final = Unix(appname="foo", version="1.0", multipath=multipath, use_site_for_root=use_site_for_root)
-    base: typing.Final = "/xdg/a" if uid == 0 and use_site_for_root else f"/user/with{os.pathsep}separator"
-    assert getattr(dirs, prop) == Path(base) / ("applications" if prop == "user_applications_path" else "foo/1.0")
+    user_base: typing.Final = f"/user/with{os.pathsep}separator"
+    base = "/xdg/a" if uid == 0 and use_site_for_root else user_base  # simplint: ignore[SMP803]  # site root
+    subdir = "applications" if prop == "user_applications_path" else "foo/1.0"  # simplint: ignore[SMP803]  # app dir
+    assert getattr(dirs, prop) == Path(base) / subdir
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="Windows ignores POSIX mode bits")
@@ -1871,8 +1873,8 @@ def test_place_file_with_use_site_for_root_keeps_site_dir_readable(
     monkeypatch.setenv(f"XDG_{kind.upper()}_DIRS", str(tmp_path / "site"))
     getattr(Unix(appname="foo", use_site_for_root=True), f"place_{kind}_file")("sub/app.toml")
     (reference := tmp_path / "reference").mkdir()
-    expected: typing.Final = stat.S_IMODE(reference.stat().st_mode) if uid == 0 else 0o700
-    created: typing.Final = (tmp_path / ("site" if uid == 0 else "user")).rglob("*")
+    expected: typing.Final = {0: stat.S_IMODE(reference.stat().st_mode), 1000: 0o700}[uid]
+    created: typing.Final = (tmp_path / {0: "site", 1000: "user"}[uid]).rglob("*")
     assert {path.name: oct(stat.S_IMODE(path.stat().st_mode)) for path in created} == dict.fromkeys(
         ["foo", "sub"], oct(expected)
     )

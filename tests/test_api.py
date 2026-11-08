@@ -84,12 +84,13 @@ def test_site_applications_function_keeps_multipath_positional(func: str) -> Non
 def test_function_matches_its_property_for_app_arguments(func: str) -> None:
     function = getattr(platformdirs, func)
     scoped = getattr(platformdirs.PlatformDirs("MyApp", "MyCompany", version="1.0"), func)
-    if {"appname", "version"} <= inspect.Signature.from_callable(function).parameters.keys():
+    takes_app_arguments = {"appname", "version"} <= inspect.Signature.from_callable(function).parameters.keys()
+    # A function without the app arguments can only ever return the unscoped base directory, so a property that
+    # is app-scoped on any platform is out of its reach. Only one direction holds: a function may have to take
+    # arguments this platform ignores because another platform scopes the same property.
+    if takes_app_arguments:  # simplint: ignore[SMP803]  # which branch applies depends on each function's signature, and func is a shared fixture
         assert function(appname="MyApp", appauthor="MyCompany", version="1.0") == scoped
     else:
-        # A function without the app arguments can only ever return the unscoped base directory, so a property that
-        # is app-scoped on any platform is out of its reach. Only one direction holds: a function may have to take
-        # arguments this platform ignores because another platform scopes the same property.
         assert scoped == getattr(platformdirs.PlatformDirs(), func)
 
 
@@ -117,10 +118,10 @@ def test_android_active(  # ruff:ignore[too-many-arguments]  # one argument per 
     _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", ["/A", "/B", path])
 
-    if root == "/system" and data == "/data" and shell is None and prefix is None and _android_folder() is not None:
-        assert platformdirs._platform._set_platform_dir_class() is Android  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
-    else:
-        assert platformdirs._platform._set_platform_dir_class() is not Android  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
+    expects_android = (
+        root == "/system" and data == "/data" and shell is None and prefix is None and _android_folder() is not None
+    )
+    assert (platformdirs._platform._set_platform_dir_class() is Android) is expects_android  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
 
 
 @pytest.mark.parametrize(

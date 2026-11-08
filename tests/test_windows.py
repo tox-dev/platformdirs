@@ -63,30 +63,26 @@ class AppParams(TypedDict, total=False):
 
 
 @pytest.mark.parametrize(
-    "params",
+    ("params", "suffix_parts", "cache_parts"),
     [
-        pytest.param({}, id="no_args"),
-        pytest.param({"appname": "foo"}, id="app_name"),
-        pytest.param({"appname": "foo", "version": "v1.0"}, id="app_name_version"),
+        pytest.param({}, (), (), id="no_args"),
+        pytest.param({"appname": "foo"}, ("foo", "foo"), ("foo", "foo", "Cache"), id="app_name"),
+        pytest.param(
+            {"appname": "foo", "version": "v1.0"},
+            ("foo", "foo", "v1.0"),
+            ("foo", "foo", "Cache", "v1.0"),
+            id="app_name_version",
+        ),
     ],
 )
-def test_windows(params: AppParams, func: str) -> None:
+def test_windows(params: AppParams, suffix_parts: tuple[str, ...], cache_parts: tuple[str, ...], func: str) -> None:
     result = getattr(Windows(**params), func)
 
-    suffix_parts = []
-    if appname := params.get("appname"):
-        suffix_parts.extend((appname, appname))
-        if version := params.get("version"):
-            suffix_parts.append(version)
     local = os.path.join(_LOCAL, *suffix_parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
     common = os.path.join(_COMMON, *suffix_parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
     temp = os.path.join(_LOCAL, "Temp", *suffix_parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
-    cache_local = os.path.join(  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
-        _LOCAL, *suffix_parts[:2], *(["Cache"] if suffix_parts else []), *suffix_parts[2:]
-    )
-    cache_common = os.path.join(  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
-        _COMMON, *suffix_parts[:2], *(["Cache"] if suffix_parts else []), *suffix_parts[2:]
-    )
+    cache_local = os.path.join(_LOCAL, *cache_parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
+    cache_common = os.path.join(_COMMON, *cache_parts)  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
     log = os.path.join(_LOCAL, *suffix_parts, "Logs")  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
     log_common = os.path.join(_COMMON, *suffix_parts, "Logs")  # ruff:ignore[os-path-join]  # expected Windows path, built with the join the code uses
 

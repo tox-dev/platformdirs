@@ -182,7 +182,7 @@ def test_macos_homebrew(  # ruff:ignore[too-many-arguments]  # one argument per 
         "site_cache_dir": f"{prefix['homebrew_prefix']}/var/cache{suffix}",
         "site_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
     }
-    if multipath:
+    if multipath:  # simplint: ignore[SMP803]  # multipath adds search-path suffixes that the other rows do not expect
         expected_map["site_data_dir"] += f":/Library/Application Support{suffix}"
         expected_map["site_config_dir"] += f":/Library/Application Support{suffix}"
         expected_map["site_cache_dir"] += f":/Library/Caches{suffix}"
@@ -306,13 +306,13 @@ def test_macos_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[t
     xdg_value: str | None,
     created: bool,
 ) -> None:
-    if xdg_value is None:
+    if xdg_value is None:  # simplint: ignore[SMP803]  # unset and set variables are two separate setups
         monkeypatch.delenv(env_var, raising=False)
     else:
         monkeypatch.setenv(env_var, xdg_value)
     mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
     getattr(MacOS(ensure_exists=True), prop)
-    assert [call.args[0] for call in mkdir.call_args_list] == ([Path("/custom/media")] if created else [])
+    assert [call.args[0] for call in mkdir.call_args_list] == {True: [Path("/custom/media")], False: []}[created]
 
 
 @pytest.mark.parametrize(
@@ -672,12 +672,12 @@ def test_homebrew_virtual_environment(
 ) -> None:
     monkeypatch.setattr(sys, "prefix", "/Users/me/project/.venv")
     monkeypatch.setattr(sys, "base_prefix", f"{homebrew_prefix}/{framework}/Versions/3.13")
-    suffix: Final = "var/cache" if "cache" in prop else "share"
+    suffix: Final = {True: "var/cache", False: "share"}["cache" in prop]
     expected: str | Path = f"{homebrew_prefix}/{suffix}{os.sep}Example{os.sep}1.0"
-    if prop.endswith("_path"):
+    if prop.endswith("_path"):  # simplint: ignore[SMP803]  # path properties expect a Path, the rest a string
         expected = Path(expected)
     elif multipath and prop != "site_state_dir":
-        fallback: Final = "Caches" if "cache" in prop else "Application Support"
+        fallback: Final = {True: "Caches", False: "Application Support"}["cache" in prop]
         expected += f":/Library/{fallback}{os.sep}Example{os.sep}1.0"
     assert getattr(MacOS(appname="Example", version="1.0", multipath=multipath), prop) == expected
 
