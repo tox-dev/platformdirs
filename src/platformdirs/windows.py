@@ -190,6 +190,13 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the c
 
 
 def get_win_folder(csidl_name: str) -> str:
+    """Return the folder for a ``CSIDL_*`` name, preferring the ``WIN_PD_OVERRIDE_<name>`` environment variable.
+
+    :param csidl_name: the ``CSIDL_*`` name, such as ``CSIDL_APPDATA``.
+
+    :returns: the folder path.
+
+    """
     env_var = f"WIN_PD_OVERRIDE_{csidl_name.removeprefix('CSIDL_')}"
     if _is_fully_qualified(override := os.environ.get(env_var, "").strip()):
         return override
@@ -207,6 +214,14 @@ def _is_fully_qualified(path: str) -> bool:
 
 
 def get_win_folder_from_env_vars(csidl_name: str) -> str:
+    """Return the folder named by its environment variable, such as ``APPDATA`` for ``CSIDL_APPDATA``.
+
+    :param csidl_name: the ``CSIDL_*`` name, such as ``CSIDL_APPDATA``.
+
+    :returns: the folder path.
+    :raises ValueError: when the name has no environment variable or the variable is unset.
+
+    """
     result = get_win_folder_if_csidl_name_not_env_var(csidl_name)
     if result is not None:
         return result
@@ -226,6 +241,14 @@ def get_win_folder_from_env_vars(csidl_name: str) -> str:
 
 
 def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
+    """Return the folder for a name the shell resolves itself, or ``None`` for every other name.
+
+    :param csidl_name: the ``CSIDL_*`` name, such as ``CSIDL_PERSONAL``.
+
+    :returns: the folder path, or ``None``.
+    :raises KeyError: when the environment variable the folder is based on is unset.
+
+    """
     if (
         env_var_and_parts := {
             "CSIDL_PERSONAL": ("USERPROFILE", "Documents"),
@@ -260,6 +283,13 @@ def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
 
 # The registry is a fallback at best, it does not guarantee the right answer for every CSIDL_* name.
 def get_win_folder_from_registry(csidl_name: str) -> str:
+    """Return the folder recorded in the Shell Folders registry key, which may differ from the shell for some names.
+
+    :param csidl_name: the ``CSIDL_*`` name, such as ``CSIDL_APPDATA``.
+
+    :returns: the folder path.
+
+    """
     machine_names = {
         "CSIDL_COMMON_APPDATA",
         "CSIDL_COMMON_PROGRAMS",
@@ -370,6 +400,13 @@ def _build_get_win_folder_via_ctypes() -> Callable[[str], str]:
 
 
 def get_win_folder_via_ctypes(csidl_name: str) -> str:
+    """Return the folder from the Windows shell API, called through ``ctypes``.
+
+    :param csidl_name: the ``CSIDL_*`` name, such as ``CSIDL_APPDATA``.
+
+    :returns: the folder path.
+
+    """
     return _build_get_win_folder_via_ctypes()(csidl_name)
 
 
