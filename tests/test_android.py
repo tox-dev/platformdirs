@@ -3,8 +3,8 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, Final, TypedDict
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -113,10 +113,7 @@ def test_android(params: AppParams, func: str) -> None:
 def test_android_folder_from_sys_path(
     mocker: MockerFixture, path: str, expected: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    mocker.patch.dict(sys.modules, {"jnius": MagicMock(side_effect=ModuleNotFoundError)})
-    monkeypatch.delitem(__import__("sys").modules, "jnius")
-    mocker.patch.dict(sys.modules, {"android": MagicMock(side_effect=ModuleNotFoundError)})
-    monkeypatch.delitem(__import__("sys").modules, "android")
+    mocker.patch.dict(sys.modules, {"jnius": None, "android": None})
 
     from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]  # the test reads a private helper
 
@@ -175,20 +172,20 @@ def _posix_path_join(mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
 
 
-def _pyjnius(classes: dict[str, MagicMock]) -> MagicMock:
+def _pyjnius(classes: dict[str, SimpleNamespace]) -> SimpleNamespace:
     # pyjnius raises JavaException for an unknown class and for an instance method called on a class object
-    def autoclass(name: str) -> MagicMock:
+    def autoclass(name: str) -> SimpleNamespace:
         if name not in classes:
             msg = f"Class not found {name!r}"
             raise RuntimeError(msg)
         return classes[name]
 
-    return MagicMock(autoclass=autoclass, JavaException=RuntimeError)
+    return SimpleNamespace(autoclass=autoclass, JavaException=RuntimeError)
 
 
-def _context(app_folder: str) -> MagicMock:
-    app_dir = MagicMock(getAbsolutePath=MagicMock(return_value=app_folder))
-    return MagicMock(getFilesDir=MagicMock(return_value=MagicMock(getParentFile=MagicMock(return_value=app_dir))))
+def _context(app_folder: str) -> SimpleNamespace:
+    app_dir = SimpleNamespace(getAbsolutePath=lambda: app_folder)
+    return SimpleNamespace(getFilesDir=lambda: SimpleNamespace(getParentFile=lambda: app_dir))
 
 
 @pytest.mark.usefixtures("_clear_android_caches", "_posix_path_join")
@@ -200,11 +197,14 @@ def _context(app_folder: str) -> MagicMock:
     ],
 )
 def test_android_folder_from_python_for_android(
-    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, activity: MagicMock | None, service: MagicMock | None
+    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    activity: SimpleNamespace | None,
+    service: SimpleNamespace | None,
 ) -> None:
     classes = {
-        "org.kivy.android.PythonActivity": MagicMock(mActivity=activity),
-        "org.kivy.android.PythonService": MagicMock(mService=service),
+        "org.kivy.android.PythonActivity": SimpleNamespace(mActivity=activity),
+        "org.kivy.android.PythonService": SimpleNamespace(mService=service),
     }
     mocker.patch.dict(sys.modules, {"jnius": _pyjnius(classes), "android": None})
     monkeypatch.setattr(sys, "path", [])
@@ -232,10 +232,10 @@ def test_android_folder_without_python_for_android_uses_sys_path(
     ],
 )
 def test_android_media_dir_from_environment(mocker: MockerFixture, prop: str, expected: str) -> None:
-    def public_directory(name: str) -> MagicMock:
-        return MagicMock(getAbsolutePath=MagicMock(return_value=f"/storage/emulated/10/{name}"))
+    def public_directory(name: str) -> SimpleNamespace:
+        return SimpleNamespace(getAbsolutePath=lambda: f"/storage/emulated/10/{name}")
 
-    environment = MagicMock(getExternalStoragePublicDirectory=MagicMock(side_effect=public_directory))
+    environment = SimpleNamespace(getExternalStoragePublicDirectory=public_directory)
     mocker.patch.dict(sys.modules, {"jnius": _pyjnius({"android.os.Environment": environment})})
     assert getattr(Android(), prop) == expected
 
