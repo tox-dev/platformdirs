@@ -6,7 +6,7 @@ from ._xdg import _expand_user
 from .api import PlatformDirsABC
 
 
-class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
+class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
     """Platform directories for iOS and iPadOS.
 
     Follows the app container layout from `Apple's File System Programming Guide
@@ -20,19 +20,14 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     """
 
     @property
-    def user_data_dir(self) -> str:
-        """Data directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version``."""
-        return self._append_app_name_and_version(_expand_user("~/Library/Application Support"), private=True)
-
-    @property
     def site_data_dir(self) -> str:
         """Data directory shared by users, same as `user_data_dir`."""
         return self.user_data_dir
 
     @property
-    def user_config_dir(self) -> str:
-        """Config directory tied to the user, same as `user_data_dir`."""
-        return self.user_data_dir
+    def user_data_dir(self) -> str:
+        """Data directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version``."""
+        return self._append_app_name_and_version(_expand_user("~/Library/Application Support"), private=True)
 
     @property
     def site_config_dir(self) -> str:
@@ -40,9 +35,9 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         return self.user_config_dir
 
     @property
-    def user_cache_dir(self) -> str:
-        """Cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version``."""
-        return self._append_app_name_and_version(_expand_user("~/Library/Caches"), private=True)
+    def user_config_dir(self) -> str:
+        """Config directory tied to the user, same as `user_data_dir`."""
+        return self.user_data_dir
 
     @property
     def site_cache_dir(self) -> str:
@@ -50,9 +45,9 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         return self.user_cache_dir
 
     @property
-    def user_state_dir(self) -> str:
-        """State directory tied to the user, same as `user_data_dir`."""
-        return self.user_data_dir
+    def user_cache_dir(self) -> str:
+        """Cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version``."""
+        return self._append_app_name_and_version(_expand_user("~/Library/Caches"), private=True)
 
     @property
     def site_state_dir(self) -> str:
@@ -60,14 +55,19 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         return self.user_state_dir
 
     @property
-    def user_log_dir(self) -> str:
-        """Log directory tied to the user, e.g. ``~/Library/Logs/$appname/$version``."""
-        return self._append_app_name_and_version(_expand_user("~/Library/Logs"), private=True)
+    def user_state_dir(self) -> str:
+        """State directory tied to the user, same as `user_data_dir`."""
+        return self.user_data_dir
 
     @property
     def site_log_dir(self) -> str:
         """Log directory shared by users, same as `user_log_dir`."""
         return self.user_log_dir
+
+    @property
+    def user_log_dir(self) -> str:
+        """Log directory tied to the user, e.g. ``~/Library/Logs/$appname/$version``."""
+        return self._append_app_name_and_version(_expand_user("~/Library/Logs"), private=True)
 
     @property
     def user_documents_dir(self) -> str:
@@ -127,19 +127,14 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         return self.user_config_dir
 
     @property
-    def user_bin_dir(self) -> str:
-        """Bin directory tied to the user, e.g. ``~/.local/bin``."""
-        return _expand_user("~/.local/bin")
-
-    @property
     def site_bin_dir(self) -> str:
         """Bin directory shared by users, same as `user_bin_dir`."""
         return self.user_bin_dir
 
     @property
-    def user_applications_dir(self) -> str:
-        """Applications directory tied to the user, e.g. ``~/Applications``."""
-        return _expand_user("~/Applications")
+    def user_bin_dir(self) -> str:
+        """Bin directory tied to the user, e.g. ``~/.local/bin``."""
+        return _expand_user("~/.local/bin")
 
     @property
     def site_applications_dir(self) -> str:
@@ -147,14 +142,19 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         return self.user_applications_dir
 
     @property
-    def user_runtime_dir(self) -> str:
-        """Runtime directory tied to the user, e.g. ``~/tmp/$appname/$version``."""
-        return self._append_app_name_and_version(_expand_user("~/tmp"), private=True)
+    def user_applications_dir(self) -> str:
+        """Applications directory tied to the user, e.g. ``~/Applications``."""
+        return _expand_user("~/Applications")
 
     @property
     def site_runtime_dir(self) -> str:
         """Runtime directory shared by users, same as `user_runtime_dir`."""
         return self.user_runtime_dir
+
+    @property
+    def user_runtime_dir(self) -> str:
+        """Runtime directory tied to the user, e.g. ``~/tmp/$appname/$version``."""
+        return self._append_app_name_and_version(_expand_user("~/tmp"), private=True)
 
 
 __all__ = [

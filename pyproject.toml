@@ -4,6 +4,7 @@ requires = [
   "hatch-fancy-pypi-readme>=25.1",
   "hatch-vcs>=0.5",
   "hatchling>=1.29",
+  "python-sbom[hatch]>=0.1.2",
 ]
 
 [project]
@@ -70,7 +71,7 @@ test = [
   "pytest-mock>=3.15.1",
 ]
 type = [
-  "ty>=0.0.19",
+  "ty>=0.0.99",
   { include-group = "docs-core" },
   { include-group = "release" },
   { include-group = "test" },
@@ -94,6 +95,7 @@ build = [
   "hatch-fancy-pypi-readme>=25.1",
   "hatch-vcs>=0.5",
   "hatchling>=1.29",
+  "python-sbom[hatch]>=0.1.2",
   "setuptools>=80",
 ]
 coverage = [
@@ -111,19 +113,19 @@ pkg-meta = [
   "uv>=0.10.7",
 ]
 release = [
-  "release-creator>=4.1",
+  "release-creator>=4.4",
   "towncrier>=26.9",
 ]
 release-news = [
-  "release-creator>=4.1",
+  "release-creator>=4.4",
   "towncrier>=26.9",
 ]
 release-notes = [
-  "release-creator>=4.1",
+  "release-creator>=4.4",
 ]
 release-prepare = [
   "prek>=0.5",
-  "release-creator>=4.1",
+  "release-creator>=4.4",
   "towncrier>=26.9",
 ]
 
@@ -132,6 +134,7 @@ version.source = "vcs"
 metadata.hooks.fancy-pypi-readme.content-type = "text/markdown"
 metadata.hooks.fancy-pypi-readme.fragments = [ { path = "README.md" } ]
 build.hooks.vcs.version-file = "src/platformdirs/version.py"
+build.hooks.python-sbom = {}
 build.targets.sdist.include = [
   "/src",
   "/tests",
@@ -166,6 +169,12 @@ lint.ignore = [
   "multi-line-summary-second-line",    # `multi-line-summary-second-line` (D213) conflicts with docstrfmt which uses D212 style
   "non-empty-init-module",             # `__init__` module should only contain docstrings and re-exports
   "non-imperative-mood",               # The first line of docstring should be in imperative mood
+  "undocumented-magic-method",         # undocumented-public-api (simplint SMP903) covers the public API instead
+  "undocumented-public-class",         # undocumented-public-api (simplint SMP903) covers the public API instead
+  "undocumented-public-function",      # undocumented-public-api (simplint SMP903) covers the public API instead
+  "undocumented-public-init",          # undocumented-public-api (simplint SMP903) covers the public API instead
+  "undocumented-public-method",        # undocumented-public-api (simplint SMP903) covers the public API instead
+  "undocumented-public-nested-class",  # undocumented-public-api (simplint SMP903) covers the public API instead
 ]
 lint.per-file-ignores."tests/**/*.py" = [
   "assert",                               # asserts allowed in tests
@@ -239,6 +248,9 @@ type = [
   { directory = "packaging", name = "Packaging", showcontent = true },
 ]
 
+[tool.python-sbom]
+supplier = { name = "tox-dev", url = [ "https://github.com/tox-dev" ] }
+
 [tool.nab]
 mode = "universal"
 base-group = "project-runtime"
@@ -246,5 +258,18 @@ uploaded-prior-to = "P7D"
 decision-order = "stable"
 matrix.python = ">=3.15,<3.16"
 matrix.platforms = [ "linux_x86_64" ]
-# temporary, delete after 2026-11-02
-packages.release-creator.uploaded-prior-to = 2026-10-26T18:24:46Z
+# release-creator 4.4.0 needs a seven-day cutoff exception.
+# expires 2026-11-09
+packages.release-creator.uploaded-prior-to = 2026-11-02T21:45:00Z
+# ty 0.0.99, which renamed unresolved-import to import-not-found, needs one through 2026-11-13.
+# expires 2026-11-13
+packages.ty.uploaded-prior-to = 2026-11-06T10:14:00Z
+# python-sbom 0.1.2 needs a seven-day cutoff exception.
+# expires 2026-11-15
+packages.python-sbom.uploaded-prior-to = 2026-11-08T17:54:00Z
+
+[tool.simplint]
+docstring-style = "rst"
+per-file-ignores."src/platformdirs/__init__.py" = [
+  "init-module-content", # module-level helpers read PlatformDirs from this namespace, which callers patch
+]

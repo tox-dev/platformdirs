@@ -7,10 +7,10 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
   schedule:
-    - cron: "0 8 * * *"
+    - cron: "19 7 * * 1"
 concurrency:
   group: check-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 permissions:
   contents: read
 jobs:
@@ -32,8 +32,8 @@ jobs:
           - ubuntu-24.04
           - windows-2025-vs2026
           - macos-26
-        exclude:
-          - {os: windows-2025-vs2026, py: pypy3.11}
+        # macOS keeps 3.15 and 3.11 on every event; the full macOS matrix runs on the weekly cron only.
+        exclude: ${{ fromJSON(github.event.schedule == '19 7 * * 1' && '[{"os":"windows-2025-vs2026","py":"pypy3.11"}]' || '[{"os":"windows-2025-vs2026","py":"pypy3.11"},{"os":"macos-26","py":"pypy3.11"},{"os":"macos-26","py":"3.15t"},{"os":"macos-26","py":"3.14"},{"os":"macos-26","py":"3.13"},{"os":"macos-26","py":"3.12"}]') }}
     steps:
       - name: 📥 Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -41,7 +41,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: 🐍 Install uv
-        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           version: latest-known
           python-version: "3.15"
@@ -100,7 +100,7 @@ jobs:
           pattern: .coverage.*
           merge-multiple: true
       - name: 🐍 Install uv
-        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           version: latest-known
           python-version: "3.15"
@@ -125,50 +125,43 @@ jobs:
           name: html-report
           path: .tox/htmlcov
   check:
-    name: 🔍 ${{ matrix.tox_env }} - ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-24.04
-          - windows-2025-vs2026
-        tox_env:
-          - dev
-          - type
-          - docs
-          - pkg_meta
-        exclude:
-          - {os: windows-2025-vs2026, tox_env: pkg_meta}
-    steps:
-      - name: 📥 Check out code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: 🐍 Install uv
-        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
-        with:
-          version: latest-known
-          python-version: "3.15"
-          enable-cache: false
-      - name: 📦 Install tox
-        run: uv tool install --python-preference only-managed --python 3.15 tox --with tox-uv
-      - name: 📦 Set up check suite
-        run: tox run -vv --notest --skip-missing-interpreters false -e ${{ matrix.tox_env }}
-        env:
-          UV_PYTHON_PREFERENCE: only-managed
-      - name: 🧪 Run check for ${{ matrix.tox_env }}
-        run: tox run --skip-pkg-install -e ${{ matrix.tox_env }}
-        env:
-          UV_PYTHON_PREFERENCE: only-managed
+    name: 🔍 check
+    uses: tox-dev/github-workflows/.github/workflows/check.yaml@bceb5c005e19823dc8835f536f53f172ae223927 # 6.5.0
+    permissions:
+      contents: read
+    with:
+      os: ubuntu-24.04
+      include: |
+        [
+          {"env": "dev"},
+          {"env": "dev", "os": "windows-2025-vs2026"},
+          {"env": "type"},
+          {"env": "type", "os": "windows-2025-vs2026"},
+          {"env": "docs"},
+          {"env": "docs", "os": "windows-2025-vs2026"},
+          {"env": "pkg_meta"}
+        ]
+  release:
+    name: 🏷️ Release dry run
+    uses: $/.github/workflows/prepare-release.yaml
+    permissions:
+      contents: read
+      pull-requests: read
+    with:
+      dry-run: true
+  hooks:
+    name: 🧹 Hooks under the cooldown
+    uses: tox-dev/github-workflows/.github/workflows/cooled-hooks.yaml@0c4cffd63033d38196319524d101caae1eef925b # 6.7.2
+    permissions:
+      contents: read
   gate:
     name: 🚦 ${{ github.event_name == 'pull_request' && 'Required checks pass' || 'Non-PR checks pass' }}
     if: ${{ !cancelled() }} # codespell:ignore cancelled
-    needs: [test, coverage, check]
+    needs: [test, coverage, check, release, hooks]
     runs-on: ubuntu-24.04
+    permissions: {}
     steps:
       - name: 🚦 Require all needed jobs to pass
-        env:
-          NEEDS_JSON: ${{ toJSON(needs) }}
-        run: jq -e 'all(to_entries[]; .value.result == "success")' <<<"$NEEDS_JSON"
+        uses: tox-dev/github-workflows/required-checks@bceb5c005e19823dc8835f536f53f172ae223927 # 6.5.0
+        with:
+          needs: ${{ toJSON(needs) }}

@@ -14,6 +14,7 @@ from platformdirs.unix import Unix
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from typing import Any
 
     from pytest_mock import MockerFixture
 
@@ -35,16 +36,10 @@ def _resolve_all() -> dict[str, list[str]]:
 
 
 # Taken at collection, before any test enters isolation, so a leaked patch cannot become the baseline.
-_ORIGINAL: Final = _resolve_all()
-_ANDROID_ORIGINAL: Final = dict(vars(Android))
-
-
-def _outside(root: Path) -> dict[str, list[str]]:
-    return {
-        name: outside
-        for name, values in _resolve_all().items()
-        if (outside := [value for value in values if not Path(value).is_relative_to(root)])
-    }
+_ORIGINAL: Final[dict[str, list[str]]] = _resolve_all()
+_ANDROID_ORIGINAL: Final[dict[str, Any]] = dict(  # simplint: ignore[SMP602]  # class attributes of mixed types
+    vars(Android)
+)
 
 
 def test_isolated_dirs_yields_root_as_path(tmp_path: Path) -> None:
@@ -70,6 +65,14 @@ def test_isolated_dirs_relative_root_survives_chdir(
     with isolated_dirs(relative_root):
         monkeypatch.chdir(tmp_path)
         assert _outside(tmp_path / "start" / relative_root) == {}
+
+
+def _outside(root: Path) -> dict[str, list[str]]:
+    return {
+        name: outside
+        for name, values in _resolve_all().items()
+        if (outside := [value for value in values if not Path(value).is_relative_to(root)])
+    }
 
 
 def test_isolated_dirs_redirects_every_accessor(tmp_path: Path) -> None:
@@ -215,4 +218,4 @@ def test_isolated_dirs_nested_root_restores_after_exception(tmp_path: Path) -> N
 @pytest.fixture
 def _unix_root(mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.PlatformDirs", Unix)
-    mocker.patch("platformdirs.unix.geteuid", return_value=0)
+    mocker.patch("platformdirs.unix.geteuid", return_value=0, autospec=True)
