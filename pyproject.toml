@@ -4,6 +4,7 @@ requires = [
   "hatch-fancy-pypi-readme>=25.1",
   "hatch-vcs>=0.5",
   "hatchling>=1.29",
+  "python-sbom[hatch]>=0.1.2",
 ]
 
 [project]
@@ -94,6 +95,7 @@ build = [
   "hatch-fancy-pypi-readme>=25.1",
   "hatch-vcs>=0.5",
   "hatchling>=1.29",
+  "python-sbom[hatch]>=0.1.2",
   "setuptools>=80",
 ]
 coverage = [
@@ -132,6 +134,7 @@ version.source = "vcs"
 metadata.hooks.fancy-pypi-readme.content-type = "text/markdown"
 metadata.hooks.fancy-pypi-readme.fragments = [ { path = "README.md" } ]
 build.hooks.vcs.version-file = "src/platformdirs/version.py"
+build.hooks.python-sbom = {}
 build.targets.sdist.include = [
   "/src",
   "/tests",
@@ -245,6 +248,9 @@ type = [
   { directory = "packaging", name = "Packaging", showcontent = true },
 ]
 
+[tool.python-sbom]
+supplier = { name = "tox-dev", url = [ "https://github.com/tox-dev" ] }
+
 [tool.nab]
 mode = "universal"
 base-group = "project-runtime"
@@ -258,6 +264,9 @@ packages.release-creator.uploaded-prior-to = 2026-11-02T21:45:00Z
 # ty 0.0.99, which renamed unresolved-import to import-not-found, needs one through 2026-11-13.
 # expires 2026-11-13
 packages.ty.uploaded-prior-to = 2026-11-06T10:14:00Z
+# python-sbom 0.1.2 needs a seven-day cutoff exception.
+# expires 2026-11-15
+packages.python-sbom.uploaded-prior-to = 2026-11-08T17:54:00Z
 
 [tool.simplint]
 docstring-style = "rst"
