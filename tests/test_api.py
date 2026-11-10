@@ -568,6 +568,13 @@ def test_find_skips_directory_that_denies_access(dirs: Unix, config_paths: list[
         denied.chmod(0o700)
 
 
+@pytest.mark.parametrize(("suffix", "expected"), _MISSING)
+def test_find_treats_overlong_name_as_missing(dirs: Unix, suffix: str, expected: list[Path] | None) -> None:
+    # A name over the 255 byte limit fails stat with ENAMETOOLONG instead of EACCES, and needs no mode bits to set up.
+    dirs.user_config_path.mkdir(parents=True)
+    assert getattr(dirs, f"find_config_{suffix}")("a" * 256) == expected
+
+
 def test_find_config_file_accepts_nested_path_like(dirs: Unix, config_paths: list[Path]) -> None:
     nested = _touch(config_paths[1] / "sub" / "app.toml")
     assert dirs.find_config_file(Path("sub", "app.toml")) == nested

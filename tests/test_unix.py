@@ -889,7 +889,7 @@ def test_find_runtime_file_skips_runtime_dir_hidden_from_check(
 def test_find_runtime_files_skips_missing_temp_fallback_at_root(mocker: MockerFixture) -> None:
     mocker.patch("tempfile.tempdir", "/")
     # Only root can create /runtime-1234, so count every app.sock as found while the fallback stays missing.
-    mocker.patch.object(Path, "is_file", autospec=True, side_effect=lambda path: path.name == "app.sock")
+    mocker.patch("os.path.isfile", autospec=True, side_effect=lambda path: Path(path).name == "app.sock")
     assert Unix(appname="app").find_runtime_files("app.sock") == [Path("/run/app/app.sock")]
 
 
