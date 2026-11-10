@@ -269,6 +269,9 @@ On Windows, use ``WIN_PD_OVERRIDE_*`` variables:
     > python -c "from platformdirs import user_cache_dir; print(user_cache_dir('MyApp', 'Acme'))"
     X:\appdata\Acme\MyApp\Cache
 
+ASCII whitespace around an override is ignored. Unicode whitespace is preserved because it can be part of a Windows
+directory name.
+
 See :ref:`xdg-env-vars` for the full list of supported XDG variables, and the :ref:`explanation:Windows` section for all
 ``WIN_PD_OVERRIDE_*`` variables.
 

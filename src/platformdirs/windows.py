@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ntpath
 import os
+import string
 import sys
 from functools import cache
 from pathlib import Path
@@ -198,7 +199,7 @@ def get_win_folder(csidl_name: str) -> str:
 
     """
     env_var = f"WIN_PD_OVERRIDE_{csidl_name.removeprefix('CSIDL_')}"
-    if _is_fully_qualified(override := os.environ.get(env_var, "").strip()):
+    if _is_fully_qualified(override := os.environ.get(env_var, "").strip(string.whitespace)):
         return override
     return _RESOLVE_WIN_FOLDER(csidl_name)
 
