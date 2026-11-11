@@ -28,7 +28,7 @@ if sys.platform == "win32":
 elif sys.platform == "darwin":
     from .macos import MacOS as _Result
 elif sys.platform == "ios":
-    from .ios import IOS as _Result  # ruff:ignore[constant-imported-as-non-constant]  # a class, PEP 8 acronym
+    from .ios import IOS as _Result  # ruff:ignore[constant-imported-as-non-constant]  # PEP 8 acronym
 else:
     from .unix import Unix as _Result
 
@@ -41,10 +41,10 @@ def _set_platform_dir_class() -> type[PlatformDirsABC]:
         if os.getenv("SHELL") or os.getenv("PREFIX"):
             return _Result
 
-        from .android import _android_folder  # ruff:ignore[import-outside-top-level]  # the module exists only on this platform
+        from .android import _android_folder  # ruff:ignore[import-outside-top-level]  # Android-only module
 
         if _android_folder() is not None:
-            from .android import Android  # ruff:ignore[import-outside-top-level]  # the module exists only on this platform
+            from .android import Android  # ruff:ignore[import-outside-top-level]  # Android-only module
 
             return Android  # return to avoid redefinition of a result
 
@@ -60,13 +60,13 @@ else:
 AppDirs = PlatformDirs  #: Backwards compatibility with appdirs
 
 
-def user_data_dir(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # released signature takes these parameters
+def user_data_dir(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> str:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -92,8 +92,8 @@ def site_data_dir(
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> str:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -113,13 +113,13 @@ def site_data_dir(
     ).site_data_dir
 
 
-def user_config_dir(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # released signature takes these parameters
+def user_config_dir(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> str:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -145,8 +145,8 @@ def site_config_dir(
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> str:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -166,13 +166,13 @@ def site_config_dir(
     ).site_config_dir
 
 
-def user_cache_dir(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # released signature takes these parameters
+def user_cache_dir(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> str:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -194,12 +194,12 @@ def user_cache_dir(  # ruff:ignore[too-many-arguments, too-many-positional-argum
     ).user_cache_dir
 
 
-def site_cache_dir(  # ruff:ignore[too-many-arguments]  # released signature takes these parameters
+def site_cache_dir(  # ruff:ignore[too-many-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
     *,
     multipath: bool = False,
 ) -> str:
@@ -223,13 +223,13 @@ def site_cache_dir(  # ruff:ignore[too-many-arguments]  # released signature tak
     ).site_cache_dir
 
 
-def user_state_dir(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # released signature takes these parameters
+def user_state_dir(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> str:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -255,7 +255,7 @@ def site_state_dir(
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> str:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -273,13 +273,13 @@ def site_state_dir(
     ).site_state_dir
 
 
-def user_log_dir(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # released signature takes these parameters
+def user_log_dir(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
     *,
     roaming: bool = False,
 ) -> str:
@@ -309,8 +309,8 @@ def site_log_dir(
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> str:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -429,7 +429,7 @@ def user_fonts_dir(*, use_site_for_root: bool = False) -> str:
     return PlatformDirs(use_site_for_root=use_site_for_root).user_fonts_dir
 
 
-def user_preference_dir(  # ruff:ignore[too-many-arguments]  # released signature takes these parameters
+def user_preference_dir(  # ruff:ignore[too-many-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
@@ -499,8 +499,8 @@ def user_applications_dir(
 
 
 def site_applications_dir(
-    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
     *,
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
@@ -524,13 +524,13 @@ def site_applications_dir(
     ).site_applications_dir
 
 
-def user_runtime_dir(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # released signature takes these parameters
+def user_runtime_dir(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> str:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -556,8 +556,8 @@ def site_runtime_dir(
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> str:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -577,13 +577,13 @@ def site_runtime_dir(
     ).site_runtime_dir
 
 
-def user_data_path(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # released signature takes these parameters
+def user_data_path(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> Path:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -609,8 +609,8 @@ def site_data_path(
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> Path:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -630,13 +630,13 @@ def site_data_path(
     ).site_data_path
 
 
-def user_config_path(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # released signature takes these parameters
+def user_config_path(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> Path:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -662,8 +662,8 @@ def site_config_path(
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> Path:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -683,12 +683,12 @@ def site_config_path(
     ).site_config_path
 
 
-def site_cache_path(  # ruff:ignore[too-many-arguments]  # released signature takes these parameters
+def site_cache_path(  # ruff:ignore[too-many-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
     *,
     multipath: bool = False,
 ) -> Path:
@@ -712,13 +712,13 @@ def site_cache_path(  # ruff:ignore[too-many-arguments]  # released signature ta
     ).site_cache_path
 
 
-def user_cache_path(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # released signature takes these parameters
+def user_cache_path(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> Path:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -740,13 +740,13 @@ def user_cache_path(  # ruff:ignore[too-many-arguments, too-many-positional-argu
     ).user_cache_path
 
 
-def user_state_path(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # released signature takes these parameters
+def user_state_path(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> Path:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -772,7 +772,7 @@ def site_state_path(
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> Path:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -790,13 +790,13 @@ def site_state_path(
     ).site_state_path
 
 
-def user_log_path(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # released signature takes these parameters
+def user_log_path(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
     *,
     roaming: bool = False,
 ) -> Path:
@@ -826,8 +826,8 @@ def site_log_path(
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> Path:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -946,7 +946,7 @@ def user_fonts_path(*, use_site_for_root: bool = False) -> Path:
     return PlatformDirs(use_site_for_root=use_site_for_root).user_fonts_path
 
 
-def user_preference_path(  # ruff:ignore[too-many-arguments]  # released signature takes these parameters
+def user_preference_path(  # ruff:ignore[too-many-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
@@ -1016,8 +1016,8 @@ def user_applications_path(
 
 
 def site_applications_path(
-    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
     *,
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
@@ -1041,13 +1041,13 @@ def site_applications_path(
     ).site_applications_path
 
 
-def user_runtime_path(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # released signature takes these parameters
+def user_runtime_path(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # preserve released API
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> Path:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.
@@ -1073,8 +1073,8 @@ def site_runtime_path(
     appname: str | None = None,
     appauthor: str | Literal[False] | None = None,
     version: str | None = None,
-    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+    opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+    ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
 ) -> Path:
     """:param appname: See `appname <platformdirs.api.PlatformDirsABC.appname>`.
     :param appauthor: See `appauthor <platformdirs.api.PlatformDirsABC.appauthor>`.

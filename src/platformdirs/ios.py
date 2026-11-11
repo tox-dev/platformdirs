@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from ._xdg import _expand_user
+from ._xdg import expand_user
 from .api import PlatformDirsABC
 
 
-class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
+class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # full directory API
     """Platform directories for iOS and iPadOS.
 
     Follows the app container layout from `Apple's File System Programming Guide
@@ -27,7 +27,7 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class
     @property
     def user_data_dir(self) -> str:
         """Data directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version``."""
-        return self._append_app_name_and_version(_expand_user("~/Library/Application Support"), private=True)
+        return self._append_app_name_and_version(expand_user("~/Library/Application Support"), private=True)
 
     @property
     def site_config_dir(self) -> str:
@@ -47,7 +47,7 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class
     @property
     def user_cache_dir(self) -> str:
         """Cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version``."""
-        return self._append_app_name_and_version(_expand_user("~/Library/Caches"), private=True)
+        return self._append_app_name_and_version(expand_user("~/Library/Caches"), private=True)
 
     @property
     def site_state_dir(self) -> str:
@@ -67,58 +67,58 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class
     @property
     def user_log_dir(self) -> str:
         """Log directory tied to the user, e.g. ``~/Library/Logs/$appname/$version``."""
-        return self._append_app_name_and_version(_expand_user("~/Library/Logs"), private=True)
+        return self._append_app_name_and_version(expand_user("~/Library/Logs"), private=True)
 
     @property
     def user_documents_dir(self) -> str:
         """Documents directory tied to the user, e.g. ``~/Documents``."""
-        return _expand_user("~/Documents")
+        return expand_user("~/Documents")
 
     # The app container has Documents but no other media folder, so the rest live inside it, as Qt places them.
     @property
     def user_downloads_dir(self) -> str:
         """Downloads directory tied to the user, e.g. ``~/Documents/Downloads``."""
-        return _expand_user("~/Documents/Downloads")
+        return expand_user("~/Documents/Downloads")
 
     @property
     def user_pictures_dir(self) -> str:
         """Pictures directory tied to the user, e.g. ``~/Documents/Pictures``."""
-        return _expand_user("~/Documents/Pictures")
+        return expand_user("~/Documents/Pictures")
 
     @property
     def user_videos_dir(self) -> str:
         """Videos directory tied to the user, e.g. ``~/Documents/Movies``."""
-        return _expand_user("~/Documents/Movies")
+        return expand_user("~/Documents/Movies")
 
     @property
     def user_music_dir(self) -> str:
         """Music directory tied to the user, e.g. ``~/Documents/Music``."""
-        return _expand_user("~/Documents/Music")
+        return expand_user("~/Documents/Music")
 
     @property
     def user_desktop_dir(self) -> str:
         """Desktop directory tied to the user, e.g. ``~/Documents/Desktop``."""
-        return _expand_user("~/Documents/Desktop")
+        return expand_user("~/Documents/Desktop")
 
     @property
     def user_projects_dir(self) -> str:
         """Projects directory tied to the user, e.g. ``~/Documents/Projects``."""
-        return _expand_user("~/Documents/Projects")
+        return expand_user("~/Documents/Projects")
 
     @property
     def user_publicshare_dir(self) -> str:
         """Public share directory tied to the user, e.g. ``~/Documents/Public``."""
-        return _expand_user("~/Documents/Public")
+        return expand_user("~/Documents/Public")
 
     @property
     def user_templates_dir(self) -> str:
         """Templates directory tied to the user, e.g. ``~/Documents/Templates``."""
-        return _expand_user("~/Documents/Templates")
+        return expand_user("~/Documents/Templates")
 
     @property
     def user_fonts_dir(self) -> str:
         """Fonts directory tied to the user, e.g. ``~/Library/Fonts``."""
-        return _expand_user("~/Library/Fonts")
+        return expand_user("~/Library/Fonts")
 
     @property
     def user_preference_dir(self) -> str:
@@ -134,7 +134,7 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class
     @property
     def user_bin_dir(self) -> str:
         """Bin directory tied to the user, e.g. ``~/.local/bin``."""
-        return _expand_user("~/.local/bin")
+        return expand_user("~/.local/bin")
 
     @property
     def site_applications_dir(self) -> str:
@@ -144,7 +144,7 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class
     @property
     def user_applications_dir(self) -> str:
         """Applications directory tied to the user, e.g. ``~/Applications``."""
-        return _expand_user("~/Applications")
+        return expand_user("~/Applications")
 
     @property
     def site_runtime_dir(self) -> str:
@@ -154,7 +154,7 @@ class IOS(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class
     @property
     def user_runtime_dir(self) -> str:
         """Runtime directory tied to the user, e.g. ``~/tmp/$appname/$version``."""
-        return self._append_app_name_and_version(_expand_user("~/tmp"), private=True)
+        return self._append_app_name_and_version(expand_user("~/tmp"), private=True)
 
 
 __all__ = [

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import sys
-from subprocess import check_output  # ruff:ignore[suspicious-subprocess-import]  # the test runs the CLI in a subprocess
+from subprocess import check_output  # ruff:ignore[suspicious-subprocess-import]  # CLI subprocess test
 from typing import TYPE_CHECKING, Final
 
 import pytest
 
-from platformdirs import PlatformDirs
+import platformdirs
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -17,7 +17,7 @@ def test_platformdirs_isolated_yields_tmp_path(platformdirs_isolated: Path, tmp_
 
 
 def test_platformdirs_isolated_redirects(platformdirs_isolated: Path) -> None:
-    assert PlatformDirs("app").user_config_path == platformdirs_isolated / "user_config" / "app"
+    assert platformdirs.PlatformDirs("app").user_config_path == platformdirs_isolated / "user_config" / "app"
 
 
 def test_platformdirs_isolated_is_opt_in(request: pytest.FixtureRequest) -> None:

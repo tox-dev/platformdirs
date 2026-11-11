@@ -9,7 +9,7 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Final, NoReturn
 
-from ._xdg import XDGMixin, _expand_user
+from ._xdg import XDGMixin, expand_user
 from .api import PlatformDirsABC
 
 if sys.platform == "win32":
@@ -22,7 +22,7 @@ else:
     from os import geteuid
 
 
-class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
+class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # full directory API
     """Default platform directories for macOS without XDG environment variable overrides.
 
     Follows the guidance from `Apple's File System Programming Guide
@@ -37,7 +37,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
         return self._base_user_app_support_dir()
 
     def _base_user_app_support_dir(self) -> str:
-        return self._append_app_name_and_version(_expand_user("~/Library/Application Support"), private=True)
+        return self._append_app_name_and_version(expand_user("~/Library/Application Support"), private=True)
 
     @property
     def _site_data_dirs(self) -> list[str]:
@@ -60,7 +60,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
     @property
     def user_cache_dir(self) -> str:
         """Cache directory tied to the user, e.g. ``~/Library/Caches/$appname/$version``."""
-        return self._append_app_name_and_version(_expand_user("~/Library/Caches"), private=True)
+        return self._append_app_name_and_version(expand_user("~/Library/Caches"), private=True)
 
     @property
     def site_cache_dir(self) -> str:
@@ -138,7 +138,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
     @property
     def user_log_dir(self) -> str:
         """Log directory tied to the user, e.g. ``~/Library/Logs/$appname/$version``."""
-        return self._append_app_name_and_version(_expand_user("~/Library/Logs"), private=True)
+        return self._append_app_name_and_version(expand_user("~/Library/Logs"), private=True)
 
     @property
     def site_log_dir(self) -> str:
@@ -148,62 +148,62 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
     @property
     def user_documents_dir(self) -> str:
         """Documents directory tied to the user, e.g. ``~/Documents``."""
-        return _expand_user("~/Documents")
+        return expand_user("~/Documents")
 
     @property
     def user_downloads_dir(self) -> str:
         """Downloads directory tied to the user, e.g. ``~/Downloads``."""
-        return _expand_user("~/Downloads")
+        return expand_user("~/Downloads")
 
     @property
     def user_pictures_dir(self) -> str:
         """Pictures directory tied to the user, e.g. ``~/Pictures``."""
-        return _expand_user("~/Pictures")
+        return expand_user("~/Pictures")
 
     @property
     def user_videos_dir(self) -> str:
         """Videos directory tied to the user, e.g. ``~/Movies``."""
-        return _expand_user("~/Movies")
+        return expand_user("~/Movies")
 
     @property
     def user_music_dir(self) -> str:
         """Music directory tied to the user, e.g. ``~/Music``."""
-        return _expand_user("~/Music")
+        return expand_user("~/Music")
 
     @property
     def user_desktop_dir(self) -> str:
         """Desktop directory tied to the user, e.g. ``~/Desktop``."""
-        return _expand_user("~/Desktop")
+        return expand_user("~/Desktop")
 
     @property
     def user_projects_dir(self) -> str:
         """Projects directory tied to the user, e.g. ``~/Projects``."""
-        return _expand_user("~/Projects")
+        return expand_user("~/Projects")
 
     @property
     def user_publicshare_dir(self) -> str:
         """Public share directory tied to the user, e.g. ``~/Public``."""
-        return _expand_user("~/Public")
+        return expand_user("~/Public")
 
     @property
     def user_templates_dir(self) -> str:
         """Templates directory tied to the user, e.g. ``~/Templates``."""
-        return _expand_user("~/Templates")
+        return expand_user("~/Templates")
 
     @property
     def user_fonts_dir(self) -> str:
         """Fonts directory tied to the user, e.g. ``~/Library/Fonts``."""
-        return _expand_user("~/Library/Fonts")
+        return expand_user("~/Library/Fonts")
 
     @property
     def user_preference_dir(self) -> str:
         """Preference directory tied to the user, e.g. ``~/Library/Preferences/AppName``."""
-        return self._append_app_name_and_version(_expand_user("~/Library/Preferences"), private=True)
+        return self._append_app_name_and_version(expand_user("~/Library/Preferences"), private=True)
 
     @property
     def user_bin_dir(self) -> str:
         """Bin directory tied to the user, e.g. ``~/.local/bin``."""
-        return _expand_user("~/.local/bin")
+        return expand_user("~/.local/bin")
 
     @property
     def site_bin_dir(self) -> str:
@@ -213,7 +213,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
     @property
     def user_applications_dir(self) -> str:
         """Applications directory tied to the user, e.g. ``~/Applications``."""
-        return _expand_user("~/Applications")
+        return expand_user("~/Applications")
 
     @property
     def _site_applications_dirs(self) -> list[str]:
@@ -227,7 +227,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
     @property
     def user_runtime_dir(self) -> str:
         """Runtime directory tied to the user, e.g. ``~/Library/Caches/TemporaryItems/$appname/$version``."""
-        return self._append_app_name_and_version(_expand_user("~/Library/Caches/TemporaryItems"), private=True)
+        return self._append_app_name_and_version(expand_user("~/Library/Caches/TemporaryItems"), private=True)
 
 
 class MacOS(XDGMixin, _MacOSDefaults):
