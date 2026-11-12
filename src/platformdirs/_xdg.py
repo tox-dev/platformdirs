@@ -16,7 +16,7 @@ class XDGMixin(PlatformDirsABC):
     @property
     def user_data_dir(self) -> str:
         """Data directory tied to the user, from ``$XDG_DATA_HOME`` if set, else platform default."""
-        if path := _xdg_dir("XDG_DATA_HOME"):
+        if path := xdg_dir("XDG_DATA_HOME"):
             return self._append_app_name_and_version(path, private=True)
         return super().user_data_dir
 
@@ -34,7 +34,7 @@ class XDGMixin(PlatformDirsABC):
     @property
     def user_config_dir(self) -> str:
         """Config directory tied to the user, from ``$XDG_CONFIG_HOME`` if set, else platform default."""
-        if path := _xdg_dir("XDG_CONFIG_HOME"):
+        if path := xdg_dir("XDG_CONFIG_HOME"):
             return self._append_app_name_and_version(path, private=True)
         return super().user_config_dir
 
@@ -52,14 +52,14 @@ class XDGMixin(PlatformDirsABC):
     @property
     def user_cache_dir(self) -> str:
         """Cache directory tied to the user, from ``$XDG_CACHE_HOME`` if set, else platform default."""
-        if path := _xdg_dir("XDG_CACHE_HOME"):
+        if path := xdg_dir("XDG_CACHE_HOME"):
             return self._append_app_name_and_version(path, private=True)
         return super().user_cache_dir
 
     @property
     def user_state_dir(self) -> str:
         """State directory tied to the user, from ``$XDG_STATE_HOME`` if set, else platform default."""
-        if path := _xdg_dir("XDG_STATE_HOME"):
+        if path := xdg_dir("XDG_STATE_HOME"):
             return self._append_app_name_and_version(path, private=True)
         return super().user_state_dir
 
@@ -68,7 +68,7 @@ class XDGMixin(PlatformDirsABC):
         """Runtime directory tied to the user, from ``$XDG_RUNTIME_DIR`` if set and private, else platform default."""
         from .unix import _runtime_dir_problem, _warn_once  # ruff:ignore[import-outside-top-level]  # unix imports _xdg
 
-        if path := _xdg_dir("XDG_RUNTIME_DIR"):
+        if path := xdg_dir("XDG_RUNTIME_DIR"):
             with suppress(OSError):
                 self._optionally_create_directory(path, private=True)
             # Another user can pre-create the path in a shared parent, and XDG requires an owned runtime dir with mode
@@ -81,7 +81,7 @@ class XDGMixin(PlatformDirsABC):
     @property
     def site_runtime_dir(self) -> str:
         """Runtime directory shared by users, from ``$XDG_RUNTIME_DIR`` if set, else platform default."""
-        if path := _xdg_dir("XDG_RUNTIME_DIR"):
+        if path := xdg_dir("XDG_RUNTIME_DIR"):
             return self._append_app_name_and_version(path, private=False)
         return super().site_runtime_dir
 
@@ -91,7 +91,7 @@ class XDGMixin(PlatformDirsABC):
         return self._xdg_media_dir("XDG_DOCUMENTS_DIR") or super().user_documents_dir
 
     def _xdg_media_dir(self, env_var: str) -> str | None:
-        if path := _xdg_dir(env_var):
+        if path := xdg_dir(env_var):
             self._optionally_create_media_directory(path)
         return path
 
@@ -138,7 +138,7 @@ class XDGMixin(PlatformDirsABC):
     @property
     def user_fonts_dir(self) -> str:
         """Fonts directory tied to the user, from ``$XDG_DATA_HOME/fonts`` if set, else platform default."""
-        if path := _xdg_dir("XDG_DATA_HOME"):
+        if path := xdg_dir("XDG_DATA_HOME"):
             # posixpath keeps the XDG separator even when this mixin runs on a non-POSIX host.
             return posixpath.join(path, "fonts")
         return super().user_fonts_dir
@@ -146,8 +146,9 @@ class XDGMixin(PlatformDirsABC):
     @property
     def user_applications_dir(self) -> str:
         """Applications directory tied to the user, from ``$XDG_DATA_HOME`` if set, else platform default."""
-        if path := _xdg_dir("XDG_DATA_HOME"):
-            return os.path.join(os.path.expanduser(path), "applications")  # ruff:ignore[os-path-expanduser, os-path-join]  # the XDG value may start with ~
+        if path := xdg_dir("XDG_DATA_HOME"):
+            # the XDG value may start with ~
+            return os.path.join(os.path.expanduser(path), "applications")  # ruff:ignore[os-path-expanduser, os-path-join]
         return super().user_applications_dir
 
     @property
@@ -159,11 +160,12 @@ class XDGMixin(PlatformDirsABC):
     @property
     def _site_applications_dirs(self) -> list[str]:
         if xdg_dirs := _xdg_dir_list("XDG_DATA_DIRS"):
-            return [os.path.join(p, "applications") for p in xdg_dirs]  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+            # preserve path separators
+            return [os.path.join(p, "applications") for p in xdg_dirs]  # ruff:ignore[os-path-join]
         return super()._site_applications_dirs
 
 
-def _xdg_dir(env_var: str) -> str | None:
+def xdg_dir(env_var: str) -> str | None:
     path: Final = os.environ.get(env_var, "")
     return path if posixpath.isabs(path) else None
 
@@ -172,7 +174,7 @@ def _xdg_dir_list(env_var: str) -> list[str]:
     return [path for path in os.environ.get(env_var, "").split(os.pathsep) if posixpath.isabs(path)]
 
 
-def _expand_user(path: str) -> str:
+def expand_user(path: str) -> str:
     # Expand the leading ``~`` of ``path`` like :func:`os.path.expanduser`, treating a relative ``HOME`` as unset on
     # POSIX.
     #
@@ -185,7 +187,8 @@ def _expand_user(path: str) -> str:
 
             expanded = pwd.getpwuid(os.getuid()).pw_dir.rstrip("/") + path[1:] or "/"
     else:
-        expanded = os.path.expanduser(path)  # ruff:ignore[os-path-expanduser]  # str(Path) rewrites separators on Windows
+        # str(Path) rewrites separators on Windows
+        expanded = os.path.expanduser(path)  # ruff:ignore[os-path-expanduser]
     if not _is_absolute(expanded):
         msg = f"could not determine the home directory for {path!r}, set an absolute HOME or XDG variable"
         raise RuntimeError(msg)
@@ -199,6 +202,6 @@ def _is_absolute(path: str) -> bool:
 
 __all__ = [
     "XDGMixin",
-    "_expand_user",
-    "_xdg_dir",
+    "expand_user",
+    "xdg_dir",
 ]

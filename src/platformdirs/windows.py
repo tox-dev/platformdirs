@@ -9,7 +9,7 @@ from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
-from ._xdg import _expand_user
+from ._xdg import expand_user
 from .api import PlatformDirsABC
 
 if TYPE_CHECKING:
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 _KF_FLAG_DONT_VERIFY: Final[int] = 0x00004000
 
 
-class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
+class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # full directory API
     """`MSDN on where to store app data files <https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid>`_.
 
     Makes use of the `appname <platformdirs.api.PlatformDirsABC.appname>`, `appauthor
@@ -49,7 +49,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the c
                 params.append(opinion_value)
             if self.version:
                 params.append(self.version)
-        path = os.path.join(path, *params)  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+        path = os.path.join(path, *params)  # ruff:ignore[os-path-join]  # preserve path separators
         self._optionally_create_directory(path, private=False)
         return path
 
@@ -84,7 +84,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the c
         """Log directory tied to the user, same as `user_data_dir` if not opinionated else ``Logs`` in it."""
         path = self.user_data_dir
         if self.opinion:
-            path = os.path.join(path, "Logs")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+            path = os.path.join(path, "Logs")  # ruff:ignore[os-path-join]  # preserve path separators
             self._optionally_create_directory(path, private=False)
         return path
 
@@ -93,7 +93,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the c
         """Log directory shared by users, same as `site_data_dir` if not opinionated else ``Logs`` in it."""
         path = self.site_data_dir
         if self.opinion:
-            path = os.path.join(path, "Logs")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+            path = os.path.join(path, "Logs")  # ruff:ignore[os-path-join]  # preserve path separators
             self._optionally_create_directory(path, private=False)
         return path
 
@@ -130,7 +130,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the c
     @property
     def user_projects_dir(self) -> str:
         r"""Projects directory tied to the user, e.g. ``%USERPROFILE%\Projects``."""
-        return os.path.normpath(_expand_user("~/Projects"))
+        return os.path.normpath(expand_user("~/Projects"))
 
     @property
     def user_publicshare_dir(self) -> str:
@@ -165,7 +165,8 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the c
     @property
     def site_bin_dir(self) -> str:
         r"""Bin directory shared by users, e.g. ``C:\ProgramData\bin``."""
-        return os.path.normpath(os.path.join(get_win_folder("CSIDL_COMMON_APPDATA"), "bin"))  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+        # preserve path separators
+        return os.path.normpath(os.path.join(get_win_folder("CSIDL_COMMON_APPDATA"), "bin"))  # ruff:ignore[os-path-join]
 
     @property
     def user_applications_dir(self) -> str:
@@ -185,7 +186,8 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the c
     @property
     def user_runtime_dir(self) -> str:
         r"""Runtime directory tied to the user, e.g. ``%USERPROFILE%\AppData\Local\Temp\$appauthor\$appname``."""
-        path = os.path.normpath(os.path.join(get_win_folder("CSIDL_LOCAL_APPDATA"), "Temp"))  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+        # preserve path separators
+        path = os.path.normpath(os.path.join(get_win_folder("CSIDL_LOCAL_APPDATA"), "Temp"))  # ruff:ignore[os-path-join]
         return self._append_parts(path)
 
 
@@ -265,13 +267,13 @@ def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
         env_var, *parts = env_var_and_parts
         if not (value := os.environ.get(env_var)):
             raise KeyError(env_var)  # same error os.environ[env_var] gives for an unset variable
-        return os.path.join(os.path.normpath(value), *parts)  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+        return os.path.join(os.path.normpath(value), *parts)  # ruff:ignore[os-path-join]  # preserve path separators
 
     if csidl_name == "CSIDL_PUBLIC":
         return os.environ.get("PUBLIC") or str(Path("~").expanduser().parent / "Public")
 
     if csidl_name == "CSIDL_COMMON_PROGRAMS":
-        return os.path.join(  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+        return os.path.join(  # ruff:ignore[os-path-join]  # preserve path separators
             os.path.normpath(os.environ.get("PROGRAMDATA") or os.environ.get("ALLUSERSPROFILE") or "C:\\ProgramData"),
             "Microsoft",
             "Windows",
@@ -312,7 +314,7 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
         return get_win_folder_from_env_vars(csidl_name)
     if sys.platform != "win32":  # only needed for mypy type checker to know that this code runs only on Windows
         raise NotImplementedError
-    import winreg  # ruff:ignore[import-outside-top-level]  # optional Windows module, imported only where it exists
+    import winreg  # ruff:ignore[import-outside-top-level]  # Windows-only dependency
 
     # Use HKEY_LOCAL_MACHINE for system-wide folders, HKEY_CURRENT_USER for user-specific folders
     hkey = winreg.HKEY_LOCAL_MACHINE if csidl_name in machine_names else winreg.HKEY_CURRENT_USER
@@ -322,24 +324,6 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
     return str(directory)
 
 
-_KNOWN_FOLDER_GUIDS: Final[dict[str, str]] = {
-    "CSIDL_APPDATA": "{3EB685DB-65F9-4CF6-A03A-E3EF65729F3D}",
-    "CSIDL_COMMON_APPDATA": "{62AB5D82-FDC1-4DC3-A9DD-070D1D495D97}",
-    "CSIDL_LOCAL_APPDATA": "{F1B32785-6FBA-4FCF-9D55-7B8E7F157091}",
-    "CSIDL_PERSONAL": "{FDD39AD0-238F-46AF-ADB4-6C85480369C7}",
-    "CSIDL_MYPICTURES": "{33E28130-4E1E-4676-835A-98395C3BC3BB}",
-    "CSIDL_MYVIDEO": "{18989B1D-99B5-455B-841C-AB7C74E4DDFC}",
-    "CSIDL_MYMUSIC": "{4BD8D571-6D19-48D3-BE97-422220080E43}",
-    "CSIDL_DOWNLOADS": "{374DE290-123F-4565-9164-39C4925E467B}",
-    "CSIDL_DESKTOPDIRECTORY": "{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}",
-    "CSIDL_PROGRAMS": "{A77F5D77-2E2B-44C3-A6A2-ABA601054A51}",
-    "CSIDL_COMMON_PROGRAMS": "{0139D44E-6AFE-49F2-8690-3DAFCAE6FFB8}",
-    "CSIDL_TEMPLATES": "{A63293E8-664E-48DB-A079-DF759E0509F7}",
-    "CSIDL_PUBLIC": "{DFDF76A2-C82A-4D63-906A-5644AC457385}",
-    "CSIDL_USER_PROGRAM_FILES": "{5CD7AEE2-2219-4A67-B85D-6C9CE15660CB}",
-}
-
-
 @cache
 def _build_get_win_folder_via_ctypes() -> Callable[[str], str]:
     # Build the resolver once; a fresh ``_GUID`` per call leaks ctypes pointer types.
@@ -347,7 +331,7 @@ def _build_get_win_folder_via_ctypes() -> Callable[[str], str]:
     # See https://github.com/tox-dev/platformdirs/issues/501.
     if sys.platform != "win32":  # only needed for type checker to know that this code runs only on Windows
         raise NotImplementedError
-    from ctypes import (  # ruff:ignore[import-outside-top-level]  # optional Windows module, imported only where it exists
+    from ctypes import (  # ruff:ignore[import-outside-top-level]  # Windows-only dependency
         HRESULT,
         POINTER,
         Structure,
@@ -374,8 +358,25 @@ def _build_get_win_folder_via_ctypes() -> Callable[[str], str]:
     shell32.SHGetKnownFolderPath.restype = HRESULT
     shell32.SHGetKnownFolderPath.argtypes = [POINTER(_GUID), wintypes.DWORD, wintypes.HANDLE, POINTER(wintypes.LPWSTR)]
 
+    known_folder_guids: dict[str, str] = {
+        "CSIDL_APPDATA": "{3EB685DB-65F9-4CF6-A03A-E3EF65729F3D}",
+        "CSIDL_COMMON_APPDATA": "{62AB5D82-FDC1-4DC3-A9DD-070D1D495D97}",
+        "CSIDL_LOCAL_APPDATA": "{F1B32785-6FBA-4FCF-9D55-7B8E7F157091}",
+        "CSIDL_PERSONAL": "{FDD39AD0-238F-46AF-ADB4-6C85480369C7}",
+        "CSIDL_MYPICTURES": "{33E28130-4E1E-4676-835A-98395C3BC3BB}",
+        "CSIDL_MYVIDEO": "{18989B1D-99B5-455B-841C-AB7C74E4DDFC}",
+        "CSIDL_MYMUSIC": "{4BD8D571-6D19-48D3-BE97-422220080E43}",
+        "CSIDL_DOWNLOADS": "{374DE290-123F-4565-9164-39C4925E467B}",
+        "CSIDL_DESKTOPDIRECTORY": "{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}",
+        "CSIDL_PROGRAMS": "{A77F5D77-2E2B-44C3-A6A2-ABA601054A51}",
+        "CSIDL_COMMON_PROGRAMS": "{0139D44E-6AFE-49F2-8690-3DAFCAE6FFB8}",
+        "CSIDL_TEMPLATES": "{A63293E8-664E-48DB-A079-DF759E0509F7}",
+        "CSIDL_PUBLIC": "{DFDF76A2-C82A-4D63-906A-5644AC457385}",
+        "CSIDL_USER_PROGRAM_FILES": "{5CD7AEE2-2219-4A67-B85D-6C9CE15660CB}",
+    }
+
     def resolve(csidl_name: str) -> str:
-        folder_guid = _KNOWN_FOLDER_GUIDS.get(csidl_name)
+        folder_guid = known_folder_guids.get(csidl_name)
         if folder_guid is None:
             msg = f"Unknown CSIDL name: {csidl_name}"
             raise ValueError(msg)
@@ -413,13 +414,13 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
 def _pick_get_win_folder() -> Callable[[str], str]:
     # Select the best method to resolve Windows folder paths: ctypes, then registry, then environment variables.
     try:
-        import ctypes  # ruff:ignore[import-outside-top-level, unused-import]  # optional Windows module, imported only where it exists
+        import ctypes  # ruff:ignore[import-outside-top-level, unused-import]  # Windows-only dependency
     except ImportError:
         pass
     else:
         return get_win_folder_via_ctypes
     try:
-        import winreg  # ruff:ignore[import-outside-top-level, unused-import]  # optional Windows module, imported only where it exists
+        import winreg  # ruff:ignore[import-outside-top-level, unused-import]  # Windows-only dependency
     except ImportError:
         return get_win_folder_from_env_vars
     else:

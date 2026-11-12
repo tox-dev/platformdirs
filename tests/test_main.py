@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sys
-from subprocess import check_output  # ruff:ignore[suspicious-subprocess-import]  # the test runs the CLI in a subprocess
+from subprocess import check_output  # ruff:ignore[suspicious-subprocess-import]  # CLI subprocess test
 from typing import TYPE_CHECKING, Final
 
 import pytest

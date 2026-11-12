@@ -37,9 +37,7 @@ def _resolve_all() -> dict[str, list[str]]:
 
 # Taken at collection, before any test enters isolation, so a leaked patch cannot become the baseline.
 _ORIGINAL: Final[dict[str, list[str]]] = _resolve_all()
-_ANDROID_ORIGINAL: Final[dict[str, Any]] = dict(  # simplint: ignore[SMP602]  # class attributes of mixed types
-    vars(Android)
-)
+_ANDROID_ORIGINAL: Final[dict[str, Any]] = dict(vars(Android))  # simplint: ignore[imprecise-annotation]  # mixed attrs
 
 
 def test_isolated_dirs_yields_root_as_path(tmp_path: Path) -> None:
