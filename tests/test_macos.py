@@ -78,7 +78,8 @@ class AppParams(TypedDict, total=False):
 def test_macos(home: str, params: AppParams, func: str) -> None:
     result = getattr(MacOS(**params), func)
 
-    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+    # match host separators
+    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]
 
     expected_map = {
         "user_data_dir": f"{home}/Library/Application Support{suffix}",
@@ -162,14 +163,15 @@ def test_macos(home: str, params: AppParams, func: str) -> None:
     ],
 )
 @pytest.mark.usefixtures("_clear_xdg_env")
-def test_macos_homebrew(  # ruff:ignore[too-many-arguments]  # one argument per parametrized input
+def test_macos_homebrew(  # ruff:ignore[too-many-arguments]  # parametrized case inputs
     mocker: MockerFixture, home: str, params: AppParams, multipath: bool, site_func: str, prefix: dict[str, str]
 ) -> None:
     mocker.patch("sys.base_prefix", prefix["sys_prefix"])
 
     result = getattr(MacOS(multipath=multipath, **params), site_func)
 
-    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+    # match host separators
+    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]
 
     expected_path_map = {
         "site_cache_path": Path(f"{prefix['homebrew_prefix']}/var/cache{suffix}"),
@@ -182,7 +184,7 @@ def test_macos_homebrew(  # ruff:ignore[too-many-arguments]  # one argument per 
         "site_cache_dir": f"{prefix['homebrew_prefix']}/var/cache{suffix}",
         "site_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
     }
-    if multipath:  # simplint: ignore[SMP803]  # multipath adds search-path suffixes that the other rows do not expect
+    if multipath:  # simplint: ignore[conditional-in-test]  # parametrized path shapes
         expected_map["site_data_dir"] += f":/Library/Application Support{suffix}"
         expected_map["site_config_dir"] += f":/Library/Application Support{suffix}"
         expected_map["site_cache_dir"] += f":/Library/Caches{suffix}"
@@ -229,7 +231,8 @@ def test_macos_xdg_env_vars(
 ) -> None:
     monkeypatch.setenv(env_var, xdg_path)
     result = getattr(MacOS(**params), prop)
-    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+    # match host separators
+    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]
     assert result == f"{xdg_path}{suffix}"
 
 
@@ -298,7 +301,8 @@ def test_macos_ensure_exists_returns_configured_media_symlink(
 
 @pytest.mark.parametrize(("xdg_value", "created"), [("/custom/media", True), (None, False)], ids=["xdg", "default"])
 @pytest.mark.parametrize(("env_var", "prop"), _MEDIA_DIRS)
-def test_macos_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[too-many-arguments]  # one argument per parametrized input
+# parametrized case inputs
+def test_macos_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[too-many-arguments]
     mocker: MockerFixture,
     monkeypatch: pytest.MonkeyPatch,
     env_var: str,
@@ -306,7 +310,7 @@ def test_macos_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[t
     xdg_value: str | None,
     created: bool,
 ) -> None:
-    if xdg_value is None:  # simplint: ignore[SMP803]  # unset and set variables are two separate setups
+    if xdg_value is None:  # simplint: ignore[conditional-in-test]  # distinct environment setups
         monkeypatch.delenv(env_var, raising=False)
     else:
         monkeypatch.setenv(env_var, xdg_value)
@@ -497,8 +501,9 @@ def test_site_dirs_fall_back_when_xdg_var_has_no_absolute_paths(
 ) -> None:
     monkeypatch.setenv(env_var, value)
     expected = {
-        "site_data_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
-        "site_config_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+        # match host separators
+        "site_data_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]
+        "site_config_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]  # host separators
         "site_applications_dir": "/Applications",
     }[prop]
     assert getattr(MacOS(appname="foo"), prop) == expected
@@ -674,7 +679,7 @@ def test_homebrew_virtual_environment(
     monkeypatch.setattr(sys, "base_prefix", f"{homebrew_prefix}/{framework}/Versions/3.13")
     suffix: Final = {True: "var/cache", False: "share"}["cache" in prop]
     expected: str | Path = f"{homebrew_prefix}/{suffix}{os.sep}Example{os.sep}1.0"
-    if prop.endswith("_path"):  # simplint: ignore[SMP803]  # path properties expect a Path, the rest a string
+    if prop.endswith("_path"):  # simplint: ignore[conditional-in-test]  # Path result
         expected = Path(expected)
     elif multipath and prop != "site_state_dir":
         fallback: Final = {True: "Caches", False: "Application Support"}["cache" in prop]

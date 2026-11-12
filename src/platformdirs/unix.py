@@ -13,7 +13,7 @@ from pathlib import Path
 from tempfile import gettempdir
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from ._xdg import XDGMixin, _expand_user, _xdg_dir
+from ._xdg import XDGMixin, expand_user, xdg_dir
 from .api import PlatformDirsABC, RuntimeDirWarning
 
 if TYPE_CHECKING:
@@ -32,7 +32,7 @@ else:
         from os import getuid as geteuid
 
 
-class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
+class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # full directory API
     """Default directories for Unix/Linux without XDG environment variable overrides.
 
     The XDG env var handling is in :class:`~platformdirs._xdg.XDGMixin`.
@@ -50,7 +50,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
         E.g. ``~/.local/share/$appname/$version`` or ``$XDG_DATA_HOME/$appname/$version``.
 
         """
-        return self._append_app_name_and_version(_expand_user("~/.local/share"), private=True)
+        return self._append_app_name_and_version(expand_user("~/.local/share"), private=True)
 
     @property
     def _site_data_dirs(self) -> list[str]:
@@ -67,7 +67,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
         E.g. ``~/.cache/$appname/$version`` or ``$XDG_CACHE_HOME/$appname/$version``.
 
         """
-        return self._append_app_name_and_version(_expand_user("~/.cache"), private=True)
+        return self._append_app_name_and_version(expand_user("~/.cache"), private=True)
 
     @property
     def site_cache_dir(self) -> str:
@@ -84,7 +84,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
         """Log directory tied to the user, same as `user_state_dir` if not opinionated else ``log`` in it."""
         path = self.user_state_dir
         if self.opinion:
-            path = os.path.join(path, "log")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+            path = os.path.join(path, "log")  # ruff:ignore[os-path-join]  # preserve path separators
             self._optionally_create_directory(path, private=True)
         return path
 
@@ -95,7 +95,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
         E.g. ``~/.local/state/$appname/$version`` or ``$XDG_STATE_HOME/$appname/$version``.
 
         """
-        return self._append_app_name_and_version(_expand_user("~/.local/state"), private=True)
+        return self._append_app_name_and_version(expand_user("~/.local/state"), private=True)
 
     @property
     def site_log_dir(self) -> str:
@@ -115,7 +115,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
         if path := _get_user_dirs_folder(key):
             self._optionally_create_media_directory(path)
             return path
-        return _expand_user(default)
+        return expand_user(default)
 
     @property
     def user_downloads_dir(self) -> str:
@@ -160,7 +160,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
     @property
     def user_fonts_dir(self) -> str:
         """Fonts directory tied to the user, e.g. ``~/.local/share/fonts``."""
-        return f"{_expand_user('~/.local/share')}/fonts"
+        return f"{expand_user('~/.local/share')}/fonts"
 
     @property
     def user_preference_dir(self) -> str:
@@ -174,12 +174,12 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
         E.g. ``~/.config/$appname/$version`` or ``$XDG_CONFIG_HOME/$appname/$version``.
 
         """
-        return self._append_app_name_and_version(_expand_user("~/.config"), private=True)
+        return self._append_app_name_and_version(expand_user("~/.config"), private=True)
 
     @property
     def user_bin_dir(self) -> str:
         """Bin directory tied to the user, e.g. ``~/.local/bin``."""
-        return _expand_user("~/.local/bin")
+        return expand_user("~/.local/bin")
 
     @property
     def site_bin_dir(self) -> str:
@@ -189,11 +189,12 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
     @property
     def user_applications_dir(self) -> str:
         """Applications directory tied to the user, e.g. ``~/.local/share/applications``."""
-        return f"{_expand_user('~/.local/share')}{os.sep}applications"
+        return f"{expand_user('~/.local/share')}{os.sep}applications"
 
     @property
     def _site_applications_dirs(self) -> list[str]:
-        return [os.path.join(p, "applications") for p in ["/usr/local/share", "/usr/share"]]  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+        # preserve path separators
+        return [os.path.join(p, "applications") for p in ["/usr/local/share", "/usr/share"]]  # ruff:ignore[os-path-join]
 
     @property
     def site_runtime_dir(self) -> str:
@@ -216,7 +217,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
 
     def _default_runtime_dir(self) -> str:
         if sys.platform.startswith("openbsd"):
-            path = f"/tmp/run/user/{geteuid()}"  # ruff:ignore[hardcoded-temp-file]  # OpenBSD runtime dir default, a fixed path rather than a temp file
+            path = f"/tmp/run/user/{geteuid()}"  # ruff:ignore[hardcoded-temp-file]  # fixed OpenBSD runtime directory
         elif sys.platform.startswith(("freebsd", "netbsd")):
             path = f"/var/run/user/{geteuid()}"
         else:
@@ -297,7 +298,7 @@ class Unix(XDGMixin, _UnixDefaults):
         if self._use_site:
             # XDGMixin.site_runtime_dir reads $XDG_RUNTIME_DIR, which belongs to the user who started the root process.
             return super(XDGMixin, self).site_runtime_dir
-        if not (path := _xdg_dir("XDG_RUNTIME_DIR")):
+        if not (path := xdg_dir("XDG_RUNTIME_DIR")):
             reason = "XDG_RUNTIME_DIR is not set"
         else:
             # Creating the missing levels follows whatever symlink sits at a parent, so check the parents first.
@@ -372,7 +373,7 @@ class Unix(XDGMixin, _UnixDefaults):
         return None if self._use_site else super()._xdg_media_dir(env_var)
 
     def _user_media_dir(self, key: str, default: str) -> str:
-        return _expand_user(default) if self._use_site else super()._user_media_dir(key, default)
+        return expand_user(default) if self._use_site else super()._user_media_dir(key, default)
 
 
 _USER_DIRS_LINE: Final[re.Pattern[str]] = re.compile(
@@ -396,7 +397,7 @@ def _get_user_dirs_folder(key: str) -> str | None:
     # valid assignment to ``key``.
     #
     # See https://freedesktop.org/wiki/Software/xdg-user-dirs/.
-    user_dirs_config_path = Path(_xdg_dir("XDG_CONFIG_HOME") or _expand_user("~/.config")) / "user-dirs.dirs"
+    user_dirs_config_path = Path(xdg_dir("XDG_CONFIG_HOME") or expand_user("~/.config")) / "user-dirs.dirs"
     folder = None
     try:
         # the file holds raw path bytes, and surrogateescape round-trips undecodable ones like os.fsdecode
@@ -413,7 +414,7 @@ def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
     value = entry["bare"] if entry["quoted"] is None else entry["quoted"]
     if value == "$HOME" or value.startswith("$HOME/"):
         # A home of / would give "//Desktop", which pathlib keeps as a distinct root.
-        prefix, value = _expand_user("~").rstrip("/"), value.removeprefix("$HOME")
+        prefix, value = expand_user("~").rstrip("/"), value.removeprefix("$HOME")
     elif value.startswith("/"):
         prefix = ""
     else:
@@ -432,7 +433,7 @@ def _temp_runtime_fallback() -> str:
 def _in_own_runtime_dir(path: Path) -> bool:
     # The lookup let a missing runtime directory pass, so another user may have created it since. The fallback goes
     # first because a rejected XDG_RUNTIME_DIR, such as /tmp, contains it.
-    for base in (_temp_runtime_fallback(), _xdg_dir("XDG_RUNTIME_DIR")):
+    for base in (_temp_runtime_fallback(), xdg_dir("XDG_RUNTIME_DIR")):
         if base and path.is_relative_to(base):
             return not _runtime_dir_problem(base, missing_ok=False, check_mode=False)
     return True

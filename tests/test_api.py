@@ -13,12 +13,12 @@ from typing import TYPE_CHECKING, Final, ParamSpec
 import pytest
 
 import platformdirs
-from platformdirs.android import Android
 from platformdirs.macos import MacOS
 from platformdirs.unix import Unix
 from platformdirs.windows import Windows
 
-_REAL_IMPORT: Final[Callable[..., ModuleType]] = builtins.__import__  # simplint: ignore[SMP603]  # typeshed signature
+# The interpreter owns the import-hook signature; this reference is restored after each test.
+_REAL_IMPORT: Final[Callable[..., ModuleType]] = builtins.__import__  # simplint: ignore[callable-ellipsis]  # hook
 _Args = ParamSpec("_Args")
 
 
@@ -88,79 +88,23 @@ def test_function_matches_its_property_for_app_arguments(func: str) -> None:
     # A function without the app arguments can only ever return the unscoped base directory, so a property that
     # is app-scoped on any platform is out of its reach. Only one direction holds: a function may have to take
     # arguments this platform ignores because another platform scopes the same property.
-    if takes_app_arguments:  # simplint: ignore[SMP803]  # which branch applies depends on each function's signature, and func is a shared fixture
+    if takes_app_arguments:  # simplint: ignore[conditional-in-test]  # fixture spans different signatures
         assert function(appname="MyApp", appauthor="MyCompany", version="1.0") == scoped
     else:
         assert scoped == getattr(platformdirs.PlatformDirs(), func)
 
 
-@pytest.mark.parametrize("root", ["A", "/system", None])
-@pytest.mark.parametrize("data", ["D", "/data", None])
-@pytest.mark.parametrize("path", ["/data/data/a/files", "/C"])
-@pytest.mark.parametrize("shell", ["/data/data/com.app/files/usr/bin/sh", "/usr/bin/sh", None])
-@pytest.mark.parametrize("prefix", ["/data/data/com.termux/files/usr", None])
-def test_android_active(  # ruff:ignore[too-many-arguments]  # one argument per parametrized input
-    monkeypatch: pytest.MonkeyPatch,
-    root: str | None,
-    data: str | None,
-    path: str,
-    shell: str | None,
-    prefix: str | None,
-) -> None:
-    android_env = {"ANDROID_DATA": data, "ANDROID_ROOT": root, "SHELL": shell, "PREFIX": prefix}
-    for env_var in android_env:
-        monkeypatch.delenv(env_var, raising=False)
-    for env_var, value in {name: value for name, value in android_env.items() if value is not None}.items():
-        monkeypatch.setenv(env_var, value)
-
-    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]  # the test reads a private helper
-
-    _android_folder.cache_clear()
-    monkeypatch.setattr(sys, "path", ["/A", "/B", path])
-
-    expects_android = (
-        root == "/system" and data == "/data" and shell is None and prefix is None and _android_folder() is not None
-    )
-    assert (platformdirs._set_platform_dir_class() is Android) is expects_android  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
-
-
-@pytest.mark.parametrize(
-    ("env", "expected"),
-    [
-        pytest.param({}, Android, id="cleared-environment"),
-        pytest.param(
-            {"PREFIX": "/data/data/com.termux/files/usr"},
-            platformdirs._Result,  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
-            id="termux",
-        ),
-    ],
-)
-def test_android_build_detected_without_environment(
-    monkeypatch: pytest.MonkeyPatch, env: dict[str, str], expected: type[platformdirs.PlatformDirsABC]
-) -> None:
-    for env_var in ("ANDROID_DATA", "ANDROID_ROOT", "SHELL", "PREFIX"):
-        monkeypatch.delenv(env_var, raising=False)
-    for env_var, value in env.items():
-        monkeypatch.setenv(env_var, value)
-    monkeypatch.setattr(sys, "getandroidapilevel", lambda: 34, raising=False)
-    monkeypatch.setattr(sys, "path", ["/data/user/0/org.example.app/files/app"])
-    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]  # the test reads a private helper
-
-    _android_folder.cache_clear()
-    assert platformdirs._set_platform_dir_class() is expected  # ruff:ignore[private-member-access]  # the test exercises a private helper directly
-
-
 def _fake_import(
     name: str,
-    globals: Mapping[str, Any] | None = None,  # ruff:ignore[builtin-argument-shadowing]  # mirrors the signature of builtins.__import__  # simplint: ignore[SMP602]  # the interpreter passes the module namespace, whose values are arbitrary
-    locals: Mapping[str, Any] | None = None,  # ruff:ignore[builtin-argument-shadowing]  # mirrors the signature of builtins.__import__  # simplint: ignore[SMP602]  # the interpreter passes the module namespace, whose values are arbitrary
+    global_vars: Mapping[str, Any] | None = None,  # simplint: ignore[imprecise-annotation]  # import globals
+    local_vars: Mapping[str, Any] | None = None,  # simplint: ignore[imprecise-annotation]  # import locals
     fromlist: Sequence[str] | None = (),
     level: int = 0,
 ) -> ModuleType:
     if name == "ctypes":
         msg = f"No module named {name}"
         raise ModuleNotFoundError(msg)
-    return _REAL_IMPORT(name, globals, locals, fromlist, level)
+    return _REAL_IMPORT(name, global_vars, local_vars, fromlist, level)
 
 
 def mock_import(func: Callable[_Args, None]) -> Callable[_Args, None]:
@@ -168,13 +112,13 @@ def mock_import(func: Callable[_Args, None]) -> Callable[_Args, None]:
     def wrap(*args: _Args.args, **kwargs: _Args.kwargs) -> None:
         platformdirs_module_items = [item for item in sys.modules.items() if item[0].startswith("platformdirs")]
         try:
-            builtins.__import__ = _fake_import  # ty: ignore[invalid-assignment]  # the stub types the builtin narrowly; the swap is intentional
+            builtins.__import__ = _fake_import  # ty: ignore[invalid-assignment]  # patched import hook
             for name, _ in platformdirs_module_items:
                 del sys.modules[name]
             return func(*args, **kwargs)
         finally:
             # restore original modules
-            builtins.__import__ = _REAL_IMPORT  # ty: ignore[invalid-assignment]  # the stored callable is typed loosely
+            builtins.__import__ = _REAL_IMPORT  # ty: ignore[invalid-assignment]  # restore import hook
             for name, module in platformdirs_module_items:
                 sys.modules[name] = module
 

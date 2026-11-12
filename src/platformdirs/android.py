@@ -12,7 +12,7 @@ from typing import Final
 from .api import PlatformDirsABC
 
 
-class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
+class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # full directory API
     """Platform directories for Android.
 
     Follows the guidance `from here <https://android.stackexchange.com/a/216132>`_. Directories are typically located
@@ -78,7 +78,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the c
         """
         path = self.user_cache_dir
         if self.opinion:
-            path = os.path.join(path, "log")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+            path = os.path.join(path, "log")  # ruff:ignore[os-path-join]  # preserve path separators
             self._optionally_create_directory(path, private=True)
         return path
 
@@ -146,7 +146,8 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the c
     @property
     def user_bin_dir(self) -> str:
         """Bin directory tied to the user, e.g. ``/data/user/<userid>/<packagename>/files/bin``."""
-        return os.path.join(_require_android_folder(), "files", "bin")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+        # preserve path separators
+        return os.path.join(_require_android_folder(), "files", "bin")  # ruff:ignore[os-path-join]
 
     @property
     def site_applications_dir(self) -> str:
@@ -172,7 +173,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the c
         """
         path = self.user_cache_dir
         if self.opinion:
-            path = os.path.join(path, "tmp")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+            path = os.path.join(path, "tmp")  # ruff:ignore[os-path-join]  # preserve path separators
             self._optionally_create_directory(path, private=True)
         return path
 

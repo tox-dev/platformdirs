@@ -11,7 +11,6 @@ if TYPE_CHECKING:
     from pathlib import Path
     from types import ModuleType
 
-    from _pytest.fixtures import SubRequest
     from pytest_mock import MockerFixture
 
 _PROPS: Final[tuple[str, ...]] = (
@@ -46,12 +45,12 @@ _PROPS: Final[tuple[str, ...]] = (
 
 
 @pytest.fixture(params=_PROPS)
-def func(request: SubRequest) -> str:
+def func(request: pytest.FixtureRequest) -> str:
     return cast("str", request.param)
 
 
 @pytest.fixture(params=_PROPS)
-def func_path(request: SubRequest) -> str:
+def func_path(request: pytest.FixtureRequest) -> str:
     return cast("str", request.param).replace("_dir", "_path")
 
 
@@ -90,7 +89,7 @@ def runtime_temp_dir(tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.
     mocker.patch("tempfile.tempdir", str(tmp_path))
     # user_runtime_dir checks fixed system paths such as /run/user/<uid> first, so serve those from system_root.
     real_lstat: Final = os.lstat
-    mocker.patch(  # simplint: ignore[SMP806]  # stacked on the os.lstat patch of runtime_temp_dir, which autospec cannot wrap
+    mocker.patch(  # simplint: ignore[mock-without-spec]  # autospec cannot wrap a patched os.lstat
         "os.lstat",
         side_effect=lambda path: real_lstat(
             system_root / path[1:]
@@ -145,7 +144,7 @@ def pwd() -> ModuleType:
 
 
 @pytest.fixture(params=["file", "file-symlink"])
-def media_file(request: SubRequest, tmp_path: Path) -> Path:
+def media_file(request: pytest.FixtureRequest, tmp_path: Path) -> Path:
     (target := tmp_path / "file").touch()
     if request.param == "file":
         return target
