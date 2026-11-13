@@ -410,6 +410,9 @@ def _get_user_dirs_folder(key: str) -> str | None:
     return folder
 
 
+_VALUE_PATTERN: Final[re.Pattern[str]] = re.compile(r'\\([$`"\\])')
+
+
 def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
     value = entry["bare"] if entry["quoted"] is None else entry["quoted"]
     if value == "$HOME" or value.startswith("$HOME/"):
@@ -421,7 +424,7 @@ def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
         return None
     if entry["quoted"] is not None:
         # xdg-user-dirs-update backslash-escapes $, `, " and \ inside the quotes.
-        value = re.sub(r'\\([$`"\\])', r"\1", value)
+        value = _VALUE_PATTERN.sub(r"\1", value)
     return f"{prefix}{value}" or "/"
 
 

@@ -158,21 +158,22 @@ lint.select = [
   "ALL",
 ]
 lint.ignore = [
-  "CPY",                               # no copyright notices
-  "DOC",                               # no support for restructuredtext
-  "incorrect-blank-line-before-class", # Conflicts with `blank-line-before-class`
-  "line-too-long",                     # line length handled by ruff format (code) and docstrfmt (docstrings)
-  "missing-blank-line-after-summary",  # 1 blank line required between summary line and description
-  "missing-trailing-comma",            # conflict
-  "multi-line-summary-second-line",    # docstrfmt uses `multi-line-summary-first-line` style
-  "non-empty-init-module",             # `__init__` module should only contain docstrings and re-exports
-  "non-imperative-mood",               # The first line of docstring should be in imperative mood
-  "undocumented-magic-method",         # undocumented-public-api (simplint) covers the public API instead
-  "undocumented-public-class",         # undocumented-public-api (simplint) covers the public API instead
-  "undocumented-public-function",      # undocumented-public-api (simplint) covers the public API instead
-  "undocumented-public-init",          # undocumented-public-api (simplint) covers the public API instead
-  "undocumented-public-method",        # undocumented-public-api (simplint) covers the public API instead
-  "undocumented-public-nested-class",  # undocumented-public-api (simplint) covers the public API instead
+  "CPY",                                    # no copyright notices
+  "DOC",                                    # no support for restructuredtext
+  "incorrect-blank-line-before-class",      # Conflicts with `blank-line-before-class`
+  "line-too-long",                          # line length handled by ruff format (code) and docstrfmt (docstrings)
+  "missing-blank-line-after-summary",       # 1 blank line required between summary line and description
+  "missing-trailing-comma",                 # conflict
+  "multi-line-summary-second-line",         # docstrfmt uses `multi-line-summary-first-line` style
+  "non-empty-init-module",                  # `__init__` module should only contain docstrings and re-exports
+  "non-imperative-mood",                    # The first line of docstring should be in imperative mood
+  "undocumented-magic-method",              # undocumented-public-api (simplint) covers the public API instead
+  "undocumented-public-class",              # undocumented-public-api (simplint) covers the public API instead
+  "undocumented-public-function",           # undocumented-public-api (simplint) covers the public API instead
+  "undocumented-public-init",               # undocumented-public-api (simplint) covers the public API instead
+  "undocumented-public-method",             # undocumented-public-api (simplint) covers the public API instead
+  "undocumented-public-nested-class",       # undocumented-public-api (simplint) covers the public API instead
+  "unnecessary-regular-expression-compile", # conflicts with simplint inline-regex
 ]
 lint.per-file-ignores."tests/**/*.py" = [
   "assert",                               # asserts allowed in tests
