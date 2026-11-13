@@ -847,7 +847,7 @@ _POSIX_ONLY: Final[pytest.MarkDecorator] = pytest.mark.skipif(
 @pytest.fixture
 def runtime_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> Path:
     # The runtime dir warnings are emitted once per process, so give every test its own record of them.
-    mocker.patch("platformdirs.unix._WARNED", set())
+    mocker.patch("platformdirs._runtime._WARNED", set())
     monkeypatch.setenv("XDG_RUNTIME_DIR", str(path := tmp_path / "runtime"))
     return path
 
@@ -855,7 +855,7 @@ def runtime_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerF
 @pytest.fixture
 def foreign_runtime_dir(runtime_dir: Path, mocker: MockerFixture) -> Path:
     runtime_dir.mkdir(mode=0o700)
-    mocker.patch("platformdirs.unix.geteuid", return_value=runtime_dir.stat().st_uid + 1, autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=runtime_dir.stat().st_uid + 1, autospec=True)
     return runtime_dir
 
 

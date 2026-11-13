@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import os
 import re
-import sys
 from contextlib import suppress
-from functools import cache, lru_cache
+from functools import cache
 from typing import Final
 
+from ._android import android_folder as _android_folder
 from .api import PlatformDirsABC
 
 
@@ -185,42 +185,6 @@ def _require_android_folder() -> str:
     return folder
 
 
-@lru_cache(maxsize=1)
-def _android_folder() -> str | None:
-    # :returns: base folder for the Android OS or None if it cannot be found
-    result = None
-    with suppress(ImportError):
-        from jnius import JavaException, autoclass  # ruff:ignore[import-outside-top-level]  # jnius exists only on Android  # ty: ignore[import-not-found]
-
-        with suppress(JavaException):
-            # A python-for-android service runs in its own process, where the activity is null.
-            if (context := autoclass("org.kivy.android.PythonActivity").mActivity) is None:
-                context = autoclass("org.kivy.android.PythonService").mService
-            if context is not None:
-                result = context.getFilesDir().getParentFile().getAbsolutePath()
-    if result is None:
-        # and if that fails, too, find an android folder looking at path on the sys.path
-        # warning: only works for apps installed under /data, not adopted storage etc.
-        pattern = _ANDROID_FOLDER_PATTERN
-        for path in sys.path:
-            if match := pattern.match(path):
-                result = match["folder"]
-                break
-        else:
-            result = None
-    if result is None:
-        # one last try: find an android folder looking at path on the sys.path taking adopted storage paths into
-        # account
-        pattern = _ANDROID_FOLDER_PATTERN_2
-        for path in sys.path:
-            if match := pattern.match(path):
-                result = match["folder"]
-                break
-        else:
-            result = None
-    return result
-
-
 @cache
 def _android_public_folder(name: str) -> str:
     with suppress(ImportError):
@@ -234,30 +198,6 @@ def _android_public_folder(name: str) -> str:
 def _shared_storage() -> str:
     # Android mounts each user's shared storage at /storage/emulated/<user id>, and an app sees only its own user's.
     return f"/storage/emulated/{(match['user'] if (match := _USER_ID.search(_android_folder() or '')) else '0')}"
-
-
-_ANDROID_FOLDER_PATTERN: Final[re.Pattern[str]] = re.compile(
-    r"""
-            (?P<folder>
-                /data/(?:data|user/\d+)  # internal storage of the primary user or of user N
-                /[^/]+                   # package name, one path segment
-            )
-            /files(?=/|\Z)               # the files directory the interpreter runs from
-            """,
-    re.VERBOSE,
-)
-
-_ANDROID_FOLDER_PATTERN_2: Final[re.Pattern[str]] = re.compile(
-    r"""
-            (?P<folder>
-                /mnt/expand/[a-fA-F0-9-]{36}  # adopted storage volume, named by its UUID
-                /(?:data|user/\d+)             # the primary user or user N
-                /[^/]+                         # package name, one path segment
-            )
-            /files(?=/|\Z)                     # the files directory the interpreter runs from
-            """,
-    re.VERBOSE,
-)
 
 
 _USER_ID: Final[re.Pattern[str]] = re.compile(

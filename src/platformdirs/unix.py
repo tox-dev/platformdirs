@@ -7,29 +7,23 @@ import posixpath
 import re
 import stat
 import sys
-import warnings
 from contextlib import suppress
 from pathlib import Path
 from tempfile import gettempdir
-from typing import TYPE_CHECKING, Final, NoReturn
+from typing import TYPE_CHECKING, Final
 
+from ._runtime import RUNTIME_DIR_MODE as _RUNTIME_DIR_MODE
+from ._runtime import geteuid
+from ._runtime import runtime_dir_problem as _runtime_dir_problem
+from ._runtime import warn_once as _warn_once
 from ._xdg import XDGMixin, expand_user, xdg_dir
-from .api import PlatformDirsABC, RuntimeDirWarning
+from .api import (
+    PlatformDirsABC,
+    RuntimeDirWarning,  # ruff:ignore[unused-import]  # retain module attribute
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
-
-if sys.platform == "win32":
-
-    def geteuid() -> NoReturn:
-        msg = "should only be used on Unix"
-        raise RuntimeError(msg)
-
-else:
-    try:
-        from os import geteuid
-    except ImportError:
-        from os import getuid as geteuid
 
 
 class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # full directory API
@@ -442,28 +436,6 @@ def _in_own_runtime_dir(path: Path) -> bool:
     return True
 
 
-def _runtime_dir_problem(path: str, *, missing_ok: bool, check_mode: bool = True) -> str | None:
-    # Return why ``path`` fails the checks of Qt's ``checkXdgRuntimeDir``, or ``None`` if it passes.
-    #
-    # A missing ``path`` passes under ``missing_ok``. A caller that then creates it or reads below it has to check
-    # again, since another user can create it in between.
-    try:
-        # A trailing / or /. makes lstat follow a final symlink, while Path, which creates the directory, drops it.
-        info = os.lstat(str(Path(path)))
-    except FileNotFoundError:
-        return None if missing_ok else f"{path} is missing"
-    except OSError as error:
-        return f"{path} cannot be checked: {error.strerror}"
-    mode = info.st_mode & 0o777
-    checks = (
-        (stat.S_ISLNK(info.st_mode), "is a symlink"),
-        (not stat.S_ISDIR(info.st_mode), "is not a directory"),
-        (info.st_uid != (uid := geteuid()), f"is owned by uid {info.st_uid}, not {uid}"),
-        (check_mode and mode != _RUNTIME_DIR_MODE, f"has mode {mode:04o}, not {_RUNTIME_DIR_MODE:04o}"),
-    )
-    return next((f"{path} {problem}" for failed, problem in checks if failed), None)
-
-
 def _runtime_dir_parent_problem(path: str) -> str | None:
     if sys.platform == "win32":  # every directory reports as writable by everyone there
         return None
@@ -478,17 +450,6 @@ def _runtime_dir_parent_problem(path: str) -> str | None:
         if (in_shared_dir := bool(mode & stat.S_IWOTH)) and not mode & stat.S_ISVTX:
             return f"{path} is below {parent}, writable by every user"
     return None
-
-
-def _warn_once(message: str) -> None:
-    # Each read of user_runtime_dir repeats the check, so a warning per read would flood long-running programs.
-    if message not in _WARNED:
-        _WARNED.add(message)
-        warnings.warn(message, RuntimeDirWarning, stacklevel=3)
-
-
-_WARNED: Final[set[str]] = set()
-_RUNTIME_DIR_MODE: Final[int] = 0o700
 
 
 __all__ = [

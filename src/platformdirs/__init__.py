@@ -41,9 +41,9 @@ def _set_platform_dir_class() -> type[PlatformDirsABC]:
         if os.getenv("SHELL") or os.getenv("PREFIX"):
             return _Result
 
-        from .android import _android_folder  # ruff:ignore[import-outside-top-level]  # simplint: ignore[private-import-path]  # keep Android's internal lookup private
+        from ._android import android_folder  # ruff:ignore[import-outside-top-level]  # Android-only lookup
 
-        if _android_folder() is not None:
+        if android_folder() is not None:
             from .android import Android  # ruff:ignore[import-outside-top-level]  # Android-only module
 
             return Android  # return to avoid redefinition of a result
