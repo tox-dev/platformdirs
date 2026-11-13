@@ -94,18 +94,14 @@ class AppParams(TypedDict, total=False):
 @pytest.mark.parametrize(
     "params",
     [
-        {},
-        {"appname": "foo"},
-        {"appname": "foo", "appauthor": "bar"},
-        {"appname": "foo", "appauthor": "bar", "version": "v1.0"},
-        {"appname": "foo", "appauthor": "bar", "version": "v1.0", "opinion": False},
-    ],
-    ids=[
-        "no_args",
-        "app_name",
-        "app_name_with_app_author",
-        "app_name_author_version",
-        "app_name_author_version_false_opinion",
+        pytest.param({}, id="no_args"),
+        pytest.param({"appname": "foo"}, id="app_name"),
+        pytest.param({"appname": "foo", "appauthor": "bar"}, id="app_name_with_app_author"),
+        pytest.param({"appname": "foo", "appauthor": "bar", "version": "v1.0"}, id="app_name_author_version"),
+        pytest.param(
+            {"appname": "foo", "appauthor": "bar", "version": "v1.0", "opinion": False},
+            id="app_name_author_version_false_opinion",
+        ),
     ],
 )
 @pytest.mark.usefixtures("_example_android_folder")

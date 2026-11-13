@@ -43,16 +43,10 @@ class AppParams(TypedDict, total=False):
 @pytest.mark.parametrize(
     "params",
     [
-        {},
-        {"appname": "foo"},
-        {"appname": "foo", "appauthor": "bar"},
-        {"appname": "foo", "appauthor": "bar", "version": "v1.0"},
-    ],
-    ids=[
-        "no_args",
-        "app_name",
-        "app_name_with_app_author",
-        "app_name_author_version",
+        pytest.param({}, id="no_args"),
+        pytest.param({"appname": "foo"}, id="app_name"),
+        pytest.param({"appname": "foo", "appauthor": "bar"}, id="app_name_with_app_author"),
+        pytest.param({"appname": "foo", "appauthor": "bar", "version": "v1.0"}, id="app_name_author_version"),
     ],
 )
 @pytest.mark.parametrize(

@@ -66,7 +66,7 @@ class XDGMixin(PlatformDirsABC):
     @property
     def user_runtime_dir(self) -> str:
         """Runtime directory tied to the user, from ``$XDG_RUNTIME_DIR`` if set and private, else platform default."""
-        from .unix import _runtime_dir_problem, _warn_once  # ruff:ignore[import-outside-top-level]  # unix imports _xdg
+        from .unix import _runtime_dir_problem, _warn_once  # ruff:ignore[import-outside-top-level]  # simplint: ignore[private-import-path]  # unix imports _xdg
 
         if path := xdg_dir("XDG_RUNTIME_DIR"):
             with suppress(OSError):
