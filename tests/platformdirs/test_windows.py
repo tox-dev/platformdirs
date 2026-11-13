@@ -600,7 +600,7 @@ def test_get_win_folder_from_registry_unknown() -> None:
         get_win_folder_from_registry("CSIDL_NOT_A_FOLDER")
 
 
-_NO_SHELL_FOLDER_VALUE: Final[set[str]] = {"CSIDL_PUBLIC", "CSIDL_USER_PROGRAM_FILES"}
+_NO_SHELL_FOLDER_VALUE: Final[frozenset[str]] = frozenset({"CSIDL_PUBLIC", "CSIDL_USER_PROGRAM_FILES"})
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="on Windows the resolver reads the registry instead of raising")
