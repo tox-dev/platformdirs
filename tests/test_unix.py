@@ -529,6 +529,21 @@ def test_runtime_dir_uses_private_xdg_runtime_dir(session_dir: Path) -> None:
     assert Unix(appname="app").user_runtime_dir == str(session_dir / "app")
 
 
+def _create(path: Path, kind: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    match kind:
+        case "private" | "mode-755" | "mode-500":
+            path.mkdir()
+            path.chmod({"private": 0o700, "mode-755": 0o755, "mode-500": 0o500}[kind])
+        case "symlink":
+            _create(target := path.with_name(f"{path.name}-target"), "private")
+            path.symlink_to(target)
+        case "file":
+            path.touch()
+        case "symlink-loop":
+            path.symlink_to(path)
+
+
 @_POSIX_ONLY
 @pytest.mark.usefixtures("runtime_uid")
 @pytest.mark.filterwarnings("error::platformdirs.RuntimeDirWarning")
@@ -838,6 +853,25 @@ def test_runtime_dir_temp_fallback_rejects_dir_hidden_from_check(
         create()
 
 
+def _hide_during_check(mocker: MockerFixture, base: Path) -> None:
+    # Move ``base`` away for each lstat of it, as its owner can in a shared sticky directory.
+    lstat: typing.Final = os.lstat
+    _create(base, "private")
+
+    def hide(path: str) -> os.stat_result:
+        if path != str(base):
+            return lstat(path)
+        base.rename(hidden := base.with_name(f"{base.name}-hidden"))
+        try:
+            return lstat(path)
+        finally:
+            hidden.rename(base)
+
+    mocker.patch(  # simplint: ignore[mock-without-spec]  # autospec cannot wrap a patched os.lstat
+        "os.lstat", side_effect=hide
+    )
+
+
 @_POSIX_ONLY
 @pytest.mark.usefixtures("temp_dir")
 def test_runtime_dir_xdg_runtime_dir_hidden_from_check_warns(mocker: MockerFixture, session_dir: Path) -> None:
@@ -852,6 +886,25 @@ def test_place_runtime_file_creates_runtime_dir_before_check(mocker: MockerFixtu
     _plant_after_check(mocker, runtime_base)
     Unix(appname="app").place_runtime_file("app.sock")
     assert not runtime_base.is_symlink()
+
+
+def _plant_after_check(mocker: MockerFixture, base: Path) -> None:
+    # Link ``base`` to a directory with ``app/app.sock`` once an lstat finds it missing, as another user can.
+    lstat: typing.Final = os.lstat
+
+    def plant(path: str) -> os.stat_result:
+        try:
+            return lstat(path)
+        except FileNotFoundError:
+            if path == str(base):
+                _create(base, "symlink")
+                (base / "app").mkdir()
+                (base / "app" / "app.sock").touch()
+            raise
+
+    mocker.patch(  # simplint: ignore[mock-without-spec]  # autospec cannot wrap a patched os.lstat
+        "os.lstat", side_effect=plant
+    )
 
 
 @_POSIX_ONLY
@@ -908,44 +961,6 @@ def test_find_runtime_files_skips_missing_temp_fallback_at_root(mocker: MockerFi
     assert Unix(appname="app").find_runtime_files("app.sock") == [Path("/run/app/app.sock")]
 
 
-def _plant_after_check(mocker: MockerFixture, base: Path) -> None:
-    # Link ``base`` to a directory with ``app/app.sock`` once an lstat finds it missing, as another user can.
-    lstat: typing.Final = os.lstat
-
-    def plant(path: str) -> os.stat_result:
-        try:
-            return lstat(path)
-        except FileNotFoundError:
-            if path == str(base):
-                _create(base, "symlink")
-                (base / "app").mkdir()
-                (base / "app" / "app.sock").touch()
-            raise
-
-    mocker.patch(  # simplint: ignore[mock-without-spec]  # autospec cannot wrap a patched os.lstat
-        "os.lstat", side_effect=plant
-    )
-
-
-def _hide_during_check(mocker: MockerFixture, base: Path) -> None:
-    # Move ``base`` away for each lstat of it, as its owner can in a shared sticky directory.
-    lstat: typing.Final = os.lstat
-    _create(base, "private")
-
-    def hide(path: str) -> os.stat_result:
-        if path != str(base):
-            return lstat(path)
-        base.rename(hidden := base.with_name(f"{base.name}-hidden"))
-        try:
-            return lstat(path)
-        finally:
-            hidden.rename(base)
-
-    mocker.patch(  # simplint: ignore[mock-without-spec]  # autospec cannot wrap a patched os.lstat
-        "os.lstat", side_effect=hide
-    )
-
-
 @pytest.fixture(params=["temp_dir", "session_dir", "temp_dir_in_session_dir"])
 def runtime_base(request: pytest.FixtureRequest) -> Path:
     return request.getfixturevalue(request.param)
@@ -989,21 +1004,6 @@ def runtime_uid(tmp_path: Path, mocker: MockerFixture) -> int:
 @pytest.fixture
 def platform() -> str:
     return "linux"
-
-
-def _create(path: Path, kind: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    match kind:
-        case "private" | "mode-755" | "mode-500":
-            path.mkdir()
-            path.chmod({"private": 0o700, "mode-755": 0o755, "mode-500": 0o500}[kind])
-        case "symlink":
-            _create(target := path.with_name(f"{path.name}-target"), "private")
-            path.symlink_to(target)
-        case "file":
-            path.touch()
-        case "symlink-loop":
-            path.symlink_to(path)
 
 
 def test_ensure_exists_creates_folder(monkeypatch: pytest.MonkeyPatch, posix_tmp_path: str) -> None:

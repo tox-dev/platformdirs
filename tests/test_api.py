@@ -262,13 +262,13 @@ def user_dirs(home: Path) -> dict[str, Path]:
     }
 
 
-def _place(kind: str, *, ensure_exists: bool = False) -> Callable[[str | Path], Path]:
-    return getattr(Unix(appname="app", ensure_exists=ensure_exists), f"place_{kind}_file")
-
-
 @pytest.mark.parametrize("kind", _EXISTING_KINDS)
 def test_place_file_returns_path_under_user_dir(user_dirs: dict[str, Path], kind: str) -> None:
     assert _place(kind)("sub/app.toml") == user_dirs[kind] / "sub" / "app.toml"
+
+
+def _place(kind: str, *, ensure_exists: bool = False) -> Callable[[str | Path], Path]:
+    return getattr(Unix(appname="app", ensure_exists=ensure_exists), f"place_{kind}_file")
 
 
 @pytest.mark.parametrize("kind", _EXISTING_KINDS)
@@ -391,12 +391,6 @@ def user_file(dirs: Unix, kind: str) -> Path:
     return path
 
 
-def _touch(path: Path) -> Path:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.touch()
-    return path
-
-
 @pytest.mark.parametrize("dirs_class", [pytest.param(Unix, id="unix"), pytest.param(MacOS, id="macos")])
 @pytest.mark.parametrize("kind", [pytest.param("config", id="config"), pytest.param("data", id="data")])
 @pytest.mark.parametrize(
@@ -471,6 +465,12 @@ def test_find_config_file_prefers_user_over_site(dirs: Unix, config_paths: list[
     user = _touch(config_paths[0] / "app.toml")
     _touch(config_paths[2] / "app.toml")
     assert dirs.find_config_file("app.toml") == user
+
+
+def _touch(path: Path) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.touch()
+    return path
 
 
 def test_find_config_file_falls_back_to_site(dirs: Unix, config_paths: list[Path]) -> None:

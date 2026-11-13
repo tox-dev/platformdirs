@@ -322,10 +322,14 @@ def test_get_win_folder_if_csidl_name_not_env_var_programs(monkeypatch: pytest.M
     assert result.endswith("Programs")
 
 
-def _dll(mocker: MockerFixture) -> MockType:
-    return mocker.MagicMock(  # simplint: ignore[mock-without-spec]  # Windows DLL exports are absent on Unix
-        spec=("CLSIDFromString", "CoTaskMemFree", "GetShortPathNameW", "SHGetKnownFolderPath")
-    )
+@pytest.fixture
+def _non_windows_ctypes(mocker: MockerFixture) -> Iterator[None]:
+    if sys.platform == "win32":
+        yield
+        return
+    _setup_ctypes_mocks(mocker, win_dll=mocker.create_autospec(ctypes.CDLL, side_effect=lambda _name: _dll(mocker)))
+    yield
+    _cleanup_ctypes_mocks()
 
 
 def _setup_ctypes_mocks(mocker: MockerFixture, *, win_dll: MockType | None = None) -> None:
@@ -339,20 +343,16 @@ def _setup_ctypes_mocks(mocker: MockerFixture, *, win_dll: MockType | None = Non
     mocker.patch("ctypes.POINTER", return_value=ctypes.c_void_p, autospec=True)
 
 
+def _dll(mocker: MockerFixture) -> MockType:
+    return mocker.MagicMock(  # simplint: ignore[mock-without-spec]  # Windows DLL exports are absent on Unix
+        spec=("CLSIDFromString", "CoTaskMemFree", "GetShortPathNameW", "SHGetKnownFolderPath")
+    )
+
+
 def _cleanup_ctypes_mocks() -> None:
     for attr in ("HRESULT", "WinDLL"):
         if isinstance(getattr(ctypes, attr, None), MockType):
             delattr(ctypes, attr)
-
-
-@pytest.fixture
-def _non_windows_ctypes(mocker: MockerFixture) -> Iterator[None]:
-    if sys.platform == "win32":
-        yield
-        return
-    _setup_ctypes_mocks(mocker, win_dll=mocker.create_autospec(ctypes.CDLL, side_effect=lambda _name: _dll(mocker)))
-    yield
-    _cleanup_ctypes_mocks()
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="real ctypes test only runs on Windows")
