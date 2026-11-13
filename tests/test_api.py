@@ -141,6 +141,9 @@ def test_mypy_subclassing() -> None:
 
     class AppDirsSubclass(platformdirs.AppDirs): ...
 
+    expected = platformdirs.PlatformDirs("MyApp").user_data_dir
+    assert (PlatformDirsSubclass("MyApp").user_data_dir, AppDirsSubclass("MyApp").user_data_dir) == (expected, expected)
+
 
 @pytest.mark.parametrize("kind", ["config", "data", "cache", "state", "log", "runtime"])
 def test_iter_dirs_yields_user_before_site(kind: str) -> None:
