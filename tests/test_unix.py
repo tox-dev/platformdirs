@@ -14,6 +14,7 @@ import warnings
 from operator import attrgetter, methodcaller
 from pathlib import Path
 from tempfile import gettempdir
+from types import MappingProxyType
 
 import pytest
 
@@ -217,7 +218,7 @@ class XDGVariable(typing.NamedTuple):
     default_value: str
 
 
-_XDG_VARIABLES: typing.Final[dict[str, XDGVariable]] = {
+_XDG_VARIABLES: typing.Final[MappingProxyType[str, XDGVariable]] = MappingProxyType({
     "user_data_dir": XDGVariable("XDG_DATA_HOME", "~/.local/share"),
     "site_data_dir": XDGVariable("XDG_DATA_DIRS", f"/usr/local/share{os.pathsep}/usr/share"),
     "user_config_dir": XDGVariable("XDG_CONFIG_HOME", "~/.config"),
@@ -229,7 +230,7 @@ _XDG_VARIABLES: typing.Final[dict[str, XDGVariable]] = {
     "site_runtime_dir": XDGVariable(
         "XDG_RUNTIME_DIR", "/var/run" if sys.platform.startswith(("freebsd", "openbsd", "netbsd")) else "/run"
     ),
-}
+})
 _XDG_CASES: typing.Final[list[tuple[str, XDGVariable]]] = list(_XDG_VARIABLES.items())
 
 
@@ -489,22 +490,22 @@ def test_user_runtime_dir_temp_fallback_single_slash(mocker: MockerFixture, temp
 _POSIX_ONLY: typing.Final[pytest.MarkDecorator] = pytest.mark.skipif(
     sys.platform == "win32", reason="Windows has no POSIX owners or modes"
 )
-_PROBLEMS: typing.Final[dict[str, str]] = {
+_PROBLEMS: typing.Final[MappingProxyType[str, str]] = MappingProxyType({
     "symlink": "is a symlink",
     "file": "is not a directory",
     "mode-755": "has mode 0755, not 0700",
     "mode-500": "has mode 0500, not 0700",
-}
-_UNREACHABLE: typing.Final[dict[str, str]] = {
+})
+_UNREACHABLE: typing.Final[MappingProxyType[str, str]] = MappingProxyType({
     "file": os.strerror(errno.ENOTDIR),
     "symlink-loop": os.strerror(errno.ELOOP),
-}
-_DEFAULT_PREFIXES: typing.Final[dict[str, str]] = {
+})
+_DEFAULT_PREFIXES: typing.Final[MappingProxyType[str, str]] = MappingProxyType({
     "linux": "run/user",
     "freebsd": "var/run/user",
     "netbsd": "var/run/user",
     "openbsd": "tmp/run/user",
-}
+})
 
 
 @_POSIX_ONLY
@@ -1185,7 +1186,7 @@ def test_place_runtime_file_rejects_temp_fallback_of_other_owner(mocker: MockerF
         Unix(appname="foo").place_runtime_file("app.sock")
 
 
-_MEDIA_DIR_CASES: typing.Final[list[tuple[str, str, str]]] = [
+_MEDIA_DIR_CASES: typing.Final[tuple[tuple[str, str, str], ...]] = (
     ("XDG_DOCUMENTS_DIR", "user_documents_dir", "Documents"),
     ("XDG_DOWNLOAD_DIR", "user_downloads_dir", "Downloads"),
     ("XDG_PICTURES_DIR", "user_pictures_dir", "Pictures"),
@@ -1195,7 +1196,7 @@ _MEDIA_DIR_CASES: typing.Final[list[tuple[str, str, str]]] = [
     ("XDG_PROJECTS_DIR", "user_projects_dir", "Projects"),
     ("XDG_PUBLICSHARE_DIR", "user_publicshare_dir", "Public"),
     ("XDG_TEMPLATES_DIR", "user_templates_dir", "Templates"),
-]
+)
 
 
 @pytest.mark.parametrize(
