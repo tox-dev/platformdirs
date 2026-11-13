@@ -33,17 +33,20 @@ if typing.TYPE_CHECKING:
 def _reload_after_test() -> typing.Iterator[None]:
     # The warnings are emitted once per process, so start every test from a fresh module.
     yield
+    importlib.reload(sys.modules["platformdirs._runtime"])
     importlib.reload(unix)
 
 
 @pytest.fixture
 def _as_root(mocker: MockerFixture, _clear_xdg_env: None) -> None:
     mocker.patch("platformdirs.unix.geteuid", return_value=0, autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=0, autospec=True)
 
 
 @pytest.fixture
 def _as_non_root(mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.unix.geteuid", return_value=1000, autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=1000, autospec=True)
 
 
 @pytest.fixture
@@ -206,6 +209,7 @@ def dirs_instance() -> Unix:
 @pytest.fixture
 def _geteuid(mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.unix.geteuid", return_value=1234, autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=1234, autospec=True)
 
 
 class XDGVariable(typing.NamedTuple):
@@ -403,6 +407,7 @@ def test_platform_on_win32(monkeypatch: pytest.MonkeyPatch, mocker: MockerFixtur
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     mocker.patch("sys.platform", "win32")
     prev_unix = unix
+    importlib.reload(sys.modules["platformdirs._runtime"])
     importlib.reload(unix)
     try:
         with pytest.raises(RuntimeError, match="should only be used on Unix"):
@@ -420,6 +425,7 @@ def test_platform_without_geteuid(
     getuid = mocker.patch(  # simplint: ignore[mock-without-spec]  # getuid absent on Windows
         "os.getuid", return_value=uid, create=True
     )
+    importlib.reload(sys.modules["platformdirs._runtime"])
     importlib.reload(unix)
 
     assert unix.geteuid is getuid
@@ -443,6 +449,7 @@ def test_user_runtime_dir_temp_fallback_mode(
     mocker: MockerFixture, runtime_temp_dir: Path, existing_mode: int | None, ensure_exists: bool, expected_mode: int
 ) -> None:
     mocker.patch("platformdirs.unix.geteuid", return_value=(uid := runtime_temp_dir.stat().st_uid), autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=uid, autospec=True)
     base: typing.Final = runtime_temp_dir / f"runtime-{uid}"
     if existing_mode is not None:  # simplint: ignore[conditional-in-test]  # existing directory case
         base.mkdir()
@@ -459,6 +466,7 @@ def test_user_runtime_dir_temp_fallback_rejects_other_owner(
     owner: typing.Final = runtime_temp_dir.stat().st_uid
     (runtime_temp_dir / f"runtime-{owner + 1}").mkdir()
     mocker.patch("platformdirs.unix.geteuid", return_value=owner + 1, autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=owner + 1, autospec=True)
     with pytest.raises(PermissionError, match=f"owned by uid {owner},"):
         # property access raises
         Unix(appname="foo", ensure_exists=ensure_exists).user_runtime_dir  # ruff:ignore[useless-expression]
@@ -608,6 +616,7 @@ def test_runtime_dir_xdg_runtime_dir_of_other_user_warns(
     _create(session_dir, "private")
     owner: typing.Final = session_dir.stat().st_uid
     mocker.patch("platformdirs.unix.geteuid", return_value=owner + 1, autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=owner + 1, autospec=True)
     with pytest.warns(RuntimeDirWarning) as record:
         _ = Unix(appname="app").user_runtime_dir
     fallback: typing.Final = runtime_temp_dir / f"runtime-{owner + 1}"
@@ -768,6 +777,7 @@ def test_runtime_dir_default_dir_of_other_user_falls_back(
     owner: typing.Final = runtime_temp_dir.stat().st_uid
     _create(system_root / "run" / "user" / str(owner + 1), "private")
     mocker.patch("platformdirs.unix.geteuid", return_value=owner + 1, autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=owner + 1, autospec=True)
     assert Unix(appname="app").user_runtime_dir == str(runtime_temp_dir / f"runtime-{owner + 1}" / "app")
 
 
@@ -805,6 +815,7 @@ def test_runtime_dir_warning_points_at_caller() -> None:
 def test_runtime_dir_site_redirect_skips_checks(session_dir: Path, mocker: MockerFixture) -> None:
     _create(session_dir, "mode-755")
     mocker.patch("platformdirs.unix.geteuid", return_value=0, autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=0, autospec=True)
     mocker.patch("sys.platform", "linux")
     assert Unix(appname="app", use_site_for_root=True).user_runtime_dir == "/run/app"
 
@@ -970,6 +981,7 @@ def temp_dir(runtime_temp_dir: Path, runtime_uid: int) -> Path:
 @pytest.fixture
 def runtime_uid(tmp_path: Path, mocker: MockerFixture) -> int:
     mocker.patch("platformdirs.unix.geteuid", return_value=(owner := tmp_path.stat().st_uid), autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=owner, autospec=True)
     return owner
 
 
@@ -1168,6 +1180,7 @@ def test_place_runtime_file_rejects_temp_fallback_of_other_owner(mocker: MockerF
     owner: typing.Final = runtime_temp_dir.stat().st_uid
     (runtime_temp_dir / f"runtime-{owner + 1}").mkdir()
     mocker.patch("platformdirs.unix.geteuid", return_value=owner + 1, autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=owner + 1, autospec=True)
     with pytest.raises(PermissionError, match=f"owned by uid {owner},"):
         Unix(appname="foo").place_runtime_file("app.sock")
 
@@ -1596,6 +1609,7 @@ def _credentials(request: pytest.FixtureRequest, mocker: MockerFixture) -> None:
     real, effective = typing.cast("tuple[int, int]", request.param)
     mocker.patch("os.getuid", return_value=real, autospec=True)
     mocker.patch("os.geteuid", return_value=effective, autospec=True)
+    importlib.reload(sys.modules["platformdirs._runtime"])
     importlib.reload(unix)
 
 
@@ -1901,6 +1915,7 @@ def test_place_file_with_use_site_for_root_keeps_site_dir_readable(
 def uid(request: pytest.FixtureRequest, mocker: MockerFixture) -> int:
     value: typing.Final = typing.cast("int", request.param)
     mocker.patch("platformdirs.unix.geteuid", return_value=value, autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=value, autospec=True)
     return value
 
 

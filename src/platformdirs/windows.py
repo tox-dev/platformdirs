@@ -198,7 +198,7 @@ def get_win_folder(csidl_name: str) -> str:
 
     :returns: the folder path.
 
-    """
+    """  # simplint: ignore[function-docstring]  # retain existing docstring
     env_var = f"WIN_PD_OVERRIDE_{csidl_name.removeprefix('CSIDL_')}"
     if _is_fully_qualified(override := os.environ.get(env_var, "").strip()):
         return override
@@ -223,7 +223,7 @@ def get_win_folder_from_env_vars(csidl_name: str) -> str:
     :returns: the folder path.
     :raises ValueError: when the name has no environment variable or the variable is unset.
 
-    """
+    """  # simplint: ignore[function-docstring]  # retain existing docstring
     result = get_win_folder_if_csidl_name_not_env_var(csidl_name)
     if result is not None:
         return result
@@ -250,7 +250,7 @@ def get_win_folder_if_csidl_name_not_env_var(csidl_name: str) -> str | None:
     :returns: the folder path, or ``None``.
     :raises KeyError: when the environment variable the folder is based on is unset.
 
-    """
+    """  # simplint: ignore[function-docstring]  # retain existing docstring
     if (
         env_var_and_parts := {
             "CSIDL_PERSONAL": ("USERPROFILE", "Documents"),
@@ -291,7 +291,7 @@ def get_win_folder_from_registry(csidl_name: str) -> str:
 
     :returns: the folder path.
 
-    """
+    """  # simplint: ignore[function-docstring]  # retain existing docstring
     machine_names = {
         "CSIDL_COMMON_APPDATA",
         "CSIDL_COMMON_PROGRAMS",
@@ -407,7 +407,7 @@ def get_win_folder_via_ctypes(csidl_name: str) -> str:
 
     :returns: the folder path.
 
-    """
+    """  # simplint: ignore[function-docstring]  # retain existing docstring
     return _build_get_win_folder_via_ctypes()(csidl_name)
 
 
@@ -432,9 +432,4 @@ _RESOLVE_WIN_FOLDER: Final[Callable[[str], str]] = _pick_get_win_folder()
 
 __all__ = [
     "Windows",
-    "get_win_folder",
-    "get_win_folder_from_env_vars",
-    "get_win_folder_from_registry",
-    "get_win_folder_if_csidl_name_not_env_var",
-    "get_win_folder_via_ctypes",
 ]
