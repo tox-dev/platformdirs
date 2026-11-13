@@ -232,6 +232,46 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
         return path
 
 
+def _get_user_dirs_folder(key: str) -> str | None:
+    # Return directory from user-dirs.dirs config file.
+    #
+    # ``xdg-user-dirs-update`` writes shell assignments, so match each line like ``xdg-user-dir`` does and keep the last
+    # valid assignment to ``key``.
+    #
+    # See https://freedesktop.org/wiki/Software/xdg-user-dirs/.
+    user_dirs_config_path = Path(xdg_dir("XDG_CONFIG_HOME") or expand_user("~/.config")) / "user-dirs.dirs"
+    folder = None
+    try:
+        # the file holds raw path bytes, and surrogateescape round-trips undecodable ones like os.fsdecode
+        with user_dirs_config_path.open(encoding=sys.getfilesystemencoding(), errors="surrogateescape") as stream:
+            for line in stream:
+                if (entry := _USER_DIRS_LINE.match(line)) and entry["key"] == key:
+                    folder = _resolve_user_dirs_value(entry) or folder
+    except OSError:  # a missing or unreadable file leaves the defaults in place
+        return None
+    return folder
+
+
+def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
+    value = entry["bare"] if entry["quoted"] is None else entry["quoted"]
+    if value == "$HOME" or value.startswith("$HOME/"):
+        # A home of / would give "//Desktop", which pathlib keeps as a distinct root.
+        prefix, value = expand_user("~").rstrip("/"), value.removeprefix("$HOME")
+    elif value.startswith("/"):
+        prefix = ""
+    else:
+        return None
+    if entry["quoted"] is not None:
+        # xdg-user-dirs-update backslash-escapes $, `, " and \ inside the quotes.
+        value = _VALUE_PATTERN.sub(r"\1", value)
+    return f"{prefix}{value}" or "/"
+
+
+def _temp_runtime_fallback() -> str:
+    # A temporary directory of / would give "//runtime-<uid>", which pathlib keeps as a distinct root.
+    return posixpath.join(gettempdir(), f"runtime-{geteuid()}")
+
+
 class Unix(XDGMixin, _UnixDefaults):
     """On Unix/Linux, we follow the `XDG Basedir Spec <https://specifications.freedesktop.org/basedir/latest/>`_.
 
@@ -370,72 +410,6 @@ class Unix(XDGMixin, _UnixDefaults):
         return expand_user(default) if self._use_site else super()._user_media_dir(key, default)
 
 
-_USER_DIRS_LINE: Final[re.Pattern[str]] = re.compile(
-    r"""
-    [ \t]*(?P<key>\w+)[ \t]*=[ \t]*  # KEY=, blanks allowed around the key and after the =
-    (?:
-        "(?P<quoted>(?:[^"\\]|\\.)*)"  # a double-quoted value with backslash escapes, text after it ignored
-        |(?P<bare>[^"\s](?:[^ \t\n]|[ \t]+[^ \t\n\#])*)  # or an unquoted value; blanks join it only before a word
-                                                         # that starts no comment, and each run is matched once so
-                                                         # long runs stay linear
-    )
-    """,
-    re.VERBOSE,
-)
-
-
-def _get_user_dirs_folder(key: str) -> str | None:
-    # Return directory from user-dirs.dirs config file.
-    #
-    # ``xdg-user-dirs-update`` writes shell assignments, so match each line like ``xdg-user-dir`` does and keep the last
-    # valid assignment to ``key``.
-    #
-    # See https://freedesktop.org/wiki/Software/xdg-user-dirs/.
-    user_dirs_config_path = Path(xdg_dir("XDG_CONFIG_HOME") or expand_user("~/.config")) / "user-dirs.dirs"
-    folder = None
-    try:
-        # the file holds raw path bytes, and surrogateescape round-trips undecodable ones like os.fsdecode
-        with user_dirs_config_path.open(encoding=sys.getfilesystemencoding(), errors="surrogateescape") as stream:
-            for line in stream:
-                if (entry := _USER_DIRS_LINE.match(line)) and entry["key"] == key:
-                    folder = _resolve_user_dirs_value(entry) or folder
-    except OSError:  # a missing or unreadable file leaves the defaults in place
-        return None
-    return folder
-
-
-_VALUE_PATTERN: Final[re.Pattern[str]] = re.compile(r'\\([$`"\\])')
-
-
-def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
-    value = entry["bare"] if entry["quoted"] is None else entry["quoted"]
-    if value == "$HOME" or value.startswith("$HOME/"):
-        # A home of / would give "//Desktop", which pathlib keeps as a distinct root.
-        prefix, value = expand_user("~").rstrip("/"), value.removeprefix("$HOME")
-    elif value.startswith("/"):
-        prefix = ""
-    else:
-        return None
-    if entry["quoted"] is not None:
-        # xdg-user-dirs-update backslash-escapes $, `, " and \ inside the quotes.
-        value = _VALUE_PATTERN.sub(r"\1", value)
-    return f"{prefix}{value}" or "/"
-
-
-def _temp_runtime_fallback() -> str:
-    # A temporary directory of / would give "//runtime-<uid>", which pathlib keeps as a distinct root.
-    return posixpath.join(gettempdir(), f"runtime-{geteuid()}")
-
-
-def _in_own_runtime_dir(path: Path) -> bool:
-    # The lookup let a missing runtime directory pass, so another user may have created it since. The fallback goes
-    # first because a rejected XDG_RUNTIME_DIR, such as /tmp, contains it.
-    for base in (_temp_runtime_fallback(), xdg_dir("XDG_RUNTIME_DIR")):
-        if base and path.is_relative_to(base):
-            return not _runtime_dir_problem(base, missing_ok=False, check_mode=False)
-    return True
-
-
 def _runtime_dir_parent_problem(path: str) -> str | None:
     if sys.platform == "win32":  # every directory reports as writable by everyone there
         return None
@@ -450,6 +424,32 @@ def _runtime_dir_parent_problem(path: str) -> str | None:
         if (in_shared_dir := bool(mode & stat.S_IWOTH)) and not mode & stat.S_ISVTX:
             return f"{path} is below {parent}, writable by every user"
     return None
+
+
+def _in_own_runtime_dir(path: Path) -> bool:
+    # The lookup let a missing runtime directory pass, so another user may have created it since. The fallback goes
+    # first because a rejected XDG_RUNTIME_DIR, such as /tmp, contains it.
+    for base in (_temp_runtime_fallback(), xdg_dir("XDG_RUNTIME_DIR")):
+        if base and path.is_relative_to(base):
+            return not _runtime_dir_problem(base, missing_ok=False, check_mode=False)
+    return True
+
+
+_USER_DIRS_LINE: Final[re.Pattern[str]] = re.compile(
+    r"""
+    [ \t]*(?P<key>\w+)[ \t]*=[ \t]*  # KEY=, blanks allowed around the key and after the =
+    (?:
+        "(?P<quoted>(?:[^"\\]|\\.)*)"  # a double-quoted value with backslash escapes, text after it ignored
+        |(?P<bare>[^"\s](?:[^ \t\n]|[ \t]+[^ \t\n\#])*)  # or an unquoted value; blanks join it only before a word
+                                                         # that starts no comment, and each run is matched once so
+                                                         # long runs stay linear
+    )
+    """,
+    re.VERBOSE,
+)
+
+
+_VALUE_PATTERN: Final[re.Pattern[str]] = re.compile(r'\\([$`"\\])')
 
 
 __all__ = [

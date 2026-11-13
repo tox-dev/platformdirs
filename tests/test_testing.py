@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
 import pytest
@@ -37,7 +38,9 @@ def _resolve_all() -> dict[str, list[str]]:
 
 # Taken at collection, before any test enters isolation, so a leaked patch cannot become the baseline.
 _ORIGINAL: Final[dict[str, list[str]]] = _resolve_all()
-_ANDROID_ORIGINAL: Final[dict[str, Any]] = dict(vars(Android))  # simplint: ignore[imprecise-annotation]  # mixed attrs
+_ANDROID_ORIGINAL: Final[
+    MappingProxyType[str, Any]  # simplint: ignore[imprecise-annotation]  # class attributes of mixed types
+] = MappingProxyType(dict(vars(Android)))
 
 
 def test_isolated_dirs_yields_root_as_path(tmp_path: Path) -> None:

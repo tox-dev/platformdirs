@@ -227,17 +227,6 @@ def _posix_path_join(mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
 
 
-def _pyjnius(classes: dict[str, SimpleNamespace]) -> SimpleNamespace:
-    # pyjnius raises JavaException for an unknown class and for an instance method called on a class object
-    def autoclass(name: str) -> SimpleNamespace:
-        if name not in classes:
-            msg = f"Class not found {name!r}"
-            raise RuntimeError(msg)
-        return classes[name]
-
-    return SimpleNamespace(autoclass=autoclass, JavaException=RuntimeError)
-
-
 def _context(app_folder: str) -> SimpleNamespace:
     app_dir = SimpleNamespace(getAbsolutePath=lambda: app_folder)
     return SimpleNamespace(getFilesDir=lambda: SimpleNamespace(getParentFile=lambda: app_dir))
@@ -264,6 +253,17 @@ def test_android_folder_from_python_for_android(
     mocker.patch.dict(sys.modules, {"jnius": _pyjnius(classes), "android": None})
     monkeypatch.setattr(sys, "path", [])
     assert Android(appname="app").user_data_dir == "/data/user/10/org.example.app/files/app"
+
+
+def _pyjnius(classes: dict[str, SimpleNamespace]) -> SimpleNamespace:
+    # pyjnius raises JavaException for an unknown class and for an instance method called on a class object
+    def autoclass(name: str) -> SimpleNamespace:
+        if name not in classes:
+            msg = f"Class not found {name!r}"
+            raise RuntimeError(msg)
+        return classes[name]
+
+    return SimpleNamespace(autoclass=autoclass, JavaException=RuntimeError)
 
 
 @pytest.mark.usefixtures("_clear_android_caches", "_posix_path_join")

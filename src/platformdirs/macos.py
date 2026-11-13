@@ -230,6 +230,12 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
         return self._append_app_name_and_version(expand_user("~/Library/Caches/TemporaryItems"), private=True)
 
 
+def _homebrew_prefix() -> str | None:
+    if match := _HOMEBREW_PYTHON.fullmatch(sys.base_prefix):
+        return match["prefix"]
+    return None
+
+
 class MacOS(XDGMixin, _MacOSDefaults):
     """Platform directories for the macOS operating system.
 
@@ -256,12 +262,6 @@ _HOMEBREW_PYTHON: Final[re.Pattern[str]] = re.compile(
     """,
     re.VERBOSE,
 )
-
-
-def _homebrew_prefix() -> str | None:
-    if match := _HOMEBREW_PYTHON.fullmatch(sys.base_prefix):
-        return match["prefix"]
-    return None
 
 
 # Unlike the other /Library site bases, macOS ships this one world-writable and sticky, like /tmp.
