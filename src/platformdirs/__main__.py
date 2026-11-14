@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
     from platformdirs.api import PlatformDirsABC
 
-PROPS: Final[tuple[str, ...]] = (  # simplint: ignore[missing-from-all]  # preserve star imports
+PROPS: Final[tuple[str, ...]] = (
     "user_data_dir",
     "user_config_dir",
     "user_cache_dir",
@@ -42,7 +42,7 @@ PROPS: Final[tuple[str, ...]] = (  # simplint: ignore[missing-from-all]  # prese
 )
 
 
-def main() -> None:  # simplint: ignore[missing-from-all]  # preserve star imports
+def main() -> None:
     app_name = "MyApp"
     app_author = "MyCompany"
 
