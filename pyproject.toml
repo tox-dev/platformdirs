@@ -264,7 +264,7 @@ matrix.platforms = [ "linux_x86_64" ]
 # expires 2026-11-17
 packages.release-creator.uploaded-prior-to = 2026-11-02T21:45:00Z
 # ty 0.0.99, which renamed unresolved-import to import-not-found, needs one through 2026-11-13.
-# expires 2026-11-13
+# expires 2026-11-20
 packages.ty.uploaded-prior-to = 2026-11-06T10:14:00Z
 # python-sbom 0.1.2 needs a seven-day cutoff exception.
 # expires 2026-11-15
