@@ -272,6 +272,3 @@ packages.python-sbom.uploaded-prior-to = 2026-11-08T17:54:00Z
 
 [tool.simplint]
 docstring-style = "rst"
-per-file-ignores."src/platformdirs/__init__.py" = [
-  "init-module-content", # module-level helpers read PlatformDirs from this namespace, which callers patch
-]
