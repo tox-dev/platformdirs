@@ -261,9 +261,9 @@ def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
         prefix = ""
     else:
         return None
-    if entry["quoted"] is not None:
-        # xdg-user-dirs-update backslash-escapes $, `, " and \ inside the quotes.
-        value = _VALUE_PATTERN.sub(r"\1", value)
+    # xdg-user-dirs-update backslash-escapes $, `, " and \ inside the quotes, and outside them the shell drops the
+    # backslash before any character.
+    value = (_VALUE_PATTERN if entry["quoted"] is not None else _BARE_VALUE_PATTERN).sub(r"\1", value)
     return f"{prefix}{value}" or "/"
 
 
@@ -440,9 +440,10 @@ _USER_DIRS_LINE: Final[re.Pattern[str]] = re.compile(
     [ \t]*(?P<key>\w+)[ \t]*=[ \t]*  # KEY=, blanks allowed around the key and after the =
     (?:
         "(?P<quoted>(?:[^"\\]|\\.)*)"  # a double-quoted value with backslash escapes, text after it ignored
-        |(?P<bare>[^"\s](?:[^ \t\n]|[ \t]+[^ \t\n\#])*)  # or an unquoted value; blanks join it only before a word
-                                                         # that starts no comment, and each run is matched once so
-                                                         # long runs stay linear
+        |(?P<bare>(?:[^"\s\\]|\\.)(?:[^ \t\n\\]|\\.|[ \t]+(?:[^ \t\n\#\\]|\\.))*)  # or an unquoted value; a
+                                                         # backslash keeps the next character in the word, blanks join
+                                                         # it only before a word that starts no comment, and each run
+                                                         # is matched once so long runs stay linear
     )
     """,
     re.VERBOSE,
@@ -450,6 +451,7 @@ _USER_DIRS_LINE: Final[re.Pattern[str]] = re.compile(
 
 
 _VALUE_PATTERN: Final[re.Pattern[str]] = re.compile(r'\\([$`"\\])')
+_BARE_VALUE_PATTERN: Final[re.Pattern[str]] = re.compile(r"\\(.)")
 
 
 __all__ = [
