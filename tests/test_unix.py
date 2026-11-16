@@ -2018,7 +2018,13 @@ def test_user_dirs_read_like_xdg_user_dir(content: str, expected: str, tmp_path:
     assert Unix().user_documents_dir == expected.replace("~", str(tmp_path), 1)
 
 
-@pytest.mark.parametrize("folder", ["Reports\\ 2026", "Reports\\ #2026"])
+@pytest.mark.parametrize(
+    "folder",
+    [
+        pytest.param("Reports\\ 2026", id="escaped-space"),
+        pytest.param("Reports\\ #2026", id="escaped-space-before-hash"),
+    ],
+)
 def test_user_dirs_unquoted_escapes_create_the_configured_directory(
     folder: str, tmp_path: Path, user_dirs_file: Path
 ) -> None:
