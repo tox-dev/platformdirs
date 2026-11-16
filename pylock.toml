@@ -695,28 +695,28 @@ sha256 = "25d013af9bf23bc1c7b2b093dff4208166c53a94786c9e447808335ef1185fea"
 
 [[packages]]
 name = "filelock"
-version = "4.2.9"
+version = "4.2.10"
 marker = "\"dev\" in dependency_groups or \"fix\" in dependency_groups"
 requires-python = ">=3.11"
 index = "https://pypi.org/simple/"
 
 [packages.sdist]
-name = "filelock-4.2.9.tar.gz"
-upload-time = 2026-11-04T18:37:10.014554+00:00
-url = "https://files.pythonhosted.org/packages/a3/1d/d730c664fcb4f1d264a722722a3134cf0881854f73c1fd58abf87572f232/filelock-4.2.9.tar.gz"
-size = 663116
+name = "filelock-4.2.10.tar.gz"
+upload-time = 2026-11-09T18:58:00.540598+00:00
+url = "https://files.pythonhosted.org/packages/a1/cf/05bcdacabdc0aec7dc8e19d76281bd82325df62dae3b6430e9ba57397689/filelock-4.2.10.tar.gz"
+size = 670595
 
 [packages.sdist.hashes]
-sha256 = "96530b7c538d4ea08493ab067247aab7948c54d8cd622cce711c97cccc5d9896"
+sha256 = "fcc3c0cb8bfe7f4b3bb0e231c04b15dbad068cb3c2515f343d8fde4dce93bd5d"
 
 [[packages.wheels]]
-name = "filelock-4.2.9-py3-none-any.whl"
-upload-time = 2026-11-04T18:37:08.273170+00:00
-url = "https://files.pythonhosted.org/packages/00/05/76184fe08339723d643ab47887a8e4de8f2921ca4e008617ab7490af7857/filelock-4.2.9-py3-none-any.whl"
-size = 164734
+name = "filelock-4.2.10-py3-none-any.whl"
+upload-time = 2026-11-09T18:57:59.088963+00:00
+url = "https://files.pythonhosted.org/packages/ef/90/5d0096a325aa0f83ba7a3968bfb485b67e32c947bdf9cd0fcb4b485be718/filelock-4.2.10-py3-none-any.whl"
+size = 218040
 
 [packages.wheels.hashes]
-sha256 = "a379c50a729e5b68c8519a4d26489f755d9769960a236ecd838190e2a78db2e9"
+sha256 = "9479aaeb4db20b5a53e3da28493edd24720b66b8a0b84030aa56ccdf243d6857"
 
 [[packages]]
 name = "furo"
@@ -3137,7 +3137,7 @@ sha256 = "04e15df7083642d5b791e51f597cffef8a92d770ecf5160c529b5a7b53b40100"
 
 [tool.nab]
 nab-version = "0.0.27"
-created-at = 2026-11-16T08:07:31.132938+00:00
+created-at = 2026-11-16T19:01:29.530353+00:00
 command-line = [
     "nab",
     "lock",
@@ -3155,6 +3155,6 @@ platforms = [
 
 [tool.nab.validation]
 version = 1
-all-inputs-sha256 = "c3f29a30e5f3e80717005f30a5dc8bf51be8e59e3a5dd74981ffe152dcfbf120"
-selection-inputs-sha256 = "4d2e3f5e4e601b198fa123295b20130865bf8f4a53ad3a13a33ca31d51e3bdcc"
-contents-sha256 = "3687b2eccdc55eebfdcf5efb4187aab6f4e933625587c5c7c867d85f485600c7"
+all-inputs-sha256 = "cdfe3c5c0df9cbd16f0a85033b3a29226f4f72c3952f555023741daffd20e9d3"
+selection-inputs-sha256 = "bc3421035f7529035bb0867793eacbcbfc0a5a133369c3976039f0b5adba9b8e"
+contents-sha256 = "cb492fb39f49e2d57be90977cffe25ffb6cbaa92857cc1ce4f0c33176f4bc14b"
