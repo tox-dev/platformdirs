@@ -174,8 +174,12 @@ lint.ignore = [
   "undocumented-public-method",        # undocumented-public-api (simplint) covers the public API instead
   "undocumented-public-nested-class",  # undocumented-public-api (simplint) covers the public API instead
 ]
+lint.per-file-ignores."docs/conf.py" = [
+  "banned-api", # import time does not matter for the docs build
+]
 lint.per-file-ignores."tests/**/*.py" = [
   "assert",                               # asserts allowed in tests
+  "banned-api",                           # import time does not matter in tests
   "D",                                    # don't care about documentation in tests
   "FBT",                                  # don't care about booleans as positional arguments in tests
   "implicit-namespace-package",           # no implicit namespace
@@ -184,6 +188,8 @@ lint.per-file-ignores."tests/**/*.py" = [
   "subprocess-without-shell-equals-true", # `subprocess` call: check for execution of untrusted input
   "too-many-positional-arguments",        # Too many positional arguments
 ]
+lint.flake8-tidy-imports.banned-api."typing.TYPE_CHECKING".msg = "use TYPE_CHECKING = False instead"
+lint.flake8-type-checking.exempt-modules = []  # move typing-only imports from `typing` under `if TYPE_CHECKING:` too
 lint.isort = { known-first-party = [
   "platformdirs",
   "tests",
