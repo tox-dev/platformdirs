@@ -1998,11 +1998,34 @@ def test_user_dirs_double_quoted_backslashes(
         pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs\t#moved\n", "~/Docs", id="unquoted-tab-comment"),
         pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs#1\n", "~/Docs#1", id="unquoted-hash-inside-word"),
         pytest.param("XDG_DOCUMENTS_DIR=$HOME/My \t Docs  \n", "~/My \t Docs", id="unquoted-blanks-inside"),
+        pytest.param("XDG_DOCUMENTS_DIR=$HOME/Reports\\ 2026\n", "~/Reports 2026", id="unquoted-escaped-space"),
+        pytest.param(
+            "XDG_DOCUMENTS_DIR=$HOME/Reports\\ #2026\n", "~/Reports #2026", id="unquoted-escaped-word-boundary"
+        ),
+        pytest.param(
+            "XDG_DOCUMENTS_DIR=$HOME/Reports\\ #2026 # moved\n", "~/Reports #2026", id="unquoted-comment-after-escape"
+        ),
+        pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs\\ \n", "~/Docs ", id="unquoted-escaped-trailing-space"),
+        pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs\\\t2026\n", "~/Docs\t2026", id="unquoted-escaped-tab"),
+        pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs\\#2026\n", "~/Docs#2026", id="unquoted-escaped-hash"),
+        pytest.param("XDG_DOCUMENTS_DIR=$HOME/a\\\\b\n", "~/a\\b", id="unquoted-escaped-backslash"),
+        pytest.param("XDG_DOCUMENTS_DIR=$HOME/a\\qb\n", "~/aqb", id="unquoted-escaped-letter"),
+        pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs\\\n", "~/Docs\\", id="unquoted-trailing-backslash"),
     ],
 )
 def test_user_dirs_read_like_xdg_user_dir(content: str, expected: str, tmp_path: Path, user_dirs_file: Path) -> None:
     user_dirs_file.write_text(content, encoding="utf-8")
     assert Unix().user_documents_dir == expected.replace("~", str(tmp_path), 1)
+
+
+@pytest.mark.parametrize("folder", ["Reports\\ 2026", "Reports\\ #2026"])
+def test_user_dirs_unquoted_escapes_create_the_configured_directory(
+    folder: str, tmp_path: Path, user_dirs_file: Path
+) -> None:
+    user_dirs_file.write_text(f"XDG_DOCUMENTS_DIR=$HOME/{folder}\n", encoding="utf-8")
+    expected = tmp_path / folder.replace("\\ ", " ")
+    assert Unix(ensure_exists=True).user_documents_path == expected
+    assert expected.is_dir()
 
 
 @pytest.mark.parametrize("blank", [pytest.param(" ", id="spaces"), pytest.param("\t", id="tabs")])
