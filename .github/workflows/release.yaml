@@ -31,7 +31,7 @@ jobs:
           python-version: "3.15"
           enable-cache: false
       - name: 🏗️ Build distributions
-        uses: tox-dev/github-workflows/build-python-distribution@6.8.3
+        uses: tox-dev/github-workflows/build-python-distribution@6.8.4
       - name: 📤 Upload distributions
         uses: actions/upload-artifact@v7.0.2
         with:
@@ -41,7 +41,7 @@ jobs:
   build:
     name: 🏗️ Build
     if: startsWith(github.ref, 'refs/tags/')
-    uses: tox-dev/github-workflows/.github/workflows/validate-python-release.yaml@ef0cd88bef592260a48345753b8b509b209ab189 # 6.8.3
+    uses: tox-dev/github-workflows/.github/workflows/validate-python-release.yaml@9334311ad92f91f7f5c937b3ab218da4d317116e # 6.8.4
     permissions:
       contents: read
   release:
@@ -66,7 +66,7 @@ jobs:
   notes:
     name: 📝 Render GitHub Release notes
     if: startsWith(github.ref, 'refs/tags/')
-    uses: tox-dev/github-workflows/.github/workflows/release-notes.yaml@ef0cd88bef592260a48345753b8b509b209ab189 # 6.8.3
+    uses: tox-dev/github-workflows/.github/workflows/release-notes.yaml@9334311ad92f91f7f5c937b3ab218da4d317116e # 6.8.4
     permissions:
       contents: read
     with:
@@ -76,7 +76,7 @@ jobs:
   github-release:
     name: 🚀 Publish GitHub Release
     needs: [build, release, notes]
-    uses: tox-dev/github-workflows/.github/workflows/github-release.yaml@ef0cd88bef592260a48345753b8b509b209ab189 # 6.8.3
+    uses: tox-dev/github-workflows/.github/workflows/github-release.yaml@9334311ad92f91f7f5c937b3ab218da4d317116e # 6.8.4
     permissions:
       contents: write
     with:
