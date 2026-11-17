@@ -6,6 +6,52 @@
 
 .. towncrier release notes start
 
+.. _release-4-14-6:
+
+*********************
+ 4.14.6 (2026-11-17)
+*********************
+
+.. _release-4-14-6-fixed:
+
+Fixed
+=====
+
+- Accept ``use_site_for_root`` in :func:`~platformdirs.user_fonts_dir`, :func:`~platformdirs.user_fonts_path` and the
+  media directory and path functions, so they can return root's own directories as the matching properties do
+  (:pr:`686`) by :user:`abhishekcpp007` and :user:`gaborbernat`.
+- Ignore a ``WIN_PD_OVERRIDE_*`` value that names an extended or device drive without its root, such as ``\\?\D:`` or
+  ``\\.\D:``, instead of appending the app name to it as a drive-relative path (:pr:`702`) by :user:`h55n` and
+  :user:`gaborbernat`.
+- Keep a carriage return inside a ``user-dirs.dirs`` path as part of the directory name, instead of ignoring the entry
+  (:pr:`712`) by :user:`liuyinchu` and :user:`gaborbernat`.
+- Keep trailing non-ASCII whitespace, such as a no-break space, in ``WIN_PD_OVERRIDE_*`` values, since it can end a
+  folder name (:pr:`700`) by :user:`subotac` and :user:`gaborbernat`.
+- Make ``find_*_file`` and ``find_*_files`` skip a directory the user cannot search, and treat a name too long for the
+  file system as not found, instead of raising on Python 3.13 and older (:pr:`703`) by :user:`darrenhuai` and
+  :user:`gaborbernat`.
+- Remove the backslash before an escaped character in an unquoted ``user-dirs.dirs`` path, as the shell does, and keep
+  an escaped blank before ``#`` in the path instead of reading the rest as a comment (:pr:`716`) by :user:`Primeteumm`
+  and :user:`gaborbernat`.
+
+.. _release-4-14-6-performance:
+
+Performance
+===========
+
+- Importing :mod:`platformdirs` no longer imports :mod:`typing`: the names it needs only for type annotations are
+  imported under a module-level ``TYPE_CHECKING`` guard, so ``import platformdirs`` is faster (:pr:`714`) by
+  :user:`hugovk` and :user:`gaborbernat`.
+
+.. _release-4-14-6-packaging:
+
+Packaging
+=========
+
+- Every wheel now carries a `PEP 770 <https://peps.python.org/pep-0770/>`_ CycloneDX SBOM in its ``.dist-info/sboms``
+  directory, written at build time by `python-sbom <https://github.com/tox-dev/python-sbom>`_ (:pr:`696`) by
+  :user:`gaborbernat`.
+
 .. _release-4-14-5:
 
 *********************
