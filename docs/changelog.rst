@@ -6,6 +6,20 @@
 
 .. towncrier release notes start
 
+.. _release-4-14-7:
+
+*********************
+ 4.14.7 (2026-11-17)
+*********************
+
+.. _release-4-14-7-fixed:
+
+Fixed
+=====
+
+- Drop a backslash before the line break that ends an unquoted ``user-dirs.dirs`` value instead of keeping it in the
+  folder name (:pr:`721`) by :user:`gaborbernat`.
+
 .. _release-4-14-6:
 
 *********************
