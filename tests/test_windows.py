@@ -763,19 +763,30 @@ def test_get_win_folder_override_strips_whitespace(monkeypatch: pytest.MonkeyPat
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == r"X:\custom"
 
 
-@pytest.mark.parametrize(
-    "whitespace",
-    [
-        pytest.param("\u0085", id="next-line"),
-        pytest.param("\u00a0", id="no-break-space"),
-        pytest.param("\u2003", id="em-space"),
-        pytest.param("\u202f", id="narrow-no-break-space"),
-    ],
-)
-def test_get_win_folder_override_preserves_unicode_whitespace(monkeypatch: pytest.MonkeyPatch, whitespace: str) -> None:
+_UNICODE_WHITESPACE_PARAMS: Final[list[pytest.ParameterSet]] = [
+    pytest.param("\u0085", id="next-line"),
+    pytest.param("\u00a0", id="no-break-space"),
+    pytest.param("\u2003", id="em-space"),
+    pytest.param("\u202f", id="narrow-no-break-space"),
+]
+
+
+@pytest.mark.parametrize("whitespace", _UNICODE_WHITESPACE_PARAMS)
+def test_get_win_folder_override_preserves_trailing_unicode_whitespace(
+    monkeypatch: pytest.MonkeyPatch, whitespace: str
+) -> None:
     path = f"X:\\custom{whitespace}"
     monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", path)
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == path
+
+
+@pytest.mark.parametrize("whitespace", _UNICODE_WHITESPACE_PARAMS)
+def test_get_win_folder_override_strips_leading_unicode_whitespace(
+    monkeypatch: pytest.MonkeyPatch, whitespace: str
+) -> None:
+    monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda csidl: _WIN_FOLDERS[csidl])
+    monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", f"{whitespace}X:\\custom")
+    assert get_win_folder("CSIDL_LOCAL_APPDATA") == r"X:\custom"
 
 
 def test_windows_iter_runtime_dirs_no_duplicate() -> None:

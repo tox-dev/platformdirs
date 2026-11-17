@@ -437,7 +437,8 @@ The override variable name is ``WIN_PD_OVERRIDE_`` followed by the CSIDL suffix:
       - User binaries (``AppData\Local\Programs``)
 
 ``platformdirs`` ignores a blank value, a path without both a drive and a root (``\shared``, ``D:appdata``), and a UNC
-path without both a server and a share name (``\\server``).
+path without both a server and a share name (``\\server``). It strips any whitespace before a value but only ASCII
+whitespace after it, since other trailing whitespace, such as a no-break space, can end a folder name.
 
 .. note::
 
