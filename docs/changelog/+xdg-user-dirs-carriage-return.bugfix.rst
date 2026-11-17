@@ -1,1 +1,1 @@
-Preserve literal carriage returns inside quoted Unix directory paths in ``user-dirs.dirs``.
+Keep a carriage return inside a ``user-dirs.dirs`` path as part of the directory name, instead of ignoring the entry.

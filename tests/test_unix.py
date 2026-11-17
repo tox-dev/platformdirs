@@ -2031,6 +2031,7 @@ def test_user_dirs_undecodable_bytes(content: bytes, expected: str, tmp_path: Pa
         pytest.param(b'XDG_DOCUMENTS_DIR="$HOME/Docs\rArchive"\n', "~/Docs\rArchive", id="quoted-home"),
         pytest.param(b'XDG_DOCUMENTS_DIR="/srv/Docs\rArchive"\r\n', "/srv/Docs\rArchive", id="quoted-absolute"),
         pytest.param(b"XDG_DOCUMENTS_DIR=$HOME/Docs\r\n", "~/Docs", id="crlf-terminator"),
+        pytest.param(b"XDG_DOCUMENTS_DIR=$HOME/Docs\r", "~/Docs", id="crlf-file-without-final-newline"),
     ],
 )
 def test_user_dirs_carriage_return(content: bytes, expected: str, tmp_path: Path, user_dirs_file: Path) -> None:
