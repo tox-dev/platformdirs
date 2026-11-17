@@ -738,9 +738,46 @@ def test_get_win_folder_override_not_set_falls_back(monkeypatch: pytest.MonkeyPa
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == _WIN_FOLDERS["CSIDL_LOCAL_APPDATA"]
 
 
-def test_get_win_folder_override_strips_whitespace(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize(
+    "whitespace",
+    [
+        pytest.param(" ", id="space"),
+        pytest.param("\t", id="tab"),
+        pytest.param("\n", id="line-feed"),
+        pytest.param("\r", id="carriage-return"),
+        pytest.param("\v", id="vertical-tab"),
+        pytest.param("\f", id="form-feed"),
+    ],
+)
+def test_get_win_folder_override_strips_whitespace(monkeypatch: pytest.MonkeyPatch, whitespace: str) -> None:
     monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda csidl: _WIN_FOLDERS[csidl])
-    monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", "  X:\\custom  ")
+    monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", f"{whitespace}X:\\custom{whitespace}")
+    assert get_win_folder("CSIDL_LOCAL_APPDATA") == r"X:\custom"
+
+
+_UNICODE_WHITESPACE_PARAMS: Final[list[pytest.ParameterSet]] = [
+    pytest.param("\u0085", id="next-line"),
+    pytest.param("\u00a0", id="no-break-space"),
+    pytest.param("\u2003", id="em-space"),
+    pytest.param("\u202f", id="narrow-no-break-space"),
+]
+
+
+@pytest.mark.parametrize("whitespace", _UNICODE_WHITESPACE_PARAMS)
+def test_get_win_folder_override_preserves_trailing_unicode_whitespace(
+    monkeypatch: pytest.MonkeyPatch, whitespace: str
+) -> None:
+    path = f"X:\\custom{whitespace}"
+    monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", path)
+    assert get_win_folder("CSIDL_LOCAL_APPDATA") == path
+
+
+@pytest.mark.parametrize("whitespace", _UNICODE_WHITESPACE_PARAMS)
+def test_get_win_folder_override_strips_leading_unicode_whitespace(
+    monkeypatch: pytest.MonkeyPatch, whitespace: str
+) -> None:
+    monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda csidl: _WIN_FOLDERS[csidl])
+    monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", f"{whitespace}X:\\custom")
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == r"X:\custom"
 
 
