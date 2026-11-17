@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 import os
 import sys
 from pathlib import Path
@@ -13,9 +14,69 @@ from platformdirs import android
 from platformdirs.android import Android
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterator
 
     from pytest_mock import MockerFixture
+
+
+@pytest.mark.usefixtures("_clear_android_caches", "_restore_platformdirs")
+@pytest.mark.parametrize("root", ["A", "/system", None])
+@pytest.mark.parametrize("data", ["D", "/data", None])
+@pytest.mark.parametrize("path", ["/data/data/a/files", "/C"])
+@pytest.mark.parametrize("shell", ["/data/data/com.app/files/usr/bin/sh", "/usr/bin/sh", None])
+@pytest.mark.parametrize("prefix", ["/data/data/com.termux/files/usr", None])
+def test_android_active(  # ruff:ignore[too-many-arguments]  # parametrized case inputs
+    monkeypatch: pytest.MonkeyPatch,
+    root: str | None,
+    data: str | None,
+    path: str,
+    shell: str | None,
+    prefix: str | None,
+) -> None:
+    android_env = {"ANDROID_DATA": data, "ANDROID_ROOT": root, "SHELL": shell, "PREFIX": prefix}
+    with monkeypatch.context() as patch:
+        for env_var in android_env:
+            patch.delenv(env_var, raising=False)
+        for env_var, value in {name: value for name, value in android_env.items() if value is not None}.items():
+            patch.setenv(env_var, value)
+        patch.setattr(sys, "path", ["/A", "/B", path, *sys.path])
+        importlib.reload(platformdirs)
+        expects_android = (
+            root == "/system" and data == "/data" and shell is None and prefix is None and path == "/data/data/a/files"
+        )
+        assert (platformdirs.PlatformDirs is Android) is expects_android
+
+
+@pytest.mark.usefixtures("_clear_android_caches", "_restore_platformdirs")
+@pytest.mark.parametrize(
+    ("env", "expects_android"),
+    [
+        pytest.param({}, True, id="cleared-environment"),
+        pytest.param(
+            {"PREFIX": "/data/data/com.termux/files/usr"},
+            False,
+            id="termux",
+        ),
+    ],
+)
+def test_android_build_detected_without_environment(
+    monkeypatch: pytest.MonkeyPatch, env: dict[str, str], expects_android: bool
+) -> None:
+    with monkeypatch.context() as patch:
+        for env_var in ("ANDROID_DATA", "ANDROID_ROOT", "SHELL", "PREFIX"):
+            patch.delenv(env_var, raising=False)
+        for env_var, value in env.items():
+            patch.setenv(env_var, value)
+        patch.setattr(sys, "getandroidapilevel", lambda: 34, raising=False)
+        patch.setattr(sys, "path", ["/data/user/0/org.example.app/files/app", *sys.path])
+        importlib.reload(platformdirs)
+        assert (platformdirs.PlatformDirs is Android) is expects_android
+
+
+@pytest.fixture
+def _restore_platformdirs() -> Iterator[None]:
+    yield
+    importlib.reload(platformdirs)
 
 
 @pytest.fixture
@@ -33,18 +94,14 @@ class AppParams(TypedDict, total=False):
 @pytest.mark.parametrize(
     "params",
     [
-        {},
-        {"appname": "foo"},
-        {"appname": "foo", "appauthor": "bar"},
-        {"appname": "foo", "appauthor": "bar", "version": "v1.0"},
-        {"appname": "foo", "appauthor": "bar", "version": "v1.0", "opinion": False},
-    ],
-    ids=[
-        "no_args",
-        "app_name",
-        "app_name_with_app_author",
-        "app_name_author_version",
-        "app_name_author_version_false_opinion",
+        pytest.param({}, id="no_args"),
+        pytest.param({"appname": "foo"}, id="app_name"),
+        pytest.param({"appname": "foo", "appauthor": "bar"}, id="app_name_with_app_author"),
+        pytest.param({"appname": "foo", "appauthor": "bar", "version": "v1.0"}, id="app_name_author_version"),
+        pytest.param(
+            {"appname": "foo", "appauthor": "bar", "version": "v1.0", "opinion": False},
+            id="app_name_author_version_false_opinion",
+        ),
     ],
 )
 @pytest.mark.usefixtures("_example_android_folder")
@@ -54,7 +111,7 @@ def test_android(params: AppParams, func: str) -> None:
     suffix = "/".join(("", *(params[key] for key in ("appname", "version") if key in params)))
     opinion = params.get("opinion", True)
     log_dir = {True: "/log", False: ""}[opinion]
-    val = "/tmp"  # ruff:ignore[hardcoded-temp-file]  # test value only, nothing is written there
+    val = "/tmp"  # ruff:ignore[hardcoded-temp-file]  # no file is written
     runtime_dir = {True: val, False: ""}[opinion]
 
     expected_map = {
@@ -110,14 +167,12 @@ def test_android(params: AppParams, func: str) -> None:
         pytest.param("/data/data/a/files/app/lib/files", "/data/data/a", id="nested-files"),
     ],
 )
+@pytest.mark.usefixtures("_clear_android_caches")
 def test_android_folder_from_sys_path(
     mocker: MockerFixture, path: str, expected: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     mocker.patch.dict(sys.modules, {"jnius": None, "android": None})
 
-    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]  # the test reads a private helper
-
-    _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", ["/A", "/B", path])
 
     assert Android().user_data_path == Path(expected, "files")
@@ -172,17 +227,6 @@ def _posix_path_join(mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
 
 
-def _pyjnius(classes: dict[str, SimpleNamespace]) -> SimpleNamespace:
-    # pyjnius raises JavaException for an unknown class and for an instance method called on a class object
-    def autoclass(name: str) -> SimpleNamespace:
-        if name not in classes:
-            msg = f"Class not found {name!r}"
-            raise RuntimeError(msg)
-        return classes[name]
-
-    return SimpleNamespace(autoclass=autoclass, JavaException=RuntimeError)
-
-
 def _context(app_folder: str) -> SimpleNamespace:
     app_dir = SimpleNamespace(getAbsolutePath=lambda: app_folder)
     return SimpleNamespace(getFilesDir=lambda: SimpleNamespace(getParentFile=lambda: app_dir))
@@ -209,6 +253,17 @@ def test_android_folder_from_python_for_android(
     mocker.patch.dict(sys.modules, {"jnius": _pyjnius(classes), "android": None})
     monkeypatch.setattr(sys, "path", [])
     assert Android(appname="app").user_data_dir == "/data/user/10/org.example.app/files/app"
+
+
+def _pyjnius(classes: dict[str, SimpleNamespace]) -> SimpleNamespace:
+    # pyjnius raises JavaException for an unknown class and for an instance method called on a class object
+    def autoclass(name: str) -> SimpleNamespace:
+        if name not in classes:
+            msg = f"Class not found {name!r}"
+            raise RuntimeError(msg)
+        return classes[name]
+
+    return SimpleNamespace(autoclass=autoclass, JavaException=RuntimeError)
 
 
 @pytest.mark.usefixtures("_clear_android_caches", "_posix_path_join")
@@ -246,14 +301,13 @@ def test_android_media_dir_without_environment_falls_back(mocker: MockerFixture)
     assert Android().user_downloads_dir == "/storage/emulated/0/Download"
 
 
+@pytest.mark.usefixtures("_clear_android_caches")
 def test_android_folder_not_found(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch) -> None:
     mocker.patch.dict(sys.modules, {"jnius": None})
 
-    from platformdirs.android import _android_folder  # ruff:ignore[import-outside-top-level]  # the test reads a private helper
-
-    _android_folder.cache_clear()
     monkeypatch.setattr(sys, "path", [])
-    assert _android_folder() is None
+    with pytest.raises(RuntimeError, match="cannot find the Android app folder"):
+        _ = Android().user_data_dir
 
 
 @pytest.mark.parametrize("prop", ["user_data_dir", "user_config_dir", "user_cache_dir", "user_bin_dir"])

@@ -78,7 +78,8 @@ class AppParams(TypedDict, total=False):
 def test_macos(home: str, params: AppParams, func: str) -> None:
     result = getattr(MacOS(**params), func)
 
-    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+    # match host separators
+    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]
 
     expected_map = {
         "user_data_dir": f"{home}/Library/Application Support{suffix}",
@@ -162,14 +163,15 @@ def test_macos(home: str, params: AppParams, func: str) -> None:
     ],
 )
 @pytest.mark.usefixtures("_clear_xdg_env")
-def test_macos_homebrew(  # ruff:ignore[too-many-arguments]  # one argument per parametrized input
+def test_macos_homebrew(  # ruff:ignore[too-many-arguments]  # parametrized case inputs
     mocker: MockerFixture, home: str, params: AppParams, multipath: bool, site_func: str, prefix: dict[str, str]
 ) -> None:
     mocker.patch("sys.base_prefix", prefix["sys_prefix"])
 
     result = getattr(MacOS(multipath=multipath, **params), site_func)
 
-    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+    # match host separators
+    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]
 
     expected_path_map = {
         "site_cache_path": Path(f"{prefix['homebrew_prefix']}/var/cache{suffix}"),
@@ -182,7 +184,7 @@ def test_macos_homebrew(  # ruff:ignore[too-many-arguments]  # one argument per 
         "site_cache_dir": f"{prefix['homebrew_prefix']}/var/cache{suffix}",
         "site_runtime_dir": f"{home}/Library/Caches/TemporaryItems{suffix}",
     }
-    if multipath:  # simplint: ignore[SMP803]  # multipath adds search-path suffixes that the other rows do not expect
+    if multipath:  # simplint: ignore[conditional-in-test]  # parametrized path shapes
         expected_map["site_data_dir"] += f":/Library/Application Support{suffix}"
         expected_map["site_config_dir"] += f":/Library/Application Support{suffix}"
         expected_map["site_cache_dir"] += f":/Library/Caches{suffix}"
@@ -229,7 +231,8 @@ def test_macos_xdg_env_vars(
 ) -> None:
     monkeypatch.setenv(env_var, xdg_path)
     result = getattr(MacOS(**params), prop)
-    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+    # match host separators
+    suffix = os.sep.join(("", *(params[i] for i in ("appname", "version") if i in params)))  # ruff:ignore[os-path-join]
     assert result == f"{xdg_path}{suffix}"
 
 
@@ -296,9 +299,12 @@ def test_macos_ensure_exists_returns_configured_media_symlink(
     assert (MacOS(ensure_exists=True).user_documents_path, path.is_dir()) == (path, is_dir)
 
 
-@pytest.mark.parametrize(("xdg_value", "created"), [("/custom/media", True), (None, False)], ids=["xdg", "default"])
+@pytest.mark.parametrize(
+    ("xdg_value", "created"), [pytest.param("/custom/media", True, id="xdg"), pytest.param(None, False, id="default")]
+)
 @pytest.mark.parametrize(("env_var", "prop"), _MEDIA_DIRS)
-def test_macos_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[too-many-arguments]  # one argument per parametrized input
+# parametrized case inputs
+def test_macos_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[too-many-arguments]
     mocker: MockerFixture,
     monkeypatch: pytest.MonkeyPatch,
     env_var: str,
@@ -306,7 +312,7 @@ def test_macos_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[t
     xdg_value: str | None,
     created: bool,
 ) -> None:
-    if xdg_value is None:  # simplint: ignore[SMP803]  # unset and set variables are two separate setups
+    if xdg_value is None:  # simplint: ignore[conditional-in-test]  # distinct environment setups
         monkeypatch.delenv(env_var, raising=False)
     else:
         monkeypatch.setenv(env_var, xdg_value)
@@ -497,8 +503,9 @@ def test_site_dirs_fall_back_when_xdg_var_has_no_absolute_paths(
 ) -> None:
     monkeypatch.setenv(env_var, value)
     expected = {
-        "site_data_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
-        "site_config_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]  # expected value built with the join the code uses
+        # match host separators
+        "site_data_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]
+        "site_config_dir": os.path.join("/Library/Application Support", "foo"),  # ruff:ignore[os-path-join]  # host separators
         "site_applications_dir": "/Applications",
     }[prop]
     assert getattr(MacOS(appname="foo"), prop) == expected
@@ -545,7 +552,10 @@ def test_homebrew_site_dir_ensure_exists_creates_only_the_returned_entries(
 ) -> None:
     mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
     mocker.patch.object(
-        Path, "lstat", return_value=mocker.MagicMock(spec=os.stat_result, st_mode=stat.S_IFDIR, st_uid=0), autospec=True
+        Path,
+        "lstat",
+        return_value=mocker.create_autospec(os.stat_result, instance=True, st_mode=stat.S_IFDIR, st_uid=0),
+        autospec=True,
     )
     getattr(MacOS(appname="foo", multipath=multipath, ensure_exists=True), prop)
     assert [c.args[0] for c in mkdir.call_args_list] == [Path(p) for p in created]
@@ -674,7 +684,7 @@ def test_homebrew_virtual_environment(
     monkeypatch.setattr(sys, "base_prefix", f"{homebrew_prefix}/{framework}/Versions/3.13")
     suffix: Final = {True: "var/cache", False: "share"}["cache" in prop]
     expected: str | Path = f"{homebrew_prefix}/{suffix}{os.sep}Example{os.sep}1.0"
-    if prop.endswith("_path"):  # simplint: ignore[SMP803]  # path properties expect a Path, the rest a string
+    if prop.endswith("_path"):  # simplint: ignore[conditional-in-test]  # Path result
         expected = Path(expected)
     elif multipath and prop != "site_state_dir":
         fallback: Final = {True: "Caches", False: "Application Support"}["cache" in prop]
@@ -793,7 +803,7 @@ def test_site_cache_ensure_exists_rejects_other_owner(
     mocker.patch.object(
         Path,
         "lstat",
-        return_value=mocker.MagicMock(spec=os.stat_result, st_mode=stat.S_IFDIR, st_uid=501),
+        return_value=mocker.create_autospec(os.stat_result, instance=True, st_mode=stat.S_IFDIR, st_uid=501),
         autospec=True,
     )
     mocker.patch("platformdirs.macos.geteuid", return_value=502, autospec=True)
@@ -809,7 +819,7 @@ def test_site_cache_ensure_exists_accepts_trusted_owner(mocker: MockerFixture, s
     mocker.patch.object(
         Path,
         "lstat",
-        return_value=mocker.MagicMock(spec=os.stat_result, st_mode=stat.S_IFDIR, st_uid=owner),
+        return_value=mocker.create_autospec(os.stat_result, instance=True, st_mode=stat.S_IFDIR, st_uid=owner),
         autospec=True,
     )
     mocker.patch("platformdirs.macos.geteuid", return_value=502, autospec=True)
@@ -837,7 +847,7 @@ _POSIX_ONLY: Final[pytest.MarkDecorator] = pytest.mark.skipif(
 @pytest.fixture
 def runtime_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> Path:
     # The runtime dir warnings are emitted once per process, so give every test its own record of them.
-    mocker.patch("platformdirs.unix._WARNED", set())
+    mocker.patch("platformdirs._runtime._WARNED", set())
     monkeypatch.setenv("XDG_RUNTIME_DIR", str(path := tmp_path / "runtime"))
     return path
 
@@ -845,7 +855,7 @@ def runtime_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerF
 @pytest.fixture
 def foreign_runtime_dir(runtime_dir: Path, mocker: MockerFixture) -> Path:
     runtime_dir.mkdir(mode=0o700)
-    mocker.patch("platformdirs.unix.geteuid", return_value=runtime_dir.stat().st_uid + 1, autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=runtime_dir.stat().st_uid + 1, autospec=True)
     return runtime_dir
 
 

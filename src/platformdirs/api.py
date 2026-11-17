@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from typing import Literal
 
 
-class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API  # simplint: ignore[SMP401]  # adding __all__ would narrow star imports
+class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full directory API  # simplint: ignore[missing-from-all]  # preserve star imports
     """Abstract base class defining all platform directory properties, their :class:`~pathlib.Path` variants, and
     iterators.
 
@@ -23,16 +23,16 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class
 
     """
 
-    def __init__(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # released signature, callers pass these by position
+    def __init__(  # ruff:ignore[too-many-arguments, too-many-positional-arguments]  # preserve positional API
         self,
         appname: str | None = None,
         appauthor: str | Literal[False] | None = None,
         version: str | None = None,
-        roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-        multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-        opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-        ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
-        use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # released signature takes the flags positionally
+        roaming: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+        multipath: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+        opinion: bool = True,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+        ensure_exists: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
+        use_site_for_root: bool = False,  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]  # preserve positional API
     ) -> None:
         """Create a new platform directory.
 
@@ -445,7 +445,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # the class
             params.append(self.appname)
             if self.version:
                 params.append(self.version)
-        return os.path.join(base[0], *params)  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+        return os.path.join(base[0], *params)  # ruff:ignore[os-path-join]  # preserve path separators
 
     def _optionally_create_media_directory(self, path: str) -> None:
         # Only called for a media directory the user configured. Media directories are often symlinks to removable or
@@ -804,17 +804,6 @@ def _ensure_home_known(path: str) -> None:
         raise RuntimeError(msg)
 
 
-def _unique(dirs: Iterable[str]) -> Iterator[str]:
-    # :yield: ``dirs`` in order, skipping any directory already yielded.
-    # Lazy on purpose: under ensure_exists reading a site_*_dir creates it, so draining ``dirs`` up front would
-    # create directories for a caller that stops after the first entry.
-    seen: set[Path] = set()
-    for path in dirs:
-        if (normalized := Path(path)) not in seen:
-            seen.add(normalized)
-            yield path
-
-
 def _make_private_directories(path: Path) -> None:
     # XDG asks for 0o700 on each directory created on the way, while Path.mkdir(parents=True) applies it to the last.
     try:
@@ -826,5 +815,16 @@ def _make_private_directories(path: Path) -> None:
         path.mkdir(mode=0o700, exist_ok=True)
 
 
-class RuntimeDirWarning(UserWarning):  # simplint: ignore[SMP401]  # adding __all__ would narrow star imports
+def _unique(dirs: Iterable[str]) -> Iterator[str]:
+    # :yield: ``dirs`` in order, skipping any directory already yielded.
+    # Lazy on purpose: under ensure_exists reading a site_*_dir creates it, so draining ``dirs`` up front would
+    # create directories for a caller that stops after the first entry.
+    seen: set[Path] = set()
+    for path in dirs:
+        if (normalized := Path(path)) not in seen:
+            seen.add(normalized)
+            yield path
+
+
+class RuntimeDirWarning(UserWarning):  # simplint: ignore[missing-from-all]  # preserve star imports
     """Emitted when the Unix or macOS ``user_runtime_dir`` cannot use ``$XDG_RUNTIME_DIR``."""

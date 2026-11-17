@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import os
 import re
-import sys
 from contextlib import suppress
-from functools import cache, lru_cache
+from functools import cache
 from typing import Final
 
+from ._android import android_folder as _android_folder
 from .api import PlatformDirsABC
 
 
-class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the class exposes the full directory API
+class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # full directory API
     """Platform directories for Android.
 
     Follows the guidance `from here <https://android.stackexchange.com/a/216132>`_. Directories are typically located
@@ -78,7 +78,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the c
         """
         path = self.user_cache_dir
         if self.opinion:
-            path = os.path.join(path, "log")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+            path = os.path.join(path, "log")  # ruff:ignore[os-path-join]  # preserve path separators
             self._optionally_create_directory(path, private=True)
         return path
 
@@ -146,7 +146,8 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the c
     @property
     def user_bin_dir(self) -> str:
         """Bin directory tied to the user, e.g. ``/data/user/<userid>/<packagename>/files/bin``."""
-        return os.path.join(_require_android_folder(), "files", "bin")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+        # preserve path separators
+        return os.path.join(_require_android_folder(), "files", "bin")  # ruff:ignore[os-path-join]
 
     @property
     def site_applications_dir(self) -> str:
@@ -172,7 +173,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # the c
         """
         path = self.user_cache_dir
         if self.opinion:
-            path = os.path.join(path, "tmp")  # ruff:ignore[os-path-join]  # keeps the separator the rest of the module uses
+            path = os.path.join(path, "tmp")  # ruff:ignore[os-path-join]  # preserve path separators
             self._optionally_create_directory(path, private=True)
         return path
 
@@ -182,61 +183,6 @@ def _require_android_folder() -> str:
         msg = "cannot find the Android app folder: python4android and pyjnius failed and no app folder is on sys.path"
         raise RuntimeError(msg)
     return folder
-
-
-@lru_cache(maxsize=1)
-def _android_folder() -> str | None:
-    # :returns: base folder for the Android OS or None if it cannot be found
-    result = None
-    with suppress(ImportError):
-        from jnius import JavaException, autoclass  # ruff:ignore[import-outside-top-level]  # jnius exists only on Android  # ty: ignore[import-not-found]
-
-        with suppress(JavaException):
-            # A python-for-android service runs in its own process, where the activity is null.
-            if (context := autoclass("org.kivy.android.PythonActivity").mActivity) is None:
-                context = autoclass("org.kivy.android.PythonService").mService
-            if context is not None:
-                result = context.getFilesDir().getParentFile().getAbsolutePath()
-    if result is None:
-        # and if that fails, too, find an android folder looking at path on the sys.path
-        # warning: only works for apps installed under /data, not adopted storage etc.
-        pattern = re.compile(
-            r"""
-            (?P<folder>
-                /data/(?:data|user/\d+)  # internal storage of the primary user or of user N
-                /[^/]+                   # package name, one path segment
-            )
-            /files(?=/|\Z)               # the files directory the interpreter runs from
-            """,
-            re.VERBOSE,
-        )
-        for path in sys.path:
-            if match := pattern.match(path):
-                result = match["folder"]
-                break
-        else:
-            result = None
-    if result is None:
-        # one last try: find an android folder looking at path on the sys.path taking adopted storage paths into
-        # account
-        pattern = re.compile(
-            r"""
-            (?P<folder>
-                /mnt/expand/[a-fA-F0-9-]{36}  # adopted storage volume, named by its UUID
-                /(?:data|user/\d+)             # the primary user or user N
-                /[^/]+                         # package name, one path segment
-            )
-            /files(?=/|\Z)                     # the files directory the interpreter runs from
-            """,
-            re.VERBOSE,
-        )
-        for path in sys.path:
-            if match := pattern.match(path):
-                result = match["folder"]
-                break
-        else:
-            result = None
-    return result
 
 
 @cache
