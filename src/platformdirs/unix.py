@@ -249,7 +249,8 @@ def _get_user_dirs_folder(key: str) -> str | None:
             encoding=sys.getfilesystemencoding(), errors="surrogateescape", newline="\n"
         ) as stream:
             for line in stream:
-                if (entry := _USER_DIRS_LINE.match(line.removesuffix("\n").removesuffix("\r"))) and entry["key"] == key:
+                # Drop a CR that ends the line but keep the LF, so a backslash before it is not taken as ending the file.
+                if (entry := _USER_DIRS_LINE.match(_LINE_END_CR.sub("", line))) and entry["key"] == key:
                     folder = _resolve_user_dirs_value(entry) or folder
     except OSError:  # a missing or unreadable file leaves the defaults in place
         return None
@@ -455,6 +456,7 @@ _USER_DIRS_LINE: Final[re.Pattern[str]] = re.compile(
 )
 
 
+_LINE_END_CR: Final[re.Pattern[str]] = re.compile(r"\r(?=\n?\Z)")
 _VALUE_PATTERN: Final[re.Pattern[str]] = re.compile(r'\\([$`"\\])')
 _BARE_VALUE_PATTERN: Final[re.Pattern[str]] = re.compile(r"\\(.)")
 
