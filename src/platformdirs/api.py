@@ -669,7 +669,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
         _ensure_inside_base("name", relative := os.fspath(name))
         # The iterators create each directory they yield under ensure_exists, and a lookup must only read the disk.
         (lookup := copy(self)).ensure_exists = False
-        return (path for directory in iter_paths(lookup) if (path := directory / relative).is_file())
+        return (path for directory in iter_paths(lookup) if os.path.isfile(path := directory / relative))  # ruff:ignore[os-path-isfile]  # Path.is_file raises on an unsearchable directory before Python 3.14
 
     def find_config_files(self, name: str | os.PathLike[str]) -> list[Path]:
         """Find every ``name`` file in :meth:`iter_config_paths` order, without creating any directory.

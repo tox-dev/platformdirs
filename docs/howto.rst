@@ -190,9 +190,9 @@ site directories, and :meth:`~platformdirs.api.PlatformDirsABC.find_config_files
         print(plugin_file)
 
 Both search the directories of :meth:`~platformdirs.api.PlatformDirsABC.iter_config_paths` and match regular files only,
-so a directory named ``config.toml`` is skipped. They never create a directory, even with ``ensure_exists=True``. The
-name may contain subdirectories; an absolute path, a drive or a ``..`` component raises :class:`ValueError`. The same
-pair exists for data, cache, state, log and runtime files, e.g.
+so a directory named ``config.toml`` is skipped, as is a directory the user cannot search. They never create a
+directory, even with ``ensure_exists=True``. The name may contain subdirectories; an absolute path, a drive or a ``..``
+component raises :class:`ValueError`. The same pair exists for data, cache, state, log and runtime files, e.g.
 :meth:`~platformdirs.api.PlatformDirsABC.find_data_file`. A subclass that overrides an ``iter_*_paths`` method changes
 where the matching pair searches.
 
