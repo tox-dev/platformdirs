@@ -440,10 +440,11 @@ _USER_DIRS_LINE: Final[re.Pattern[str]] = re.compile(
     [ \t]*(?P<key>\w+)[ \t]*=[ \t]*  # KEY=, blanks allowed around the key and after the =
     (?:
         "(?P<quoted>(?:[^"\\]|\\.)*)"  # a double-quoted value with backslash escapes, text after it ignored
-        |(?P<bare>(?:[^"\s\\]|\\.)(?:[^ \t\n\\]|\\.|[ \t]+(?:[^ \t\n\#\\]|\\.))*)  # or an unquoted value; a
-                                                         # backslash keeps the next character in the word, blanks join
-                                                         # it only before a word that starts no comment, and each run
-                                                         # is matched once so long runs stay linear
+        |(?P<bare>(?:[^"\s\\]|\\.)(?:[^ \t\n\\]|\\.|\\\Z|[ \t]+(?:[^ \t\n\#\\]|\\.))*)  # or an unquoted value;
+                                                         # a backslash keeps the next character in the word, one that
+                                                         # ends the file stays as the shell keeps it, blanks join it
+                                                         # only before a word that starts no comment, and each run is
+                                                         # matched once so long runs stay linear
     )
     """,
     re.VERBOSE,

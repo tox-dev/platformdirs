@@ -2014,6 +2014,8 @@ def test_user_dirs_double_quoted_backslashes(
         pytest.param(
             'XDG_DOCUMENTS_DIR="$HOME/Reports\\ #2026"\n', r"~/Reports\ #2026", id="quoted-keeps-backslash-blank"
         ),
+        pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs\\", "~/Docs\\", id="unquoted-backslash-ends-file"),
+        pytest.param("XDG_DOCUMENTS_DIR=$HOME/Docs\\\n", "~/Docs", id="unquoted-backslash-newline-ends-file"),
     ],
 )
 def test_user_dirs_read_like_xdg_user_dir(content: str, expected: str, tmp_path: Path, user_dirs_file: Path) -> None:

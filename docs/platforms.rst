@@ -292,8 +292,10 @@ On Unix, use percent signs as literal characters in ``user-dirs.dirs`` paths, fo
 last valid line for a directory wins. Inside double quotes, a backslash is removed only before ``$``, a backtick, ``"``,
 or another backslash. Other backslashes, such as ``\q`` in a folder name, remain literal. The ``xdg-user-dir`` utility
 also removes a backslash before an ordinary character in a hand-written entry; use ``\\`` for the same result in both.
-Platformdirs skips values that are neither ``$HOME``-relative nor absolute. ``XDG_DOCUMENTS_DIR`` in the environment
-takes precedence over the file and is skipped in the same way unless it is an absolute path.
+Outside quotes, a backslash is removed before any character, which stays in the path: ``$HOME/Reports\ #2026`` names
+``Reports #2026`` instead of ending at a comment. Platformdirs skips values that are neither ``$HOME``-relative nor
+absolute. ``XDG_DOCUMENTS_DIR`` in the environment takes precedence over the file and is skipped in the same way unless
+it is an absolute path.
 
 .. tab-set::
 
