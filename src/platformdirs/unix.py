@@ -244,9 +244,12 @@ def _get_user_dirs_folder(key: str) -> str | None:
     folder = None
     try:
         # the file holds raw path bytes, and surrogateescape round-trips undecodable ones like os.fsdecode
-        with user_dirs_config_path.open(encoding=sys.getfilesystemencoding(), errors="surrogateescape") as stream:
+        # Split only at LF: a CR inside a quoted Unix path is a literal filename byte, not a line ending.
+        with user_dirs_config_path.open(
+            encoding=sys.getfilesystemencoding(), errors="surrogateescape", newline="\n"
+        ) as stream:
             for line in stream:
-                if (entry := _USER_DIRS_LINE.match(line)) and entry["key"] == key:
+                if (entry := _USER_DIRS_LINE.match(line.removesuffix("\n").removesuffix("\r"))) and entry["key"] == key:
                     folder = _resolve_user_dirs_value(entry) or folder
     except OSError:  # a missing or unreadable file leaves the defaults in place
         return None

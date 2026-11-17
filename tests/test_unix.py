@@ -2043,6 +2043,20 @@ def test_user_dirs_undecodable_bytes(content: bytes, expected: str, tmp_path: Pa
     assert Unix().user_documents_dir == expected.replace("~", str(tmp_path), 1)
 
 
+@pytest.mark.parametrize(
+    ("content", "expected"),
+    [
+        pytest.param(b'XDG_DOCUMENTS_DIR="$HOME/Docs\rArchive"\n', "~/Docs\rArchive", id="quoted-home"),
+        pytest.param(b'XDG_DOCUMENTS_DIR="/srv/Docs\rArchive"\r\n', "/srv/Docs\rArchive", id="quoted-absolute"),
+        pytest.param(b"XDG_DOCUMENTS_DIR=$HOME/Docs\r\n", "~/Docs", id="crlf-terminator"),
+        pytest.param(b"XDG_DOCUMENTS_DIR=$HOME/Docs\r", "~/Docs", id="crlf-file-without-final-newline"),
+    ],
+)
+def test_user_dirs_carriage_return(content: bytes, expected: str, tmp_path: Path, user_dirs_file: Path) -> None:
+    user_dirs_file.write_bytes(content)
+    assert Unix().user_documents_dir == expected.replace("~", str(tmp_path), 1)
+
+
 def test_user_dirs_unreadable_file_uses_default(tmp_path: Path, user_dirs_file: Path) -> None:
     # a directory stands in for an unreadable file because root ignores a chmod 000
     user_dirs_file.mkdir()
