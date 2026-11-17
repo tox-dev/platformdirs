@@ -4,15 +4,16 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING, Final
 
 import platformdirs
 
 from .api import PlatformDirsABC
 
+TYPE_CHECKING = False
 if TYPE_CHECKING:
     import os
     from collections.abc import Generator
+    from typing import Final
 
 
 @contextmanager

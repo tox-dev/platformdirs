@@ -1,0 +1,2 @@
+Importing :mod:`platformdirs` no longer imports :mod:`typing`: the names it needs only for type annotations are
+imported under a module-level ``TYPE_CHECKING`` guard, so ``import platformdirs`` is faster.

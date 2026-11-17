@@ -7,13 +7,14 @@ import os
 import sys
 from functools import cache
 from pathlib import Path
-from typing import TYPE_CHECKING, Final
 
 from ._xdg import expand_user
 from .api import PlatformDirsABC
 
+TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from typing import Final
 
 # Not exposed by CPython; defined in the Windows SDK (shlobj_core.h)
 _KF_FLAG_DONT_VERIFY: Final[int] = 0x00004000

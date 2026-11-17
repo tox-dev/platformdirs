@@ -8,6 +8,7 @@ import re
 import stat
 import sys
 from pathlib import Path
+from subprocess import check_output  # ruff:ignore[suspicious-subprocess-import]  # import-cost subprocess test
 from typing import TYPE_CHECKING, Final, ParamSpec
 
 import pytest
@@ -28,6 +29,13 @@ if TYPE_CHECKING:
     from typing import Any
 
     from pytest_mock import MockerFixture
+
+
+def test_import_platformdirs_skips_typing() -> None:
+    code = "import sys, platformdirs; print('typing' in sys.modules)"
+    # A coverage process hook imports typing in the child before platformdirs loads.
+    env = {name: value for name, value in os.environ.items() if not name.startswith("COVERAGE_")}
+    assert check_output([sys.executable, "-c", code], text=True, env=env).strip() == "False"
 
 
 def test_package_metadata() -> None:

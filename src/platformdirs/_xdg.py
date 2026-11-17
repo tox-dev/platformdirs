@@ -7,10 +7,13 @@ import posixpath
 import sys
 from contextlib import suppress
 from pathlib import Path
-from typing import Final
 
 from ._runtime import runtime_dir_problem, warn_once
 from .api import PlatformDirsABC
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Final
 
 
 class XDGMixin(PlatformDirsABC):

@@ -7,10 +7,13 @@ import stat
 import sys
 from contextlib import suppress
 from pathlib import Path
-from typing import Final, NoReturn
 
 from ._xdg import XDGMixin, expand_user
 from .api import PlatformDirsABC
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Final, NoReturn
 
 if sys.platform == "win32":
 

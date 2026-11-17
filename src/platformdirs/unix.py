@@ -10,7 +10,6 @@ import sys
 from contextlib import suppress
 from pathlib import Path
 from tempfile import gettempdir
-from typing import TYPE_CHECKING, Final
 
 from ._runtime import RUNTIME_DIR_MODE as _RUNTIME_DIR_MODE
 from ._runtime import geteuid
@@ -22,8 +21,10 @@ from .api import (
     RuntimeDirWarning,  # ruff:ignore[unused-import]  # retain module attribute
 )
 
+TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Iterator
+    from typing import Final
 
 
 class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # full directory API
