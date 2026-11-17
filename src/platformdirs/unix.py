@@ -7,29 +7,23 @@ import posixpath
 import re
 import stat
 import sys
-import warnings
 from contextlib import suppress
 from pathlib import Path
 from tempfile import gettempdir
-from typing import TYPE_CHECKING, Final, NoReturn
+from typing import TYPE_CHECKING, Final
 
+from ._runtime import RUNTIME_DIR_MODE as _RUNTIME_DIR_MODE
+from ._runtime import geteuid
+from ._runtime import runtime_dir_problem as _runtime_dir_problem
+from ._runtime import warn_once as _warn_once
 from ._xdg import XDGMixin, expand_user, xdg_dir
-from .api import PlatformDirsABC, RuntimeDirWarning
+from .api import (
+    PlatformDirsABC,
+    RuntimeDirWarning,  # ruff:ignore[unused-import]  # retain module attribute
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
-
-if sys.platform == "win32":
-
-    def geteuid() -> NoReturn:
-        msg = "should only be used on Unix"
-        raise RuntimeError(msg)
-
-else:
-    try:
-        from os import geteuid
-    except ImportError:
-        from os import getuid as geteuid
 
 
 class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # full directory API
@@ -238,6 +232,46 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
         return path
 
 
+def _get_user_dirs_folder(key: str) -> str | None:
+    # Return directory from user-dirs.dirs config file.
+    #
+    # ``xdg-user-dirs-update`` writes shell assignments, so match each line like ``xdg-user-dir`` does and keep the last
+    # valid assignment to ``key``.
+    #
+    # See https://freedesktop.org/wiki/Software/xdg-user-dirs/.
+    user_dirs_config_path = Path(xdg_dir("XDG_CONFIG_HOME") or expand_user("~/.config")) / "user-dirs.dirs"
+    folder = None
+    try:
+        # the file holds raw path bytes, and surrogateescape round-trips undecodable ones like os.fsdecode
+        with user_dirs_config_path.open(encoding=sys.getfilesystemencoding(), errors="surrogateescape") as stream:
+            for line in stream:
+                if (entry := _USER_DIRS_LINE.match(line)) and entry["key"] == key:
+                    folder = _resolve_user_dirs_value(entry) or folder
+    except OSError:  # a missing or unreadable file leaves the defaults in place
+        return None
+    return folder
+
+
+def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
+    value = entry["bare"] if entry["quoted"] is None else entry["quoted"]
+    if value == "$HOME" or value.startswith("$HOME/"):
+        # A home of / would give "//Desktop", which pathlib keeps as a distinct root.
+        prefix, value = expand_user("~").rstrip("/"), value.removeprefix("$HOME")
+    elif value.startswith("/"):
+        prefix = ""
+    else:
+        return None
+    if entry["quoted"] is not None:
+        # xdg-user-dirs-update backslash-escapes $, `, " and \ inside the quotes.
+        value = _VALUE_PATTERN.sub(r"\1", value)
+    return f"{prefix}{value}" or "/"
+
+
+def _temp_runtime_fallback() -> str:
+    # A temporary directory of / would give "//runtime-<uid>", which pathlib keeps as a distinct root.
+    return posixpath.join(gettempdir(), f"runtime-{geteuid()}")
+
+
 class Unix(XDGMixin, _UnixDefaults):
     """On Unix/Linux, we follow the `XDG Basedir Spec <https://specifications.freedesktop.org/basedir/latest/>`_.
 
@@ -376,91 +410,6 @@ class Unix(XDGMixin, _UnixDefaults):
         return expand_user(default) if self._use_site else super()._user_media_dir(key, default)
 
 
-_USER_DIRS_LINE: Final[re.Pattern[str]] = re.compile(
-    r"""
-    [ \t]*(?P<key>\w+)[ \t]*=[ \t]*  # KEY=, blanks allowed around the key and after the =
-    (?:
-        "(?P<quoted>(?:[^"\\]|\\.)*)"  # a double-quoted value with backslash escapes, text after it ignored
-        |(?P<bare>[^"\s](?:[^ \t\n]|[ \t]+[^ \t\n\#])*)  # or an unquoted value; blanks join it only before a word
-                                                         # that starts no comment, and each run is matched once so
-                                                         # long runs stay linear
-    )
-    """,
-    re.VERBOSE,
-)
-
-
-def _get_user_dirs_folder(key: str) -> str | None:
-    # Return directory from user-dirs.dirs config file.
-    #
-    # ``xdg-user-dirs-update`` writes shell assignments, so match each line like ``xdg-user-dir`` does and keep the last
-    # valid assignment to ``key``.
-    #
-    # See https://freedesktop.org/wiki/Software/xdg-user-dirs/.
-    user_dirs_config_path = Path(xdg_dir("XDG_CONFIG_HOME") or expand_user("~/.config")) / "user-dirs.dirs"
-    folder = None
-    try:
-        # the file holds raw path bytes, and surrogateescape round-trips undecodable ones like os.fsdecode
-        with user_dirs_config_path.open(encoding=sys.getfilesystemencoding(), errors="surrogateescape") as stream:
-            for line in stream:
-                if (entry := _USER_DIRS_LINE.match(line)) and entry["key"] == key:
-                    folder = _resolve_user_dirs_value(entry) or folder
-    except OSError:  # a missing or unreadable file leaves the defaults in place
-        return None
-    return folder
-
-
-def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
-    value = entry["bare"] if entry["quoted"] is None else entry["quoted"]
-    if value == "$HOME" or value.startswith("$HOME/"):
-        # A home of / would give "//Desktop", which pathlib keeps as a distinct root.
-        prefix, value = expand_user("~").rstrip("/"), value.removeprefix("$HOME")
-    elif value.startswith("/"):
-        prefix = ""
-    else:
-        return None
-    if entry["quoted"] is not None:
-        # xdg-user-dirs-update backslash-escapes $, `, " and \ inside the quotes.
-        value = re.sub(r'\\([$`"\\])', r"\1", value)
-    return f"{prefix}{value}" or "/"
-
-
-def _temp_runtime_fallback() -> str:
-    # A temporary directory of / would give "//runtime-<uid>", which pathlib keeps as a distinct root.
-    return posixpath.join(gettempdir(), f"runtime-{geteuid()}")
-
-
-def _in_own_runtime_dir(path: Path) -> bool:
-    # The lookup let a missing runtime directory pass, so another user may have created it since. The fallback goes
-    # first because a rejected XDG_RUNTIME_DIR, such as /tmp, contains it.
-    for base in (_temp_runtime_fallback(), xdg_dir("XDG_RUNTIME_DIR")):
-        if base and path.is_relative_to(base):
-            return not _runtime_dir_problem(base, missing_ok=False, check_mode=False)
-    return True
-
-
-def _runtime_dir_problem(path: str, *, missing_ok: bool, check_mode: bool = True) -> str | None:
-    # Return why ``path`` fails the checks of Qt's ``checkXdgRuntimeDir``, or ``None`` if it passes.
-    #
-    # A missing ``path`` passes under ``missing_ok``. A caller that then creates it or reads below it has to check
-    # again, since another user can create it in between.
-    try:
-        # A trailing / or /. makes lstat follow a final symlink, while Path, which creates the directory, drops it.
-        info = os.lstat(str(Path(path)))
-    except FileNotFoundError:
-        return None if missing_ok else f"{path} is missing"
-    except OSError as error:
-        return f"{path} cannot be checked: {error.strerror}"
-    mode = info.st_mode & 0o777
-    checks = (
-        (stat.S_ISLNK(info.st_mode), "is a symlink"),
-        (not stat.S_ISDIR(info.st_mode), "is not a directory"),
-        (info.st_uid != (uid := geteuid()), f"is owned by uid {info.st_uid}, not {uid}"),
-        (check_mode and mode != _RUNTIME_DIR_MODE, f"has mode {mode:04o}, not {_RUNTIME_DIR_MODE:04o}"),
-    )
-    return next((f"{path} {problem}" for failed, problem in checks if failed), None)
-
-
 def _runtime_dir_parent_problem(path: str) -> str | None:
     if sys.platform == "win32":  # every directory reports as writable by everyone there
         return None
@@ -477,15 +426,30 @@ def _runtime_dir_parent_problem(path: str) -> str | None:
     return None
 
 
-def _warn_once(message: str) -> None:
-    # Each read of user_runtime_dir repeats the check, so a warning per read would flood long-running programs.
-    if message not in _WARNED:
-        _WARNED.add(message)
-        warnings.warn(message, RuntimeDirWarning, stacklevel=3)
+def _in_own_runtime_dir(path: Path) -> bool:
+    # The lookup let a missing runtime directory pass, so another user may have created it since. The fallback goes
+    # first because a rejected XDG_RUNTIME_DIR, such as /tmp, contains it.
+    for base in (_temp_runtime_fallback(), xdg_dir("XDG_RUNTIME_DIR")):
+        if base and path.is_relative_to(base):
+            return not _runtime_dir_problem(base, missing_ok=False, check_mode=False)
+    return True
 
 
-_WARNED: Final[set[str]] = set()
-_RUNTIME_DIR_MODE: Final[int] = 0o700
+_USER_DIRS_LINE: Final[re.Pattern[str]] = re.compile(
+    r"""
+    [ \t]*(?P<key>\w+)[ \t]*=[ \t]*  # KEY=, blanks allowed around the key and after the =
+    (?:
+        "(?P<quoted>(?:[^"\\]|\\.)*)"  # a double-quoted value with backslash escapes, text after it ignored
+        |(?P<bare>[^"\s](?:[^ \t\n]|[ \t]+[^ \t\n\#])*)  # or an unquoted value; blanks join it only before a word
+                                                         # that starts no comment, and each run is matched once so
+                                                         # long runs stay linear
+    )
+    """,
+    re.VERBOSE,
+)
+
+
+_VALUE_PATTERN: Final[re.Pattern[str]] = re.compile(r'\\([$`"\\])')
 
 
 __all__ = [

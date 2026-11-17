@@ -299,7 +299,9 @@ def test_macos_ensure_exists_returns_configured_media_symlink(
     assert (MacOS(ensure_exists=True).user_documents_path, path.is_dir()) == (path, is_dir)
 
 
-@pytest.mark.parametrize(("xdg_value", "created"), [("/custom/media", True), (None, False)], ids=["xdg", "default"])
+@pytest.mark.parametrize(
+    ("xdg_value", "created"), [pytest.param("/custom/media", True, id="xdg"), pytest.param(None, False, id="default")]
+)
 @pytest.mark.parametrize(("env_var", "prop"), _MEDIA_DIRS)
 # parametrized case inputs
 def test_macos_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[too-many-arguments]
@@ -550,7 +552,10 @@ def test_homebrew_site_dir_ensure_exists_creates_only_the_returned_entries(
 ) -> None:
     mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
     mocker.patch.object(
-        Path, "lstat", return_value=mocker.MagicMock(spec=os.stat_result, st_mode=stat.S_IFDIR, st_uid=0), autospec=True
+        Path,
+        "lstat",
+        return_value=mocker.create_autospec(os.stat_result, instance=True, st_mode=stat.S_IFDIR, st_uid=0),
+        autospec=True,
     )
     getattr(MacOS(appname="foo", multipath=multipath, ensure_exists=True), prop)
     assert [c.args[0] for c in mkdir.call_args_list] == [Path(p) for p in created]
@@ -798,7 +803,7 @@ def test_site_cache_ensure_exists_rejects_other_owner(
     mocker.patch.object(
         Path,
         "lstat",
-        return_value=mocker.MagicMock(spec=os.stat_result, st_mode=stat.S_IFDIR, st_uid=501),
+        return_value=mocker.create_autospec(os.stat_result, instance=True, st_mode=stat.S_IFDIR, st_uid=501),
         autospec=True,
     )
     mocker.patch("platformdirs.macos.geteuid", return_value=502, autospec=True)
@@ -814,7 +819,7 @@ def test_site_cache_ensure_exists_accepts_trusted_owner(mocker: MockerFixture, s
     mocker.patch.object(
         Path,
         "lstat",
-        return_value=mocker.MagicMock(spec=os.stat_result, st_mode=stat.S_IFDIR, st_uid=owner),
+        return_value=mocker.create_autospec(os.stat_result, instance=True, st_mode=stat.S_IFDIR, st_uid=owner),
         autospec=True,
     )
     mocker.patch("platformdirs.macos.geteuid", return_value=502, autospec=True)
@@ -842,7 +847,7 @@ _POSIX_ONLY: Final[pytest.MarkDecorator] = pytest.mark.skipif(
 @pytest.fixture
 def runtime_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture) -> Path:
     # The runtime dir warnings are emitted once per process, so give every test its own record of them.
-    mocker.patch("platformdirs.unix._WARNED", set())
+    mocker.patch("platformdirs._runtime._WARNED", set())
     monkeypatch.setenv("XDG_RUNTIME_DIR", str(path := tmp_path / "runtime"))
     return path
 
@@ -850,7 +855,7 @@ def runtime_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerF
 @pytest.fixture
 def foreign_runtime_dir(runtime_dir: Path, mocker: MockerFixture) -> Path:
     runtime_dir.mkdir(mode=0o700)
-    mocker.patch("platformdirs.unix.geteuid", return_value=runtime_dir.stat().st_uid + 1, autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=runtime_dir.stat().st_uid + 1, autospec=True)
     return runtime_dir
 
 

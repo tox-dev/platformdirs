@@ -47,6 +47,7 @@ def test_run_prints_permission_error_and_continues(
     owner: Final = runtime_temp_dir.stat().st_uid
     (runtime_temp_dir / f"runtime-{owner + 1}").mkdir()
     mocker.patch("platformdirs.unix.geteuid", return_value=owner + 1, autospec=True)
+    mocker.patch("platformdirs._runtime.geteuid", return_value=owner + 1, autospec=True)
     main()
     error: Final = f"runtime directory {runtime_temp_dir}/runtime-{owner + 1} is owned by uid {owner}, not {owner + 1}"
     # every report section continues past the failing property

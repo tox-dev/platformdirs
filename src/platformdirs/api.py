@@ -804,17 +804,6 @@ def _ensure_home_known(path: str) -> None:
         raise RuntimeError(msg)
 
 
-def _unique(dirs: Iterable[str]) -> Iterator[str]:
-    # :yield: ``dirs`` in order, skipping any directory already yielded.
-    # Lazy on purpose: under ensure_exists reading a site_*_dir creates it, so draining ``dirs`` up front would
-    # create directories for a caller that stops after the first entry.
-    seen: set[Path] = set()
-    for path in dirs:
-        if (normalized := Path(path)) not in seen:
-            seen.add(normalized)
-            yield path
-
-
 def _make_private_directories(path: Path) -> None:
     # XDG asks for 0o700 on each directory created on the way, while Path.mkdir(parents=True) applies it to the last.
     try:
@@ -824,6 +813,17 @@ def _make_private_directories(path: Path) -> None:
             raise
         _make_private_directories(path.parent)
         path.mkdir(mode=0o700, exist_ok=True)
+
+
+def _unique(dirs: Iterable[str]) -> Iterator[str]:
+    # :yield: ``dirs`` in order, skipping any directory already yielded.
+    # Lazy on purpose: under ensure_exists reading a site_*_dir creates it, so draining ``dirs`` up front would
+    # create directories for a caller that stops after the first entry.
+    seen: set[Path] = set()
+    for path in dirs:
+        if (normalized := Path(path)) not in seen:
+            seen.add(normalized)
+            yield path
 
 
 class RuntimeDirWarning(UserWarning):  # simplint: ignore[missing-from-all]  # preserve star imports
