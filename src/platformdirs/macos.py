@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-__lazy_modules__ = ["contextlib", "pathlib"]
+__lazy_modules__ = [
+    "contextlib",
+    "pathlib",
+]
 
 import re
 import stat

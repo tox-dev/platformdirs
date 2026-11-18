@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-__lazy_modules__ = ["copy", "pathlib"]
+__lazy_modules__ = [
+    "copy",
+    "pathlib",
+]
 
 import os
 from abc import ABC, abstractmethod
