@@ -709,6 +709,16 @@ def test_get_win_folder_override(monkeypatch: pytest.MonkeyPatch, csidl_name: st
         pytest.param("//server/", id="unc_forward_slash_empty_share"),
         pytest.param(r"\\?\UNC\server", id="extended_unc_without_share"),
         pytest.param("\\\\?\\UNC\\server\\", id="extended_unc_empty_share"),
+        pytest.param(r"\\?\UNC", id="extended_unc_without_server"),
+        pytest.param(r"\\.\UNC", id="device_unc_without_server"),
+        pytest.param(r"\\.\UNC\server", id="device_unc_without_share"),
+        pytest.param("\\\\.\\UNC\\server\\", id="device_unc_empty_share"),
+        pytest.param(r"\\.\UNC\server\\appdata", id="device_unc_empty_share_with_folder"),
+        pytest.param("\\\\?\\UNC\\", id="extended_unc_empty_server"),
+        pytest.param("\\\\.\\UNC\\", id="device_unc_empty_server"),
+        pytest.param(r"\\.\UNC\server\share\..", id="device_unc_parent_of_share"),
+        pytest.param(r"\\.\UNC\server\.", id="device_unc_dot_share"),
+        pytest.param(r"\\.\UNC\..\share", id="device_unc_parent_server"),
     ],
 )
 def test_get_win_folder_override_ignored(monkeypatch: pytest.MonkeyPatch, value: str) -> None:
@@ -731,6 +741,9 @@ def test_get_win_folder_override_ignored(monkeypatch: pytest.MonkeyPatch, value:
         pytest.param("\\\\.\\D:\\", id="device_drive_root"),
         pytest.param(r"\\?\UNC\server\share", id="extended_unc_share"),
         pytest.param(r"\\?\unc\server\share", id="extended_unc_lowercase_share"),
+        pytest.param(r"\\.\UNC\server\share", id="device_unc_share"),
+        pytest.param(r"\\.\UNC\server\share\appdata", id="device_unc_share_folder"),
+        pytest.param("//./unc/server/share", id="device_unc_lowercase_forward_slashes"),
     ],
 )
 def test_get_win_folder_override_absolute(monkeypatch: pytest.MonkeyPatch, value: str) -> None:
