@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+__lazy_modules__ = [
+    "contextlib",
+    "pathlib",
+    "tempfile",
+]
+
 import os
 import posixpath
 import re

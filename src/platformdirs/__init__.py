@@ -11,6 +11,15 @@ PYTEST_DONT_REWRITE: Applications may import platformdirs before starting pytest
 
 from __future__ import annotations
 
+__lazy_modules__ = [
+    f"{__spec__.parent}.api",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
+    f"{__spec__.parent}.ios",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
+    f"{__spec__.parent}.macos",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
+    f"{__spec__.parent}.unix",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
+    f"{__spec__.parent}.version",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
+    f"{__spec__.parent}.windows",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
+]
+
 import os
 import sys
 

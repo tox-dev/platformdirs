@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+__lazy_modules__ = [
+    "pathlib",
+    "warnings",
+    f"{__spec__.parent}.api",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
+]
+
 import os
 import stat
 import sys
