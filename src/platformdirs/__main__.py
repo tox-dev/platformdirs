@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+__lazy_modules__ = ["platformdirs"]
+
 from platformdirs import PlatformDirs, __version__
 
 TYPE_CHECKING = False

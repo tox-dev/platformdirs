@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+__lazy_modules__ = [
+    "contextlib",
+    "pathlib",
+    f"{__spec__.parent}._runtime",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
+]
+
 import os
 import posixpath
 import sys

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+__lazy_modules__ = ["contextlib"]
+
 import os
 import re
 from contextlib import suppress
