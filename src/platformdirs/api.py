@@ -5,12 +5,15 @@ from __future__ import annotations
 __lazy_modules__ = [
     "copy",
     "pathlib",
+    f"{__spec__.parent}._paths",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
 import os
 from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
+
+from ._paths import directory_problem
 
 TYPE_CHECKING = False  #: :data:`typing.TYPE_CHECKING` without importing :mod:`typing` at runtime
 if TYPE_CHECKING:
@@ -163,10 +166,12 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
         if not self.ensure_exists:
             return
         _ensure_home_known(path)
+        _check_creation_path(Path(path))
         if private:
             _make_private_directories(Path(path))
         else:
             Path(path).mkdir(parents=True, exist_ok=True)
+        _check_creation_path(Path(path))
 
     @property
     def _site_data_dirs(self) -> list[str]:
@@ -597,11 +602,13 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
         # Under multipath *_dir joins the site directories with os.pathsep, so place under the single *_path.
         _ensure_home_known(str(directory := user_path(lookup)))
         path = directory / relative
+        _check_creation_path(path.parent)
         if self._use_site:
             # Site directories keep the default mode, as under ensure_exists, so other users can still read them.
             path.parent.mkdir(parents=True, exist_ok=True)
         else:
             _make_private_directories(path.parent)
+        _check_creation_path(path.parent)
         return path
 
     def place_data_file(self, name: str | os.PathLike[str]) -> Path:
@@ -807,6 +814,11 @@ def _ensure_home_known(path: str) -> None:
     if path.startswith("~"):
         msg = f"could not determine the home directory, refusing to create {path!r}"
         raise RuntimeError(msg)
+
+
+def _check_creation_path(path: Path) -> None:
+    if problem := directory_problem(path if path.is_dir() else path.parent, missing_ok=True):
+        raise PermissionError(problem)
 
 
 def _make_private_directories(path: Path) -> None:
