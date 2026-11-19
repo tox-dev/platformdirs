@@ -494,7 +494,8 @@ Writing to ``site_*`` directories typically requires root privileges. Normal use
 
 ``user_runtime_dir`` uses ``XDG_RUNTIME_DIR`` only if it names a directory, not a symlink, that the effective user owns
 with mode ``0700``, as the spec requires. It also rejects any parent owned by neither root nor the effective user, or
-one writable by every user without the sticky bit. This includes parents reached through symlinks. If the variable is
+one writable by another user through its group or other mode bits without the sticky bit. This includes parents reached
+through symlinks. If the variable is
 unset or fails that check, ``platformdirs`` emits a
 :class:`~platformdirs.RuntimeDirWarning` once for each distinct cause and tries ``/run/user/<uid>``
 (``/var/run/user/<uid>`` on FreeBSD and NetBSD, ``/tmp/run/user/<uid>`` on OpenBSD) under the same check. When that

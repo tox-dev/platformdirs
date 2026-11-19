@@ -8,6 +8,7 @@ __lazy_modules__ = [
     f"{__spec__.parent}._runtime",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
+import os
 import stat
 import sys
 from collections import deque
@@ -38,7 +39,7 @@ def _verify_path(path: Path) -> None:
     max_links = 40
     while pending:
         entry = directory / pending.popleft()
-        info = entry.lstat()
+        info = os.lstat(entry)
         if info.st_uid not in owners:
             msg = f"{entry}, owned by uid {info.st_uid}"
             raise PermissionError(msg)
@@ -55,8 +56,8 @@ def _verify_path(path: Path) -> None:
         if not stat.S_ISDIR(info.st_mode):
             msg = f"{entry}, which is not a directory"
             raise PermissionError(msg)
-        if info.st_mode & stat.S_IWOTH and not info.st_mode & stat.S_ISVTX:
-            msg = f"{entry}, writable by every user"
+        if info.st_mode & (stat.S_IWGRP | stat.S_IWOTH) and not info.st_mode & stat.S_ISVTX:
+            msg = f"{entry}, writable by another user"
             raise PermissionError(msg)
         directory = entry
 
