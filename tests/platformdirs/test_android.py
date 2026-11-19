@@ -81,7 +81,7 @@ def _restore_platformdirs() -> Iterator[None]:
 
 @pytest.fixture
 def _example_android_folder(mocker: MockerFixture) -> None:
-    mocker.patch("platformdirs.android._android_folder", return_value="/data/data/com.example", autospec=True)
+    mocker.patch("platformdirs.android.android_folder", return_value="/data/data/com.example", autospec=True)
     mocker.patch("platformdirs.android.os.path.join", lambda *args: "/".join(args))
 
 
@@ -180,8 +180,9 @@ def test_android_folder_from_sys_path(
 
 @pytest.fixture
 def _clear_android_caches() -> None:
-    for cached in android.__dict__.values():
-        if hasattr(cached, "cache_clear"):
+    # Attribute lookup resolves lazy imports before checking for the cache.
+    for name in dir(android):
+        if hasattr(cached := getattr(android, name), "cache_clear"):
             cached.cache_clear()
 
 
@@ -218,7 +219,7 @@ def test_android_shared_storage_follows_user(
     mocker: MockerFixture, app_folder: str | None, storage: str, prop: str, folder: str
 ) -> None:
     mocker.patch.dict(sys.modules, {"jnius": None})
-    mocker.patch("platformdirs.android._android_folder", return_value=app_folder, autospec=True)
+    mocker.patch("platformdirs.android.android_folder", return_value=app_folder, autospec=True)
     assert getattr(Android(), prop) == f"{storage}/{folder}"
 
 
@@ -312,7 +313,7 @@ def test_android_folder_not_found(mocker: MockerFixture, monkeypatch: pytest.Mon
 
 @pytest.mark.parametrize("prop", ["user_data_dir", "user_config_dir", "user_cache_dir", "user_bin_dir"])
 def test_android_folder_not_found_raises(mocker: MockerFixture, prop: str) -> None:
-    mocker.patch("platformdirs.android._android_folder", return_value=None, autospec=True)
+    mocker.patch("platformdirs.android.android_folder", return_value=None, autospec=True)
     with pytest.raises(RuntimeError, match=r"^cannot find the Android app folder"):
         getattr(Android(appname="foo"), prop)
 
@@ -330,7 +331,7 @@ def test_android_ensure_exists_creates_opinion_subdir(
     prop: str,
     subdir: str,
 ) -> None:
-    mocker.patch("platformdirs.android._android_folder", return_value=str(tmp_path), autospec=True)
+    mocker.patch("platformdirs.android.android_folder", return_value=str(tmp_path), autospec=True)
     cache_dir = tmp_path / "cache"
     cache_dir.mkdir()
 
@@ -389,7 +390,7 @@ def test_android_site_applications_path_multipath_keeps_pathsep() -> None:
 def test_android_opinion_subdir_created_private(
     mocker: MockerFixture, tmp_path: Path, modes: Callable[[Path], dict[str, int]], prop: str
 ) -> None:
-    mocker.patch("platformdirs.android._android_folder", return_value=str(tmp_path), autospec=True)
+    mocker.patch("platformdirs.android.android_folder", return_value=str(tmp_path), autospec=True)
     subdir = Path(getattr(Android(appname="app", ensure_exists=True), prop)).name
     assert modes(tmp_path) == {"cache": 0o700, "cache/app": 0o700, f"cache/app/{subdir}": 0o700}
 

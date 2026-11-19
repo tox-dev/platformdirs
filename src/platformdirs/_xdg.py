@@ -5,6 +5,7 @@ from __future__ import annotations
 __lazy_modules__ = [
     "contextlib",
     "pathlib",
+    "posixpath",
     f"{__spec__.parent}._runtime",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
@@ -174,7 +175,7 @@ class XDGMixin(PlatformDirsABC):
 
 
 def xdg_dir(env_var: str) -> str | None:
-    path: Final = os.environ.get(env_var, "")
+    path: Final[str] = os.environ.get(env_var, "")
     return path if posixpath.isabs(path) else None
 
 
