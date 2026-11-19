@@ -112,7 +112,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
 
         """
         path = self._base_site_dirs()[0]
-        self._optionally_create_directory(path, private=False)
+        self._optionally_create_directory(path, private=False, site=True)
         return path
 
     # Default platform directories for macOS without XDG environment variable overrides.
@@ -120,18 +120,18 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
     # Follows the guidance from `Apple's File System Programming Guide
     # <https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/MacOSXDirectories/MacOSXDirectories.html>`_.
     # The XDG env var handling is in :class:`~platformdirs._xdg.XDGMixin`.
-    def _optionally_create_directory(self, path: str, *, private: bool) -> None:
+    def _optionally_create_directory(self, path: str, *, private: bool, site: bool = False) -> None:
         if self.ensure_exists and (shared := Path(_SITE_CACHE)) in (target := Path(path)).parents:
             # Every user can write to /Library/Caches, so another one may have created this entry first.
             entry = shared / target.relative_to(shared).parts[0]
             with suppress(FileExistsError):
-                super()._optionally_create_directory(str(entry), private=private)
+                super()._optionally_create_directory(str(entry), private=private, site=site)
             if problem := self._shared_entry_problem(entry):
                 msg = f"site cache directory {problem}"
                 raise PermissionError(msg)
             if target == entry:
                 return
-        super()._optionally_create_directory(path, private=private)
+        super()._optionally_create_directory(path, private=private, site=site)
 
     @staticmethod
     def _shared_entry_problem(path: Path) -> str | None:

@@ -492,7 +492,7 @@ When ``multipath=True``, ``site_data_dir`` and ``site_config_dir`` return all pa
 
 Writing to ``site_*`` directories typically requires root privileges. Normal users can only read from these locations.
 
-On Unix, ``ensure_exists`` and the ``place_*_file`` methods check existing directory components before creating a child.
+On Unix, ``ensure_exists`` and the ``place_*_file`` methods check existing user directory components before creating a child.
 They reject components owned by neither root nor the effective user and directories writable by another user without
 the sticky bit. Under a sticky shared parent, each new component is checked before creating the next one.
 

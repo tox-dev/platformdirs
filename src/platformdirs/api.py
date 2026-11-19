@@ -161,14 +161,17 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
     def _first_site_dir_as_path(self, dirs: list[str]) -> Path:
         # A *_path property always returns the first entry, regardless of multipath, so only that entry is created.
         path = dirs[0]
-        self._optionally_create_directory(path, private=False)
+        self._optionally_create_directory(path, private=False, site=True)
         return Path(path)
 
-    def _optionally_create_directory(self, path: str, *, private: bool) -> None:
+    def _optionally_create_directory(self, path: str, *, private: bool, site: bool = False) -> None:
         if not self.ensure_exists:
             return
         _ensure_home_known(path)
-        _create_checked_directories(Path(path), private=private)
+        if site:
+            _make_directories(Path(path), private=private)
+        else:
+            _create_checked_directories(Path(path), private=private)
 
     @property
     def _site_data_dirs(self) -> list[str]:
@@ -443,7 +446,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
 
     def _append_app_name_and_version(self, *base: str, private: bool) -> str:
         path = self._join_app_name_and_version(*base)
-        self._optionally_create_directory(path, private=private)
+        self._optionally_create_directory(path, private=private, site=not private)
         return path
 
     def _join_app_name_and_version(self, *base: str) -> str:
@@ -471,7 +474,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
             msg = f"multipath cannot join site directories that contain {os.pathsep!r}, got {selected!r}"
             raise ValueError(msg)
         for path in selected:
-            self._optionally_create_directory(path, private=False)
+            self._optionally_create_directory(path, private=False, site=True)
         return os.pathsep.join(selected)
 
     def iter_config_paths(self) -> Iterator[Path]:
@@ -496,7 +499,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
 
     def _create_as_yielded(self, dirs: Iterable[str]) -> Iterator[str]:
         for path in dirs:
-            self._optionally_create_directory(path, private=False)
+            self._optionally_create_directory(path, private=False, site=True)
             yield path
 
     def iter_data_paths(self) -> Iterator[Path]:
@@ -599,7 +602,10 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
         # Under multipath *_dir joins the site directories with os.pathsep, so place under the single *_path.
         _ensure_home_known(str(directory := user_path(lookup)))
         path = directory / relative
-        _create_checked_directories(path.parent, private=not self._use_site)
+        if self._use_site:
+            _make_directories(path.parent, private=False)
+        else:
+            _create_checked_directories(path.parent, private=True)
         return path
 
     def place_data_file(self, name: str | os.PathLike[str]) -> Path:
@@ -807,6 +813,25 @@ def _ensure_home_known(path: str) -> None:
         raise RuntimeError(msg)
 
 
+def _make_directories(path: Path, *, private: bool) -> None:
+    # Private creation applies the XDG mode to every new directory, including intermediate parents.
+    mode = 0o700 if private else 0o777
+    missing = []
+    while True:
+        try:
+            path.mkdir(mode=mode, exist_ok=True)
+        except FileNotFoundError:
+            parent = path.parent
+            if parent == path:  # A missing drive or share has no parent to create.
+                raise
+            missing.append(path)
+            path = parent
+        else:
+            break
+    for directory in reversed(missing):
+        directory.mkdir(mode=mode, exist_ok=True)
+
+
 def _create_checked_directories(path: Path, *, private: bool) -> None:
     if sys.platform == "win32":
         _make_directories(path, private=private)
@@ -825,25 +850,6 @@ def _create_checked_directories(path: Path, *, private: bool) -> None:
         existing.mkdir(mode=0o700 if private else 0o777, exist_ok=True)
         if problem := directory_problem(existing, missing_ok=False):
             raise PermissionError(problem)
-
-
-def _make_directories(path: Path, *, private: bool) -> None:
-    # Private creation applies the XDG mode to every new directory, including intermediate parents.
-    mode = 0o700 if private else 0o777
-    missing = []
-    while True:
-        try:
-            path.mkdir(mode=mode, exist_ok=True)
-        except FileNotFoundError:
-            parent = path.parent
-            if parent == path:  # A missing drive or share has no parent to create.
-                raise
-            missing.append(path)
-            path = parent
-        else:
-            break
-    for directory in reversed(missing):
-        directory.mkdir(mode=mode, exist_ok=True)
 
 
 def _unique(dirs: Iterable[str]) -> Iterator[str]:
