@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+from contextlib import ExitStack
 from pathlib import Path
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
@@ -166,6 +167,15 @@ def test_isolated_dirs_nested_restores_outer(tmp_path: Path) -> None:
         with isolated_dirs(tmp_path / "inner"):
             pass
         assert platformdirs.user_data_path("app") == tmp_path / "outer" / "user_data" / "app"
+
+
+def test_isolated_dirs_overlapping_restores_active_context(tmp_path: Path) -> None:
+    with ExitStack() as first, ExitStack() as second:
+        first.enter_context(isolated_dirs(tmp_path / "first"))
+        second.enter_context(isolated_dirs(tmp_path / "second"))
+        first.close()
+        assert platformdirs.user_config_path("app") == tmp_path / "second" / "user_config" / "app"
+    assert _resolve_all() == _ORIGINAL
 
 
 @pytest.mark.usefixtures("_unix_root")
