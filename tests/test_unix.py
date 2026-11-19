@@ -1854,6 +1854,14 @@ def root_password_home(mocker: MockerFixture, pwd: ModuleType, tmp_path: Path) -
     return tmp_path / "0"
 
 
+@pytest.mark.usefixtures("_as_root")
+def test_use_site_media_rejects_empty_root_password_home(mocker: MockerFixture, pwd: ModuleType) -> None:
+    mocker.patch.dict(os.environ, clear=True)
+    mocker.patch.object(pwd, "getpwuid", autospec=True, return_value=pwd.struct_passwd(("root", "x", 0, 0, "", "", "")))
+    with pytest.raises(RuntimeError, match="could not determine the home directory"):
+        _ = Unix(use_site_for_root=True).user_documents_dir
+
+
 @pytest.mark.usefixtures("_as_root", "_inherited_xdg_runtime_dir")
 def test_use_site_keeps_xdg_runtime_dir_for_site_runtime_dir() -> None:
     # match host separators

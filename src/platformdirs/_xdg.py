@@ -194,9 +194,9 @@ def expand_user(path: str, *, fallback_uid: int | None = None) -> str:
         with suppress(ImportError, KeyError):
             import pwd  # ruff:ignore[import-outside-top-level]  # missing on WASI
 
-            expanded = (
-                pwd.getpwuid(os.getuid() if fallback_uid is None else fallback_uid).pw_dir.rstrip("/") + path[1:] or "/"
-            )
+            home = pwd.getpwuid(os.getuid() if fallback_uid is None else fallback_uid).pw_dir
+            if fallback_uid is None or _is_absolute(home):
+                expanded = home.rstrip("/") + path[1:] or "/"
     else:
         # str(Path) rewrites separators on Windows
         expanded = os.path.expanduser(path)  # ruff:ignore[os-path-expanduser]
