@@ -5,19 +5,23 @@ from __future__ import annotations
 __lazy_modules__ = [
     "contextlib",
     "pathlib",
+    f"{__spec__.parent}._runtime",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
+import os
 import re
 import stat
 import sys
 from contextlib import suppress
 from pathlib import Path
 
-from ._xdg import XDGMixin, expand_user
+from ._runtime import runtime_dir_problem
+from ._xdg import XDGMixin, expand_user, xdg_dir
 from .api import PlatformDirsABC
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from typing import Final, NoReturn
 
 if sys.platform == "win32":
@@ -255,6 +259,18 @@ class MacOS(XDGMixin, _MacOSDefaults):
     XDG environment variables (e.g. ``$XDG_DATA_HOME``) are supported and take precedence over macOS defaults.
 
     """
+
+    def _find_runtime_files(self, name: str | os.PathLike[str]) -> Iterator[Path]:
+        def checked_paths(lookup: PlatformDirsABC) -> Iterator[Path]:
+            if not (base := xdg_dir("XDG_RUNTIME_DIR")):
+                yield from lookup.iter_runtime_paths()
+                return
+            xdg_path = Path(self._join_app_name_and_version(base))
+            for directory in lookup.iter_runtime_paths():
+                if directory != xdg_path or not runtime_dir_problem(base, missing_ok=False):
+                    yield directory
+
+        return self._find_files(checked_paths, name)
 
 
 # Homebrew links each Python formula as a framework build, and a virtual environment keeps it as sys.base_prefix.
