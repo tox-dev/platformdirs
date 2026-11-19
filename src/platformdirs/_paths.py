@@ -5,13 +5,15 @@ from __future__ import annotations
 __lazy_modules__ = [
     "collections",
     "pathlib",
+    f"{__spec__.parent}._runtime",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
-import os
 import stat
 import sys
 from collections import deque
 from pathlib import Path
+
+from ._runtime import geteuid
 
 
 def directory_problem(path: Path, *, missing_ok: bool) -> str | None:
@@ -31,7 +33,7 @@ def directory_problem(path: Path, *, missing_ok: bool) -> str | None:
 def _verify_path(path: Path) -> None:
     directory = Path(path.anchor)
     pending = deque(path.parts[1:])
-    owners = {0, getattr(os, "geteuid", os.getuid)()}
+    owners = {0, geteuid()}
     links = 0
     max_links = 40
     while pending:
