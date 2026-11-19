@@ -46,7 +46,7 @@ def test_import_before_pytest_main(tmp_path: Path, invocation: str, monkeypatch:
         "    assert PlatformDirs('app').user_config_path == platformdirs_isolated / 'user_config' / 'app'\n",
         encoding="utf-8",
     )
-    code: Final = (
+    code: Final[str] = (
         "import platformdirs\n"
         "import pytest\n"
         "from concurrent.futures import ThreadPoolExecutor\n"
