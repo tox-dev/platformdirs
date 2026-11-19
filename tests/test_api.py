@@ -605,4 +605,4 @@ def test_system_site_dir_keeps_default_mode(
     mocker.patch("sys.platform", "linux")
     mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
     getattr(dirs_class(appname="app", ensure_exists=True), prop)
-    assert mkdir.call_args_list == [mocker.call(Path(created), parents=True, exist_ok=True)]
+    assert mkdir.call_args_list == [mocker.call(Path(created), mode=0o777, exist_ok=True)]
