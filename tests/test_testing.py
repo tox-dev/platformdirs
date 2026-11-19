@@ -203,52 +203,51 @@ def test_isolated_dirs_rolls_back_interrupted_entry(tmp_path: Path, monkeypatch:
     assert _resolve_all() == _ORIGINAL
 
 
-@pytest.mark.skipif(not hasattr(os, "fork"), reason="requires fork")
-@pytest.mark.filterwarnings("ignore:This process .* is multi-threaded.*:DeprecationWarning")
-def test_isolated_dirs_fork_restores_original_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    installing, release = Event(), Event()
+if sys.platform != "win32":
 
-    def pause_install(cls: type[PlatformDirsABC], name: str, value: property) -> None:
-        setattr(cls, name, value)
-        if current_thread() is not main_thread() and not installing.is_set():
-            installing.set()
-            assert release.wait(10)
+    @pytest.mark.skipif(not hasattr(os, "fork"), reason="requires fork")
+    @pytest.mark.filterwarnings("ignore:This process .* is multi-threaded.*:DeprecationWarning")
+    def test_isolated_dirs_fork_restores_original_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        installing, release = Event(), Event()
 
-    monkeypatch.setattr("platformdirs.testing.setattr", pause_install, raising=False)
-    with isolated_dirs(tmp_path / "parent"), ThreadPoolExecutor(max_workers=1) as pool:
-        pending = pool.submit(_enter_isolation, tmp_path / "pending")
+        def pause_install(cls: type[PlatformDirsABC], name: str, value: property) -> None:
+            setattr(cls, name, value)
+            if current_thread() is not main_thread() and not installing.is_set():
+                installing.set()
+                assert release.wait(10)
+
+        monkeypatch.setattr("platformdirs.testing.setattr", pause_install, raising=False)
+        with isolated_dirs(tmp_path / "parent"), ThreadPoolExecutor(max_workers=1) as pool:
+            pending = pool.submit(_enter_isolation, tmp_path / "pending")
+            try:
+                assert installing.wait(10)
+                assert _fork_check(tmp_path) == 0
+            finally:
+                release.set()
+            pending.result(timeout=10)
+            assert _outside(tmp_path / "parent") == {}
+
+    def _enter_isolation(root: Path) -> None:
+        with isolated_dirs(root):
+            assert platformdirs.user_config_path("app") == root / "user_config" / "app"
+
+    def _fork_check(root: Path) -> int | None:
+        process = get_context("fork").Process(target=_check_child_root, args=(root,))
+        process.start()
         try:
-            assert installing.wait(10)
-            assert _fork_check(tmp_path) == 0
+            process.join(timeout=5)
+            return process.exitcode
         finally:
-            release.set()
-        pending.result(timeout=10)
-        assert _outside(tmp_path / "parent") == {}
+            process.kill()
+            process.join()
+            process.close()
 
-
-def _enter_isolation(root: Path) -> None:
-    with isolated_dirs(root):
-        assert platformdirs.user_config_path("app") == root / "user_config" / "app"
-
-
-def _fork_check(root: Path) -> int | None:
-    process = get_context("fork").Process(target=_check_child_root, args=(root,))
-    process.start()
-    try:
-        process.join(timeout=5)
-        return process.exitcode
-    finally:
-        process.kill()
-        process.join()
-        process.close()
-
-
-def _check_child_root(root: Path) -> None:
-    assert _resolve_all() == _ORIGINAL
-    _enter_isolation(root / "child")
-    assert _resolve_all() == _ORIGINAL
-    if (coverage := Coverage.current()) is not None:
-        coverage.save()
+    def _check_child_root(root: Path) -> None:
+        assert _resolve_all() == _ORIGINAL
+        _enter_isolation(root / "child")
+        assert _resolve_all() == _ORIGINAL
+        if (coverage := Coverage.current()) is not None:
+            coverage.save()
 
 
 @pytest.mark.usefixtures("_unix_root")
