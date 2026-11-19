@@ -6,17 +6,18 @@ __lazy_modules__ = [
     "contextlib",
     "pathlib",
     "tempfile",
+    f"{__spec__.parent}._paths",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
 import os
 import posixpath
 import re
-import stat
 import sys
 from contextlib import suppress
 from pathlib import Path
 from tempfile import gettempdir
 
+from ._paths import directory_problem
 from ._runtime import RUNTIME_DIR_MODE as _RUNTIME_DIR_MODE
 from ._runtime import geteuid
 from ._runtime import runtime_dir_problem as _runtime_dir_problem
@@ -423,18 +424,8 @@ class Unix(XDGMixin, _UnixDefaults):
 
 
 def _runtime_dir_parent_problem(path: str) -> str | None:
-    if sys.platform == "win32":  # every directory reports as writable by everyone there
-        return None
-    in_shared_dir = False
-    for parent in reversed(Path(path).parents):
-        try:
-            if in_shared_dir and (owner := os.lstat(parent).st_uid) not in {0, geteuid()}:
-                return f"{path} is below {parent}, owned by uid {owner}"
-            mode = parent.stat().st_mode  # a symlink that got past the owner check is judged by its target
-        except OSError:
-            return None  # the missing rest gets created, or _runtime_dir_problem reports the path itself
-        if (in_shared_dir := bool(mode & stat.S_IWOTH)) and not mode & stat.S_ISVTX:
-            return f"{path} is below {parent}, writable by every user"
+    if problem := directory_problem(Path(path).parent, missing_ok=True):
+        return f"{path} is below {problem}"
     return None
 
 
