@@ -248,8 +248,8 @@ Each kind lands in ``<root>/<kind>``, for example ``<root>/user_config/MyApp``, 
 the same layout. A relative root is made absolute on entry, so changing the working directory inside the context does
 not move it. If contexts overlap, lookups use the root of the most recently entered context that is still active. On
 Unix, isolation ignores ``use_site_for_root`` so user and site kinds stay separate even for root. The
-redirection covers :data:`~platformdirs.PlatformDirs` in the current process only: a subprocess, or another platform
-class such as :class:`~platformdirs.unix.Unix` on macOS, still resolves the real directories.
+redirection covers :data:`~platformdirs.PlatformDirs` in the current process. Child processes, including those created
+with ``fork()``, and other platform classes such as :class:`~platformdirs.unix.Unix` on macOS use their original paths.
 
 Overriding directories with environment variables
 =================================================

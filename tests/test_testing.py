@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
+from multiprocessing import get_context
 from pathlib import Path
+from threading import Event, current_thread, main_thread
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
 import pytest
+from coverage import Coverage
 
 import platformdirs
 from platformdirs.android import Android
@@ -19,6 +23,8 @@ if TYPE_CHECKING:
     from typing import Any
 
     from pytest_mock import MockerFixture
+
+    from platformdirs.api import PlatformDirsABC
 
 
 def _resolve_all() -> dict[str, list[str]]:
@@ -176,6 +182,73 @@ def test_isolated_dirs_overlapping_restores_active_context(tmp_path: Path) -> No
         first.close()
         assert platformdirs.user_config_path("app") == tmp_path / "second" / "user_config" / "app"
     assert _resolve_all() == _ORIGINAL
+
+
+def test_isolated_dirs_rolls_back_interrupted_entry(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    interrupted = False
+
+    def interrupt(cls: type[PlatformDirsABC], name: str, value: property) -> None:
+        nonlocal interrupted
+        setattr(cls, name, value)
+        if not interrupted:
+            interrupted = True
+            raise KeyboardInterrupt
+
+    monkeypatch.setattr("platformdirs.testing.setattr", interrupt, raising=False)
+    with ExitStack() as scope, pytest.raises(KeyboardInterrupt):
+        scope.enter_context(isolated_dirs(tmp_path / "interrupted"))
+    assert _resolve_all() == _ORIGINAL
+    with isolated_dirs(tmp_path / "active"):
+        assert platformdirs.user_config_path("app") == tmp_path / "active" / "user_config" / "app"
+    assert _resolve_all() == _ORIGINAL
+
+
+@pytest.mark.skipif(not hasattr(os, "fork"), reason="requires fork")
+@pytest.mark.filterwarnings("ignore:This process .* is multi-threaded.*:DeprecationWarning")
+def test_isolated_dirs_fork_restores_original_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    installing, release = Event(), Event()
+
+    def pause_install(cls: type[PlatformDirsABC], name: str, value: property) -> None:
+        setattr(cls, name, value)
+        if current_thread() is not main_thread() and not installing.is_set():
+            installing.set()
+            assert release.wait(10)
+
+    monkeypatch.setattr("platformdirs.testing.setattr", pause_install, raising=False)
+    with isolated_dirs(tmp_path / "parent"), ThreadPoolExecutor(max_workers=1) as pool:
+        pending = pool.submit(_enter_isolation, tmp_path / "pending")
+        try:
+            assert installing.wait(10)
+            assert _fork_check(tmp_path) == 0
+        finally:
+            release.set()
+        pending.result(timeout=10)
+        assert _outside(tmp_path / "parent") == {}
+
+
+def _enter_isolation(root: Path) -> None:
+    with isolated_dirs(root):
+        assert platformdirs.user_config_path("app") == root / "user_config" / "app"
+
+
+def _fork_check(root: Path) -> int | None:
+    process = get_context("fork").Process(target=_check_child_root, args=(root,))
+    process.start()
+    try:
+        process.join(timeout=5)
+        return process.exitcode
+    finally:
+        process.kill()
+        process.join()
+        process.close()
+
+
+def _check_child_root(root: Path) -> None:
+    assert _resolve_all() == _ORIGINAL
+    _enter_isolation(root / "child")
+    assert _resolve_all() == _ORIGINAL
+    if (coverage := Coverage.current()) is not None:
+        coverage.save()
 
 
 @pytest.mark.usefixtures("_unix_root")
