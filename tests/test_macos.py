@@ -891,7 +891,8 @@ def test_macos_user_runtime_dir_rejects_shared_xdg_runtime_dir(runtime_dir: Path
 def test_find_macos_runtime_file_in_native_fallback_inside_xdg_path(
     runtime_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    runtime_dir.mkdir(mode=0o755)
+    runtime_dir.mkdir()
+    runtime_dir.chmod(0o755)
     monkeypatch.setenv("HOME", str(runtime_dir))
     path = runtime_dir / "Library/Caches/TemporaryItems/demo/state"
     path.parent.mkdir(parents=True)
