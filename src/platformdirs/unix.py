@@ -430,11 +430,14 @@ def _runtime_dir_parent_problem(path: str) -> str | None:
         try:
             if in_shared_dir and (owner := os.lstat(parent).st_uid) not in {0, geteuid()}:
                 return f"{path} is below {parent}, owned by uid {owner}"
-            mode = parent.stat().st_mode  # a symlink that got past the owner check is judged by its target
+            info = parent.stat()  # a symlink that got past the owner check is judged by its target
         except OSError:
             return None  # the missing rest gets created, or _runtime_dir_problem reports the path itself
-        if (in_shared_dir := bool(mode & stat.S_IWOTH)) and not mode & stat.S_ISVTX:
-            return f"{path} is below {parent}, writable by every user"
+        if in_shared_dir := bool(info.st_mode & stat.S_IWOTH):
+            if not info.st_mode & stat.S_ISVTX:
+                return f"{path} is below {parent}, writable by every user"
+            if info.st_uid not in {0, geteuid()}:
+                return f"{path} is below shared parent {parent}, owned by uid {info.st_uid}"
     return None
 
 
