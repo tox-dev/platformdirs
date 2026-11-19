@@ -891,10 +891,10 @@ def test_macos_user_runtime_dir_rejects_shared_xdg_runtime_dir(runtime_dir: Path
 def test_macos_user_runtime_dir_rejects_foreign_parent(runtime_dir: Path, home: str, mocker: MockerFixture) -> None:
     parent = runtime_dir.parent
     info = parent.lstat()
-    original_lstat = Path.lstat
+    original_lstat = os.lstat
     other_owner = os.stat_result((*info[:4], info.st_uid + 1, *info[5:]))
     mocker.patch.object(
-        Path,
+        os,
         "lstat",
         autospec=True,
         side_effect=lambda path, **kwargs: other_owner if path == parent else original_lstat(path, **kwargs),
@@ -928,6 +928,13 @@ def test_macos_user_runtime_dir_rejects_writable_parent(runtime_dir: Path, home:
 
 
 @_POSIX_ONLY
+def test_macos_user_runtime_dir_rejects_group_writable_parent(runtime_dir: Path, home: str) -> None:
+    runtime_dir.parent.chmod(0o770)
+    with pytest.warns(RuntimeDirWarning):
+        assert MacOS(appname="foo").user_runtime_dir == f"{home}/Library/Caches/TemporaryItems/foo"
+
+
+@_POSIX_ONLY
 def test_macos_user_runtime_dir_rejects_file_parent(
     runtime_dir: Path, home: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -940,14 +947,14 @@ def test_macos_user_runtime_dir_rejects_file_parent(
 @_POSIX_ONLY
 def test_macos_user_runtime_dir_rejects_unreadable_parent(runtime_dir: Path, home: str, mocker: MockerFixture) -> None:
     parent = runtime_dir.parent
-    original_lstat = Path.lstat
+    original_lstat = os.lstat
 
-    def unreadable(path: Path) -> os.stat_result:
-        if path == parent:
+    def unreadable(path: str | os.PathLike[str]) -> os.stat_result:
+        if Path(path) == parent:
             raise OSError(errno.EIO, os.strerror(errno.EIO), str(path))
         return original_lstat(path)
 
-    mocker.patch.object(Path, "lstat", autospec=True, side_effect=unreadable)
+    mocker.patch.object(os, "lstat", autospec=True, side_effect=unreadable)
     with pytest.warns(RuntimeDirWarning):
         assert MacOS(appname="foo").user_runtime_dir == f"{home}/Library/Caches/TemporaryItems/foo"
 
