@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import errno
 import os
 import re
 import stat
@@ -884,3 +885,85 @@ def test_macos_user_runtime_dir_rejects_shared_xdg_runtime_dir(runtime_dir: Path
     runtime_dir.mkdir()
     runtime_dir.chmod(0o777)
     assert MacOS(appname="foo").user_runtime_dir == f"{home}/Library/Caches/TemporaryItems/foo"
+
+
+@_POSIX_ONLY
+def test_macos_user_runtime_dir_rejects_foreign_parent(runtime_dir: Path, home: str, mocker: MockerFixture) -> None:
+    parent = runtime_dir.parent
+    info = parent.lstat()
+    original_lstat = Path.lstat
+    other_owner = os.stat_result((*info[:4], info.st_uid + 1, *info[5:]))
+    mocker.patch.object(
+        Path,
+        "lstat",
+        autospec=True,
+        side_effect=lambda path, **kwargs: other_owner if path == parent else original_lstat(path, **kwargs),
+    )
+    with pytest.warns(RuntimeDirWarning):
+        assert MacOS(appname="foo").user_runtime_dir == f"{home}/Library/Caches/TemporaryItems/foo"
+
+
+@_POSIX_ONLY
+@pytest.mark.parametrize(
+    "link_target",
+    [
+        pytest.param(lambda target: target, id="absolute"),
+        pytest.param(lambda target: target.name, id="relative"),
+    ],
+)
+def test_macos_user_runtime_dir_follows_owned_parent_link(
+    runtime_dir: Path, monkeypatch: pytest.MonkeyPatch, link_target: Callable[[Path], Path | str]
+) -> None:
+    (target := runtime_dir.parent / "target").mkdir()
+    (link := runtime_dir.parent / "link").symlink_to(link_target(target), target_is_directory=True)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(base := link / "session"))
+    assert MacOS(appname="foo").user_runtime_dir == str(base / "foo")
+
+
+@_POSIX_ONLY
+def test_macos_user_runtime_dir_rejects_writable_parent(runtime_dir: Path, home: str) -> None:
+    runtime_dir.parent.chmod(0o777)
+    with pytest.warns(RuntimeDirWarning):
+        assert MacOS(appname="foo").user_runtime_dir == f"{home}/Library/Caches/TemporaryItems/foo"
+
+
+@_POSIX_ONLY
+def test_macos_user_runtime_dir_rejects_file_parent(
+    runtime_dir: Path, home: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (file := runtime_dir.parent / "file").touch()
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(file / "session"))
+    with pytest.warns(RuntimeDirWarning):
+        assert MacOS(appname="foo").user_runtime_dir == f"{home}/Library/Caches/TemporaryItems/foo"
+
+
+@_POSIX_ONLY
+def test_macos_user_runtime_dir_rejects_unreadable_parent(runtime_dir: Path, home: str, mocker: MockerFixture) -> None:
+    parent = runtime_dir.parent
+    original_lstat = Path.lstat
+
+    def unreadable(path: Path) -> os.stat_result:
+        if path == parent:
+            raise OSError(errno.EIO, os.strerror(errno.EIO), str(path))
+        return original_lstat(path)
+
+    mocker.patch.object(Path, "lstat", autospec=True, side_effect=unreadable)
+    with pytest.warns(RuntimeDirWarning):
+        assert MacOS(appname="foo").user_runtime_dir == f"{home}/Library/Caches/TemporaryItems/foo"
+
+
+@pytest.fixture
+def long_link_chain(runtime_dir: Path) -> Path:
+    (runtime_dir.parent / "target").mkdir()
+    for index in range(41):
+        (runtime_dir.parent / f"link{index}").symlink_to(f"link{index + 1}" if index < 40 else "target")
+    return runtime_dir.parent / "link0" / "session"
+
+
+@_POSIX_ONLY
+def test_macos_user_runtime_dir_rejects_long_link_chain(
+    long_link_chain: Path, home: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(long_link_chain))
+    with pytest.warns(RuntimeDirWarning):
+        assert MacOS(appname="foo").user_runtime_dir == f"{home}/Library/Caches/TemporaryItems/foo"
