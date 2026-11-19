@@ -809,10 +809,7 @@ def _ensure_home_known(path: str) -> None:
 
 def _create_checked_directories(path: Path, *, private: bool) -> None:
     if sys.platform == "win32":
-        if private:
-            _make_private_directories(path)
-        else:
-            path.mkdir(parents=True, exist_ok=True)
+        _make_directories(path, private=private)
         return
     absolute = path.absolute()
     existing = absolute
@@ -821,10 +818,7 @@ def _create_checked_directories(path: Path, *, private: bool) -> None:
     if problem := directory_problem(existing, missing_ok=False):
         raise PermissionError(problem)
     if existing == absolute or not existing.stat().st_mode & (stat.S_IWGRP | stat.S_IWOTH):
-        if private:
-            _make_private_directories(path)
-        else:
-            path.mkdir(parents=True, exist_ok=True)
+        _make_directories(path, private=private)
         return
     for component in absolute.relative_to(existing).parts:
         existing /= component
@@ -833,15 +827,23 @@ def _create_checked_directories(path: Path, *, private: bool) -> None:
             raise PermissionError(problem)
 
 
-def _make_private_directories(path: Path) -> None:
-    # XDG asks for 0o700 on each directory created on the way, while Path.mkdir(parents=True) applies it to the last.
-    try:
-        path.mkdir(mode=0o700, exist_ok=True)
-    except FileNotFoundError:
-        if path.parent == path:  # a missing drive or network share has no parent to create
-            raise
-        _make_private_directories(path.parent)
-        path.mkdir(mode=0o700, exist_ok=True)
+def _make_directories(path: Path, *, private: bool) -> None:
+    # Private creation applies the XDG mode to every new directory, including intermediate parents.
+    mode = 0o700 if private else 0o777
+    missing = []
+    while True:
+        try:
+            path.mkdir(mode=mode, exist_ok=True)
+        except FileNotFoundError:
+            parent = path.parent
+            if parent == path:  # A missing drive or share has no parent to create.
+                raise
+            missing.append(path)
+            path = parent
+        else:
+            break
+    for directory in reversed(missing):
+        directory.mkdir(mode=mode, exist_ok=True)
 
 
 def _unique(dirs: Iterable[str]) -> Iterator[str]:

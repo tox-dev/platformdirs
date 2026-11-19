@@ -379,6 +379,15 @@ def test_ensure_exists_checks_new_shared_child(
     assert not (shared / "base" / "app").exists()
 
 
+@pytest.mark.usefixtures("home")
+def test_place_file_creates_nested_parents() -> None:
+    dirs = Unix("app")
+    name = Path(*["nested"] * 12, "app.toml")
+    path = dirs.place_config_file(name)
+    assert path == dirs.user_config_path / name
+    assert path.parent.is_dir()
+
+
 _ESCAPING_NAMES: Final[list[pytest.ParameterSet]] = [
     pytest.param("../evil", id="parent"),
     pytest.param("sub/../../evil", id="nested-parent"),
@@ -664,4 +673,4 @@ def test_system_site_dir_keeps_default_mode(
     mocker.patch("sys.platform", "linux")
     mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
     getattr(dirs_class(appname="app", ensure_exists=True), prop)
-    assert mkdir.call_args_list == [mocker.call(Path(created), parents=True, exist_ok=True)]
+    assert mkdir.call_args_list == [mocker.call(Path(created), mode=0o777, exist_ok=True)]
