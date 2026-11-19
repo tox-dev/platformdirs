@@ -14,11 +14,11 @@ from collections import deque
 from pathlib import Path
 
 
-def directory_problem(path: Path, *, missing_ok: bool, require_owner: bool = False) -> str | None:
+def directory_problem(path: Path, *, missing_ok: bool) -> str | None:
     if sys.platform == "win32":
         return None
     try:
-        _verify_path(path.absolute(), require_owner=require_owner)
+        _verify_path(path.absolute())
     except FileNotFoundError as error:
         return None if missing_ok else f"{error.filename} is missing"
     except PermissionError as error:
@@ -28,17 +28,22 @@ def directory_problem(path: Path, *, missing_ok: bool, require_owner: bool = Fal
     return None
 
 
-def _verify_path(path: Path, *, require_owner: bool) -> None:
+def _verify_path(path: Path) -> None:
     directory = Path(path.anchor)
     pending = deque(path.parts[1:])
-    owners = {0, getattr(os, "geteuid", os.getuid)()}
-    shared = False
+    get_uid = getattr(os, "geteuid", None)
+    if get_uid is None:
+        get_uid = getattr(os, "getuid", None)
+    if get_uid is None:
+        msg = "effective user ID is unavailable"
+        raise RuntimeError(msg)
+    owners = {0, get_uid()}
     links = 0
     max_links = 40
     while pending:
         entry = directory / pending.popleft()
-        info = entry.lstat()
-        if (shared or require_owner) and info.st_uid not in owners:
+        info = os.lstat(entry)
+        if info.st_uid not in owners:
             msg = f"{entry}, owned by uid {info.st_uid}"
             raise PermissionError(msg)
         if stat.S_ISLNK(info.st_mode):
@@ -49,22 +54,15 @@ def _verify_path(path: Path, *, require_owner: bool) -> None:
             target = entry.readlink()
             if target.is_absolute():
                 directory = Path(target.anchor)
-                shared = False
             pending.extendleft(reversed(target.parts[bool(target.anchor) :]))
             continue
-        shared = _check_directory(entry, info, owners)
+        if not stat.S_ISDIR(info.st_mode):
+            msg = f"{entry}, which is not a directory"
+            raise PermissionError(msg)
+        if info.st_mode & (stat.S_IWGRP | stat.S_IWOTH) and not info.st_mode & stat.S_ISVTX:
+            msg = f"{entry}, writable by another user"
+            raise PermissionError(msg)
         directory = entry
-
-
-def _check_directory(path: Path, info: os.stat_result, owners: set[int]) -> bool:
-    if not stat.S_ISDIR(info.st_mode):
-        msg = f"{path}, which is not a directory"
-        raise PermissionError(msg)
-    shared = bool(info.st_mode & stat.S_IWOTH)
-    if shared and (not info.st_mode & stat.S_ISVTX or info.st_uid not in owners):
-        msg = f"{path}, writable by every user"
-        raise PermissionError(msg)
-    return shared
 
 
 __all__ = [

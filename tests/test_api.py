@@ -320,6 +320,65 @@ def test_place_file_keeps_mode_of_existing_directories(home: Path) -> None:
     assert stat.S_IMODE(home.stat().st_mode) == 0o755
 
 
+@_POSIX_ONLY
+def test_ensure_exists_creates_below_sticky_parent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    (shared := tmp_path / "shared").mkdir()
+    shared.chmod(0o1777)
+    monkeypatch.setenv("XDG_DATA_HOME", str(shared / "base"))
+    assert Unix(appname="app", ensure_exists=True).user_data_dir == str(shared / "base" / "app")
+    assert {path.name: stat.S_IMODE(path.stat().st_mode) for path in (shared / "base", shared / "base" / "app")} == {
+        "base": 0o700,
+        "app": 0o700,
+    }
+
+
+@_POSIX_ONLY
+def test_place_file_creates_below_sticky_parent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    (shared := tmp_path / "shared").mkdir()
+    shared.chmod(0o1777)
+    monkeypatch.setenv("XDG_DATA_HOME", str(shared / "base"))
+    path = Unix(appname="app").place_data_file("nested/file.txt")
+    assert path == shared / "base" / "app" / "nested" / "file.txt"
+    assert stat.S_IMODE(path.parent.stat().st_mode) == 0o700
+
+
+@_POSIX_ONLY
+def test_ensure_exists_rejects_writable_parent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    (shared := tmp_path / "shared").mkdir()
+    shared.chmod(0o770)
+    monkeypatch.setenv("XDG_DATA_HOME", str(shared / "base"))
+    with pytest.raises(PermissionError):
+        _ = Unix(appname="app", ensure_exists=True).user_data_dir
+    assert not (shared / "base").exists()
+
+
+@_POSIX_ONLY
+def test_ensure_exists_checks_new_shared_child(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
+) -> None:
+    (shared := tmp_path / "shared").mkdir()
+    shared.chmod(0o1777)
+    monkeypatch.setenv("XDG_DATA_HOME", str(shared / "base"))
+    original_mkdir = Path.mkdir
+    original_lstat = os.lstat
+    foreign: set[Path] = set()
+
+    def mkdir(path: Path, mode: int = 0o777, parents: bool = False, exist_ok: bool = False) -> None:
+        original_mkdir(path, mode=mode, parents=parents, exist_ok=exist_ok)
+        if path == shared / "base":
+            foreign.add(path)
+
+    def lstat(path: str | os.PathLike[str]) -> os.stat_result:
+        info = original_lstat(path)
+        return os.stat_result((*info[:4], info.st_uid + 1, *info[5:])) if Path(path) in foreign else info
+
+    mocker.patch.object(Path, "mkdir", autospec=True, side_effect=mkdir)
+    mocker.patch.object(os, "lstat", autospec=True, side_effect=lstat)
+    with pytest.raises(PermissionError):
+        _ = Unix(appname="app", ensure_exists=True).user_data_dir
+    assert not (shared / "base" / "app").exists()
+
+
 _ESCAPING_NAMES: Final[list[pytest.ParameterSet]] = [
     pytest.param("../evil", id="parent"),
     pytest.param("sub/../../evil", id="nested-parent"),

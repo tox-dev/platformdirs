@@ -9,6 +9,8 @@ __lazy_modules__ = [
 ]
 
 import os
+import stat
+import sys
 from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
@@ -166,12 +168,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
         if not self.ensure_exists:
             return
         _ensure_home_known(path)
-        _check_creation_path(Path(path))
-        if private:
-            _make_private_directories(Path(path))
-        else:
-            Path(path).mkdir(parents=True, exist_ok=True)
-        _check_creation_path(Path(path))
+        _create_checked_directories(Path(path), private=private)
 
     @property
     def _site_data_dirs(self) -> list[str]:
@@ -602,13 +599,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
         # Under multipath *_dir joins the site directories with os.pathsep, so place under the single *_path.
         _ensure_home_known(str(directory := user_path(lookup)))
         path = directory / relative
-        _check_creation_path(path.parent)
-        if self._use_site:
-            # Site directories keep the default mode, as under ensure_exists, so other users can still read them.
-            path.parent.mkdir(parents=True, exist_ok=True)
-        else:
-            _make_private_directories(path.parent)
-        _check_creation_path(path.parent)
+        _create_checked_directories(path.parent, private=not self._use_site)
         return path
 
     def place_data_file(self, name: str | os.PathLike[str]) -> Path:
@@ -816,9 +807,30 @@ def _ensure_home_known(path: str) -> None:
         raise RuntimeError(msg)
 
 
-def _check_creation_path(path: Path) -> None:
-    if problem := directory_problem(path if path.is_dir() else path.parent, missing_ok=True):
+def _create_checked_directories(path: Path, *, private: bool) -> None:
+    if sys.platform == "win32":
+        if private:
+            _make_private_directories(path)
+        else:
+            path.mkdir(parents=True, exist_ok=True)
+        return
+    absolute = path.absolute()
+    existing = absolute
+    while not existing.is_dir():
+        existing = existing.parent
+    if problem := directory_problem(existing, missing_ok=False):
         raise PermissionError(problem)
+    if existing == absolute or not existing.stat().st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+        if private:
+            _make_private_directories(path)
+        else:
+            path.mkdir(parents=True, exist_ok=True)
+        return
+    for component in absolute.relative_to(existing).parts:
+        existing /= component
+        existing.mkdir(mode=0o700 if private else 0o777, exist_ok=True)
+        if problem := directory_problem(existing, missing_ok=False):
+            raise PermissionError(problem)
 
 
 def _make_private_directories(path: Path) -> None:
