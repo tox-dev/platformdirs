@@ -1823,6 +1823,45 @@ def test_use_site_iter_runtime_dirs_bypasses_xdg_runtime_dir() -> None:
     assert list(Unix(appname="foo", use_site_for_root=True).iter_runtime_dirs()) == [_SITE_RUNTIME_DIR]
 
 
+@pytest.mark.usefixtures("_as_root")
+@pytest.mark.parametrize(
+    ("environment", "directory", "suffix"),
+    [
+        pytest.param({}, "user_documents_path", "Documents", id="unset-home"),
+        pytest.param({"HOME": "relative"}, "user_fonts_path", ".local/share/fonts", id="relative-home"),
+    ],
+)
+def test_use_site_media_uses_root_password_entry(
+    mocker: MockerFixture,
+    root_password_home: Path,
+    environment: dict[str, str],
+    directory: str,
+    suffix: str,
+) -> None:
+    mocker.patch.dict(os.environ, environment, clear=True)
+    assert getattr(Unix(use_site_for_root=True), directory) == root_password_home / suffix
+
+
+@pytest.fixture
+def root_password_home(mocker: MockerFixture, pwd: ModuleType, tmp_path: Path) -> Path:
+    mocker.patch("os.getuid", return_value=1000, autospec=True)
+    mocker.patch.object(
+        pwd,
+        "getpwuid",
+        autospec=True,
+        side_effect=lambda uid: pwd.struct_passwd(("test", "x", uid, uid, "", str(tmp_path / str(uid)), "")),
+    )
+    return tmp_path / "0"
+
+
+@pytest.mark.usefixtures("_as_root")
+def test_use_site_media_rejects_empty_root_password_home(mocker: MockerFixture, pwd: ModuleType) -> None:
+    mocker.patch.dict(os.environ, clear=True)
+    mocker.patch.object(pwd, "getpwuid", autospec=True, return_value=pwd.struct_passwd(("root", "x", 0, 0, "", "", "")))
+    with pytest.raises(RuntimeError, match="could not determine the home directory"):
+        _ = Unix(use_site_for_root=True).user_documents_dir
+
+
 @pytest.mark.usefixtures("_as_root", "_inherited_xdg_runtime_dir")
 def test_use_site_keeps_xdg_runtime_dir_for_site_runtime_dir() -> None:
     # match host separators

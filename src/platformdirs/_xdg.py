@@ -182,18 +182,21 @@ def _xdg_dir_list(env_var: str) -> list[str]:
     return [path for path in os.environ.get(env_var, "").split(os.pathsep) if posixpath.isabs(path)]
 
 
-def expand_user(path: str) -> str:
+def expand_user(path: str, *, fallback_uid: int | None = None) -> str:
     # Expand the leading ``~`` of ``path`` like :func:`os.path.expanduser`, treating a relative ``HOME`` as unset on
     # POSIX.
     #
     # :raises RuntimeError: if the home directory cannot be resolved to an absolute path.
-    if sys.platform != "win32" and "HOME" in os.environ and not _is_absolute(os.environ["HOME"]):
-        # expanduser uses HOME verbatim, so an empty one roots the path at / and a relative one at the working directory
+    home = os.environ.get("HOME")
+    if sys.platform != "win32" and (fallback_uid is not None or home is not None) and not _is_absolute(home or ""):
+        # expanduser uses HOME verbatim or falls back to the real UID, even under root redirection.
         expanded = path
         with suppress(ImportError, KeyError):
             import pwd  # ruff:ignore[import-outside-top-level]  # missing on WASI
 
-            expanded = pwd.getpwuid(os.getuid()).pw_dir.rstrip("/") + path[1:] or "/"
+            home = pwd.getpwuid(os.getuid() if fallback_uid is None else fallback_uid).pw_dir
+            if fallback_uid is None or _is_absolute(home):
+                expanded = home.rstrip("/") + path[1:] or "/"
     else:
         # str(Path) rewrites separators on Windows
         expanded = os.path.expanduser(path)  # ruff:ignore[os-path-expanduser]

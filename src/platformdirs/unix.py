@@ -368,7 +368,7 @@ class Unix(XDGMixin, _UnixDefaults):
     @property
     def user_fonts_dir(self) -> str:
         """Fonts directory tied to the user, ignoring ``$XDG_DATA_HOME`` when root with ``use_site_for_root``."""
-        return super(XDGMixin, self).user_fonts_dir if self._use_site else super().user_fonts_dir
+        return expand_user("~/.local/share/fonts", fallback_uid=0) if self._use_site else super().user_fonts_dir
 
     @property
     def user_data_path(self) -> Path:
@@ -418,7 +418,7 @@ class Unix(XDGMixin, _UnixDefaults):
         return None if self._use_site else super()._xdg_media_dir(env_var)
 
     def _user_media_dir(self, key: str, default: str) -> str:
-        return expand_user(default) if self._use_site else super()._user_media_dir(key, default)
+        return expand_user(default, fallback_uid=0) if self._use_site else super()._user_media_dir(key, default)
 
 
 def _runtime_dir_parent_problem(path: str) -> str | None:

@@ -515,8 +515,8 @@ turn warnings into errors and run without a login session, such as in a containe
     should write to system-wide directories rather than ``/root/.local/...``. XDG user environment variables (e.g.
     ``XDG_DATA_HOME``) and ``user-dirs.dirs`` are bypassed when the redirect is active, since they are typically
     inherited from the calling user via ``sudo`` and would defeat the purpose. The media and fonts directories, which
-    have no site equivalent, return their default under root's home. The parameter is accepted on all platforms but
-    only has an effect on Unix.
+    have no site equivalent, use the absolute ``HOME`` or look up root's home in the password database. The parameter
+    is accepted on all platforms but only has an effect on Unix.
 
 See :class:`platformdirs.unix.Unix` for the full API reference.
 
