@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
-__lazy_modules__ = ["contextlib"]
+__lazy_modules__ = [
+    "contextlib",
+    f"{__spec__.parent}._android",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
+]
 
 import os
 import re
 from contextlib import suppress
 from functools import cache
 
-from ._android import android_folder as _android_folder
+from ._android import android_folder
 from .api import PlatformDirsABC
 
 TYPE_CHECKING = False
@@ -184,7 +187,7 @@ class Android(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # full 
 
 
 def _require_android_folder() -> str:
-    if (folder := _android_folder()) is None:
+    if (folder := android_folder()) is None:
         msg = "cannot find the Android app folder: python4android and pyjnius failed and no app folder is on sys.path"
         raise RuntimeError(msg)
     return folder
@@ -202,7 +205,7 @@ def _android_public_folder(name: str) -> str:
 
 def _shared_storage() -> str:
     # Android mounts each user's shared storage at /storage/emulated/<user id>, and an app sees only its own user's.
-    return f"/storage/emulated/{(match['user'] if (match := _USER_ID.search(_android_folder() or '')) else '0')}"
+    return f"/storage/emulated/{(match['user'] if (match := _USER_ID.search(android_folder() or '')) else '0')}"
 
 
 _USER_ID: Final[re.Pattern[str]] = re.compile(
