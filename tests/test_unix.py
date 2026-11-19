@@ -1991,10 +1991,15 @@ def test_root_site_rejects_foreign_symlink(
 
 @pytest.mark.skipif(sys.platform == "win32", reason="Unix ownership only")
 @pytest.mark.usefixtures("_as_root", "root_owned_paths")
-@pytest.mark.parametrize("absolute", [pytest.param(True, id="absolute"), pytest.param(False, id="relative")])
-def test_root_site_accepts_root_owned_symlink(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, absolute: bool) -> None:
+@pytest.mark.parametrize(
+    "link_target",
+    [pytest.param(lambda path: path, id="absolute"), pytest.param(attrgetter("name"), id="relative")],
+)
+def test_root_site_accepts_root_owned_symlink(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, link_target: Callable[[Path], Path | str]
+) -> None:
     (target := tmp_path / "target").mkdir()
-    (site := tmp_path / "site").symlink_to(target if absolute else target.name, target_is_directory=True)
+    (site := tmp_path / "site").symlink_to(link_target(target), target_is_directory=True)
     monkeypatch.setenv("XDG_DATA_DIRS", str(site))
     assert Unix(appname="app", use_site_for_root=True, ensure_exists=True).user_data_dir == str(site / "app")
     assert (target / "app").is_dir()
