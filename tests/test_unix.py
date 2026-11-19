@@ -677,6 +677,44 @@ def test_runtime_dir_parent_of_other_user_in_shared_dir_warns(
 
 
 @_POSIX_ONLY
+def test_runtime_dir_parent_owned_by_other_user_warns(
+    runtime_temp_dir: Path, temp_dir: Path, runtime_uid: int, foreign: set[Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (other := runtime_temp_dir / "other").mkdir(mode=0o755)
+    foreign.add(other)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(session := other / "session"))
+    with pytest.warns(RuntimeDirWarning) as record:
+        assert Unix(appname="app").user_runtime_dir == str(temp_dir / "app")
+    assert [str(warning.message) for warning in record] == [
+        f"XDG_RUNTIME_DIR {session} is below {other}, owned by uid {runtime_uid + 1}, falling back to {temp_dir}"
+    ]
+
+
+@_POSIX_ONLY
+def test_runtime_dir_unreadable_parent_warns(
+    runtime_temp_dir: Path, temp_dir: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
+) -> None:
+    (blocked := runtime_temp_dir / "blocked").mkdir()
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(session := blocked / "session"))
+    original_lstat = Path.lstat
+
+    def unreadable(path: Path) -> os.stat_result:
+        if path == blocked:
+            raise OSError(errno.EIO, os.strerror(errno.EIO), str(path))
+        return original_lstat(path)
+
+    mocker.patch.object(Path, "lstat", autospec=True, side_effect=unreadable)
+    with pytest.warns(RuntimeDirWarning) as record:
+        assert Unix(appname="app").user_runtime_dir == str(temp_dir / "app")
+    assert [str(warning.message) for warning in record] == [
+        (
+            f"XDG_RUNTIME_DIR {session} is below {blocked} cannot be checked: {os.strerror(errno.EIO)}, "
+            f"falling back to {temp_dir}"
+        )
+    ]
+
+
+@_POSIX_ONLY
 @pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
 @pytest.mark.parametrize(
     ("ensure_exists", "access"),
