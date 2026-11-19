@@ -320,6 +320,15 @@ def test_place_file_keeps_mode_of_existing_directories(home: Path) -> None:
     assert stat.S_IMODE(home.stat().st_mode) == 0o755
 
 
+@pytest.mark.usefixtures("home")
+def test_place_file_creates_nested_parents() -> None:
+    dirs = Unix("app")
+    name = Path(*["nested"] * 12, "app.toml")
+    path = dirs.place_config_file(name)
+    assert path == dirs.user_config_path / name
+    assert path.parent.is_dir()
+
+
 _ESCAPING_NAMES: Final[list[pytest.ParameterSet]] = [
     pytest.param("../evil", id="parent"),
     pytest.param("sub/../../evil", id="nested-parent"),
