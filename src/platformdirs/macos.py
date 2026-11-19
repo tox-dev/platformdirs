@@ -7,6 +7,7 @@ __lazy_modules__ = [
     "pathlib",
 ]
 
+import os
 import re
 import stat
 import sys
@@ -255,6 +256,23 @@ class MacOS(XDGMixin, _MacOSDefaults):
     XDG environment variables (e.g. ``$XDG_DATA_HOME``) are supported and take precedence over macOS defaults.
 
     """
+
+    def place_runtime_file(self, name: str | os.PathLike[str]) -> Path:
+        """Like :meth:`~platformdirs.api.PlatformDirsABC.place_runtime_file`.
+
+        Creates the runtime directory before validating it.
+
+        :param name: path relative to the user runtime directory.
+
+        :returns: the proposed file path under the user runtime directory.
+
+        """
+
+        def created(lookup: PlatformDirsABC) -> Path:
+            lookup.ensure_exists = sys.platform != "win32"
+            return lookup.user_runtime_path
+
+        return self._place_file(created, name)
 
 
 # Homebrew links each Python formula as a framework build, and a virtual environment keeps it as sys.base_prefix.
