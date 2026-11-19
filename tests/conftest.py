@@ -88,7 +88,7 @@ def runtime_temp_dir(tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     mocker.patch("tempfile.tempdir", str(tmp_path))
     # user_runtime_dir checks fixed system paths such as /run/user/<uid> first, so serve those from system_root.
-    real_lstat: Final = os.lstat
+    real_lstat: Final[Callable[[str | Path], os.stat_result]] = os.lstat
     mocker.patch(  # simplint: ignore[mock-without-spec]  # autospec cannot wrap a patched os.lstat
         "os.lstat",
         side_effect=lambda path: real_lstat(

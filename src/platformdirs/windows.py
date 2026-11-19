@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 __lazy_modules__ = [
+    "ntpath",
     "pathlib",
     "string",
     f"{__spec__.parent}._xdg",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
@@ -22,9 +23,6 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Callable
     from typing import Final
-
-# Not exposed by CPython; defined in the Windows SDK (shlobj_core.h)
-_KF_FLAG_DONT_VERIFY: Final[int] = 0x00004000
 
 
 class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # full directory API
@@ -386,6 +384,9 @@ def _build_get_win_folder_via_ctypes() -> Callable[[str], str]:
         "CSIDL_USER_PROGRAM_FILES": "{5CD7AEE2-2219-4A67-B85D-6C9CE15660CB}",
     }
 
+    # Not exposed by CPython; defined in the Windows SDK (shlobj_core.h)
+    kf_flag_dont_verify: int = 0x00004000
+
     def resolve(csidl_name: str) -> str:
         folder_guid = known_folder_guids.get(csidl_name)
         if folder_guid is None:
@@ -397,7 +398,7 @@ def _build_get_win_folder_via_ctypes() -> Callable[[str], str]:
 
         path_ptr = wintypes.LPWSTR()
         try:
-            shell32.SHGetKnownFolderPath(byref(guid), _KF_FLAG_DONT_VERIFY, None, byref(path_ptr))
+            shell32.SHGetKnownFolderPath(byref(guid), kf_flag_dont_verify, None, byref(path_ptr))
             result = path_ptr.value
         finally:
             ole32.CoTaskMemFree(path_ptr)
