@@ -703,6 +703,29 @@ def test_runtime_dir_own_parent_in_shared_dir_is_used(shared_dir: Path) -> None:
 
 
 @_POSIX_ONLY
+def test_runtime_dir_sticky_parent_of_other_user_warns(
+    shared_dir: Path, temp_dir: Path, runtime_uid: int, mocker: MockerFixture
+) -> None:
+    info = shared_dir.stat()
+    original_stat = Path.stat
+    other_owner = os.stat_result((*info[:4], runtime_uid + 1, *info[5:]))
+    mocker.patch.object(
+        Path,
+        "stat",
+        autospec=True,
+        side_effect=lambda path, **kwargs: other_owner if path == shared_dir else original_stat(path, **kwargs),
+    )
+    with pytest.warns(RuntimeDirWarning) as record:
+        assert Unix(appname="app").user_runtime_dir == str(temp_dir / "app")
+    assert [str(warning.message) for warning in record] == [
+        (
+            f"XDG_RUNTIME_DIR {shared_dir / 'run' / 'user'} is below shared parent {shared_dir}, "
+            f"owned by uid {runtime_uid + 1}, falling back to {temp_dir}"
+        )
+    ]
+
+
+@_POSIX_ONLY
 def test_runtime_dir_parent_writable_by_everyone_warns(
     runtime_temp_dir: Path, temp_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
