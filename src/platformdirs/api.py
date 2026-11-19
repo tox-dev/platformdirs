@@ -163,10 +163,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
         if not self.ensure_exists:
             return
         _ensure_home_known(path)
-        if private:
-            _make_private_directories(Path(path))
-        else:
-            Path(path).mkdir(parents=True, exist_ok=True)
+        _make_directories(Path(path), private=private)
 
     @property
     def _site_data_dirs(self) -> list[str]:
@@ -597,11 +594,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
         # Under multipath *_dir joins the site directories with os.pathsep, so place under the single *_path.
         _ensure_home_known(str(directory := user_path(lookup)))
         path = directory / relative
-        if self._use_site:
-            # Site directories keep the default mode, as under ensure_exists, so other users can still read them.
-            path.parent.mkdir(parents=True, exist_ok=True)
-        else:
-            _make_private_directories(path.parent)
+        _make_directories(path.parent, private=not self._use_site)
         return path
 
     def place_data_file(self, name: str | os.PathLike[str]) -> Path:
@@ -809,15 +802,23 @@ def _ensure_home_known(path: str) -> None:
         raise RuntimeError(msg)
 
 
-def _make_private_directories(path: Path) -> None:
-    # XDG asks for 0o700 on each directory created on the way, while Path.mkdir(parents=True) applies it to the last.
-    try:
-        path.mkdir(mode=0o700, exist_ok=True)
-    except FileNotFoundError:
-        if path.parent == path:  # a missing drive or network share has no parent to create
-            raise
-        _make_private_directories(path.parent)
-        path.mkdir(mode=0o700, exist_ok=True)
+def _make_directories(path: Path, *, private: bool) -> None:
+    # Private creation applies the XDG mode to every new directory, including intermediate parents.
+    mode = 0o700 if private else 0o777
+    missing = []
+    while True:
+        try:
+            path.mkdir(mode=mode, exist_ok=True)
+        except FileNotFoundError:
+            parent = path.parent
+            if parent == path:  # A missing drive or share has no parent to create.
+                raise
+            missing.append(path)
+            path = parent
+        else:
+            break
+    for directory in reversed(missing):
+        directory.mkdir(mode=mode, exist_ok=True)
 
 
 def _unique(dirs: Iterable[str]) -> Iterator[str]:
