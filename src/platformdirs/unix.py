@@ -7,6 +7,7 @@ __lazy_modules__ = [
     "pathlib",
     "posixpath",
     "tempfile",
+    f"{__spec__.parent}._paths",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
     f"{__spec__.parent}._runtime",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
@@ -19,6 +20,7 @@ from contextlib import suppress
 from pathlib import Path
 from tempfile import gettempdir
 
+from ._paths import site_directory_problem
 from ._runtime import RUNTIME_DIR_MODE, geteuid, runtime_dir_problem, warn_once
 from ._xdg import XDGMixin, expand_user, xdg_dir
 from .api import (
@@ -214,6 +216,22 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
         else:
             path = "/run"
         return self._append_app_name_and_version(path, private=False)
+
+    def _create_directory(self, path: Path, *, private: bool) -> None:
+        if private or sys.platform == "win32" or geteuid() != 0:
+            super()._create_directory(path, private=private)
+            return
+        absolute = path.absolute()
+        existing = absolute
+        while not existing.is_dir():
+            existing = existing.parent
+        if problem := site_directory_problem(existing):
+            raise PermissionError(problem)
+        for component in absolute.relative_to(existing).parts:
+            existing /= component
+            existing.mkdir(exist_ok=True)
+            if problem := site_directory_problem(existing):
+                raise PermissionError(problem)
 
     def _default_runtime_dir(self) -> str:
         if sys.platform.startswith("openbsd"):
