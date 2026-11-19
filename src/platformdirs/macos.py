@@ -269,7 +269,7 @@ class MacOS(XDGMixin, _MacOSDefaults):
         """
 
         def created(lookup: PlatformDirsABC) -> Path:
-            lookup.ensure_exists = True
+            lookup.ensure_exists = sys.platform != "win32"
             return lookup.user_runtime_path
 
         return self._place_file(created, name)
