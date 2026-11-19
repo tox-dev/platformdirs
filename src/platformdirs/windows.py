@@ -212,16 +212,26 @@ def get_win_folder(csidl_name: str) -> str:
 
 
 def _is_fully_qualified(path: str) -> bool:
+    path = path.replace("/", "\\")
+    # splitdrive takes \\?\UNC\server\share as the drive but stops at \\?\UNC without a server and always at \\.\UNC,
+    # whose prefix would then read as server "?" or "." and share "UNC".
+    if path[:7].upper() in {"\\\\?\\UNC", "\\\\.\\UNC"} and path[7:8] in {"", "\\"}:
+        # Windows and the callers' normpath collapse dot segments in a \\.\ path, which can climb out of the share.
+        return _has_server_and_share((path if path[2] == "?" else ntpath.normpath(path))[8:])
     # ntpath.isabs changed for rooted paths without a drive in 3.13 and for a bare UNC share in 3.11
-    drive, tail = ntpath.splitdrive(path.replace("/", "\\"))
+    drive, tail = ntpath.splitdrive(path)
     # An extended or device drive needs a root too; its prefix is not a UNC server.
     if drive[:4] in {"\\\\?\\", "\\\\.\\"} and drive[5:6] == ":":
         return tail.startswith("\\")
     if not drive.startswith("\\"):
         return bool(drive) and tail.startswith("\\")
-    # splitdrive also returns a UNC volume missing its server or share, which would make the app name the share
-    server, _, share = (drive[8:] if drive[:8].upper() == "\\\\?\\UNC\\" else drive[2:]).partition("\\")
-    return bool(server and share)
+    return _has_server_and_share(drive[2:])
+
+
+def _has_server_and_share(unc: str) -> bool:
+    # A UNC volume missing its server or share would make the app name the share.
+    server, _, rest = unc.partition("\\")
+    return bool(server and rest.partition("\\")[0])
 
 
 def get_win_folder_from_env_vars(csidl_name: str) -> str:
