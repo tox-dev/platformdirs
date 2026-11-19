@@ -5,7 +5,9 @@ from __future__ import annotations
 __lazy_modules__ = [
     "contextlib",
     "pathlib",
+    "posixpath",
     "tempfile",
+    f"{__spec__.parent}._runtime",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
 import os
@@ -17,10 +19,7 @@ from contextlib import suppress
 from pathlib import Path
 from tempfile import gettempdir
 
-from ._runtime import RUNTIME_DIR_MODE as _RUNTIME_DIR_MODE
-from ._runtime import geteuid
-from ._runtime import runtime_dir_problem as _runtime_dir_problem
-from ._runtime import warn_once as _warn_once
+from ._runtime import RUNTIME_DIR_MODE, geteuid, runtime_dir_problem, warn_once
 from ._xdg import XDGMixin, expand_user, xdg_dir
 from .api import (
     PlatformDirsABC,
@@ -223,19 +222,19 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
             path = f"/var/run/user/{geteuid()}"
         else:
             path = f"/run/user/{geteuid()}"
-        return self._temp_runtime_dir() if _runtime_dir_problem(path, missing_ok=False) else path
+        return self._temp_runtime_dir() if runtime_dir_problem(path, missing_ok=False) else path
 
     def _temp_runtime_dir(self) -> str:
         # Another user can pre-create this predictable name, and XDG requires an owned runtime dir with mode 0700.
         path = _temp_runtime_fallback()
         with suppress(FileExistsError):
             self._optionally_create_directory(path, private=True)
-        if problem := _runtime_dir_problem(path, missing_ok=not self.ensure_exists, check_mode=False):
+        if problem := runtime_dir_problem(path, missing_ok=not self.ensure_exists, check_mode=False):
             msg = f"runtime directory {problem}; set XDG_RUNTIME_DIR instead"
             raise PermissionError(msg)
         # Earlier releases created this directory with the default 0755.
         if self.ensure_exists:
-            Path(path).chmod(_RUNTIME_DIR_MODE)
+            Path(path).chmod(RUNTIME_DIR_MODE)
         return path
 
 
@@ -351,15 +350,15 @@ class Unix(XDGMixin, _UnixDefaults):
             if problem is None:
                 with suppress(OSError):
                     self._optionally_create_directory(path, private=True)
-                problem = _runtime_dir_problem(path, missing_ok=not self.ensure_exists) or _runtime_dir_parent_problem(
+                problem = runtime_dir_problem(path, missing_ok=not self.ensure_exists) or _runtime_dir_parent_problem(
                     path, missing_ok=not self.ensure_exists
                 )
             else:
-                problem = _runtime_dir_problem(path, missing_ok=True) or problem
+                problem = runtime_dir_problem(path, missing_ok=True) or problem
             if problem is None:
                 return self._append_app_name_and_version(path, private=True)
             reason = f"XDG_RUNTIME_DIR {problem}"
-        _warn_once(f"{reason}, falling back to {(fallback := self._default_runtime_dir())}")
+        warn_once(f"{reason}, falling back to {(fallback := self._default_runtime_dir())}")
         return self._append_app_name_and_version(fallback, private=True)
 
     @property
@@ -447,7 +446,7 @@ def _in_own_runtime_dir(path: Path) -> bool:
     # first because a rejected XDG_RUNTIME_DIR, such as /tmp, contains it.
     for base in (_temp_runtime_fallback(), xdg_dir("XDG_RUNTIME_DIR")):
         if base and path.is_relative_to(base):
-            return not _runtime_dir_problem(base, missing_ok=False, check_mode=False)
+            return not runtime_dir_problem(base, missing_ok=False, check_mode=False)
     return True
 
 
