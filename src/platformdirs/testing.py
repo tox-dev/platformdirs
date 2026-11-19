@@ -61,11 +61,11 @@ def isolated_dirs(root: str | os.PathLike[str]) -> Generator[Path, None, None]:
         )
         for name in PlatformDirsABC.__abstractmethods__
     }
-    # Base site lists follow the redirected dirs, and disabling root redirection keeps user and site kinds separate.
+    # The usual site lists, root redirection and XDG runtime checks depend on paths outside the isolation root.
     patches |= {
         name: value
         for name, value in vars(PlatformDirsABC).items()
-        if name == "_use_site" or (name.startswith("_site_") and name.endswith("_dirs"))
+        if name in {"_use_site", "_find_runtime_files"} or (name.startswith("_site_") and name.endswith("_dirs"))
     }
     cls = platformdirs.PlatformDirs
     saved = {name: cls.__dict__[name] for name in patches if name in cls.__dict__}

@@ -1823,6 +1823,18 @@ def test_use_site_iter_runtime_dirs_bypasses_xdg_runtime_dir() -> None:
     assert list(Unix(appname="foo", use_site_for_root=True).iter_runtime_dirs()) == [_SITE_RUNTIME_DIR]
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="XDG runtime paths are POSIX paths")
+@pytest.mark.usefixtures("_as_root")
+def test_use_site_find_runtime_file_bypasses_xdg_runtime_dir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
+) -> None:
+    marker = tmp_path / "ready"
+    marker.touch()
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(marker))
+    mocker.patch.object(Unix, "user_runtime_dir", str(tmp_path))
+    assert Unix(use_site_for_root=True).find_runtime_file("ready") == marker
+
+
 @pytest.mark.usefixtures("_as_root", "_inherited_xdg_runtime_dir")
 def test_use_site_keeps_xdg_runtime_dir_for_site_runtime_dir() -> None:
     # match host separators
