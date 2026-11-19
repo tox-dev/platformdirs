@@ -411,7 +411,8 @@ class Unix(XDGMixin, _UnixDefaults):
         return self._place_file(created, name)
 
     def _find_runtime_files(self, name: str | os.PathLike[str]) -> Iterator[Path]:
-        return filter(_in_own_runtime_dir, super()._find_runtime_files(name))
+        files = super()._find_runtime_files(name)
+        return files if self._use_site else filter(_in_own_runtime_dir, files)
 
     def _xdg_media_dir(self, env_var: str) -> str | None:
         # The XDG_*_DIR variables and user-dirs.dirs belong to the user who started the root process.

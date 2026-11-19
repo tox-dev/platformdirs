@@ -81,6 +81,19 @@ def test_isolated_dirs_redirects_every_accessor(tmp_path: Path) -> None:
         assert _outside(tmp_path) == {}
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="XDG runtime paths are POSIX paths")
+def test_isolated_dirs_find_runtime_file_bypasses_xdg_runtime_dir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
+) -> None:
+    mocker.patch("platformdirs.PlatformDirs", Unix)
+    with isolated_dirs(tmp_path):
+        dirs = platformdirs.PlatformDirs("app")
+        marker = dirs.place_runtime_file("ready")
+        marker.touch()
+        monkeypatch.setenv("XDG_RUNTIME_DIR", str(marker))
+        assert dirs.find_runtime_files("ready") == [marker]
+
+
 def test_isolated_dirs_redirects_android(tmp_path: Path, mocker: MockerFixture) -> None:
     mocker.patch("platformdirs.PlatformDirs", Android)
     with isolated_dirs(tmp_path):
