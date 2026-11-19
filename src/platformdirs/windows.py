@@ -219,7 +219,7 @@ def _is_fully_qualified(path: str) -> bool:
     # whose prefix would then read as server "?" or "." and share "UNC".
     if path[:7].upper() in {"\\\\?\\UNC", "\\\\.\\UNC"} and path[7:8] in {"", "\\"}:
         # Windows and the callers' normpath collapse dot segments in a \\.\ path, which can climb out of the share.
-        return _has_server_and_share(path[8:]) and (path[2] == "?" or _has_server_and_share(ntpath.normpath(path)[8:]))
+        return _has_server_and_share((path if path[2] == "?" else ntpath.normpath(path))[8:])
     # ntpath.isabs changed for rooted paths without a drive in 3.13 and for a bare UNC share in 3.11
     drive, tail = ntpath.splitdrive(path)
     # An extended or device drive needs a root too; its prefix is not a UNC server.
