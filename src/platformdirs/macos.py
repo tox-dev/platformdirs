@@ -260,6 +260,23 @@ class MacOS(XDGMixin, _MacOSDefaults):
 
     """
 
+    def place_runtime_file(self, name: str | os.PathLike[str]) -> Path:
+        """Like :meth:`~platformdirs.api.PlatformDirsABC.place_runtime_file`.
+
+        Creates the runtime directory before validating it.
+
+        :param name: path relative to the user runtime directory.
+
+        :returns: the proposed file path under the user runtime directory.
+
+        """
+
+        def created(lookup: PlatformDirsABC) -> Path:
+            lookup.ensure_exists = sys.platform != "win32"
+            return lookup.user_runtime_path
+
+        return self._place_file(created, name)
+
     def _find_runtime_files(self, name: str | os.PathLike[str]) -> Iterator[Path]:
         def checked_paths(lookup: PlatformDirsABC) -> Iterator[Path]:
             if not (base := xdg_dir("XDG_RUNTIME_DIR")):

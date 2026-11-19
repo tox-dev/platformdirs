@@ -682,12 +682,12 @@ def test_homebrew_virtual_environment(
 ) -> None:
     monkeypatch.setattr(sys, "prefix", "/Users/me/project/.venv")
     monkeypatch.setattr(sys, "base_prefix", f"{homebrew_prefix}/{framework}/Versions/3.13")
-    suffix: Final = {True: "var/cache", False: "share"}["cache" in prop]
+    suffix: Final[str] = {True: "var/cache", False: "share"}["cache" in prop]
     expected: str | Path = f"{homebrew_prefix}/{suffix}{os.sep}Example{os.sep}1.0"
     if prop.endswith("_path"):  # simplint: ignore[conditional-in-test]  # Path result
         expected = Path(expected)
     elif multipath and prop != "site_state_dir":
-        fallback: Final = {True: "Caches", False: "Application Support"}["cache" in prop]
+        fallback: Final[str] = {True: "Caches", False: "Application Support"}["cache" in prop]
         expected += f":/Library/{fallback}{os.sep}Example{os.sep}1.0"
     assert getattr(MacOS(appname="Example", version="1.0", multipath=multipath), prop) == expected
 
@@ -868,10 +868,10 @@ def test_macos_user_runtime_dir_rejects_xdg_runtime_dir_of_other_user(home: str)
 
 @_POSIX_ONLY
 def test_macos_user_runtime_dir_rejects_xdg_runtime_dir_of_other_user_warns(foreign_runtime_dir: Path) -> None:
-    owner: Final = foreign_runtime_dir.stat().st_uid
+    owner: Final[int] = foreign_runtime_dir.stat().st_uid
     with pytest.warns(RuntimeDirWarning) as record:
         _ = MacOS(appname="foo").user_runtime_dir
-    expected: Final = (
+    expected: Final[str] = (
         f"XDG_RUNTIME_DIR {foreign_runtime_dir} is owned by uid {owner}, not {owner + 1}, "
         "falling back to the platform default"
     )
