@@ -34,7 +34,7 @@ def directory_problem(path: Path, *, missing_ok: bool) -> str | None:
 def _verify_path(path: Path) -> None:
     directory = Path(path.anchor)
     pending = deque(path.parts[1:])
-    owners = {0, geteuid()}
+    owners = {0, getattr(os, "geteuid", geteuid)()}
     links = 0
     max_links = 40
     while pending:
