@@ -15,7 +15,7 @@ import sys
 from contextlib import suppress
 from pathlib import Path
 
-from ._runtime import runtime_base_problem, runtime_dir_parent_problem, warn_once
+from ._runtime import runtime_base_problem, runtime_dir_parent_problem, runtime_dir_problem, warn_once
 from .api import PlatformDirsABC
 
 TYPE_CHECKING = False
@@ -172,21 +172,23 @@ class XDGMixin(PlatformDirsABC):
             if not self._use_site:
                 return self.user_runtime_dir
             # Root can look up the invoking user's runtime path. Creation requires a checked root-owned base.
-            if self.ensure_exists and (problem := runtime_base_problem(path, missing_ok=False)):
+            if self.ensure_exists and (problem := self._xdg_runtime_problem(path)):
                 raise PermissionError(problem)
             return self._append_app_name_and_version(path, private=False, strict=True)
         return super().site_runtime_dir
+
+    def _xdg_runtime_problem(self, path: str) -> str | None:
+        if problem := runtime_dir_parent_problem(path, missing_ok=True):
+            return runtime_dir_problem(path, missing_ok=True) or problem
+        with suppress(OSError):
+            self._optionally_create_directory(path, private=True, strict=True)
+        return runtime_base_problem(path, missing_ok=not self.ensure_exists)
 
     @property
     def user_runtime_dir(self) -> str:
         """Runtime directory tied to the user, from ``$XDG_RUNTIME_DIR`` if set and private, else platform default."""
         if path := xdg_dir("XDG_RUNTIME_DIR"):
-            problem = runtime_dir_parent_problem(path, missing_ok=True)
-            if problem is None:
-                with suppress(OSError):
-                    self._optionally_create_directory(path, private=True, strict=True)
-                problem = runtime_base_problem(path, missing_ok=not self.ensure_exists)
-            if problem is None:
+            if (problem := self._xdg_runtime_problem(path)) is None:
                 return self._append_app_name_and_version(path, private=True, strict=True)
             warn_once(f"XDG_RUNTIME_DIR {problem}, falling back to the platform default")
         return super().user_runtime_dir

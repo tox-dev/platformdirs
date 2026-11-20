@@ -410,15 +410,7 @@ class Unix(XDGMixin, _UnixDefaults):
         if not (path := xdg_dir("XDG_RUNTIME_DIR")):
             reason = "XDG_RUNTIME_DIR is not set"
         else:
-            # Creating the missing levels follows whatever symlink sits at a parent, so check the parents first.
-            problem = runtime_dir_parent_problem(path, missing_ok=True)
-            if problem is None:
-                with suppress(OSError):
-                    self._optionally_create_directory(path, private=True, strict=True)
-                problem = runtime_base_problem(path, missing_ok=not self.ensure_exists)
-            else:
-                problem = runtime_dir_problem(path, missing_ok=True) or problem
-            if problem is None:
+            if (problem := self._xdg_runtime_problem(path)) is None:
                 return self._append_app_name_and_version(path, private=True, strict=True)
             reason = f"XDG_RUNTIME_DIR {problem}"
         warn_once(f"{reason}, falling back to {(fallback := self._default_runtime_dir())}")

@@ -1141,6 +1141,18 @@ def test_site_runtime_rejects_public_override(
 
 @_POSIX_ONLY
 @pytest.mark.usefixtures("_as_root", "root_owned_paths")
+def test_root_site_runtime_creates_missing_override(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    base = tmp_path / "sessions" / "root"
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(base))
+    assert Unix("app", use_site_for_root=True).site_runtime_path == base / "app"
+    assert not base.parent.exists()
+    assert Unix("app", use_site_for_root=True, ensure_exists=True).site_runtime_path == base / "app"
+    assert (base / "app").is_dir()
+    assert stat.S_IMODE(base.stat().st_mode) == stat.S_IMODE(base.parent.stat().st_mode) == 0o700
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("_as_root", "root_owned_paths")
 def test_root_site_runtime_refuses_creation_in_public_override(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     (base := tmp_path / "session").mkdir()
     base.chmod(0o755)
