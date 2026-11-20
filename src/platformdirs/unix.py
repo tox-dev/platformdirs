@@ -248,7 +248,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
             with suppress(FileExistsError):
                 make_directories(Path(path), private=True)
         if problem := runtime_dir_problem(
-            path, missing_ok=not self.ensure_exists, mode_check="repair" if self.ensure_exists else "legacy"
+            path, missing_ok=not self.ensure_exists, mode_check="repair" if self.ensure_exists else "lookup"
         ):
             msg = f"runtime directory {problem}; set XDG_RUNTIME_DIR instead"
             raise PermissionError(msg)

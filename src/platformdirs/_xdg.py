@@ -75,6 +75,19 @@ class XDGMixin(PlatformDirsABC):
         return super().user_state_dir
 
     @property
+    def site_runtime_dir(self) -> str:
+        """Runtime directory shared by users, from ``$XDG_RUNTIME_DIR`` if set, else platform default."""
+        if path := xdg_dir("XDG_RUNTIME_DIR"):
+            if self.ensure_exists and not self._use_site:
+                return self.user_runtime_dir
+            # Root can look up the invoking user's runtime path. Only create under root's own checked base.
+            if (self._use_site and not self.ensure_exists) or not runtime_base_problem(
+                path, missing_ok=not self.ensure_exists
+            ):
+                return self._append_app_name_and_version(path, private=False, strict=True)
+        return super().site_runtime_dir
+
+    @property
     def user_runtime_dir(self) -> str:
         """Runtime directory tied to the user, from ``$XDG_RUNTIME_DIR`` if set and private, else platform default."""
         if path := xdg_dir("XDG_RUNTIME_DIR"):
@@ -87,13 +100,6 @@ class XDGMixin(PlatformDirsABC):
                 return self._append_app_name_and_version(path, private=True, strict=True)
             warn_once(f"XDG_RUNTIME_DIR {problem}, falling back to the platform default")
         return super().user_runtime_dir
-
-    @property
-    def site_runtime_dir(self) -> str:
-        """Runtime directory shared by users, from ``$XDG_RUNTIME_DIR`` if set, else platform default."""
-        if path := xdg_dir("XDG_RUNTIME_DIR"):
-            return self._append_app_name_and_version(path, private=False)
-        return super().site_runtime_dir
 
     @property
     def user_documents_dir(self) -> str:

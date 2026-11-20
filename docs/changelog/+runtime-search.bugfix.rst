@@ -1,1 +1,2 @@
-Find Unix runtime files under root redirection, test isolation and valid fallback directories. Skip rejected XDG paths.
+Check the XDG runtime directory before creating a Unix site runtime path there. Find runtime files in valid fallbacks
+and in directories selected by root redirection or test isolation.

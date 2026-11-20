@@ -7,8 +7,6 @@ from typing import TYPE_CHECKING, Final, cast
 
 import pytest
 
-from platformdirs._paths import directory_problem  # ruff:ignore[import-private-name]  # check the simulated system tree
-
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
     from types import ModuleType
@@ -106,22 +104,24 @@ def runtime_temp_dir(tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     monkeypatch.setenv("TMPDIR", str(tmp_path))
     mocker.patch("tempfile.tempdir", str(tmp_path))
-    # Map the entire system path before walking it. A host symlink such as /var would leave the fixture tree.
-    parents = {"/run/user", "/var/run/user", "/tmp/run/user"}  # ruff:ignore[hardcoded-temp-file]  # OpenBSD default
+    # A host symlink such as /var must not redirect the walk outside the simulated system tree.
+    parents = {
+        Path("/run/user"),
+        Path("/var/run/user"),
+        Path("/tmp/run/user"),  # ruff:ignore[hardcoded-temp-file]  # OpenBSD runtime path
+    }
+    ancestors = set().union(*(path.parents for path in parents)) | parents
     real_lstat = os.lstat
 
     def lstat(path: str | Path) -> os.stat_result:
-        if isinstance(path, str) and Path(path).parent.as_posix() in parents:
-            return real_lstat(system_root / path[1:])
+        entry = Path(path)
+        if entry.parent in parents:
+            return real_lstat(system_root / entry.relative_to(entry.anchor))
+        if entry in ancestors and (mapped := system_root / entry.relative_to(entry.anchor)).is_dir():
+            return real_lstat(mapped)
         return real_lstat(path)
 
-    def check_parent(path: Path, *, missing_ok: bool) -> str | None:
-        if path.as_posix() in parents:
-            path = system_root / path.as_posix()[1:]
-        return directory_problem(path, missing_ok=missing_ok)
-
-    mocker.patch("os.lstat", new=lstat)
-    mocker.patch("platformdirs._runtime.directory_problem", new=check_parent)
+    monkeypatch.setattr(os, "lstat", lstat)
     return tmp_path
 
 

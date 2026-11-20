@@ -451,6 +451,7 @@ def test_platform_without_geteuid(
     [
         pytest.param(None, True, 0o700, id="created-private"),
         pytest.param(0o775, True, 0o700, id="group-writable-tightened"),
+        pytest.param(0o775, False, 0o775, id="group-writable-lookup"),
         pytest.param(0o755, True, 0o700, id="loose-mode-tightened"),
         pytest.param(0o755, False, 0o755, id="loose-mode-untouched-without-ensure-exists"),
     ],
@@ -1095,25 +1096,52 @@ def test_find_runtime_file_below_rejected_xdg(runtime_temp_dir: Path, monkeypatc
 
 
 @_POSIX_ONLY
-@pytest.mark.usefixtures("runtime_uid")
+@pytest.mark.usefixtures("runtime_temp_dir")
 def test_find_runtime_file_in_system_fallback_below_xdg(
-    runtime_temp_dir: Path, monkeypatch: pytest.MonkeyPatch
+    default_dir: Path, system_root: Path, runtime_uid: int, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    base = runtime_temp_dir / "run"
-    (app := base / "user/app").mkdir(parents=True)
-    base.chmod(0o755)
-    monkeypatch.setenv("XDG_RUNTIME_DIR", str(base))
-    monkeypatch.setattr(Unix, "_default_runtime_dir", lambda _: str(app.parent))
-    (marker := app / "ready").touch()
+    _create(default_dir, "private")
+    (default_dir / "app").mkdir()
+    (default_dir / "app/ready").touch()
+    (system_root / "run").chmod(0o755)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", "/run")
+    is_file = os.path.isfile
+    monkeypatch.setattr(os.path, "isfile", lambda path: is_file(system_root / Path(path).relative_to("/")))
     with pytest.warns(RuntimeDirWarning):
-        assert Unix("app").find_runtime_files("ready") == [marker]
+        assert Unix("app").find_runtime_files("ready") == [Path(f"/run/user/{runtime_uid}/app/ready")]
 
 
 @_POSIX_ONLY
-def test_runtime_temp_rejects_writable_leaf(temp_dir: Path) -> None:
+def test_search_skips_group_writable_temp_fallback(temp_dir: Path) -> None:
     temp_dir.mkdir()
     temp_dir.chmod(0o775)
-    with pytest.raises(PermissionError, match="has writable mode 0775"):
+    (temp_dir / "ready").touch()
+    with pytest.warns(RuntimeDirWarning):
+        assert Unix().find_runtime_files("ready") == []
+
+
+@_POSIX_ONLY
+@pytest.mark.parametrize(
+    "lookup",
+    [
+        pytest.param(attrgetter("site_runtime_path"), id="site"),
+        pytest.param(lambda dirs: tuple(dirs.iter_runtime_paths())[-1], id="iterator"),
+    ],
+)
+def test_site_runtime_rejects_public_override(
+    session_dir: Path, temp_dir: Path, lookup: Callable[[Unix], Path]
+) -> None:
+    _create(session_dir, "mode-755")
+    with pytest.warns(RuntimeDirWarning):
+        assert lookup(Unix("app", ensure_exists=True)) == temp_dir / "app"
+    assert list(session_dir.iterdir()) == []
+
+
+@_POSIX_ONLY
+def test_runtime_temp_rejects_world_writable_leaf(temp_dir: Path) -> None:
+    temp_dir.mkdir()
+    temp_dir.chmod(0o777)
+    with pytest.raises(PermissionError, match="has writable mode 0777"):
         _ = Unix().user_runtime_path
 
 
@@ -2631,6 +2659,7 @@ _APP_COMPONENTS: typing.Final[list[str]] = ["home", "home/base", "home/base/app"
         pytest.param("user_cache_dir", "XDG_CACHE_HOME", id="cache"),
         pytest.param("user_state_dir", "XDG_STATE_HOME", id="state"),
         pytest.param("user_runtime_dir", "XDG_RUNTIME_DIR", id="runtime"),
+        pytest.param("site_runtime_dir", "XDG_RUNTIME_DIR", id="xdg-site-runtime"),
         pytest.param("user_preference_dir", "XDG_CONFIG_HOME", id="preference"),
     ],
 )
@@ -2669,7 +2698,6 @@ def test_unix_default_config_dir_creates_dot_config_private(
     [
         pytest.param("site_data_dir", "XDG_DATA_DIRS", id="site-data"),
         pytest.param("site_config_dir", "XDG_CONFIG_DIRS", id="site-config"),
-        pytest.param("site_runtime_dir", "XDG_RUNTIME_DIR", id="site-runtime"),
         pytest.param("user_documents_dir", "XDG_DOCUMENTS_DIR", id="media"),
     ],
 )

@@ -22,7 +22,7 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from typing import Final, Literal, NoReturn
 
-    _ModeCheck = Literal["private", "legacy", "repair"]
+    _ModeCheck = Literal["private", "legacy", "lookup", "repair"]
 
 if sys.platform == "win32":
 
@@ -57,6 +57,7 @@ def runtime_dir_problem(path: str, *, missing_ok: bool, mode_check: _ModeCheck =
         (stat.S_ISLNK(info.st_mode), "is a symlink"),
         (not stat.S_ISDIR(info.st_mode), "is not a directory"),
         (info.st_uid != (uid := geteuid()), f"is owned by uid {info.st_uid}, not {uid}"),
+        (mode_check == "lookup" and bool(mode & 0o002), f"has writable mode {mode:04o}"),
         (mode_check == "legacy" and bool(mode & 0o022), f"has writable mode {mode:04o}"),
         (mode_check == "private" and mode != RUNTIME_DIR_MODE, f"has mode {mode:04o}, not {RUNTIME_DIR_MODE:04o}"),
     )
