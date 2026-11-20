@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ctypes
 import importlib
+import ntpath
 import os
 import pathlib
 import sys
@@ -738,7 +739,6 @@ def test_get_win_folder_override_ignored(monkeypatch: pytest.MonkeyPatch, value:
     [
         pytest.param(r"X:\appdata", id="drive_backslash"),
         pytest.param("X:/appdata", id="drive_slash"),
-        pytest.param(r"\\?\UNC\server\share\..", id="extended_unc_share_parent"),
         pytest.param(r"\\?\Volume{01234567-89ab-cdef-0123-456789abcdef}\data", id="device_volume"),
         pytest.param(r"\\server\share", id="unc_share"),
         pytest.param(r"\\server\share\appdata", id="unc_share_folder"),
@@ -760,6 +760,15 @@ def test_get_win_folder_override_absolute(monkeypatch: pytest.MonkeyPatch, value
     monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda csidl: _WIN_FOLDERS[csidl])
     monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", value)
     assert get_win_folder("CSIDL_LOCAL_APPDATA") == value
+
+
+def test_extended_unc_share_parent(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("platformdirs.windows._RESOLVE_WIN_FOLDER", lambda csidl: _WIN_FOLDERS[csidl])
+    override = r"\\?\UNC\server\share\.."
+    monkeypatch.setenv("WIN_PD_OVERRIDE_LOCAL_APPDATA", override)
+    # Windows Python 3.11 removes the share when normalizing its parent.
+    expected = {r"\\?\UNC\server": _WIN_FOLDERS["CSIDL_LOCAL_APPDATA"], r"\\?\UNC\server\share": override}
+    assert get_win_folder("CSIDL_LOCAL_APPDATA") == expected[ntpath.normpath(override).rstrip("\\")]
 
 
 def test_get_win_folder_override_not_set_falls_back(monkeypatch: pytest.MonkeyPatch) -> None:
