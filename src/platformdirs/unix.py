@@ -18,7 +18,7 @@ import stat
 import sys
 from contextlib import suppress
 from pathlib import Path
-from tempfile import gettempdir
+from tempfile import TemporaryFile, gettempdir
 
 from ._paths import directory_problem
 from ._runtime import RUNTIME_DIR_MODE, geteuid, runtime_dir_problem, warn_once
@@ -325,15 +325,23 @@ def _temp_runtime_fallback() -> str:
     # A temporary directory of / would give "//runtime-<uid>", which pathlib keeps as a distinct root.
     temp = gettempdir()
     if sys.platform != "win32":
-        roots = {Path("/tmp"), Path("/var/tmp"), Path("/usr/tmp")}  # ruff:ignore[hardcoded-temp-file]  # standard roots
-        roots.update(
-            Path(value).resolve()
+        roots = [
+            Path(value)
             for name in ("TMPDIR", "TEMP", "TMP")
             if (value := os.getenv(name)) and Path(value).is_absolute()
-        )
-        if Path(temp).resolve() not in roots:
-            msg = "no safe temporary directory; set XDG_RUNTIME_DIR"
-            raise PermissionError(msg)
+        ]
+        roots.extend((Path("/tmp"), Path("/var/tmp"), Path("/usr/tmp")))  # ruff:ignore[hardcoded-temp-file]  # standard roots
+        if Path(os.path.normpath(temp)) not in {Path(os.path.normpath(root)) for root in roots}:
+            for root in roots:
+                try:
+                    with TemporaryFile(dir=root):
+                        temp = str(root)
+                        break
+                except OSError:
+                    continue
+            else:
+                msg = "no safe temporary directory; set XDG_RUNTIME_DIR"
+                raise PermissionError(msg)
     return posixpath.join(temp, f"runtime-{geteuid()}")
 
 
@@ -506,7 +514,10 @@ def _runtime_parent_error(path: str, parent: Path, error: OSError, *, missing_ok
 def _in_own_runtime_dir(path: Path) -> bool:
     # The lookup let a missing runtime directory pass, so another user may have created it since. The fallback goes
     # first because a rejected XDG_RUNTIME_DIR, such as /tmp, contains it.
-    for base in (_temp_runtime_fallback(), xdg_dir("XDG_RUNTIME_DIR")):
+    fallback = None
+    with suppress(FileNotFoundError, PermissionError):
+        fallback = _temp_runtime_fallback()
+    for base in (fallback, xdg_dir("XDG_RUNTIME_DIR")):
         if base and path.is_relative_to(base):
             return not runtime_dir_problem(base, missing_ok=False, check_mode=False)
     return True

@@ -505,9 +505,11 @@ every user without the sticky bit. If the variable is unset or fails that check,
 :class:`~platformdirs.RuntimeDirWarning` once for each distinct cause and tries ``/run/user/<uid>``
 (``/var/run/user/<uid>`` on FreeBSD and NetBSD, ``/tmp/run/user/<uid>`` on OpenBSD) under the same check. When that
 directory is missing or fails the check, it falls back to ``runtime-<uid>`` in :func:`tempfile.gettempdir`, created with
-mode ``0700`` under ``ensure_exists``. It raises :exc:`PermissionError` if no standard or absolute configured temporary
-directory is available, or if that fallback is a symlink, not a directory, or owned by another user. Set
-``XDG_RUNTIME_DIR`` to a valid directory when no temporary directory is available. ``ensure_exists`` and
+mode ``0700`` under ``ensure_exists``. If no standard or absolute configured temporary directory is available, it raises
+:exc:`PermissionError` after rejecting Python's chosen directory, or :exc:`FileNotFoundError` when Python finds no
+temporary directory. It also raises :exc:`PermissionError` if the fallback is a symlink, not a directory, or owned by
+another user. Set ``XDG_RUNTIME_DIR`` to a valid directory when no temporary directory is available.
+``ensure_exists`` and
 ``place_runtime_file`` create the runtime directory before checking it,
 so one that is missing right after also fails. ``find_runtime_file`` and ``find_runtime_files`` skip a file below
 ``XDG_RUNTIME_DIR`` or ``runtime-<uid>`` unless that directory exists and passes the owner check. Root redirection

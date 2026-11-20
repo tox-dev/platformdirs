@@ -498,11 +498,12 @@ _POSIX_ONLY: typing.Final[pytest.MarkDecorator] = pytest.mark.skipif(
 @_POSIX_ONLY
 @pytest.mark.parametrize("cwd", [pytest.param(".", id="current"), pytest.param("..", id="cached")])
 def test_user_runtime_dir_rejects_cwd_temp_fallback(
-    runtime_temp_dir: Path, monkeypatch: pytest.MonkeyPatch, cwd: str
+    runtime_temp_dir: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, cwd: str
 ) -> None:
     for name in ("TMPDIR", "TEMP", "TMP"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.chdir(runtime_temp_dir / cwd)
+    mocker.patch("platformdirs.unix.TemporaryFile", autospec=True, side_effect=PermissionError)
     with pytest.raises(PermissionError, match="no safe temporary directory"):
         _ = Unix(appname="app").user_runtime_dir
 
@@ -514,8 +515,21 @@ def test_user_runtime_dir_rejects_relative_temp_setting(
     monkeypatch.chdir(runtime_temp_dir)
     monkeypatch.setenv("TMPDIR", "relative")
     mocker.patch("tempfile.tempdir", "relative")
+    mocker.patch("platformdirs.unix.TemporaryFile", autospec=True, side_effect=PermissionError)
     with pytest.raises(PermissionError, match="no safe temporary directory"):
         _ = Unix(appname="app").user_runtime_dir
+
+
+@_POSIX_ONLY
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+def test_user_runtime_dir_uses_new_absolute_temp_setting(
+    runtime_temp_dir: Path, runtime_uid: int, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
+) -> None:
+    (old := runtime_temp_dir / "old").mkdir()
+    (new := runtime_temp_dir / "new").mkdir()
+    mocker.patch("tempfile.tempdir", str(old))
+    monkeypatch.setenv("TMPDIR", str(new))
+    assert Unix(appname="app").user_runtime_dir == str(new / f"runtime-{runtime_uid}" / "app")
 
 
 _PROBLEMS: typing.Final[MappingProxyType[str, str]] = MappingProxyType({
@@ -1050,6 +1064,31 @@ def temp_dir_in_session_dir(
 def session_dir(runtime_temp_dir: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("XDG_RUNTIME_DIR", str(path := runtime_temp_dir / "session"))
     return path
+
+
+@_POSIX_ONLY
+@pytest.mark.parametrize(
+    ("target", "error"),
+    [
+        pytest.param("platformdirs.unix.TemporaryFile", PermissionError, id="no-safe-root"),
+        pytest.param("platformdirs.unix.gettempdir", FileNotFoundError, id="no-temp-dir"),
+    ],
+)
+def test_find_runtime_files_with_xdg_and_no_temp_root(
+    session_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mocker: MockerFixture,
+    target: str,
+    error: type[OSError],
+) -> None:
+    _create(session_dir, "private")
+    _create(session_dir / "app", "private")
+    (file := session_dir / "app" / "app.sock").touch()
+    for name in ("TMPDIR", "TEMP", "TMP"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.chdir(session_dir.parent)
+    mocker.patch(target, autospec=True, side_effect=error)
+    assert Unix(appname="app").find_runtime_files("app.sock") == [file]
 
 
 @pytest.fixture
