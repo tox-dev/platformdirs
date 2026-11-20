@@ -6,7 +6,8 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from multiprocessing import get_context
 from pathlib import Path
-from threading import Event, current_thread, main_thread
+from subprocess import check_output  # ruff:ignore[suspicious-subprocess-import]  # bound the deadlock regression
+from threading import Event
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
@@ -188,6 +189,36 @@ def test_isolated_dirs_nested_restores_outer(tmp_path: Path) -> None:
         assert platformdirs.user_data_path("app") == tmp_path / "outer" / "user_data" / "app"
 
 
+def test_isolated_dirs_reentrant_exit(tmp_path: Path) -> None:
+    code = """
+from contextlib import ExitStack
+from pathlib import Path
+from sys import argv
+from platformdirs import PlatformDirs, testing
+
+original = vars(PlatformDirs).copy()
+with ExitStack() as older:
+    older.enter_context(testing.isolated_dirs(Path(argv[1]) / "older"))
+    def close_older(cls, name, value):
+        older.close()
+        setattr(cls, name, value)
+    testing.setattr = close_older
+    with testing.isolated_dirs(Path(argv[1]) / "newer"):
+        assert PlatformDirs().user_cache_path == Path(argv[1]) / "newer/user_cache"
+print(vars(PlatformDirs) == original)
+"""
+    assert check_output([sys.executable, "-c", code, str(tmp_path)], text=True, timeout=10).strip() == "True"
+
+
+def test_isolated_dirs_restores_intervening_patch(tmp_path: Path) -> None:
+    with isolated_dirs(tmp_path / "outer"), pytest.MonkeyPatch.context() as patch:
+        patch.setattr(platformdirs.PlatformDirs, "user_cache_dir", property(lambda _: str(tmp_path)))
+        with isolated_dirs(tmp_path / "inner"):
+            assert platformdirs.user_cache_path() == tmp_path / "inner" / "user_cache"
+        assert platformdirs.user_cache_path() == tmp_path
+    assert _resolve_all() == _ORIGINAL
+
+
 def test_isolated_dirs_overlapping_restores_active_context(tmp_path: Path) -> None:
     with ExitStack() as first, ExitStack() as second:
         first.enter_context(isolated_dirs(tmp_path / "first"))
@@ -220,21 +251,19 @@ if sys.platform != "win32":
 
     @pytest.mark.skipif(not hasattr(os, "fork"), reason="requires fork")
     @pytest.mark.filterwarnings("ignore:This process .* is multi-threaded.*:DeprecationWarning")
-    def test_isolated_dirs_fork_restores_original_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-        installing, release = Event(), Event()
+    def test_isolated_dirs_fork_inherits_thread_root(tmp_path: Path) -> None:
+        installed, release = Event(), Event()
 
-        def pause_install(cls: type[PlatformDirsABC], name: str, value: property) -> None:
-            setattr(cls, name, value)
-            if current_thread() is not main_thread() and not installing.is_set():
-                installing.set()
+        def isolate_thread() -> None:
+            with isolated_dirs(tmp_path / "worker"):
+                installed.set()
                 assert release.wait(10)
 
-        monkeypatch.setattr("platformdirs.testing.setattr", pause_install, raising=False)
         with isolated_dirs(tmp_path / "parent"), ThreadPoolExecutor(max_workers=1) as pool:
-            pending = pool.submit(_enter_isolation, tmp_path / "pending")
+            pending = pool.submit(isolate_thread)
             try:
-                assert installing.wait(10)
-                assert _fork_check(tmp_path) == 0
+                assert installed.wait(10)
+                assert _fork_check(tmp_path / "worker") == 0
             finally:
                 release.set()
             pending.result(timeout=10)
@@ -256,9 +285,9 @@ if sys.platform != "win32":
             process.close()
 
     def _check_child_root(root: Path) -> None:
-        assert _resolve_all() == _ORIGINAL
+        assert platformdirs.user_config_path("app") == root / "user_config" / "app"
         _enter_isolation(root / "child")
-        assert _resolve_all() == _ORIGINAL
+        assert platformdirs.user_config_path("app") == root / "user_config" / "app"
         if (coverage := Coverage.current()) is not None:
             coverage.save()
 
