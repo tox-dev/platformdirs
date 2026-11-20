@@ -1,0 +1,1 @@
+Check site directory ownership before root creates directories or places files.

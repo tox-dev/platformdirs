@@ -217,6 +217,22 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
             path = "/run"
         return self._append_app_name_and_version(path, private=False)
 
+    def _create_directory(self, path: Path, *, private: bool, site: bool) -> None:
+        if not site or sys.platform == "win32" or geteuid() != 0:
+            super()._create_directory(path, private=private, site=site)
+            return
+        absolute = path.absolute()
+        existing = absolute
+        while not existing.is_dir():
+            existing = existing.parent
+        if problem := directory_problem(existing, missing_ok=False, root_only=True):
+            raise PermissionError(problem)
+        for component in absolute.relative_to(existing).parts:
+            existing /= component
+            existing.mkdir(exist_ok=True)
+            if problem := directory_problem(existing, missing_ok=False, root_only=True):
+                raise PermissionError(problem)
+
     def _default_runtime_dir(self) -> str:
         if sys.platform.startswith("openbsd"):
             path = f"/tmp/run/user/{geteuid()}"  # ruff:ignore[hardcoded-temp-file]  # fixed OpenBSD runtime directory

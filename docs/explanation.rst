@@ -495,6 +495,8 @@ When ``multipath=True``, ``site_data_dir`` and ``site_config_dir`` return all pa
 ``XDG_*_DIRS`` variable, joined by ``:``.
 
 Writing to ``site_*`` directories typically requires root privileges. Normal users can only read from these locations.
+When root creates a site directory or places a file there, each existing path component must belong to root and must
+not be writable by other users without the sticky bit. A component that fails the check raises :exc:`PermissionError`.
 
 ``user_runtime_dir`` uses ``XDG_RUNTIME_DIR`` only if it names a directory, not a symlink, that the effective user owns
 with mode ``0700``, as the spec requires. It also rejects a path below a parent that another user can replace: an entry
