@@ -1,2 +1,0 @@
-Root can look up existing service-owned Unix site directories. Creating directories or placing files requires a
-root-owned path. Group-writable ancestors are allowed. New directories use mode ``0755`` subject to the umask.

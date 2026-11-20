@@ -6,6 +6,51 @@
 
 .. towncrier release notes start
 
+.. _release-4-14-8:
+
+*********************
+ 4.14.8 (2026-11-20)
+*********************
+
+.. _release-4-14-8-fixed:
+
+Fixed
+=====
+
+- Check Unix runtime directory parents, including sticky directories and symlink targets. Recheck the path after
+  creating a missing XDG runtime directory (:pr:`738`) by :user:`gaborbernat`.
+- Check symlinks and entries in shared parents when creating POSIX user directories. Shared sticky directories must
+  belong to root or the caller. Support system-owned Android paths and group-writable container homes (:pr:`741`) by
+  :user:`gaborbernat`.
+- Check the parents of the temporary Unix runtime directory. A lookup accepts an existing group-writable fallback. File
+  searches skip it until ``ensure_exists`` repairs its permissions. Raise an error if no safe temporary base is
+  available (:pr:`744`) by :user:`gaborbernat`.
+- Create deeply nested directories without reaching Python's recursion limit (:pr:`733`) by :user:`gaborbernat`.
+- Ignore Windows UNC folder overrides with a missing server or share, or with ``.`` or ``..`` as either name (:pr:`724`)
+  by :user:`mansur-akhmadi` and :user:`gaborbernat`.
+- Keep the newest active ``isolated_dirs()`` root when overlapping contexts close out of order (:pr:`729`) by
+  :user:`gaborbernat`.
+- On macOS, validate the XDG runtime directory and its parents for both user and site paths. File placement and search
+  use the native fallback when the override is unusable (:pr:`745`) by :user:`gaborbernat`.
+- Read Unix media settings from a trusted ``user-dirs.dirs`` file, including under a group-writable ``~/.config``.
+  Create configured media directories with mode ``0775`` subject to the umask (:pr:`740`) by :user:`gaborbernat`.
+- Root can look up existing service-owned Unix site directories. Creating directories or placing files requires a
+  root-owned path. Group-writable ancestors are allowed. New directories use mode ``0755`` subject to the umask
+  (:pr:`742`) by :user:`gaborbernat`.
+- Use root's password database home for Unix media and fonts when root redirection is active and ``HOME`` is unset,
+  empty or relative (:pr:`730`) by :user:`gaborbernat`.
+- Use the same Unix site runtime fallback for lookup and creation when the XDG override fails validation. With root
+  redirection, ``site_runtime_dir`` creates a missing ``XDG_RUNTIME_DIR`` with mode ``0700`` when
+  ``ensure_exists=True``. Find runtime files in valid fallbacks and in directories selected by root redirection or test
+  isolation (:pr:`745`) by :user:`gaborbernat`.
+
+.. _release-4-14-8-performance:
+
+Performance
+===========
+
+- Defer imports on Python 3.15 to reduce startup work (:pr:`722`) by :user:`gaborbernat`.
+
 .. _release-4-14-7:
 
 *********************
