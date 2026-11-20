@@ -9,15 +9,18 @@ __lazy_modules__ = [
 
 import os
 import stat
+import sys
 from collections import deque
 from pathlib import Path
 
 
-def directory_problem(path: Path) -> str | None:
+def directory_problem(path: Path, *, missing_ok: bool = False) -> str | None:
+    if sys.platform == "win32":
+        return None
     try:
         _verify_path(path.absolute())
     except FileNotFoundError as error:
-        return f"{error.filename} is missing"
+        return None if missing_ok else f"{error.filename} is missing"
     except PermissionError as error:
         return str(error)
     except OSError as error:
@@ -29,6 +32,8 @@ def _verify_path(path: Path) -> None:
     directory = Path(path.anchor)
     pending = deque(path.parts[1:])
     owners = {0, getattr(os, "geteuid")()}  # ruff:ignore[get-attr-with-constant]  # absent from Windows stubs
+    links = 0
+    max_links = 40
     while pending:
         entry = directory / pending.popleft()
         info = os.lstat(entry)
@@ -36,6 +41,10 @@ def _verify_path(path: Path) -> None:
             msg = f"{entry}, owned by uid {info.st_uid}"
             raise PermissionError(msg)
         if stat.S_ISLNK(info.st_mode):
+            links += 1
+            if links > max_links:
+                msg = f"{entry}, which has too many symbolic links"
+                raise PermissionError(msg)
             target = entry.readlink()
             if target.is_absolute():
                 directory = Path(target.anchor)

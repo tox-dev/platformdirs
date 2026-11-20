@@ -1524,6 +1524,105 @@ def test_user_media_dir_from_user_dirs_file(tmp_path: Path, monkeypatch: pytest.
     assert Unix().user_documents_dir == f"{tmp_path}/MyDocs"
 
 
+@_POSIX_ONLY
+def test_user_media_dir_from_symlinked_user_dirs_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    monkeypatch.setenv("HOME", str(tmp_path))
+    config = tmp_path / "local.dirs"
+    config.write_text('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n')
+    (tmp_path / "user-dirs.dirs").symlink_to(config)
+    assert Unix().user_documents_dir == f"{tmp_path}/MyDocs"
+
+
+@_POSIX_ONLY
+def test_user_media_dir_ignores_group_writable_config(tmp_path: Path, user_dirs_file: Path) -> None:
+    user_dirs_file.write_text('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n', encoding="utf-8")
+    user_dirs_file.chmod(0o664)
+    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
+
+
+@_POSIX_ONLY
+def test_user_media_dir_ignores_foreign_config_parent(tmp_path: Path, user_dirs_file: Path, foreign: set[Path]) -> None:
+    user_dirs_file.write_text('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n', encoding="utf-8")
+    foreign.add(user_dirs_file.parent)
+    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
+
+
+@_POSIX_ONLY
+def test_user_media_dir_ignores_writable_config_parent(tmp_path: Path, user_dirs_file: Path) -> None:
+    user_dirs_file.write_text('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n', encoding="utf-8")
+    user_dirs_file.parent.chmod(0o777)
+    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
+
+
+@_POSIX_ONLY
+def test_user_media_dir_ignores_group_writable_config_parent(tmp_path: Path, user_dirs_file: Path) -> None:
+    user_dirs_file.write_text('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n', encoding="utf-8")
+    user_dirs_file.parent.chmod(0o770)
+    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("user_dirs_file")
+def test_user_media_dir_ignores_file_config_parent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    (file := tmp_path / "file").touch()
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(file))
+    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
+
+
+@_POSIX_ONLY
+def test_user_media_dir_from_symlinked_config_parent(
+    tmp_path: Path, user_dirs_file: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    user_dirs_file.write_text('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n', encoding="utf-8")
+    (link := tmp_path / "config-link").symlink_to(user_dirs_file.parent, target_is_directory=True)
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(link))
+    assert Unix().user_documents_dir == f"{tmp_path}/MyDocs"
+
+
+@_POSIX_ONLY
+def test_user_media_dir_ignores_symlinked_foreign_target(
+    tmp_path: Path, user_dirs_file: Path, foreign: set[Path]
+) -> None:
+    (target := tmp_path / "target").mkdir()
+    (target / "user-dirs.dirs").write_text('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n', encoding="utf-8")
+    user_dirs_file.symlink_to(target / "user-dirs.dirs")
+    foreign.add(target)
+    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("user_dirs_file")
+def test_user_media_dir_ignores_config_parent_link_loop(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    (loop := tmp_path / "loop").symlink_to("loop")
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(loop))
+    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
+
+
+@_POSIX_ONLY
+def test_user_media_dir_ignores_config_file_link_loop(tmp_path: Path, user_dirs_file: Path) -> None:
+    user_dirs_file.symlink_to("user-dirs.dirs")
+    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
+
+
+@_POSIX_ONLY
+def test_user_media_dir_ignores_unreadable_config_parent(
+    tmp_path: Path, user_dirs_file: Path, mocker: MockerFixture
+) -> None:
+    user_dirs_file.write_text('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n', encoding="utf-8")
+    parent = user_dirs_file.parent
+    original_lstat = os.lstat
+
+    def unreadable(path: str | os.PathLike[str]) -> os.stat_result:
+        if Path(path) == parent:
+            raise OSError(errno.EIO, os.strerror(errno.EIO), str(path))
+        return original_lstat(path)
+
+    mocker.patch.object(os, "lstat", autospec=True, side_effect=unreadable)
+    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
+
+
 def test_user_media_dir_missing_key_in_user_dirs_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
     config_dir = tmp_path / ".config"
