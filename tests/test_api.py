@@ -383,7 +383,6 @@ def test_ensure_exists_rejects_writable_parent(tmp_path: Path, monkeypatch: pyte
 
 
 @_POSIX_ONLY
-@pytest.mark.skipif(getattr(os, "geteuid", lambda: -1)() == 0, reason="root creation has stricter checks")
 def test_group_writable_user_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     tmp_path.chmod(0o775)
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))

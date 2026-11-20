@@ -571,13 +571,27 @@ def test_homebrew_site_path_ensure_exists_ignores_multipath(mocker: MockerFixtur
     assert [c.args[0] for c in mkdir.call_args_list] == [Path(created)]
 
 
-@pytest.mark.usefixtures("_clear_xdg_env", "_homebrew_py_prefix")
-@pytest.mark.parametrize("method", ["iter_data_dirs", "iter_config_dirs", "iter_cache_dirs"])
-def test_homebrew_iter_dirs_create_site_dirs_only_as_consumed(mocker: MockerFixture, method: str) -> None:
-    mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
+@pytest.mark.usefixtures("_clear_xdg_env")
+@pytest.mark.parametrize(
+    ("method", "directory"),
+    [
+        pytest.param("iter_data_dirs", "share", id="data"),
+        pytest.param("iter_config_dirs", "share", id="config"),
+        pytest.param("iter_cache_dirs", "var/cache", id="cache"),
+    ],
+)
+def test_homebrew_iter_dirs_create_site_dirs_only_as_consumed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, method: str, directory: str
+) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setattr(sys, "base_prefix", f"{tmp_path.as_posix()}/opt/python/Frameworks/Python.framework/Versions/3")
     dirs = getattr(MacOS(appname="foo", ensure_exists=True), method)()
-    user, site = next(dirs), next(dirs)
-    assert [c.args[0] for c in mkdir.call_args_list] == [Path(user), Path(site)]
+    assert Path(next(dirs)).is_dir()
+    site = tmp_path / directory / "foo"
+    assert not site.exists()
+    assert Path(next(dirs)) == site
+    assert site.is_dir()
 
 
 @pytest.mark.usefixtures("_clear_xdg_env")

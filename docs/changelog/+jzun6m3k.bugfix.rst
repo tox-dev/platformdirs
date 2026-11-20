@@ -1,2 +1,2 @@
-Check ownership and permissions when creating Unix user directories or placing files in them. Ordinary user paths
-support group-writable parents such as ``~/.config`` at ``0775``.
+Check entries in shared parents and symlinks when creating user directories on POSIX. Support system-owned Android
+paths, homes owned by another account, and group-writable config directories.

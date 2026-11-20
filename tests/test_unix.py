@@ -906,7 +906,7 @@ def foreign(runtime_uid: int, mocker: MockerFixture, tmp_path: Path) -> set[Path
         "os.stat",
         autospec=True,
         side_effect=lambda path, **kwargs: follow(
-            loop if Path(path) in paths and Path(path).is_symlink() else path, **kwargs
+            loop if Path(path) in paths and stat.S_ISLNK(lstat(path).st_mode) else path, **kwargs
         ),
     )
     return paths
@@ -1825,10 +1825,11 @@ def test_user_media_dir_ignores_writable_config_parent(tmp_path: Path, user_dirs
 
 
 @_POSIX_ONLY
-def test_user_media_dir_ignores_group_writable_config_parent(tmp_path: Path, user_dirs_file: Path) -> None:
+def test_user_media_dir_accepts_group_writable_config_parent(tmp_path: Path, user_dirs_file: Path) -> None:
     user_dirs_file.write_text('XDG_DOCUMENTS_DIR="$HOME/MyDocs"\n', encoding="utf-8")
-    user_dirs_file.parent.chmod(0o770)
-    assert Unix().user_documents_dir == f"{tmp_path}/Documents"
+    user_dirs_file.parent.chmod(0o775)
+    user_dirs_file.chmod(0o600)
+    assert Unix().user_documents_dir == f"{tmp_path}/MyDocs"
 
 
 @_POSIX_ONLY
@@ -2352,7 +2353,14 @@ def test_place_file_with_use_site_for_root_keeps_site_dir_readable(
 
 @_POSIX_ONLY
 @pytest.mark.usefixtures("_as_root", "root_owned_paths")
-@pytest.mark.parametrize(("mask", "expected"), [(0o002, 0o755), (0o000, 0o755), (0o077, 0o700)])
+@pytest.mark.parametrize(
+    ("mask", "expected"),
+    [
+        pytest.param(0o002, 0o755, id="group-write"),
+        pytest.param(0o000, 0o755, id="no-mask"),
+        pytest.param(0o077, 0o700, id="private"),
+    ],
+)
 def test_root_site_modes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mask: int, expected: int) -> None:
     monkeypatch.setenv("XDG_DATA_DIRS", str(tmp_path))
     previous = os.umask(mask)
@@ -2403,11 +2411,79 @@ def test_root_site_accepts_root_owned_symlink(
     assert (target / "app").is_dir()
 
 
+@_POSIX_ONLY
+@pytest.mark.usefixtures("_as_root", "root_owned_paths")
+def test_root_site_with_group_writable_ancestor(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    tmp_path.chmod(0o775)
+    monkeypatch.setenv("XDG_DATA_DIRS", str(tmp_path))
+    path = Unix("service", use_site_for_root=True).place_data_file("config")
+    assert path == tmp_path / "service/config"
+    assert path.parent.is_dir()
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("_as_root")
+def test_existing_service_owned_site_directory(
+    tmp_path: Path, root_owned_paths: set[Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (service := tmp_path / "service").mkdir()
+    root_owned_paths.add(service)
+    monkeypatch.setenv("XDG_DATA_DIRS", str(tmp_path))
+    dirs = Unix("service", ensure_exists=True, use_site_for_root=True)
+    assert dirs.site_data_path == service
+    with pytest.raises(PermissionError, match="owned by uid"):
+        dirs.place_data_file("config")
+    with pytest.raises(PermissionError, match="owned by uid"):
+        _ = Unix("service", version="2", ensure_exists=True).site_data_path
+    assert list(service.iterdir()) == []
+
+
+@_POSIX_ONLY
+def test_root_with_user_owned_home(
+    tmp_path: Path, root_owned_paths: set[Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (home := tmp_path / "home").mkdir()
+    root_owned_paths.add(home)
+    monkeypatch.setattr(os, "geteuid", lambda: 0)
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
+    assert Unix("app", ensure_exists=True).user_cache_path == home / ".cache/app"
+    assert (home / ".cache/app").is_dir()
+
+
+@_POSIX_ONLY
+def test_container_home_with_another_owner(tmp_path: Path, foreign: set[Path], monkeypatch: pytest.MonkeyPatch) -> None:
+    (home := tmp_path / "home").mkdir()
+    home.chmod(0o775)
+    foreign.add(home)
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(home))
+    dirs = Unix("app", ensure_exists=True)
+    assert dirs.user_config_path == home / "app"
+    assert dirs.place_config_file("sub/settings").parent.is_dir()
+
+
+@_POSIX_ONLY
+@pytest.mark.parametrize(
+    ("mask", "expected"), [pytest.param(0, 0o775, id="no-mask"), pytest.param(0o077, 0o700, id="private")]
+)
+def test_configured_media_creation_mode(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mask: int, expected: int
+) -> None:
+    monkeypatch.setenv("XDG_MUSIC_DIR", str(music := tmp_path / "media/music"))
+    previous = os.umask(mask)
+    try:
+        dirs = Unix(ensure_exists=True)
+        assert (dirs.user_music_path, dirs.user_music_path) == (music, music)
+    finally:
+        os.umask(previous)
+    assert (stat.S_IMODE(music.parent.stat().st_mode), stat.S_IMODE(music.stat().st_mode)) == (expected, expected)
+
+
 @pytest.mark.skipif(sys.platform == "win32", reason="Unix ownership only")
 @pytest.mark.usefixtures("_as_root", "root_owned_paths")
 def test_root_site_rejects_writable_parent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    (site := tmp_path / "site").mkdir(mode=0o770)
-    site.chmod(0o770)
+    (site := tmp_path / "site").mkdir()
+    site.chmod(0o777)
     monkeypatch.setenv("XDG_DATA_DIRS", str(site))
     with pytest.raises(PermissionError, match="writable by another user"):
         _ = Unix(appname="app", use_site_for_root=True, ensure_exists=True).user_data_dir

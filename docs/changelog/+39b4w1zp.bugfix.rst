@@ -1,2 +1,2 @@
-When root creates Unix site directories or places files there, require root-owned paths. Reject group- or world-writable
-parents without the sticky bit. Create missing directories with mode ``0755``, subject to the umask.
+Root can look up existing service-owned Unix site directories. Creating directories or placing files requires a
+root-owned path. Group-writable ancestors are allowed. New directories use mode ``0755`` subject to the umask.

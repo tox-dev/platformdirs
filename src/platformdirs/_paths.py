@@ -12,49 +12,42 @@ import stat
 from collections import deque
 from pathlib import Path
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Literal
 
-def create_checked_directories(path: Path, *, private: bool, root_only: bool = False, strict: bool = False) -> None:
+    _Policy = Literal["user", "runtime", "config", "site", "site-lookup"]
+
+
+def create_checked_directories(path: Path, *, private: bool, policy: _Policy) -> None:
     absolute = path.absolute()
     existing = absolute
     while not existing.is_dir():
         existing = existing.parent
-    uid = _effective_uid()
-    allow_group_write = uid != 0 and not (root_only or strict)
-    if problem := directory_problem(existing, root_only=root_only, allow_group_write=allow_group_write):
+    if policy == "site-lookup" and existing != absolute:
+        policy = "site"
+    if problem := directory_problem(existing, policy=policy):
         raise PermissionError(problem)
     if existing == absolute:
         return
-    if private and not root_only and not existing.stat().st_mode & (stat.S_IWGRP | stat.S_IWOTH):
-        make_directories(path, private=private)
-        return
-    owners = {0} if root_only else {0, uid}
-    mode = 0o755 if root_only else 0o777
-    writable = stat.S_IWOTH if allow_group_write else stat.S_IWGRP | stat.S_IWOTH
+    owners = {0} if policy == "site" else {0, _effective_uid()}
+    writable = stat.S_IWOTH if policy == "user" else stat.S_IWGRP | stat.S_IWOTH
+    mode = 0o700 if private else 0o777 & ~writable
     for component in absolute.relative_to(existing).parts:
         existing /= component
-        existing.mkdir(mode=0o700 if private else mode, exist_ok=True)
+        existing.mkdir(mode=mode, exist_ok=True)
         info = os.lstat(existing)
-        if not stat.S_ISDIR(info.st_mode) or info.st_uid not in owners:
+        if info.st_uid not in owners:
             msg = f"{existing} is not a trusted directory"
             raise PermissionError(msg)
-        if info.st_mode & writable and not info.st_mode & stat.S_ISVTX:
-            msg = f"{existing}, writable by another user"
-            raise PermissionError(msg)
+        _check_directory(existing, info, writable)
 
 
-def _effective_uid() -> int:
-    if hasattr(os, "geteuid"):
-        return os.geteuid()
-    return getattr(os, "getuid")()  # ruff:ignore[get-attr-with-constant]  # POSIX fallback absent from Windows stubs
-
-
-def directory_problem(
-    path: Path, *, missing_ok: bool = False, root_only: bool = False, allow_group_write: bool = False
-) -> str | None:
+def directory_problem(path: Path, *, missing_ok: bool = False, policy: _Policy = "runtime") -> str | None:
     if os.name == "nt":
         return None
     try:
-        _verify_path(path.absolute(), root_only=root_only, allow_group_write=allow_group_write)
+        _verify_path(path.absolute(), policy)
     except FileNotFoundError as error:
         return None if missing_ok else f"{error.filename} is missing"
     except PermissionError as error:
@@ -64,19 +57,24 @@ def directory_problem(
     return None
 
 
-def _verify_path(path: Path, *, root_only: bool, allow_group_write: bool) -> None:
+def _verify_path(path: Path, policy: _Policy) -> None:
     directory = Path(path.anchor)
     pending = deque(path.parts[1:])
     owners = {0}
-    if not root_only:
+    if policy not in {"site", "site-lookup"}:
         owners.add(_effective_uid())
-    writable = stat.S_IWOTH if allow_group_write else stat.S_IWGRP | stat.S_IWOTH
+    parent = os.lstat(directory)
+    writable = stat.S_IWGRP | stat.S_IWOTH if policy == "runtime" else stat.S_IWOTH
     links = 0
     max_links = 40
     while pending:
         entry = directory / pending.popleft()
         info = os.lstat(entry)
-        if info.st_uid not in owners:
+        if info.st_uid not in owners and (
+            policy in {"config", "runtime", "site"}
+            or stat.S_ISLNK(info.st_mode)
+            or (parent.st_mode & (stat.S_IWGRP | stat.S_IWOTH) and info.st_uid != parent.st_uid)
+        ):
             msg = f"{entry}, owned by uid {info.st_uid}"
             raise PermissionError(msg)
         if stat.S_ISLNK(info.st_mode):
@@ -87,15 +85,27 @@ def _verify_path(path: Path, *, root_only: bool, allow_group_write: bool) -> Non
             target = entry.readlink()
             if target.is_absolute():
                 directory = Path(target.anchor)
+                parent = os.lstat(directory)
             pending.extendleft(reversed(target.parts[bool(target.anchor) :]))
             continue
-        if not stat.S_ISDIR(info.st_mode):
-            msg = f"{entry}, which is not a directory"
-            raise PermissionError(msg)
-        if info.st_mode & writable and not info.st_mode & stat.S_ISVTX:
-            msg = f"{entry}, writable by another user"
-            raise PermissionError(msg)
+        _check_directory(entry, info, writable)
         directory = entry
+        parent = info
+
+
+def _effective_uid() -> int:
+    if hasattr(os, "geteuid"):
+        return os.geteuid()
+    return getattr(os, "getuid")()  # ruff:ignore[get-attr-with-constant]  # POSIX fallback absent from Windows stubs
+
+
+def _check_directory(path: Path, info: os.stat_result, writable: int) -> None:
+    if not stat.S_ISDIR(info.st_mode):
+        msg = f"{path}, which is not a directory"
+        raise PermissionError(msg)
+    if info.st_mode & writable and not info.st_mode & stat.S_ISVTX:
+        msg = f"{path}, writable by another user"
+        raise PermissionError(msg)
 
 
 def make_directories(path: Path, *, private: bool) -> None:

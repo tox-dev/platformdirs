@@ -21,7 +21,10 @@ def root_owned_paths(tmp_path: Path, mocker: MockerFixture) -> set[Path]:
 
     def lstat(path: str | os.PathLike[str]) -> os.stat_result:
         info = original_lstat(path)
-        if (entry := Path(path)) in foreign or not (entry.is_relative_to(tmp_path) or tmp_path.is_relative_to(entry)):
+        entry = Path(path)
+        if entry in foreign:
+            return os.stat_result((*info[:4], info.st_uid or 1, *info[5:]))
+        if not (entry.is_relative_to(tmp_path) or tmp_path.is_relative_to(entry)):
             return info
         return os.stat_result((*info[:4], 0, *info[5:]))
 

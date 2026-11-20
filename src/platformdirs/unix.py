@@ -225,7 +225,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
 
     def _create_directory(self, path: Path, *, private: bool, site: bool, strict: bool) -> None:
         if site and sys.platform != "win32" and geteuid() == 0:
-            create_checked_directories(path, private=private, root_only=True)
+            create_checked_directories(path, private=private, policy="site" if strict else "site-lookup")
         else:
             super()._create_directory(path, private=private, site=site, strict=strict)
 
@@ -267,7 +267,7 @@ def _get_user_dirs_folder(key: str) -> str | None:
     # See https://freedesktop.org/wiki/Software/xdg-user-dirs/.
     user_dirs_config_path = Path(xdg_dir("XDG_CONFIG_HOME") or expand_user("~/.config")) / "user-dirs.dirs"
     folder = None
-    if directory_problem(user_dirs_config_path.parent, missing_ok=False):
+    if directory_problem(user_dirs_config_path.parent, policy="config"):
         return None
     try:
         with _open_user_dirs(user_dirs_config_path) as stream:
@@ -291,7 +291,7 @@ def _open_user_dirs(path: Path) -> TextIO:
             path = path.resolve(strict=True)
         except RuntimeError as error:
             raise OSError(str(error)) from error
-        if problem := directory_problem(path.parent, missing_ok=False):
+        if problem := directory_problem(path.parent, policy="config"):
             raise PermissionError(problem)
     fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
     return os.fdopen(fd, encoding=sys.getfilesystemencoding(), errors="surrogateescape", newline="\n")

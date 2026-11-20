@@ -182,7 +182,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
         if site or sys.platform == "win32":
             make_directories(path, private=private)
         else:
-            create_checked_directories(path, private=private, strict=strict)
+            create_checked_directories(path, private=private, policy="runtime" if strict else "user")
 
     @property
     def _site_data_dirs(self) -> list[str]:
@@ -589,8 +589,8 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
 
         Each directory it creates, including the user directory itself, gets mode ``0o700`` whether or not
         `ensure_exists` is set; directories that already exist keep their mode. On Unix, root with `use_site_for_root`
-        places the file under the site directory and requests mode ``0755`` for missing directories, subject to the umask.
-        It does not create the file.
+        places the file under the site directory. New directories use mode ``0755`` subject to the umask. The caller
+        creates the file.
 
         :param name: file path relative to the user directory, e.g. ``"sub/app.toml"``.
 
@@ -615,7 +615,8 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
         # Under multipath *_dir joins the site directories with os.pathsep, so place under the single *_path.
         _ensure_home_known(str(directory := user_path(lookup)))
         path = directory / relative
-        self._create_directory(path.parent, private=not self._use_site, site=self._use_site, strict=strict)
+        site = self._use_site
+        self._create_directory(path.parent, private=not site, site=site, strict=strict or site)
         return path
 
     def place_data_file(self, name: str | os.PathLike[str]) -> Path:

@@ -210,9 +210,9 @@ On Linux, media dirs are defined by the `XDG user-dirs specification
 ``xdg-user-dirs`` tool lets users relocate them. Set the corresponding environment variable (``XDG_DOCUMENTS_DIR``,
 ``XDG_DOWNLOAD_DIR``, etc.) to override on a per-session basis; like the XDG base directory variables, the value has to
 be an absolute path or it is ignored. The ``user-dirs.dirs`` file must be a regular file owned by root or the effective
-user, without group or other write permission. Its parent directories must also pass the runtime parent checks described
-below. macOS honors these variables too, without reading ``user-dirs.dirs``, and
-otherwise returns the platform-conventional location. Windows returns the platform-conventional location.
+user, without group or other write permission. Each parent and symlink must belong to root or the effective user.
+A group-writable parent such as ``~/.config`` at ``0775`` is allowed. World-writable parents require the sticky bit.
+macOS uses the environment variables and otherwise returns the platform default. Windows uses the platform default.
 
 Media and user-facing directories
 =================================
@@ -441,8 +441,8 @@ The override variable name is ``WIN_PD_OVERRIDE_`` followed by the CSIDL suffix:
       - User binaries (``AppData\Local\Programs``)
 
 ``platformdirs`` ignores a blank value, a path without both a drive and a root (``\shared``, ``D:appdata``), and a UNC
-path missing a server or share name (``\\server``) or using ``.`` or ``..`` for either name. It strips any whitespace before a value
-but only ASCII whitespace after it, since other trailing whitespace, such as a no-break space, can end a folder name.
+path missing a server or share name (``\\server``) or using ``.`` or ``..`` for either name. It strips leading
+whitespace and trailing ASCII whitespace. Other trailing whitespace, such as a no-break space, can end a folder name.
 
 .. note::
 
@@ -495,17 +495,16 @@ When ``multipath=True``, ``site_data_dir`` and ``site_config_dir`` return all pa
 ``XDG_*_DIRS`` variable, joined by ``:``.
 
 Writing to ``site_*`` directories typically requires root privileges. Normal users can only read from these locations.
-When root creates a site directory or places a file there, each existing path component must belong to root and must
-not be writable by other users without the sticky bit. A component that fails the check raises :exc:`PermissionError`.
+Root can look up an existing service-owned site directory with ``ensure_exists``. To create a directory or place a
+file there, root requires every component to be root-owned. Root can use group-writable ancestors such as
+``/var/log`` at ``0775``. It requests mode ``0755`` for new site directories, subject to the umask.
 
-Root requests mode ``0755`` for new site directories. A stricter umask can remove permissions.
-Root media and font paths use an absolute ``HOME`` when supplied. If another account controls that home, it also
-controls paths returned under it.
+For ordinary user directories, the path may pass through a system-owned directory or another account's home. In a
+group- or world-writable parent, each entry must belong to the caller, root or the parent directory's owner. Every
+symlink must belong to root or the caller. World-writable directories require the sticky bit. Group members with write
+access to a non-sticky directory can replace its entries after the check.
 
-For ordinary user directories, ``ensure_exists`` and ``place_*_file`` require each component to belong to root or the
-effective user. Unprivileged callers can use a group-writable parent such as ``~/.config`` at ``0775``. This trusts its
-group members, who can replace entries in a non-sticky directory. World-writable parents require the sticky bit.
-Runtime directories and the parents of ``user-dirs.dirs`` keep the stricter group-write checks.
+Root media and font paths use an absolute ``HOME`` when supplied. The account that owns that home controls its contents.
 
 ``user_runtime_dir`` uses ``XDG_RUNTIME_DIR`` only if it names a directory, not a symlink, that the effective user owns
 with mode ``0700``, as the spec requires. It also rejects any parent owned by neither root nor the effective user, or
@@ -516,12 +515,14 @@ through symlinks. If the override is unset or unusable, ``platformdirs`` warns o
 The last fallback is ``runtime-<uid>`` under a temporary directory. Choose a custom base with ``TMPDIR``, ``TEMP`` or
 ``TMP``. Python also caches its working-directory fallback in ``tempfile.tempdir``, so setting that value alone cannot
 select a custom base. The fallback's parents must pass the runtime checks. A symlink, non-directory or foreign-owned
-fallback raises :exc:`PermissionError`. If Python cannot find any temporary directory, it raises :exc:`FileNotFoundError`.
+fallback raises :exc:`PermissionError`. A lookup accepts an existing group-writable fallback, but file searches skip
+it until ``ensure_exists`` sets its mode to ``0700``. A world-writable fallback requires this repair even for a lookup.
+If Python finds no temporary directory, it raises :exc:`FileNotFoundError`.
 
 ``ensure_exists`` and ``place_runtime_file`` create missing runtime directories with mode ``0700`` and check the result.
+On Unix, creating a site runtime directory under ``XDG_RUNTIME_DIR`` also requires a checked base.
 Runtime file searches skip rejected XDG paths. Root redirection and test isolation search their own directories.
-Test suites that
-turn warnings into errors and run without a login session, such as in a container, can silence the warning with
+Test suites that turn warnings into errors and run without a login session can silence the warning with
 ``warnings.filterwarnings("ignore", category=platformdirs.RuntimeDirWarning)``.
 
 .. note::
