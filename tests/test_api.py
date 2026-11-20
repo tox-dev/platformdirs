@@ -40,6 +40,19 @@ def test_import_platformdirs_skips_typing() -> None:
     assert check_output([sys.executable, "-c", code], text=True, env=env).strip() == "False"
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Unix credentials")
+def test_unix_uid_patch_expires() -> None:
+    code = """
+from unittest.mock import patch
+from platformdirs import unix
+
+with patch("platformdirs._runtime.geteuid", return_value=-1):
+    unix.geteuid()
+print(unix.geteuid())
+"""
+    assert int(check_output([sys.executable, "-c", code], text=True)) == os.geteuid()
+
+
 def test_package_metadata() -> None:
     assert hasattr(platformdirs, "__version__")
     assert hasattr(platformdirs, "__version_info__")

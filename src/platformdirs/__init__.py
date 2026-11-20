@@ -33,13 +33,13 @@ if TYPE_CHECKING:
     from typing import Literal
 
 if sys.platform == "win32":
-    from .windows import Windows as NativePlatformDirs
+    from .windows import Windows as _Result  # simplint: ignore[private-import-path]  # one alias for the native class
 elif sys.platform == "darwin":
-    from .macos import MacOS as NativePlatformDirs
+    from .macos import MacOS as _Result  # simplint: ignore[private-import-path]  # one alias for the native class
 elif sys.platform == "ios":
-    from .ios import IOS as NativePlatformDirs  # ruff:ignore[constant-imported-as-non-constant]  # PEP 8 acronym
+    from .ios import IOS as _Result  # ruff:ignore[constant-imported-as-non-constant]  # PEP 8 acronym  # simplint: ignore[private-import-path]  # one alias for the native class
 else:
-    from .unix import Unix as NativePlatformDirs
+    from .unix import Unix as _Result  # simplint: ignore[private-import-path]  # one alias for the native class
 
 
 def _set_platform_dir_class() -> type[PlatformDirsABC]:
@@ -48,7 +48,7 @@ def _set_platform_dir_class() -> type[PlatformDirsABC]:
         os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system"
     ):
         if os.getenv("SHELL") or os.getenv("PREFIX"):
-            return NativePlatformDirs
+            return _Result
 
         from ._android import android_folder  # ruff:ignore[import-outside-top-level]  # Android-only lookup
 
@@ -57,13 +57,13 @@ def _set_platform_dir_class() -> type[PlatformDirsABC]:
 
             return Android  # return to avoid redefinition of a result
 
-    return NativePlatformDirs
+    return _Result
 
 
 if TYPE_CHECKING:
     # Work around mypy issue: https://github.com/python/mypy/issues/10962
     #: Currently active platform
-    PlatformDirs = NativePlatformDirs
+    PlatformDirs = _Result
 else:
     PlatformDirs = _set_platform_dir_class()  #: Currently active platform
 AppDirs = PlatformDirs  #: Backwards compatibility with appdirs

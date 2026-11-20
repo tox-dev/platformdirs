@@ -4,7 +4,6 @@ from __future__ import annotations
 
 __lazy_modules__ = [
     "contextlib",
-    f"{__spec__.parent}._android",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
 import os
@@ -12,7 +11,7 @@ import re
 from contextlib import suppress
 from functools import cache
 
-from ._android import android_folder
+from ._android import android_folder  # simplint: ignore[missing-lazy-module]  # bind before tests patch the cache
 from .api import PlatformDirsABC
 
 TYPE_CHECKING = False

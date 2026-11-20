@@ -8,7 +8,6 @@ __lazy_modules__ = [
     "posixpath",
     "tempfile",
     f"{__spec__.parent}._paths",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
-    f"{__spec__.parent}._runtime",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
 import os
@@ -21,7 +20,12 @@ from pathlib import Path
 from tempfile import TemporaryFile, gettempdir
 
 from ._paths import directory_problem
-from ._runtime import RUNTIME_DIR_MODE, geteuid, runtime_dir_problem, warn_once
+from ._runtime import (  # simplint: ignore[missing-lazy-module]  # keep patch targets bound at import
+    RUNTIME_DIR_MODE,
+    geteuid,
+    runtime_dir_problem,
+    warn_once,
+)
 from ._xdg import XDGMixin, expand_user, xdg_dir
 from .api import (
     PlatformDirsABC,
