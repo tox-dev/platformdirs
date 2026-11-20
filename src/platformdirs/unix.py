@@ -374,14 +374,16 @@ class Unix(XDGMixin, _UnixDefaults):
             reason = "XDG_RUNTIME_DIR is not set"
         else:
             # Creating the missing levels follows whatever symlink sits at a parent, so check the parents first.
-            if not (skipped := bool(_runtime_dir_parent_problem(path))):
+            problem = _runtime_dir_parent_problem(path, missing_ok=True)
+            if problem is None:
                 with suppress(OSError):
                     self._optionally_create_directory(path, private=True)
-            # A leaf left missing because the parent check skipped creation is reported as that parent problem.
-            if not (
-                problem := runtime_dir_problem(path, missing_ok=skipped or not self.ensure_exists)
-                or _runtime_dir_parent_problem(path)
-            ):
+                problem = runtime_dir_problem(path, missing_ok=not self.ensure_exists) or _runtime_dir_parent_problem(
+                    path, missing_ok=not self.ensure_exists
+                )
+            else:
+                problem = runtime_dir_problem(path, missing_ok=True) or problem
+            if problem is None:
                 return self._append_app_name_and_version(path, private=True)
             reason = f"XDG_RUNTIME_DIR {problem}"
         warn_once(f"{reason}, falling back to {(fallback := self._default_runtime_dir())}")
@@ -449,7 +451,7 @@ class Unix(XDGMixin, _UnixDefaults):
         return expand_user(default, fallback_uid=0) if self._use_site else super()._user_media_dir(key, default)
 
 
-def _runtime_dir_parent_problem(path: str) -> str | None:
+def _runtime_dir_parent_problem(path: str, *, missing_ok: bool) -> str | None:
     if sys.platform == "win32":  # every directory reports as writable by everyone there
         return None
     in_shared_dir = False
@@ -458,8 +460,10 @@ def _runtime_dir_parent_problem(path: str) -> str | None:
             if in_shared_dir and (owner := os.lstat(parent).st_uid) not in {0, geteuid()}:
                 return f"{path} is below {parent}, owned by uid {owner}"
             mode = parent.stat().st_mode  # a symlink that got past the owner check is judged by its target
-        except OSError:
-            return None  # the missing rest gets created, or runtime_dir_problem reports the path itself
+        except FileNotFoundError:
+            return None if missing_ok else f"{path} is below missing parent {parent}"
+        except OSError as error:
+            return f"{path} is below {parent}, which cannot be checked: {error.strerror}"
         if (in_shared_dir := bool(mode & stat.S_IWOTH)) and not mode & stat.S_ISVTX:
             return f"{path} is below {parent}, writable by every user"
     return None
