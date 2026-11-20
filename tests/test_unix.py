@@ -2452,6 +2452,17 @@ def test_root_with_user_owned_home(
 
 
 @_POSIX_ONLY
+def test_foreign_owned_sticky_data_parent(tmp_path: Path, foreign: set[Path], monkeypatch: pytest.MonkeyPatch) -> None:
+    (base := tmp_path / "shared").mkdir()
+    base.chmod(0o1777)
+    foreign.add(base)
+    monkeypatch.setenv("XDG_DATA_HOME", str(base))
+    with pytest.raises(PermissionError, match="owned by uid"):
+        _ = Unix("app", ensure_exists=True).user_data_path
+    assert list(base.iterdir()) == []
+
+
+@_POSIX_ONLY
 def test_container_home_with_another_owner(tmp_path: Path, foreign: set[Path], monkeypatch: pytest.MonkeyPatch) -> None:
     (home := tmp_path / "home").mkdir()
     home.chmod(0o775)

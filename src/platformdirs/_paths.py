@@ -71,9 +71,7 @@ def _verify_path(path: Path, policy: _Policy) -> None:
         entry = directory / pending.popleft()
         info = os.lstat(entry)
         if info.st_uid not in owners and (
-            policy in {"config", "runtime", "site"}
-            or stat.S_ISLNK(info.st_mode)
-            or (parent.st_mode & (stat.S_IWGRP | stat.S_IWOTH) and info.st_uid != parent.st_uid)
+            policy in {"config", "runtime", "site"} or not _allows_foreign_owner(info, parent)
         ):
             msg = f"{entry}, owned by uid {info.st_uid}"
             raise PermissionError(msg)
@@ -91,6 +89,14 @@ def _verify_path(path: Path, policy: _Policy) -> None:
         _check_directory(entry, info, writable)
         directory = entry
         parent = info
+
+
+def _allows_foreign_owner(info: os.stat_result, parent: os.stat_result) -> bool:
+    shared = stat.S_IWGRP | stat.S_IWOTH
+    # The owner of a shared sticky directory can rename even the caller's entries.
+    if stat.S_ISLNK(info.st_mode) or (info.st_mode & shared and info.st_mode & stat.S_ISVTX):
+        return False
+    return not parent.st_mode & shared or info.st_uid == parent.st_uid
 
 
 def _effective_uid() -> int:

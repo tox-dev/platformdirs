@@ -1,2 +1,2 @@
-Check entries in shared parents and symlinks when creating user directories on POSIX. Support system-owned Android
-paths, homes owned by another account, and group-writable config directories.
+Check symlinks and entries in shared parents when creating POSIX user directories. Shared sticky directories must
+belong to root or the caller. Support system-owned Android paths and group-writable container homes.

@@ -500,9 +500,9 @@ file there, root requires every component to be root-owned. Root can use group-w
 ``/var/log`` at ``0775``. It requests mode ``0755`` for new site directories, subject to the umask.
 
 For ordinary user directories, the path may pass through a system-owned directory or another account's home. In a
-group- or world-writable parent, each entry must belong to the caller, root or the parent directory's owner. Every
-symlink must belong to root or the caller. World-writable directories require the sticky bit. Group members with write
-access to a non-sticky directory can replace its entries after the check.
+group-writable parent without the sticky bit, entries may belong to the caller, root or the parent's owner. Group
+members with write access can replace entries after the check. World-writable directories require the sticky bit.
+Shared sticky directories, entries inside them and symlinks must belong to root or the caller.
 
 Root media and font paths use an absolute ``HOME`` when supplied. The account that owns that home controls its contents.
 
