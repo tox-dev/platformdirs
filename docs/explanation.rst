@@ -209,7 +209,9 @@ On Linux, media dirs are defined by the `XDG user-dirs specification
 <https://www.freedesktop.org/wiki/Software/xdg-user-dirs/>`_ and stored in ``~/.config/user-dirs.dirs``. The
 ``xdg-user-dirs`` tool lets users relocate them. Set the corresponding environment variable (``XDG_DOCUMENTS_DIR``,
 ``XDG_DOWNLOAD_DIR``, etc.) to override on a per-session basis; like the XDG base directory variables, the value has to
-be an absolute path or it is ignored. macOS honors these variables too, without reading ``user-dirs.dirs``, and
+be an absolute path or it is ignored. The ``user-dirs.dirs`` file must be a regular file owned by root or the effective
+user, without group or other write permission. Its parent directories must also pass the runtime parent checks described
+below. macOS honors these variables too, without reading ``user-dirs.dirs``, and
 otherwise returns the platform-conventional location. Windows returns the platform-conventional location.
 
 Media and user-facing directories
@@ -367,8 +369,10 @@ need to separate data from config, use subdirectories within that path.
 
 XDG environment variables (``XDG_DATA_HOME``, ``XDG_CONFIG_HOME``, ``XDG_CACHE_HOME``, etc.) are also supported and take
 precedence over the macOS defaults when set. This allows users who prefer the XDG layout to override the default
-behavior. For ``user_runtime_dir``, ``XDG_RUNTIME_DIR`` must pass the check described under Linux below; otherwise
-``platformdirs`` emits a :class:`~platformdirs.RuntimeDirWarning` and uses the macOS default.
+behavior. For ``user_runtime_dir``, ``XDG_RUNTIME_DIR`` must pass the directory check described under Linux below. Its
+parents, including symlink targets, must belong to root or the effective user and cannot be writable by another user
+without the sticky bit. Otherwise ``platformdirs`` emits a :class:`~platformdirs.RuntimeDirWarning` and uses the macOS
+default.
 
 When Python comes from `Homebrew <https://brew.sh>`_, ``site_data_dir``, ``site_config_dir``, ``site_cache_dir`` and
 ``site_state_dir`` return a path under the Homebrew prefix, such as ``/opt/homebrew/share/AppName``. With
