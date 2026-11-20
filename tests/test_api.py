@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import builtins
+import errno
 import functools
 import inspect
 import os
@@ -9,6 +10,7 @@ import stat
 import sys
 from pathlib import Path
 from subprocess import check_output  # ruff:ignore[suspicious-subprocess-import]  # import-cost subprocess test
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, Final, ParamSpec
 
 import pytest
@@ -377,6 +379,60 @@ def test_ensure_exists_checks_new_shared_child(
     with pytest.raises(PermissionError):
         _ = Unix(appname="app", ensure_exists=True).user_data_dir
     assert not (shared / "base" / "app").exists()
+
+
+@_POSIX_ONLY
+@pytest.mark.parametrize(
+    ("code", "message"),
+    [
+        pytest.param(errno.ENOENT, "is missing", id="removed"),
+        pytest.param(errno.EIO, "cannot be checked", id="io-error"),
+    ],
+)
+def test_ensure_exists_rejects_unreadable_parent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, code: int, message: str
+) -> None:
+    (shared := tmp_path / "shared").mkdir()
+    monkeypatch.setenv("XDG_DATA_HOME", str(shared / "base"))
+    original_lstat = os.lstat
+
+    def lstat(path: str | os.PathLike[str]) -> os.stat_result:
+        if Path(path) == shared:
+            raise OSError(code, os.strerror(code), str(shared))
+        return original_lstat(path)
+
+    mocker.patch.object(os, "lstat", autospec=True, side_effect=lstat)
+    with pytest.raises(PermissionError, match=message):
+        _ = Unix(appname="app", ensure_exists=True).user_data_dir
+    assert not (shared / "base").exists()
+
+
+@_POSIX_ONLY
+def test_ensure_exists_rejects_nondirectory_parent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
+) -> None:
+    (shared := tmp_path / "shared").mkdir()
+    monkeypatch.setenv("XDG_DATA_HOME", str(shared / "base"))
+    original_lstat = os.lstat
+
+    def lstat(path: str | os.PathLike[str]) -> os.stat_result:
+        info = original_lstat(path)
+        return os.stat_result((stat.S_IFREG | 0o644, *info[1:])) if Path(path) == shared else info
+
+    mocker.patch.object(os, "lstat", autospec=True, side_effect=lstat)
+    with pytest.raises(PermissionError, match="not a directory"):
+        _ = Unix(appname="app", ensure_exists=True).user_data_dir
+    assert not (shared / "base").exists()
+
+
+@_POSIX_ONLY
+def test_ensure_exists_windows_creation_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    (shared := tmp_path / "shared").mkdir()
+    shared.chmod(0o770)
+    monkeypatch.setenv("XDG_DATA_HOME", str(shared / "base"))
+    monkeypatch.setattr("platformdirs.api.sys", SimpleNamespace(platform="win32"))
+    assert Unix(appname="app", ensure_exists=True).user_data_dir == str(shared / "base" / "app")
+    assert (shared / "base" / "app").is_dir()
 
 
 @pytest.mark.usefixtures("home")

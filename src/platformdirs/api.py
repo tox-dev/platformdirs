@@ -840,7 +840,7 @@ def _create_checked_directories(path: Path, *, private: bool) -> None:
     existing = absolute
     while not existing.is_dir():
         existing = existing.parent
-    if problem := directory_problem(existing, missing_ok=False):
+    if problem := directory_problem(existing):
         raise PermissionError(problem)
     if existing == absolute or not existing.stat().st_mode & (stat.S_IWGRP | stat.S_IWOTH):
         _make_directories(path, private=private)
@@ -848,7 +848,7 @@ def _create_checked_directories(path: Path, *, private: bool) -> None:
     for component in absolute.relative_to(existing).parts:
         existing /= component
         existing.mkdir(mode=0o700 if private else 0o777, exist_ok=True)
-        if problem := directory_problem(existing, missing_ok=False):
+        if problem := directory_problem(existing):
             raise PermissionError(problem)
 
 
