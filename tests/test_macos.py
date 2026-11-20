@@ -307,8 +307,10 @@ def test_macos_ensure_exists_creates_configured_media_dir_only(
 ) -> None:
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    monkeypatch.setenv(env_var, override.format(root=tmp_path))
-    path = Path(getattr(MacOS(ensure_exists=True), prop))
+    monkeypatch.chdir(tmp_path)
+    # XDG paths use POSIX syntax even when the test runs on a Windows drive.
+    monkeypatch.setenv(env_var, override.format(root=tmp_path.as_posix().removeprefix(tmp_path.drive)))
+    path = Path(getattr(MacOS(ensure_exists=True), prop)).absolute()
     assert path.is_relative_to(tmp_path)
     assert path.is_dir() is bool(override)
 
