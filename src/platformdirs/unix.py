@@ -487,28 +487,9 @@ class Unix(XDGMixin, _UnixDefaults):
 
 
 def _runtime_dir_parent_problem(path: str, *, missing_ok: bool) -> str | None:
-    if sys.platform == "win32":  # every directory reports as writable by everyone there
-        return None
-    in_shared_dir = False
-    for parent in reversed(Path(path).parents):
-        try:
-            if in_shared_dir and (owner := os.lstat(parent).st_uid) not in {0, geteuid()}:
-                return f"{path} is below {parent}, owned by uid {owner}"
-            info = parent.stat()  # a symlink that got past the owner check is judged by its target
-        except OSError as error:
-            return _runtime_parent_error(path, parent, error, missing_ok=missing_ok)
-        if in_shared_dir := bool(info.st_mode & stat.S_IWOTH):
-            if not info.st_mode & stat.S_ISVTX:
-                return f"{path} is below {parent}, writable by every user"
-            if info.st_uid not in {0, geteuid()}:
-                return f"{path} is below shared parent {parent}, owned by uid {info.st_uid}"
+    if problem := directory_problem(Path(path).parent, missing_ok=missing_ok):
+        return f"{path} is below {problem}"
     return None
-
-
-def _runtime_parent_error(path: str, parent: Path, error: OSError, *, missing_ok: bool) -> str | None:
-    if isinstance(error, FileNotFoundError):
-        return None if missing_ok else f"{path} is below missing parent {parent}"
-    return f"{path} is below {parent}, which cannot be checked: {error.strerror}"
 
 
 def _in_own_runtime_dir(path: Path) -> bool:

@@ -721,6 +721,46 @@ def test_runtime_dir_parent_of_other_user_in_shared_dir_warns(
 
 
 @_POSIX_ONLY
+def test_runtime_dir_parent_owned_by_other_user_warns(
+    runtime_temp_dir: Path, temp_dir: Path, runtime_uid: int, foreign: set[Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (other := runtime_temp_dir / "other").mkdir(mode=0o755)
+    foreign.add(other)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(session := other / "session"))
+    with pytest.warns(RuntimeDirWarning) as record:
+        assert Unix(appname="app").user_runtime_dir == str(temp_dir / "app")
+    assert [str(warning.message) for warning in record] == [
+        f"XDG_RUNTIME_DIR {session} is below {other}, owned by uid {runtime_uid + 1}, falling back to {temp_dir}"
+    ]
+
+
+@_POSIX_ONLY
+def test_runtime_dir_unreadable_parent_warns(
+    runtime_temp_dir: Path, temp_dir: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
+) -> None:
+    (blocked := runtime_temp_dir / "blocked").mkdir()
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(session := blocked / "session"))
+    original_lstat = os.lstat
+
+    def unreadable(path: str | os.PathLike[str]) -> os.stat_result:
+        if Path(path) == blocked:
+            raise OSError(errno.EIO, os.strerror(errno.EIO), str(path))
+        return original_lstat(path)
+
+    mocker.patch(  # simplint: ignore[mock-without-spec]  # runtime_temp_dir already wraps os.lstat
+        "os.lstat", side_effect=unreadable
+    )
+    with pytest.warns(RuntimeDirWarning) as record:
+        assert Unix(appname="app").user_runtime_dir == str(temp_dir / "app")
+    assert [str(warning.message) for warning in record] == [
+        (
+            f"XDG_RUNTIME_DIR {session} is below {blocked} cannot be checked: {os.strerror(errno.EIO)}, "
+            f"falling back to {temp_dir}"
+        )
+    ]
+
+
+@_POSIX_ONLY
 @pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
 @pytest.mark.parametrize(
     ("ensure_exists", "access"),
@@ -751,19 +791,17 @@ def test_runtime_dir_sticky_parent_of_other_user_warns(
     shared_dir: Path, temp_dir: Path, runtime_uid: int, mocker: MockerFixture
 ) -> None:
     info = shared_dir.stat()
-    original_stat = Path.stat
+    original_lstat = os.lstat
     other_owner = os.stat_result((*info[:4], runtime_uid + 1, *info[5:]))
-    mocker.patch.object(
-        Path,
-        "stat",
-        autospec=True,
-        side_effect=lambda path, **kwargs: other_owner if path == shared_dir else original_stat(path, **kwargs),
+    mocker.patch(  # simplint: ignore[mock-without-spec]  # runtime_temp_dir already wraps os.lstat
+        "os.lstat",
+        side_effect=lambda path, **kwargs: other_owner if Path(path) == shared_dir else original_lstat(path, **kwargs),
     )
     with pytest.warns(RuntimeDirWarning) as record:
         assert Unix(appname="app").user_runtime_dir == str(temp_dir / "app")
     assert [str(warning.message) for warning in record] == [
         (
-            f"XDG_RUNTIME_DIR {shared_dir / 'run' / 'user'} is below shared parent {shared_dir}, "
+            f"XDG_RUNTIME_DIR {shared_dir / 'run' / 'user'} is below {shared_dir}, "
             f"owned by uid {runtime_uid + 1}, falling back to {temp_dir}"
         )
     ]
@@ -777,11 +815,24 @@ def test_runtime_dir_parent_writable_by_everyone_warns(
     open_dir.chmod(0o777)
     monkeypatch.setenv("XDG_RUNTIME_DIR", str(session := open_dir / "session"))
     with pytest.warns(RuntimeDirWarning) as record:
-        _ = Unix(appname="app").user_runtime_dir
-    expected: typing.Final[str] = (
-        f"XDG_RUNTIME_DIR {session} is below {open_dir}, writable by every user, falling back to {temp_dir}"
-    )
-    assert [str(warning.message) for warning in record] == [expected]
+        assert Unix(appname="app").user_runtime_dir == str(temp_dir / "app")
+    assert [str(warning.message) for warning in record] == [
+        f"XDG_RUNTIME_DIR {session} is below {open_dir}, writable by another user, falling back to {temp_dir}"
+    ]
+
+
+@_POSIX_ONLY
+def test_runtime_dir_parent_writable_by_group_warns(
+    runtime_temp_dir: Path, temp_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (shared := runtime_temp_dir / "shared").mkdir()
+    shared.chmod(0o770)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(session := shared / "session"))
+    with pytest.warns(RuntimeDirWarning) as record:
+        assert Unix(appname="app").user_runtime_dir == str(temp_dir / "app")
+    assert [str(warning.message) for warning in record] == [
+        f"XDG_RUNTIME_DIR {session} is below {shared}, writable by another user, falling back to {temp_dir}"
+    ]
 
 
 @pytest.fixture
