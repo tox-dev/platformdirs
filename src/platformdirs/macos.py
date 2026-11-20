@@ -15,7 +15,7 @@ import sys
 from contextlib import suppress
 from pathlib import Path
 
-from ._runtime import runtime_dir_problem
+from ._runtime import runtime_base_problem
 from ._xdg import XDGMixin, expand_user, xdg_dir
 from .api import PlatformDirsABC
 
@@ -123,18 +123,20 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
     # Follows the guidance from `Apple's File System Programming Guide
     # <https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/MacOSXDirectories/MacOSXDirectories.html>`_.
     # The XDG env var handling is in :class:`~platformdirs._xdg.XDGMixin`.
-    def _optionally_create_directory(self, path: str, *, private: bool, site: bool = False) -> None:
+    def _optionally_create_directory(
+        self, path: str, *, private: bool, site: bool = False, strict: bool = False
+    ) -> None:
         if self.ensure_exists and (shared := Path(_SITE_CACHE)) in (target := Path(path)).parents:
             # Every user can write to /Library/Caches, so another one may have created this entry first.
             entry = shared / target.relative_to(shared).parts[0]
             with suppress(FileExistsError):
-                super()._optionally_create_directory(str(entry), private=private, site=site)
+                super()._optionally_create_directory(str(entry), private=private, site=site, strict=strict)
             if problem := self._shared_entry_problem(entry):
                 msg = f"site cache directory {problem}"
                 raise PermissionError(msg)
             if target == entry:
                 return
-        super()._optionally_create_directory(path, private=private, site=site)
+        super()._optionally_create_directory(path, private=private, site=site, strict=strict)
 
     @staticmethod
     def _shared_entry_problem(path: Path) -> str | None:
@@ -232,14 +234,11 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
         return ["/Applications"]
 
     @property
-    def site_runtime_dir(self) -> str:
-        """Runtime directory shared by users, same as `user_runtime_dir`."""
-        return self.user_runtime_dir
-
-    @property
     def user_runtime_dir(self) -> str:
         """Runtime directory tied to the user, e.g. ``~/Library/Caches/TemporaryItems/$appname/$version``."""
-        return self._append_app_name_and_version(expand_user("~/Library/Caches/TemporaryItems"), private=True)
+        return self._append_app_name_and_version(
+            expand_user("~/Library/Caches/TemporaryItems"), private=True, strict=True
+        )
 
 
 def _homebrew_prefix() -> str | None:
@@ -260,6 +259,11 @@ class MacOS(XDGMixin, _MacOSDefaults):
 
     """
 
+    @property
+    def site_runtime_dir(self) -> str:
+        """The same checked path as ``user_runtime_dir``."""
+        return self.user_runtime_dir
+
     def place_runtime_file(self, name: str | os.PathLike[str]) -> Path:
         """Like :meth:`~platformdirs.api.PlatformDirsABC.place_runtime_file`.
 
@@ -275,19 +279,28 @@ class MacOS(XDGMixin, _MacOSDefaults):
             lookup.ensure_exists = sys.platform != "win32"
             return lookup.user_runtime_path
 
-        return self._place_file(created, name)
+        return self._place_file(created, name, strict=True)
+
+    def _iter_runtime_dirs(self) -> Iterator[str]:
+        yield from super()._iter_runtime_dirs()
+        if (base := xdg_dir("XDG_RUNTIME_DIR")) and not Path(base).is_dir():
+            # Placement falls back here if it cannot create the missing override.
+            yield super(XDGMixin, self).user_runtime_dir
 
     def _find_runtime_files(self, name: str | os.PathLike[str]) -> Iterator[Path]:
-        def checked_paths(lookup: PlatformDirsABC) -> Iterator[Path]:
-            if not (base := xdg_dir("XDG_RUNTIME_DIR")):
-                yield from lookup.iter_runtime_paths()
-                return
-            xdg_path = Path(self._join_app_name_and_version(base))
+        def checked(lookup: MacOS) -> Iterator[Path]:
+            base = xdg_dir("XDG_RUNTIME_DIR")
             for directory in lookup.iter_runtime_paths():
-                if directory != xdg_path or not runtime_dir_problem(base, missing_ok=False):
-                    yield directory
+                if (
+                    base
+                    and directory == Path(lookup._join_app_name_and_version(base))
+                    and runtime_base_problem(base, missing_ok=False)
+                    and directory != Path(super(XDGMixin, lookup).user_runtime_dir)
+                ):
+                    continue
+                yield directory
 
-        return self._find_files(checked_paths, name)
+        return self._find_files(checked, name)
 
 
 # Homebrew links each Python formula as a framework build, and a virtual environment keeps it as sys.base_prefix.

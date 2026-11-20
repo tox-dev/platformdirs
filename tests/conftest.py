@@ -106,14 +106,14 @@ def runtime_temp_dir(tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.
     mocker.patch("tempfile.tempdir", str(tmp_path))
     # user_runtime_dir checks fixed system paths such as /run/user/<uid> first, so serve those from system_root.
     real_lstat: Final[Callable[[str | Path], os.stat_result]] = os.lstat
-    mocker.patch(  # simplint: ignore[mock-without-spec]  # autospec cannot wrap a patched os.lstat
-        "os.lstat",
-        side_effect=lambda path: real_lstat(
-            system_root / path[1:]
-            if isinstance(path, str) and "/run/user/" in path and not path.startswith(str(tmp_path))
-            else path
-        ),
-    )
+    prefixes = ("/run/user", "/var/run", "/tmp/run")  # ruff:ignore[hardcoded-temp-file]  # fixed BSD runtime roots
+
+    def lstat(path: str | Path) -> os.stat_result:
+        if any(str(path) == prefix or str(path).startswith(f"{prefix}/") for prefix in prefixes):
+            path = system_root / str(path)[1:]
+        return real_lstat(path)
+
+    mocker.patch("os.lstat", new=lstat)
     return tmp_path
 
 

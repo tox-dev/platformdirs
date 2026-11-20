@@ -19,10 +19,12 @@ from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryFile, gettempdir
 
-from ._paths import directory_problem
+from ._paths import create_checked_directories, directory_problem, make_directories
 from ._runtime import (  # simplint: ignore[missing-lazy-module]  # keep patch targets bound at import
     RUNTIME_DIR_MODE,
     geteuid,
+    runtime_base_problem,
+    runtime_dir_parent_problem,
     runtime_dir_problem,
     warn_once,
 )
@@ -221,21 +223,11 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
             path = "/run"
         return self._append_app_name_and_version(path, private=False)
 
-    def _create_directory(self, path: Path, *, private: bool, site: bool) -> None:
-        if not site or sys.platform == "win32" or geteuid() != 0:
-            super()._create_directory(path, private=private, site=site)
-            return
-        absolute = path.absolute()
-        existing = absolute
-        while not existing.is_dir():
-            existing = existing.parent
-        if problem := directory_problem(existing, missing_ok=False, root_only=True):
-            raise PermissionError(problem)
-        for component in absolute.relative_to(existing).parts:
-            existing /= component
-            existing.mkdir(exist_ok=True)
-            if problem := directory_problem(existing, missing_ok=False, root_only=True):
-                raise PermissionError(problem)
+    def _create_directory(self, path: Path, *, private: bool, site: bool, strict: bool) -> None:
+        if site and sys.platform != "win32" and geteuid() == 0:
+            create_checked_directories(path, private=private, root_only=True)
+        else:
+            super()._create_directory(path, private=private, site=site, strict=strict)
 
     def _default_runtime_dir(self) -> str:
         if sys.platform.startswith("openbsd"):
@@ -244,14 +236,20 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
             path = f"/var/run/user/{geteuid()}"
         else:
             path = f"/run/user/{geteuid()}"
-        return self._temp_runtime_dir() if runtime_dir_problem(path, missing_ok=False) else path
+        return self._temp_runtime_dir() if runtime_base_problem(path, missing_ok=False) else path
 
     def _temp_runtime_dir(self) -> str:
         # Another user can pre-create this predictable name, and XDG requires an owned runtime dir with mode 0700.
         path = _temp_runtime_fallback()
-        with suppress(FileExistsError):
-            self._optionally_create_directory(path, private=True)
-        if problem := runtime_dir_problem(path, missing_ok=not self.ensure_exists, check_mode=False):
+        if problem := runtime_dir_parent_problem(path, missing_ok=False):
+            msg = f"runtime directory {problem}; set XDG_RUNTIME_DIR instead"
+            raise PermissionError(msg)
+        if self.ensure_exists:
+            with suppress(FileExistsError):
+                make_directories(Path(path), private=True)
+        if problem := runtime_dir_problem(
+            path, missing_ok=not self.ensure_exists, mode_check="repair" if self.ensure_exists else "legacy"
+        ):
             msg = f"runtime directory {problem}; set XDG_RUNTIME_DIR instead"
             raise PermissionError(msg)
         # Earlier releases created this directory with the default 0755.
@@ -413,20 +411,18 @@ class Unix(XDGMixin, _UnixDefaults):
             reason = "XDG_RUNTIME_DIR is not set"
         else:
             # Creating the missing levels follows whatever symlink sits at a parent, so check the parents first.
-            problem = _runtime_dir_parent_problem(path, missing_ok=True)
+            problem = runtime_dir_parent_problem(path, missing_ok=True)
             if problem is None:
                 with suppress(OSError):
-                    self._optionally_create_directory(path, private=True)
-                problem = runtime_dir_problem(path, missing_ok=not self.ensure_exists) or _runtime_dir_parent_problem(
-                    path, missing_ok=not self.ensure_exists
-                )
+                    self._optionally_create_directory(path, private=True, strict=True)
+                problem = runtime_base_problem(path, missing_ok=not self.ensure_exists)
             else:
                 problem = runtime_dir_problem(path, missing_ok=True) or problem
             if problem is None:
-                return self._append_app_name_and_version(path, private=True)
+                return self._append_app_name_and_version(path, private=True, strict=True)
             reason = f"XDG_RUNTIME_DIR {problem}"
         warn_once(f"{reason}, falling back to {(fallback := self._default_runtime_dir())}")
-        return self._append_app_name_and_version(fallback, private=True)
+        return self._append_app_name_and_version(fallback, private=True, strict=True)
 
     @property
     def user_bin_dir(self) -> str:
@@ -476,11 +472,29 @@ class Unix(XDGMixin, _UnixDefaults):
             lookup.ensure_exists = True
             return lookup.user_runtime_path
 
-        return self._place_file(created, name)
+        return self._place_file(created, name, strict=True)
 
     def _find_runtime_files(self, name: str | os.PathLike[str]) -> Iterator[Path]:
-        files = super()._find_runtime_files(name)
-        return files if self._use_site else filter(_in_own_runtime_dir, files)
+        if sys.platform == "win32" or self._use_site:
+            return super()._find_runtime_files(name)
+
+        def checked(lookup: PlatformDirsABC) -> Iterator[Path]:
+            temp = None
+            with suppress(FileNotFoundError, PermissionError):
+                temp = _temp_runtime_fallback()
+            xdg = xdg_dir("XDG_RUNTIME_DIR")
+            for directory in lookup.iter_runtime_paths():
+                if temp and directory == Path(self._join_app_name_and_version(temp)):
+                    # Older releases created this directory with mode 0755.
+                    if not runtime_base_problem(temp, missing_ok=False, mode_check="legacy"):
+                        yield directory
+                elif xdg and directory == Path(self._join_app_name_and_version(xdg)):
+                    if not runtime_base_problem(xdg, missing_ok=False):
+                        yield directory
+                else:
+                    yield directory
+
+        return self._find_files(checked, name)
 
     def _xdg_media_dir(self, env_var: str) -> str | None:
         # The XDG_*_DIR variables and user-dirs.dirs belong to the user who started the root process.
@@ -488,24 +502,6 @@ class Unix(XDGMixin, _UnixDefaults):
 
     def _user_media_dir(self, key: str, default: str) -> str:
         return expand_user(default, fallback_uid=0) if self._use_site else super()._user_media_dir(key, default)
-
-
-def _runtime_dir_parent_problem(path: str, *, missing_ok: bool) -> str | None:
-    if problem := directory_problem(Path(path).parent, missing_ok=missing_ok):
-        return f"{path} is below {problem}"
-    return None
-
-
-def _in_own_runtime_dir(path: Path) -> bool:
-    # The lookup let a missing runtime directory pass, so another user may have created it since. The fallback goes
-    # first because a rejected XDG_RUNTIME_DIR, such as /tmp, contains it.
-    fallback = None
-    with suppress(FileNotFoundError, PermissionError):
-        fallback = _temp_runtime_fallback()
-    for base in (fallback, xdg_dir("XDG_RUNTIME_DIR")):
-        if base and path.is_relative_to(base):
-            return not runtime_dir_problem(base, missing_ok=False, check_mode=False)
-    return True
 
 
 _USER_DIRS_LINE: Final[re.Pattern[str]] = re.compile(

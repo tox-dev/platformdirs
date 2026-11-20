@@ -360,7 +360,7 @@ def test_place_file_creates_below_sticky_parent(tmp_path: Path, monkeypatch: pyt
 @_POSIX_ONLY
 def test_ensure_exists_rejects_writable_parent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     (shared := tmp_path / "shared").mkdir()
-    shared.chmod(0o770)
+    shared.chmod(0o777)
     monkeypatch.setenv("XDG_DATA_HOME", str(shared / "base"))
     with pytest.raises(PermissionError):
         _ = Unix(appname="app", ensure_exists=True).user_data_dir
@@ -368,24 +368,41 @@ def test_ensure_exists_rejects_writable_parent(tmp_path: Path, monkeypatch: pyte
 
 
 @_POSIX_ONLY
+@pytest.mark.skipif(getattr(os, "geteuid", lambda: -1)() == 0, reason="root creation has stricter checks")
+def test_group_writable_user_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    tmp_path.chmod(0o775)
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    dirs = Unix("app", ensure_exists=True)
+    assert dirs.user_config_path == tmp_path / "app"
+    assert stat.S_IMODE(dirs.user_config_path.stat().st_mode) == 0o700
+    assert dirs.place_config_file("state") == tmp_path / "app" / "state"
+
+
+@_POSIX_ONLY
+@pytest.mark.parametrize("change", ["owner", "mode"])
 def test_ensure_exists_checks_new_shared_child(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, change: str
 ) -> None:
     (shared := tmp_path / "shared").mkdir()
     shared.chmod(0o1777)
     monkeypatch.setenv("XDG_DATA_HOME", str(shared / "base"))
     original_mkdir = Path.mkdir
     original_lstat = os.lstat
-    foreign: set[Path] = set()
+    changed: set[Path] = set()
 
     def mkdir(path: Path, mode: int = 0o777, parents: bool = False, exist_ok: bool = False) -> None:
         original_mkdir(path, mode=mode, parents=parents, exist_ok=exist_ok)
         if path == shared / "base":
-            foreign.add(path)
+            changed.add(path)
 
     def lstat(path: str | os.PathLike[str]) -> os.stat_result:
         info = original_lstat(path)
-        return os.stat_result((*info[:4], info.st_uid + 1, *info[5:])) if Path(path) in foreign else info
+        if Path(path) in changed:
+            return {
+                "owner": os.stat_result((*info[:4], info.st_uid + 1, *info[5:])),
+                "mode": os.stat_result((stat.S_IFDIR | 0o777, *info[1:])),
+            }[change]
+        return info
 
     mocker.patch.object(Path, "mkdir", autospec=True, side_effect=mkdir)
     mocker.patch.object(os, "lstat", autospec=True, side_effect=lstat)
@@ -451,8 +468,13 @@ def test_ensure_exists_windows_creation_path(tmp_path: Path, monkeypatch: pytest
 @pytest.mark.usefixtures("home")
 def test_place_file_creates_nested_parents() -> None:
     dirs = Unix("app")
-    name = Path(*["nested"] * 12, "app.toml")
-    path = dirs.place_config_file(name)
+    name = Path(*["n"] * 80, "app.toml")
+    previous = sys.getrecursionlimit()
+    try:
+        sys.setrecursionlimit(len(inspect.stack()) + 50)
+        path = dirs.place_config_file(name)
+    finally:
+        sys.setrecursionlimit(previous)
     assert path == dirs.user_config_path / name
     assert path.parent.is_dir()
 

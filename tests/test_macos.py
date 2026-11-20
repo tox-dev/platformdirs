@@ -300,26 +300,17 @@ def test_macos_ensure_exists_returns_configured_media_symlink(
     assert (MacOS(ensure_exists=True).user_documents_path, path.is_dir()) == (path, is_dir)
 
 
-@pytest.mark.parametrize(
-    ("xdg_value", "created"), [pytest.param("/custom/media", True, id="xdg"), pytest.param(None, False, id="default")]
-)
+@pytest.mark.parametrize("override", [pytest.param("{root}/custom/media", id="xdg"), pytest.param("", id="default")])
 @pytest.mark.parametrize(("env_var", "prop"), _MEDIA_DIRS)
-# parametrized case inputs
-def test_macos_ensure_exists_creates_configured_media_dir_only(  # ruff:ignore[too-many-arguments]
-    mocker: MockerFixture,
-    monkeypatch: pytest.MonkeyPatch,
-    env_var: str,
-    prop: str,
-    xdg_value: str | None,
-    created: bool,
+def test_macos_ensure_exists_creates_configured_media_dir_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, env_var: str, prop: str, override: str
 ) -> None:
-    if xdg_value is None:  # simplint: ignore[conditional-in-test]  # distinct environment setups
-        monkeypatch.delenv(env_var, raising=False)
-    else:
-        monkeypatch.setenv(env_var, xdg_value)
-    mkdir = mocker.patch.object(Path, "mkdir", autospec=True)
-    getattr(MacOS(ensure_exists=True), prop)
-    assert [call.args[0] for call in mkdir.call_args_list] == {True: [Path("/custom/media")], False: []}[created]
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setenv(env_var, override.format(root=tmp_path))
+    path = Path(getattr(MacOS(ensure_exists=True), prop))
+    assert path.is_relative_to(tmp_path)
+    assert path.is_dir() is bool(override)
 
 
 @pytest.mark.parametrize(
@@ -899,6 +890,54 @@ def test_find_macos_runtime_file_in_native_fallback_inside_xdg_path(
     path.parent.mkdir(parents=True)
     path.touch()
     assert MacOS(appname="demo").find_runtime_file("state") == path
+
+
+@_POSIX_ONLY
+def test_macos_place_and_find_after_fallback(runtime_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("HOME", str(home := runtime_dir.parent / "home"))
+    mkdir = Path.mkdir
+
+    def deny_override(path: Path, mode: int = 0o777, parents: bool = False, exist_ok: bool = False) -> None:
+        if path == runtime_dir:
+            raise PermissionError
+        mkdir(path, mode=mode, parents=parents, exist_ok=exist_ok)
+
+    monkeypatch.setattr(Path, "mkdir", deny_override)
+    dirs = MacOS("app", ensure_exists=True)
+    with pytest.warns(RuntimeDirWarning):
+        placed = dirs.place_runtime_file("state")
+    assert placed == home / "Library/Caches/TemporaryItems/app/state"
+    placed.touch()
+    assert dirs.find_runtime_file("state") == placed
+    assert list(dirs.iter_runtime_dirs()) == [str(placed.parent)]
+    assert dirs.site_runtime_path == placed.parent
+
+
+@_POSIX_ONLY
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+def test_macos_find_when_xdg_names_native_path(runtime_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("HOME", str(runtime_dir))
+    native = runtime_dir / "Library/Caches/TemporaryItems"
+    native.mkdir(parents=True)
+    native.chmod(0o755)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(native))
+    dirs = MacOS("app")
+    placed = dirs.place_runtime_file("state")
+    placed.touch()
+    assert dirs.find_runtime_files("state") == [placed]
+
+
+@_POSIX_ONLY
+def test_macos_search_existing_xdg(runtime_dir: Path) -> None:
+    dirs = MacOS("app")
+    dirs.place_runtime_file("state").touch()
+    assert dirs.find_runtime_files("state") == [runtime_dir / "app/state"]
+
+
+@_POSIX_ONLY
+def test_macos_site_runtime_creates_private_directory(runtime_dir: Path) -> None:
+    assert MacOS("app", ensure_exists=True).site_runtime_path == runtime_dir / "app"
+    assert stat.S_IMODE(runtime_dir.stat().st_mode) == 0o700
 
 
 @_POSIX_ONLY
