@@ -102,6 +102,7 @@ def _clear_xdg_env(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.fixture
 def runtime_temp_dir(tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, system_root: Path) -> Path:
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TMPDIR", str(tmp_path))
     mocker.patch("tempfile.tempdir", str(tmp_path))
     # user_runtime_dir checks fixed system paths such as /run/user/<uid> first, so serve those from system_root.
     real_lstat: Final[Callable[[str | Path], os.stat_result]] = os.lstat

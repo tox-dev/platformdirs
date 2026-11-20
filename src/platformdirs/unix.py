@@ -323,7 +323,18 @@ def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
 
 def _temp_runtime_fallback() -> str:
     # A temporary directory of / would give "//runtime-<uid>", which pathlib keeps as a distinct root.
-    return posixpath.join(gettempdir(), f"runtime-{geteuid()}")
+    temp = gettempdir()
+    if sys.platform != "win32":
+        roots = {Path("/tmp"), Path("/var/tmp"), Path("/usr/tmp")}  # ruff:ignore[hardcoded-temp-file]  # standard roots
+        roots.update(
+            Path(value).resolve()
+            for name in ("TMPDIR", "TEMP", "TMP")
+            if (value := os.getenv(name)) and Path(value).is_absolute()
+        )
+        if Path(temp).resolve() not in roots:
+            msg = "no safe temporary directory; set XDG_RUNTIME_DIR"
+            raise PermissionError(msg)
+    return posixpath.join(temp, f"runtime-{geteuid()}")
 
 
 class Unix(XDGMixin, _UnixDefaults):

@@ -481,7 +481,10 @@ def test_user_runtime_dir_temp_fallback_rejects_other_owner(
         pytest.param("/xdg-fixture/temp/", "/xdg-fixture/temp/runtime-1234", id="trailing-slash"),
     ],
 )
-def test_user_runtime_dir_temp_fallback_single_slash(mocker: MockerFixture, temp: str, expected: str) -> None:
+def test_user_runtime_dir_temp_fallback_single_slash(
+    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch, temp: str, expected: str
+) -> None:
+    monkeypatch.setenv("TMPDIR", temp)
     mocker.patch("tempfile.tempdir", temp)
     with pytest.warns(RuntimeDirWarning, match=f"^XDG_RUNTIME_DIR is not set, falling back to {re.escape(expected)}$"):
         assert Unix().user_runtime_dir == expected
@@ -490,6 +493,31 @@ def test_user_runtime_dir_temp_fallback_single_slash(mocker: MockerFixture, temp
 _POSIX_ONLY: typing.Final[pytest.MarkDecorator] = pytest.mark.skipif(
     sys.platform == "win32", reason="Windows has no POSIX owners or modes"
 )
+
+
+@_POSIX_ONLY
+@pytest.mark.parametrize("cwd", [pytest.param(".", id="current"), pytest.param("..", id="cached")])
+def test_user_runtime_dir_rejects_cwd_temp_fallback(
+    runtime_temp_dir: Path, monkeypatch: pytest.MonkeyPatch, cwd: str
+) -> None:
+    for name in ("TMPDIR", "TEMP", "TMP"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.chdir(runtime_temp_dir / cwd)
+    with pytest.raises(PermissionError, match="no safe temporary directory"):
+        _ = Unix(appname="app").user_runtime_dir
+
+
+@_POSIX_ONLY
+def test_user_runtime_dir_rejects_relative_temp_setting(
+    runtime_temp_dir: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
+) -> None:
+    monkeypatch.chdir(runtime_temp_dir)
+    monkeypatch.setenv("TMPDIR", "relative")
+    mocker.patch("tempfile.tempdir", "relative")
+    with pytest.raises(PermissionError, match="no safe temporary directory"):
+        _ = Unix(appname="app").user_runtime_dir
+
+
 _PROBLEMS: typing.Final[MappingProxyType[str, str]] = MappingProxyType({
     "symlink": "is a symlink",
     "file": "is not a directory",
@@ -991,7 +1019,10 @@ def test_find_runtime_file_skips_runtime_dir_hidden_from_check(
 
 @pytest.mark.usefixtures("_geteuid", "runtime_temp_dir")
 @pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
-def test_find_runtime_files_skips_missing_temp_fallback_at_root(mocker: MockerFixture) -> None:
+def test_find_runtime_files_skips_missing_temp_fallback_at_root(
+    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("TMPDIR", "/")
     mocker.patch("tempfile.tempdir", "/")
     # Only root can create /runtime-1234, so count every app.sock as found while the fallback stays missing.
     mocker.patch("os.path.isfile", autospec=True, side_effect=lambda path: Path(path).name == "app.sock")
@@ -1009,6 +1040,7 @@ def temp_dir_in_session_dir(
 ) -> Path:
     # Like XDG_RUNTIME_DIR=/tmp, which fails the check while the fallback inside it passes.
     _create(session := runtime_temp_dir / "session", "symlink")
+    monkeypatch.setenv("TMPDIR", str(session))
     mocker.patch("tempfile.tempdir", str(session))
     monkeypatch.setenv("XDG_RUNTIME_DIR", str(session))
     return session / f"runtime-{runtime_uid}"
