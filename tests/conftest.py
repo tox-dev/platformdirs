@@ -124,7 +124,7 @@ def runtime_temp_dir(tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.
             return real_lstat(mapped)
         return real_lstat(path)
 
-    monkeypatch.setattr(os, "lstat", lstat)
+    mocker.patch.object(os, "lstat", new=lstat)
     return tmp_path
 
 

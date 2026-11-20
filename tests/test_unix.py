@@ -2500,7 +2500,7 @@ def test_root_site_rejects_writable_parent(tmp_path: Path, monkeypatch: pytest.M
     ],
 )
 def test_root_site_rejects_unreadable_parent(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, code: int, message: str
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture, code: int, message: str
 ) -> None:
     (site := tmp_path / "site").mkdir()
     monkeypatch.setenv("XDG_DATA_DIRS", str(site))
@@ -2511,7 +2511,7 @@ def test_root_site_rejects_unreadable_parent(
             raise OSError(code, os.strerror(code), str(site))
         return original_lstat(path)
 
-    monkeypatch.setattr(os, "lstat", lstat)
+    mocker.patch.object(os, "lstat", new=lstat)
     with pytest.raises(PermissionError, match=message):
         _ = Unix(appname="app", use_site_for_root=True, ensure_exists=True).user_data_dir
     assert not (site / "app").exists()
@@ -2519,7 +2519,9 @@ def test_root_site_rejects_unreadable_parent(
 
 @pytest.mark.skipif(sys.platform == "win32", reason="Unix ownership only")
 @pytest.mark.usefixtures("_as_root", "root_owned_paths")
-def test_root_site_rejects_nondirectory_parent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_root_site_rejects_nondirectory_parent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
+) -> None:
     (site := tmp_path / "site").mkdir()
     monkeypatch.setenv("XDG_DATA_DIRS", str(site))
     original_lstat = os.lstat
@@ -2528,7 +2530,7 @@ def test_root_site_rejects_nondirectory_parent(tmp_path: Path, monkeypatch: pyte
         info = original_lstat(path)
         return os.stat_result((stat.S_IFREG | 0o644, *info[1:])) if Path(path) == site else info
 
-    monkeypatch.setattr(os, "lstat", lstat)
+    mocker.patch.object(os, "lstat", new=lstat)
     with pytest.raises(PermissionError, match="not a directory"):
         _ = Unix(appname="app", use_site_for_root=True, ensure_exists=True).user_data_dir
     assert not (site / "app").exists()
