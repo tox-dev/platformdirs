@@ -20,6 +20,7 @@ from .api import PlatformDirsABC
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from typing import Final
 
 
@@ -73,33 +74,6 @@ class XDGMixin(PlatformDirsABC):
         if path := xdg_dir("XDG_STATE_HOME"):
             return self._append_app_name_and_version(path, private=True)
         return super().user_state_dir
-
-    @property
-    def site_runtime_dir(self) -> str:
-        """Runtime directory shared by users, from ``$XDG_RUNTIME_DIR`` if set, else platform default."""
-        if path := xdg_dir("XDG_RUNTIME_DIR"):
-            if self.ensure_exists and not self._use_site:
-                return self.user_runtime_dir
-            # Root can look up the invoking user's runtime path. Only create under root's own checked base.
-            if (self._use_site and not self.ensure_exists) or not runtime_base_problem(
-                path, missing_ok=not self.ensure_exists
-            ):
-                return self._append_app_name_and_version(path, private=False, strict=True)
-        return super().site_runtime_dir
-
-    @property
-    def user_runtime_dir(self) -> str:
-        """Runtime directory tied to the user, from ``$XDG_RUNTIME_DIR`` if set and private, else platform default."""
-        if path := xdg_dir("XDG_RUNTIME_DIR"):
-            problem = runtime_dir_parent_problem(path, missing_ok=True)
-            if problem is None:
-                with suppress(OSError):
-                    self._optionally_create_directory(path, private=True, strict=True)
-                problem = runtime_base_problem(path, missing_ok=not self.ensure_exists)
-            if problem is None:
-                return self._append_app_name_and_version(path, private=True, strict=True)
-            warn_once(f"XDG_RUNTIME_DIR {problem}, falling back to the platform default")
-        return super().user_runtime_dir
 
     @property
     def user_documents_dir(self) -> str:
@@ -179,6 +153,43 @@ class XDGMixin(PlatformDirsABC):
             # preserve path separators
             return [os.path.join(p, "applications") for p in xdg_dirs]  # ruff:ignore[os-path-join]
         return super()._site_applications_dirs
+
+    def _iter_runtime_dirs(self) -> Iterator[str]:
+        if xdg_dir("XDG_RUNTIME_DIR") and type(self).site_runtime_dir is XDGMixin.site_runtime_dir:
+            # Both getters select the same base. A second lookup can race with a change to the fallback.
+            yield self.user_runtime_dir
+        else:
+            yield from super()._iter_runtime_dirs()
+
+    @property
+    def site_runtime_dir(self) -> str:
+        """Site runtime directory, using the user runtime location when an XDG override is set.
+
+        :raises PermissionError: if root requests creation under an inherited runtime path that fails validation.
+
+        """
+        if path := xdg_dir("XDG_RUNTIME_DIR"):
+            if not self._use_site:
+                return self.user_runtime_dir
+            # Root can look up the invoking user's runtime path. Creation requires a checked root-owned base.
+            if self.ensure_exists and (problem := runtime_base_problem(path, missing_ok=False)):
+                raise PermissionError(problem)
+            return self._append_app_name_and_version(path, private=False, strict=True)
+        return super().site_runtime_dir
+
+    @property
+    def user_runtime_dir(self) -> str:
+        """Runtime directory tied to the user, from ``$XDG_RUNTIME_DIR`` if set and private, else platform default."""
+        if path := xdg_dir("XDG_RUNTIME_DIR"):
+            problem = runtime_dir_parent_problem(path, missing_ok=True)
+            if problem is None:
+                with suppress(OSError):
+                    self._optionally_create_directory(path, private=True, strict=True)
+                problem = runtime_base_problem(path, missing_ok=not self.ensure_exists)
+            if problem is None:
+                return self._append_app_name_and_version(path, private=True, strict=True)
+            warn_once(f"XDG_RUNTIME_DIR {problem}, falling back to the platform default")
+        return super().user_runtime_dir
 
 
 def xdg_dir(env_var: str) -> str | None:

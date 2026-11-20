@@ -520,7 +520,9 @@ it until ``ensure_exists`` sets its mode to ``0700``. A world-writable fallback 
 If Python finds no temporary directory, it raises :exc:`FileNotFoundError`.
 
 ``ensure_exists`` and ``place_runtime_file`` create missing runtime directories with mode ``0700`` and check the result.
-On Unix, creating a site runtime directory under ``XDG_RUNTIME_DIR`` also requires a checked base.
+On Unix, when ``XDG_RUNTIME_DIR`` is set to an absolute path, site lookups and creation use the same checked user
+runtime directory. With root redirection, root can look up the inherited path. Requesting creation there raises
+:exc:`PermissionError` if the runtime base fails validation.
 Runtime file searches skip rejected XDG paths. Root redirection and test isolation search their own directories.
 Test suites that turn warnings into errors and run without a login session can silence the warning with
 ``warnings.filterwarnings("ignore", category=platformdirs.RuntimeDirWarning)``.

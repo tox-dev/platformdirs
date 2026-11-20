@@ -1128,13 +1128,27 @@ def test_search_skips_group_writable_temp_fallback(temp_dir: Path) -> None:
         pytest.param(lambda dirs: tuple(dirs.iter_runtime_paths())[-1], id="iterator"),
     ],
 )
+@pytest.mark.parametrize("ensure_exists", [pytest.param(False, id="lookup"), pytest.param(True, id="create")])
 def test_site_runtime_rejects_public_override(
-    session_dir: Path, temp_dir: Path, lookup: Callable[[Unix], Path]
+    session_dir: Path, temp_dir: Path, lookup: Callable[[Unix], Path], ensure_exists: bool
 ) -> None:
     _create(session_dir, "mode-755")
     with pytest.warns(RuntimeDirWarning):
-        assert lookup(Unix("app", ensure_exists=True)) == temp_dir / "app"
+        assert lookup(Unix("app", ensure_exists=ensure_exists)) == temp_dir / "app"
+    assert (temp_dir / "app").exists() is ensure_exists
     assert list(session_dir.iterdir()) == []
+
+
+@_POSIX_ONLY
+@pytest.mark.usefixtures("_as_root", "root_owned_paths")
+def test_root_site_runtime_refuses_creation_in_public_override(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    (base := tmp_path / "session").mkdir()
+    base.chmod(0o755)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(base))
+    assert Unix("app", use_site_for_root=True).site_runtime_path == base / "app"
+    with pytest.raises(PermissionError, match="has mode 0755"):
+        _ = Unix("app", use_site_for_root=True, ensure_exists=True).site_runtime_path
+    assert list(base.iterdir()) == []
 
 
 @_POSIX_ONLY
@@ -1167,7 +1181,7 @@ def test_use_site_find_runtime_file_bypasses_xdg_runtime_dir(
 
 
 @_POSIX_ONLY
-@pytest.mark.usefixtures("runtime_uid")
+@pytest.mark.usefixtures("runtime_uid", "session_dir")
 @pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
 def test_find_runtime_file_returns_file_outside_runtime_dirs(mocker: MockerFixture, runtime_temp_dir: Path) -> None:
     mocker.patch.object(Unix, "site_runtime_dir", str(site := runtime_temp_dir / "site"))
