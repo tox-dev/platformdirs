@@ -29,8 +29,8 @@ def isolated_dirs(root: str | os.PathLike[str]) -> Generator[Path, None, None]:
     Each kind maps to ``<root>/<kind>``, where ``kind`` is the property name without ``_dir``, such as ``user_config``.
     The data, config, cache, state, log, runtime and preference kinds append ``appname`` and ``version``, so
     ``PlatformDirs("app", version="1.0").user_config_path`` becomes ``<root>/user_config/app/1.0``. Every thread of the
-    current process sees the change. Forked children inherit the active redirect. Spawned processes start with the original paths.
-    When contexts overlap, the most recently entered active context determines the root.
+    current process sees the newest active root. Forked children inherit it. Spawned processes start with the original
+    paths.
 
     On Unix, ``use_site_for_root`` is ignored inside the context so user and site directories keep separate kinds. A
     relative ``root`` is made absolute on entry, so changing the working directory does not move the isolation root.
@@ -93,6 +93,7 @@ def _patch_class(cls: type[PlatformDirsABC], patches: dict[str, property]) -> Ge
             for name, value in patches.items():
                 setattr(cls, name, value)
         except BaseException:
+            # An interrupt during entry must roll back before another thread acquires the lock.
             scope.close(cls)
             raise
     try:

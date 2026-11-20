@@ -191,21 +191,28 @@ def test_isolated_dirs_nested_restores_outer(tmp_path: Path) -> None:
 
 def test_isolated_dirs_reentrant_exit(tmp_path: Path) -> None:
     code = """
+from abc import ABCMeta
 from contextlib import ExitStack
 from pathlib import Path
 from sys import argv
-from platformdirs import PlatformDirs, testing
+import platformdirs
+from platformdirs.testing import isolated_dirs
 
-original = vars(PlatformDirs).copy()
 with ExitStack() as older:
-    older.enter_context(testing.isolated_dirs(Path(argv[1]) / "older"))
-    def close_older(cls, name, value):
-        older.close()
-        setattr(cls, name, value)
-    testing.setattr = close_older
-    with testing.isolated_dirs(Path(argv[1]) / "newer"):
-        assert PlatformDirs().user_cache_path == Path(argv[1]) / "newer/user_cache"
-print(vars(PlatformDirs) == original)
+    class CloseOlder(ABCMeta):
+        def __setattr__(cls, name: str, value: property) -> None:
+            older.close()
+            super().__setattr__(name, value)
+
+    class Dirs(platformdirs.PlatformDirs, metaclass=CloseOlder):
+        pass
+
+    platformdirs.PlatformDirs = Dirs
+    original = vars(Dirs).copy()
+    older.enter_context(isolated_dirs(Path(argv[1]) / "older"))
+    with isolated_dirs(Path(argv[1]) / "newer"):
+        assert platformdirs.user_cache_path() == Path(argv[1]) / "newer/user_cache"
+print(vars(Dirs) == original)
 """
     assert check_output([sys.executable, "-c", code, str(tmp_path)], text=True, timeout=10).strip() == "True"
 
