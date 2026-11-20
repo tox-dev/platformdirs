@@ -14,6 +14,7 @@ __lazy_modules__ = [
 import os
 import posixpath
 import re
+import stat
 import sys
 from contextlib import suppress
 from pathlib import Path
@@ -30,7 +31,7 @@ from .api import (
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Iterator
-    from typing import Final
+    from typing import Final, TextIO
 
 
 class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # full directory API
@@ -248,12 +249,12 @@ def _get_user_dirs_folder(key: str) -> str | None:
     # See https://freedesktop.org/wiki/Software/xdg-user-dirs/.
     user_dirs_config_path = Path(xdg_dir("XDG_CONFIG_HOME") or expand_user("~/.config")) / "user-dirs.dirs"
     folder = None
+    if directory_problem(user_dirs_config_path.parent, missing_ok=False):
+        return None
     try:
-        # the file holds raw path bytes, and surrogateescape round-trips undecodable ones like os.fsdecode
-        # Split only at LF: a CR inside a quoted Unix path is a literal filename byte, not a line ending.
-        with user_dirs_config_path.open(
-            encoding=sys.getfilesystemencoding(), errors="surrogateescape", newline="\n"
-        ) as stream:
+        with _open_user_dirs(user_dirs_config_path) as stream:
+            if not _trusted_user_dirs(stream):
+                return None
             for line in stream:
                 # Drop a CR that ends the line but keep the LF, so a backslash before it is not taken as ending the file.
                 if (entry := _USER_DIRS_LINE.match(_LINE_END_CR.sub("", line))) and entry["key"] == key:
@@ -261,6 +262,32 @@ def _get_user_dirs_folder(key: str) -> str | None:
     except OSError:  # a missing or unreadable file leaves the defaults in place
         return None
     return folder
+
+
+def _open_user_dirs(path: Path) -> TextIO:
+    # The file contains path bytes, so preserve undecodable bytes and embedded CR characters.
+    if sys.platform == "win32":
+        return path.open(encoding=sys.getfilesystemencoding(), errors="surrogateescape", newline="\n")
+    if path.is_symlink() and path.lstat().st_uid in {0, geteuid()}:
+        try:
+            path = path.resolve(strict=True)
+        except RuntimeError as error:
+            raise OSError(str(error)) from error
+        if problem := directory_problem(path.parent, missing_ok=False):
+            raise PermissionError(problem)
+    fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
+    return os.fdopen(fd, encoding=sys.getfilesystemencoding(), errors="surrogateescape", newline="\n")
+
+
+def _trusted_user_dirs(stream: TextIO) -> bool:
+    if sys.platform == "win32":
+        return True
+    info = os.fstat(stream.fileno())
+    return (
+        stat.S_ISREG(info.st_mode)
+        and info.st_uid in {0, geteuid()}
+        and not info.st_mode & (stat.S_IWGRP | stat.S_IWOTH)
+    )
 
 
 def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
@@ -347,14 +374,16 @@ class Unix(XDGMixin, _UnixDefaults):
             reason = "XDG_RUNTIME_DIR is not set"
         else:
             # Creating the missing levels follows whatever symlink sits at a parent, so check the parents first.
-            if not (skipped := bool(_runtime_dir_parent_problem(path))):
+            problem = _runtime_dir_parent_problem(path, missing_ok=True)
+            if problem is None:
                 with suppress(OSError):
                     self._optionally_create_directory(path, private=True)
-            # A leaf left missing because the parent check skipped creation is reported as that parent problem.
-            if not (
-                problem := runtime_dir_problem(path, missing_ok=skipped or not self.ensure_exists)
-                or _runtime_dir_parent_problem(path)
-            ):
+                problem = runtime_dir_problem(path, missing_ok=not self.ensure_exists) or _runtime_dir_parent_problem(
+                    path, missing_ok=not self.ensure_exists
+                )
+            else:
+                problem = runtime_dir_problem(path, missing_ok=True) or problem
+            if problem is None:
                 return self._append_app_name_and_version(path, private=True)
             reason = f"XDG_RUNTIME_DIR {problem}"
         warn_once(f"{reason}, falling back to {(fallback := self._default_runtime_dir())}")
@@ -422,8 +451,8 @@ class Unix(XDGMixin, _UnixDefaults):
         return expand_user(default, fallback_uid=0) if self._use_site else super()._user_media_dir(key, default)
 
 
-def _runtime_dir_parent_problem(path: str) -> str | None:
-    if problem := directory_problem(Path(path).parent, missing_ok=True):
+def _runtime_dir_parent_problem(path: str, *, missing_ok: bool) -> str | None:
+    if problem := directory_problem(Path(path).parent, missing_ok=missing_ok):
         return f"{path} is below {problem}"
     return None
 
