@@ -5,19 +5,25 @@ from __future__ import annotations
 __lazy_modules__ = [
     "collections",
     "pathlib",
+    f"{__spec__.parent}._runtime",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
 import os
 import stat
+import sys
 from collections import deque
 from pathlib import Path
 
+from ._runtime import geteuid
 
-def site_directory_problem(path: Path) -> str | None:
+
+def directory_problem(path: Path, *, missing_ok: bool, root_only: bool = False) -> str | None:
+    if sys.platform == "win32":
+        return None
     try:
-        _verify_path(path.absolute())
+        _verify_path(path.absolute(), root_only=root_only)
     except FileNotFoundError as error:
-        return f"{error.filename} is missing"
+        return None if missing_ok else f"{error.filename} is missing"
     except PermissionError as error:
         return str(error)
     except OSError as error:
@@ -25,16 +31,23 @@ def site_directory_problem(path: Path) -> str | None:
     return None
 
 
-def _verify_path(path: Path) -> None:
+def _verify_path(path: Path, *, root_only: bool) -> None:
     directory = Path(path.anchor)
     pending = deque(path.parts[1:])
+    owners = {0} if root_only else {0, getattr(os, "geteuid", geteuid)()}
+    links = 0
+    max_links = 40
     while pending:
         entry = directory / pending.popleft()
         info = os.lstat(entry)
-        if info.st_uid != 0:
+        if info.st_uid not in owners:
             msg = f"{entry}, owned by uid {info.st_uid}"
             raise PermissionError(msg)
         if stat.S_ISLNK(info.st_mode):
+            links += 1
+            if links > max_links:
+                msg = f"{entry}, which has too many symbolic links"
+                raise PermissionError(msg)
             target = entry.readlink()
             if target.is_absolute():
                 directory = Path(target.anchor)
@@ -50,5 +63,5 @@ def _verify_path(path: Path) -> None:
 
 
 __all__ = [
-    "site_directory_problem",
+    "directory_problem",
 ]
