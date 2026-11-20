@@ -7,6 +7,7 @@ __lazy_modules__ = [
     "pathlib",
     "posixpath",
     "tempfile",
+    f"{__spec__.parent}._paths",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
     f"{__spec__.parent}._runtime",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
@@ -19,6 +20,7 @@ from contextlib import suppress
 from pathlib import Path
 from tempfile import gettempdir
 
+from ._paths import directory_problem
 from ._runtime import RUNTIME_DIR_MODE, geteuid, runtime_dir_problem, warn_once
 from ._xdg import XDGMixin, expand_user, xdg_dir
 from .api import (
@@ -29,7 +31,7 @@ from .api import (
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Iterator
-    from typing import Final
+    from typing import Final, TextIO
 
 
 class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  # full directory API
@@ -247,12 +249,12 @@ def _get_user_dirs_folder(key: str) -> str | None:
     # See https://freedesktop.org/wiki/Software/xdg-user-dirs/.
     user_dirs_config_path = Path(xdg_dir("XDG_CONFIG_HOME") or expand_user("~/.config")) / "user-dirs.dirs"
     folder = None
+    if directory_problem(user_dirs_config_path.parent, missing_ok=False):
+        return None
     try:
-        # the file holds raw path bytes, and surrogateescape round-trips undecodable ones like os.fsdecode
-        # Split only at LF: a CR inside a quoted Unix path is a literal filename byte, not a line ending.
-        with user_dirs_config_path.open(
-            encoding=sys.getfilesystemencoding(), errors="surrogateescape", newline="\n"
-        ) as stream:
+        with _open_user_dirs(user_dirs_config_path) as stream:
+            if not _trusted_user_dirs(stream):
+                return None
             for line in stream:
                 # Drop a CR that ends the line but keep the LF, so a backslash before it is not taken as ending the file.
                 if (entry := _USER_DIRS_LINE.match(_LINE_END_CR.sub("", line))) and entry["key"] == key:
@@ -260,6 +262,32 @@ def _get_user_dirs_folder(key: str) -> str | None:
     except OSError:  # a missing or unreadable file leaves the defaults in place
         return None
     return folder
+
+
+def _open_user_dirs(path: Path) -> TextIO:
+    # The file contains path bytes, so preserve undecodable bytes and embedded CR characters.
+    if sys.platform == "win32":
+        return path.open(encoding=sys.getfilesystemencoding(), errors="surrogateescape", newline="\n")
+    if path.is_symlink() and path.lstat().st_uid in {0, geteuid()}:
+        try:
+            path = path.resolve(strict=True)
+        except RuntimeError as error:
+            raise OSError(str(error)) from error
+        if problem := directory_problem(path.parent, missing_ok=False):
+            raise PermissionError(problem)
+    fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
+    return os.fdopen(fd, encoding=sys.getfilesystemencoding(), errors="surrogateescape", newline="\n")
+
+
+def _trusted_user_dirs(stream: TextIO) -> bool:
+    if sys.platform == "win32":
+        return True
+    info = os.fstat(stream.fileno())
+    return (
+        stat.S_ISREG(info.st_mode)
+        and info.st_uid in {0, geteuid()}
+        and not info.st_mode & (stat.S_IWGRP | stat.S_IWOTH)
+    )
 
 
 def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
