@@ -546,6 +546,7 @@ def test_find_config_file_accepts_nested_path_like(dirs: Unix, config_paths: lis
 
 @pytest.mark.parametrize("multipath", [pytest.param(True, id="multipath"), pytest.param(False, id="single-path")])
 @pytest.mark.parametrize("kind", [pytest.param(kind, id=kind) for kind in ("config", "data")])
+@pytest.mark.usefixtures("root_owned_paths")
 def test_find_file_finds_root_placed_file_in_first_site_dir(
     dirs: Unix, mocker: MockerFixture, kind: str, multipath: bool
 ) -> None:

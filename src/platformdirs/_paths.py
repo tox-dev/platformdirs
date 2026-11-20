@@ -17,11 +17,11 @@ from pathlib import Path
 from ._runtime import geteuid
 
 
-def directory_problem(path: Path, *, missing_ok: bool) -> str | None:
+def directory_problem(path: Path, *, missing_ok: bool, root_only: bool = False) -> str | None:
     if sys.platform == "win32":
         return None
     try:
-        _verify_path(path.absolute())
+        _verify_path(path.absolute(), root_only=root_only)
     except FileNotFoundError as error:
         return None if missing_ok else f"{error.filename} is missing"
     except PermissionError as error:
@@ -31,10 +31,10 @@ def directory_problem(path: Path, *, missing_ok: bool) -> str | None:
     return None
 
 
-def _verify_path(path: Path) -> None:
+def _verify_path(path: Path, *, root_only: bool) -> None:
     directory = Path(path.anchor)
     pending = deque(path.parts[1:])
-    owners = {0, getattr(os, "geteuid", geteuid)()}
+    owners = {0} if root_only else {0, getattr(os, "geteuid", geteuid)()}
     links = 0
     max_links = 40
     while pending:

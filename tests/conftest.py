@@ -2,16 +2,32 @@ from __future__ import annotations
 
 import os
 import stat
+from pathlib import Path
 from typing import TYPE_CHECKING, Final, cast
 
 import pytest
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
-    from pathlib import Path
     from types import ModuleType
 
     from pytest_mock import MockerFixture
+
+
+@pytest.fixture
+def root_owned_paths(tmp_path: Path, mocker: MockerFixture) -> set[Path]:
+    original_lstat = os.lstat
+    foreign: set[Path] = set()
+
+    def lstat(path: str | os.PathLike[str]) -> os.stat_result:
+        info = original_lstat(path)
+        if (entry := Path(path)) in foreign or not (entry.is_relative_to(tmp_path) or tmp_path.is_relative_to(entry)):
+            return info
+        return os.stat_result((*info[:4], 0, *info[5:]))
+
+    mocker.patch.object(os, "lstat", autospec=True, side_effect=lstat)
+    return foreign
+
 
 _PROPS: Final[tuple[str, ...]] = (
     "user_data_dir",

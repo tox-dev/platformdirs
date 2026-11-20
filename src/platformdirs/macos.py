@@ -5,6 +5,7 @@ from __future__ import annotations
 __lazy_modules__ = [
     "contextlib",
     "pathlib",
+    f"{__spec__.parent}._runtime",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
 import os
@@ -14,11 +15,13 @@ import sys
 from contextlib import suppress
 from pathlib import Path
 
-from ._xdg import XDGMixin, expand_user
+from ._runtime import runtime_dir_problem
+from ._xdg import XDGMixin, expand_user, xdg_dir
 from .api import PlatformDirsABC
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from typing import Final, NoReturn
 
 if sys.platform == "win32":
@@ -112,7 +115,7 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
 
         """
         path = self._base_site_dirs()[0]
-        self._optionally_create_directory(path, private=False)
+        self._optionally_create_directory(path, private=False, site=True)
         return path
 
     # Default platform directories for macOS without XDG environment variable overrides.
@@ -120,18 +123,18 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  
     # Follows the guidance from `Apple's File System Programming Guide
     # <https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/MacOSXDirectories/MacOSXDirectories.html>`_.
     # The XDG env var handling is in :class:`~platformdirs._xdg.XDGMixin`.
-    def _optionally_create_directory(self, path: str, *, private: bool) -> None:
+    def _optionally_create_directory(self, path: str, *, private: bool, site: bool = False) -> None:
         if self.ensure_exists and (shared := Path(_SITE_CACHE)) in (target := Path(path)).parents:
             # Every user can write to /Library/Caches, so another one may have created this entry first.
             entry = shared / target.relative_to(shared).parts[0]
             with suppress(FileExistsError):
-                super()._optionally_create_directory(str(entry), private=private)
+                super()._optionally_create_directory(str(entry), private=private, site=site)
             if problem := self._shared_entry_problem(entry):
                 msg = f"site cache directory {problem}"
                 raise PermissionError(msg)
             if target == entry:
                 return
-        super()._optionally_create_directory(path, private=private)
+        super()._optionally_create_directory(path, private=private, site=site)
 
     @staticmethod
     def _shared_entry_problem(path: Path) -> str | None:
@@ -273,6 +276,18 @@ class MacOS(XDGMixin, _MacOSDefaults):
             return lookup.user_runtime_path
 
         return self._place_file(created, name)
+
+    def _find_runtime_files(self, name: str | os.PathLike[str]) -> Iterator[Path]:
+        def checked_paths(lookup: PlatformDirsABC) -> Iterator[Path]:
+            if not (base := xdg_dir("XDG_RUNTIME_DIR")):
+                yield from lookup.iter_runtime_paths()
+                return
+            xdg_path = Path(self._join_app_name_and_version(base))
+            for directory in lookup.iter_runtime_paths():
+                if directory != xdg_path or not runtime_dir_problem(base, missing_ok=False):
+                    yield directory
+
+        return self._find_files(checked_paths, name)
 
 
 # Homebrew links each Python formula as a framework build, and a virtual environment keeps it as sys.base_prefix.
