@@ -17,7 +17,7 @@ import pytest
 
 import platformdirs
 from platformdirs.macos import MacOS
-from platformdirs.unix import Unix
+from platformdirs.unix import Unix, geteuid
 from platformdirs.windows import Windows
 
 # The interpreter owns the import-hook signature; this reference is restored after each test.
@@ -50,7 +50,7 @@ with patch("platformdirs._runtime.geteuid", return_value=-1):
     unix.geteuid()
 print(unix.geteuid())
 """
-    assert int(check_output([sys.executable, "-c", code], text=True)) == os.geteuid()
+    assert int(check_output([sys.executable, "-c", code], text=True)) == geteuid()
 
 
 def test_package_metadata() -> None:

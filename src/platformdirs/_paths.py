@@ -18,7 +18,7 @@ def create_checked_directories(path: Path, *, private: bool, root_only: bool = F
     existing = absolute
     while not existing.is_dir():
         existing = existing.parent
-    uid = os.geteuid() if hasattr(os, "geteuid") else os.getuid()
+    uid = _effective_uid()
     allow_group_write = uid != 0 and not (root_only or strict)
     if problem := directory_problem(existing, root_only=root_only, allow_group_write=allow_group_write):
         raise PermissionError(problem)
@@ -42,6 +42,12 @@ def create_checked_directories(path: Path, *, private: bool, root_only: bool = F
             raise PermissionError(msg)
 
 
+def _effective_uid() -> int:
+    if hasattr(os, "geteuid"):
+        return os.geteuid()
+    return getattr(os, "getuid")()  # ruff:ignore[get-attr-with-constant]  # POSIX fallback absent from Windows stubs
+
+
 def directory_problem(
     path: Path, *, missing_ok: bool = False, root_only: bool = False, allow_group_write: bool = False
 ) -> str | None:
@@ -63,7 +69,7 @@ def _verify_path(path: Path, *, root_only: bool, allow_group_write: bool) -> Non
     pending = deque(path.parts[1:])
     owners = {0}
     if not root_only:
-        owners.add(os.geteuid() if hasattr(os, "geteuid") else os.getuid())
+        owners.add(_effective_uid())
     writable = stat.S_IWOTH if allow_group_write else stat.S_IWGRP | stat.S_IWOTH
     links = 0
     max_links = 40
