@@ -217,9 +217,9 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
             path = "/run"
         return self._append_app_name_and_version(path, private=False)
 
-    def _create_directory(self, path: Path, *, private: bool) -> None:
-        if private or sys.platform == "win32" or geteuid() != 0:
-            super()._create_directory(path, private=private)
+    def _create_directory(self, path: Path, *, private: bool, site: bool) -> None:
+        if not site or sys.platform == "win32" or geteuid() != 0:
+            super()._create_directory(path, private=private, site=site)
             return
         absolute = path.absolute()
         existing = absolute

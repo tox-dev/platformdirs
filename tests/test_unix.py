@@ -2079,6 +2079,15 @@ def test_root_site_creation_checks_new_child(
     assert not (tmp_path / "site" / "app").exists()
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows reads media directories from Known Folders")
+@pytest.mark.usefixtures("_as_root")
+def test_root_user_media_uses_user_path(user_dirs_file: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    user_dirs_file.write_text(f'XDG_DOCUMENTS_DIR="{tmp_path / "docs"}"\n', encoding="utf-8")
+    assert Unix(ensure_exists=True).user_documents_dir == str(tmp_path / "docs")
+    assert (tmp_path / "docs").is_dir()
+
+
 @pytest.fixture
 def uid(request: pytest.FixtureRequest, mocker: MockerFixture) -> int:
     value: typing.Final[int] = typing.cast("int", request.param)
