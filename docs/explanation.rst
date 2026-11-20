@@ -498,6 +498,10 @@ Writing to ``site_*`` directories typically requires root privileges. Normal use
 When root creates a site directory or places a file there, each existing path component must belong to root and must
 not be writable by other users without the sticky bit. A component that fails the check raises :exc:`PermissionError`.
 
+On Unix, ``ensure_exists`` and the ``place_*_file`` methods check existing user directory components before creating a child.
+They reject components owned by neither root nor the effective user and directories writable by another user without
+the sticky bit. Under a sticky shared parent, each new component is checked before creating the next one.
+
 ``user_runtime_dir`` uses ``XDG_RUNTIME_DIR`` only if it names a directory, not a symlink, that the effective user owns
 with mode ``0700``, as the spec requires. It also rejects a path below a parent that another user can replace: an entry
 of a directory writable by every user, such as ``/tmp``, that root or the user does not own, or a directory writable by

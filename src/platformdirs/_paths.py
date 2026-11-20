@@ -5,7 +5,6 @@ from __future__ import annotations
 __lazy_modules__ = [
     "collections",
     "pathlib",
-    f"{__spec__.parent}._runtime",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
 import os
@@ -14,10 +13,8 @@ import sys
 from collections import deque
 from pathlib import Path
 
-from ._runtime import geteuid
 
-
-def directory_problem(path: Path, *, missing_ok: bool, root_only: bool = False) -> str | None:
+def directory_problem(path: Path, *, missing_ok: bool = False, root_only: bool = False) -> str | None:
     if sys.platform == "win32":
         return None
     try:
@@ -34,7 +31,9 @@ def directory_problem(path: Path, *, missing_ok: bool, root_only: bool = False) 
 def _verify_path(path: Path, *, root_only: bool) -> None:
     directory = Path(path.anchor)
     pending = deque(path.parts[1:])
-    owners = {0} if root_only else {0, getattr(os, "geteuid", geteuid)()}
+    owners = {0}
+    if not root_only:
+        owners.add(getattr(os, "geteuid")())  # ruff:ignore[get-attr-with-constant]  # absent from Windows stubs
     links = 0
     max_links = 40
     while pending:

@@ -1407,6 +1407,21 @@ def test_media_function_ensure_exists_raises_on_file(
         getattr(platformdirs, f"user_documents_{suffix}")(ensure_exists=True)
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows reads media directories from Known Folders")
+def test_ensure_exists_checks_user_media_parent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, user_dirs_file: Path
+) -> None:
+    (shared := tmp_path / "shared").mkdir()
+    shared.chmod(0o1777)
+    (foreign := shared / "foreign").mkdir()
+    foreign.chmod(0o777)
+    monkeypatch.delenv("XDG_DOCUMENTS_DIR", raising=False)
+    user_dirs_file.write_text(f'XDG_DOCUMENTS_DIR="{foreign / "docs"}"\n', encoding="utf-8")
+    with pytest.raises(PermissionError):
+        _ = Unix(ensure_exists=True).user_documents_dir
+    assert not (foreign / "docs").exists()
+
+
 def test_iter_data_dirs_xdg(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("XDG_DATA_HOME", "/xdg/data")
     monkeypatch.setenv("XDG_DATA_DIRS", f"/xdg/share1{os.pathsep}/xdg/share2")

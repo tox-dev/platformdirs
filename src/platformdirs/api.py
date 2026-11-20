@@ -5,12 +5,17 @@ from __future__ import annotations
 __lazy_modules__ = [
     "copy",
     "pathlib",
+    f"{__spec__.parent}._paths",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
 import os
+import stat
+import sys
 from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
+
+from ._paths import directory_problem
 
 TYPE_CHECKING = False  #: :data:`typing.TYPE_CHECKING` without importing :mod:`typing` at runtime
 if TYPE_CHECKING:
@@ -170,9 +175,12 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
         path: Path,
         *,
         private: bool,
-        site: bool,  # ruff:ignore[unused-method-argument]  # Unix override hook
+        site: bool,  # Unix override hook
     ) -> None:
-        _make_directories(path, private=private)
+        if site:
+            _make_directories(path, private=private)
+        else:
+            _create_checked_directories(path, private=private)
 
     @property
     def _site_data_dirs(self) -> list[str]:
@@ -828,6 +836,26 @@ def _make_directories(path: Path, *, private: bool) -> None:
             break
     for directory in reversed(missing):
         directory.mkdir(mode=mode, exist_ok=True)
+
+
+def _create_checked_directories(path: Path, *, private: bool) -> None:
+    if sys.platform == "win32":
+        _make_directories(path, private=private)
+        return
+    absolute = path.absolute()
+    existing = absolute
+    while not existing.is_dir():
+        existing = existing.parent
+    if problem := directory_problem(existing):
+        raise PermissionError(problem)
+    if existing == absolute or not existing.stat().st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+        _make_directories(path, private=private)
+        return
+    for component in absolute.relative_to(existing).parts:
+        existing /= component
+        existing.mkdir(mode=0o700 if private else 0o777, exist_ok=True)
+        if problem := directory_problem(existing):
+            raise PermissionError(problem)
 
 
 def _unique(dirs: Iterable[str]) -> Iterator[str]:
