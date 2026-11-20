@@ -3,6 +3,7 @@ from __future__ import annotations
 import builtins
 import errno
 import functools
+import importlib
 import inspect
 import os
 import re
@@ -40,13 +41,27 @@ def test_import_platformdirs_skips_typing() -> None:
     assert check_output([sys.executable, "-c", code], text=True, env=env).strip() == "False"
 
 
+@pytest.mark.parametrize(
+    ("platform", "expected"),
+    [pytest.param("win32", "Windows", id="windows"), pytest.param("darwin", "MacOS", id="macos")],
+)
+def test_native_platform_class(platform: str, expected: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    try:
+        with monkeypatch.context() as patch:
+            patch.setattr(sys, "platform", platform)
+            assert importlib.reload(platformdirs).PlatformDirs.__name__ == expected
+    finally:
+        importlib.reload(platformdirs)
+
+
 @pytest.mark.skipif(sys.platform == "win32", reason="Unix credentials")
 def test_unix_uid_patch_expires() -> None:
     code = """
-from unittest.mock import patch
+from pytest import MonkeyPatch
 from platformdirs import unix
 
-with patch("platformdirs._runtime.geteuid", return_value=-1):
+with MonkeyPatch.context() as patch:
+    patch.setattr("platformdirs._runtime.geteuid", lambda: -1)
     unix.geteuid()
 print(unix.geteuid())
 """
