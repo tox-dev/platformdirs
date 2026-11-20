@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Final, cast
 
 import pytest
 
+from platformdirs._paths import directory_problem  # ruff:ignore[import-private-name]  # check the simulated system tree
+
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
     from types import ModuleType
@@ -104,16 +106,22 @@ def runtime_temp_dir(tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     monkeypatch.setenv("TMPDIR", str(tmp_path))
     mocker.patch("tempfile.tempdir", str(tmp_path))
-    # user_runtime_dir checks fixed system paths such as /run/user/<uid> first, so serve those from system_root.
-    real_lstat: Final[Callable[[str | Path], os.stat_result]] = os.lstat
-    prefixes = ("/run/user", "/var/run", "/tmp/run")  # ruff:ignore[hardcoded-temp-file]  # fixed BSD runtime roots
+    # Map the entire system path before walking it. A host symlink such as /var would leave the fixture tree.
+    parents = {"/run/user", "/var/run/user", "/tmp/run/user"}  # ruff:ignore[hardcoded-temp-file]  # OpenBSD default
+    real_lstat = os.lstat
 
     def lstat(path: str | Path) -> os.stat_result:
-        if any(str(path) == prefix or str(path).startswith(f"{prefix}/") for prefix in prefixes):
-            path = system_root / str(path)[1:]
+        if isinstance(path, str) and Path(path).parent.as_posix() in parents:
+            return real_lstat(system_root / path[1:])
         return real_lstat(path)
 
+    def check_parent(path: Path, *, missing_ok: bool) -> str | None:
+        if path.as_posix() in parents:
+            path = system_root / path.as_posix()[1:]
+        return directory_problem(path, missing_ok=missing_ok)
+
     mocker.patch("os.lstat", new=lstat)
+    mocker.patch("platformdirs._runtime.directory_problem", new=check_parent)
     return tmp_path
 
 
