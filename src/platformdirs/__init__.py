@@ -13,11 +13,7 @@ from __future__ import annotations
 
 __lazy_modules__ = [
     f"{__spec__.parent}.api",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
-    f"{__spec__.parent}.ios",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
-    f"{__spec__.parent}.macos",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
-    f"{__spec__.parent}.unix",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
     f"{__spec__.parent}.version",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
-    f"{__spec__.parent}.windows",  # ty: ignore[missing-union-attribute]  # imported modules have a spec
 ]
 
 import os
@@ -32,40 +28,31 @@ if TYPE_CHECKING:
     from pathlib import Path
     from typing import Literal
 
-if sys.platform == "win32":
-    from .windows import Windows as NativePlatformDirs
-elif sys.platform == "darwin":
-    from .macos import MacOS as NativePlatformDirs
-elif sys.platform == "ios":
-    from .ios import IOS as NativePlatformDirs  # ruff:ignore[constant-imported-as-non-constant]  # PEP 8 acronym
-else:
-    from .unix import Unix as NativePlatformDirs
 
-
-def _set_platform_dir_class() -> type[PlatformDirsABC]:
-    # Every Android build of CPython has sys.getandroidapilevel, even in a process started with a cleared environment.
-    if hasattr(sys, "getandroidapilevel") or (
-        os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system"
+def _is_android_app() -> bool:
+    # Android builds expose getandroidapilevel even when the environment is empty.
+    if not hasattr(sys, "getandroidapilevel") and (
+        os.getenv("ANDROID_DATA") != "/data" or os.getenv("ANDROID_ROOT") != "/system"
     ):
-        if os.getenv("SHELL") or os.getenv("PREFIX"):
-            return NativePlatformDirs
+        return False
+    if os.getenv("SHELL") or os.getenv("PREFIX"):
+        return False
+    from ._android import android_folder  # ruff:ignore[import-outside-top-level]  # Android-only lookup
 
-        from ._android import android_folder  # ruff:ignore[import-outside-top-level]  # Android-only lookup
-
-        if android_folder() is not None:
-            from .android import Android  # ruff:ignore[import-outside-top-level]  # Android-only module
-
-            return Android  # return to avoid redefinition of a result
-
-    return NativePlatformDirs
+    return android_folder() is not None
 
 
-if TYPE_CHECKING:
-    # Work around mypy issue: https://github.com/python/mypy/issues/10962
-    #: Currently active platform
-    PlatformDirs = NativePlatformDirs
+if not TYPE_CHECKING and _is_android_app():
+    from .android import Android as PlatformDirs
+elif sys.platform == "win32":
+    from .windows import Windows as PlatformDirs
+elif sys.platform == "darwin":
+    from .macos import MacOS as PlatformDirs
+elif sys.platform == "ios":
+    from .ios import IOS as PlatformDirs  # ruff:ignore[constant-imported-as-non-constant]  # PEP 8 acronym
 else:
-    PlatformDirs = _set_platform_dir_class()  #: Currently active platform
+    from .unix import Unix as PlatformDirs
+
 AppDirs = PlatformDirs  #: Backwards compatibility with appdirs
 
 

@@ -198,9 +198,10 @@ directory is the data directory, so platformdirs creates it too. The module-leve
 :func:`~platformdirs.user_documents_path`, take it as a keyword-only argument.
 
 On Unix, macOS, iOS and Android, platformdirs creates the user directories and each missing parent with mode ``0700``,
-as the `XDG Base Directory Specification <https://specifications.freedesktop.org/basedir/latest/>`_ asks. Site and media
-directories get the default mode so other users can read them. platformdirs leaves the mode of an existing directory
-alone.
+as the `XDG Base Directory Specification <https://specifications.freedesktop.org/basedir/latest/>`_ asks. Configured
+media directories use mode ``0775`` before the umask. Unix site directories use ``0755`` for root and the default
+directory mode for other callers, subject to the umask. Existing directories keep their permissions, except for the Unix
+temporary runtime fallback, which ``ensure_exists`` sets to ``0700``.
 
 Without a resolvable home directory, ``ensure_exists`` raises ``RuntimeError`` for a path that would start with ``~``.
 

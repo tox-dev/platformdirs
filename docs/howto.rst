@@ -56,9 +56,9 @@ Directories that already exist keep their mode, and you write the file yourself:
     path.write_text('theme = "dark"\n', encoding="utf-8")
 
 ``place_data_file``, ``place_cache_file``, ``place_state_file``, ``place_log_file`` and ``place_runtime_file`` do the
-same for the matching ``user_*_path``. As root with ``use_site_for_root`` on Unix, that path is the site one, and the
-missing directories get the default mode so other users can still read them. A name that is empty, absolute, has a drive
-or climbs out with ``..`` raises :class:`ValueError`.
+same for the matching ``user_*_path``. On Unix, root with ``use_site_for_root`` uses the site path and requests
+mode ``0755`` for missing directories, subject to the umask. A name that is empty, absolute, has a drive or climbs out
+with ``..`` raises :class:`ValueError`.
 
 Handling write errors
 =====================
@@ -246,10 +246,15 @@ isolates under ``tmp_path`` and yields the root:
 
 Each kind lands in ``<root>/<kind>``, for example ``<root>/user_config/MyApp``, and the module-level functions follow
 the same layout. A relative root is made absolute on entry, so changing the working directory inside the context does
-not move it. If contexts overlap, lookups use the root of the most recently entered context that is still active. On
-Unix, isolation ignores ``use_site_for_root`` so user and site kinds stay separate even for root. The
-redirection covers :data:`~platformdirs.PlatformDirs` in the current process. Child processes, including those created
-with ``fork()``, and other platform classes such as :class:`~platformdirs.unix.Unix` on macOS use their original paths.
+not move it. On Unix, isolation ignores ``use_site_for_root`` so user and site kinds stay separate even for root.
+
+All threads share the same redirect. When contexts overlap, every thread sees the newest active root. Closing an older
+context leaves that root in effect. Use separate processes if concurrent tests need different roots.
+
+A forked child inherits the redirect active at the fork. Parent and child can write to the same directory, so keep the
+root until the child exits. A spawned child starts with the original paths. With the forkserver start method, the child
+inherits the server's state. Isolation applies to :data:`~platformdirs.PlatformDirs`. Other platform classes, such as
+:class:`~platformdirs.unix.Unix` on macOS, keep their original paths.
 
 Overriding directories with environment variables
 =================================================

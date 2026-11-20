@@ -21,7 +21,10 @@ def root_owned_paths(tmp_path: Path, mocker: MockerFixture) -> set[Path]:
 
     def lstat(path: str | os.PathLike[str]) -> os.stat_result:
         info = original_lstat(path)
-        if (entry := Path(path)) in foreign or not (entry.is_relative_to(tmp_path) or tmp_path.is_relative_to(entry)):
+        entry = Path(path)
+        if entry in foreign:
+            return os.stat_result((*info[:4], info.st_uid or 1, *info[5:]))
+        if not (entry.is_relative_to(tmp_path) or tmp_path.is_relative_to(entry)):
             return info
         return os.stat_result((*info[:4], 0, *info[5:]))
 
@@ -104,16 +107,24 @@ def runtime_temp_dir(tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.
     monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
     monkeypatch.setenv("TMPDIR", str(tmp_path))
     mocker.patch("tempfile.tempdir", str(tmp_path))
-    # user_runtime_dir checks fixed system paths such as /run/user/<uid> first, so serve those from system_root.
-    real_lstat: Final[Callable[[str | Path], os.stat_result]] = os.lstat
-    mocker.patch(  # simplint: ignore[mock-without-spec]  # autospec cannot wrap a patched os.lstat
-        "os.lstat",
-        side_effect=lambda path: real_lstat(
-            system_root / path[1:]
-            if isinstance(path, str) and "/run/user/" in path and not path.startswith(str(tmp_path))
-            else path
-        ),
-    )
+    # A host symlink such as /var must not redirect the walk outside the simulated system tree.
+    parents = {
+        Path("/run/user"),
+        Path("/var/run/user"),
+        Path("/tmp/run/user"),  # ruff:ignore[hardcoded-temp-file]  # OpenBSD runtime path
+    }
+    ancestors = set().union(*(path.parents for path in parents)) | parents
+    real_lstat = os.lstat
+
+    def lstat(path: str | Path) -> os.stat_result:
+        entry = Path(path)
+        if entry.parent in parents:
+            return real_lstat(system_root / entry.relative_to(entry.anchor))
+        if entry in ancestors and (mapped := system_root / entry.relative_to(entry.anchor)).is_dir():
+            return real_lstat(mapped)
+        return real_lstat(path)
+
+    mocker.patch.object(os, "lstat", new=lstat)
     return tmp_path
 
 

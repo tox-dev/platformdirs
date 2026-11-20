@@ -1,1 +1,1 @@
-Create missing parents iteratively when resolving directories or placing files.
+Create deeply nested directories without reaching Python's recursion limit.

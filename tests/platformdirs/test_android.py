@@ -19,6 +19,27 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
+@pytest.mark.skipif(os.name != "posix", reason="POSIX directory ownership")
+def test_android_app_below_system_directories(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    data = tmp_path / "data"
+    package = data / "data/org.example"
+    package.mkdir(parents=True)
+    data.chmod(0o771)
+    package.parent.chmod(0o771)
+    owner = package.stat().st_uid + 1
+    lstat = os.lstat
+
+    def system_owner(path: Path) -> os.stat_result:
+        info = lstat(path)
+        return os.stat_result((*info[:4], owner, *info[5:])) if path in {data, package.parent} else info
+
+    monkeypatch.setattr(os, "lstat", system_owner)
+    monkeypatch.setattr(android, "android_folder", lambda: str(package))
+    dirs = Android("app", ensure_exists=True)
+    assert dirs.user_data_path == package / "files/app"
+    assert (package / "files/app").is_dir()
+
+
 @pytest.mark.usefixtures("_clear_android_caches", "_restore_platformdirs")
 @pytest.mark.parametrize("root", ["A", "/system", None])
 @pytest.mark.parametrize("data", ["D", "/data", None])
