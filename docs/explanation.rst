@@ -369,8 +369,10 @@ need to separate data from config, use subdirectories within that path.
 
 XDG environment variables (``XDG_DATA_HOME``, ``XDG_CONFIG_HOME``, ``XDG_CACHE_HOME``, etc.) are also supported and take
 precedence over the macOS defaults when set. This allows users who prefer the XDG layout to override the default
-behavior. For ``user_runtime_dir``, ``XDG_RUNTIME_DIR`` must pass the check described under Linux below; otherwise
-``platformdirs`` emits a :class:`~platformdirs.RuntimeDirWarning` and uses the macOS default.
+behavior. For ``user_runtime_dir``, ``XDG_RUNTIME_DIR`` must pass the directory check described under Linux below. Its
+parents, including symlink targets, must belong to root or the effective user and cannot be writable by another user
+without the sticky bit. Otherwise ``platformdirs`` emits a :class:`~platformdirs.RuntimeDirWarning` and uses the macOS
+default.
 
 When Python comes from `Homebrew <https://brew.sh>`_, ``site_data_dir``, ``site_config_dir``, ``site_cache_dir`` and
 ``site_state_dir`` return a path under the Homebrew prefix, such as ``/opt/homebrew/share/AppName``. With
@@ -493,6 +495,8 @@ When ``multipath=True``, ``site_data_dir`` and ``site_config_dir`` return all pa
 ``XDG_*_DIRS`` variable, joined by ``:``.
 
 Writing to ``site_*`` directories typically requires root privileges. Normal users can only read from these locations.
+When root creates a site directory or places a file there, each existing path component must belong to root and must
+not be writable by other users without the sticky bit. A component that fails the check raises :exc:`PermissionError`.
 
 On Unix, ``ensure_exists`` and the ``place_*_file`` methods check existing user directory components before creating a child.
 They reject components owned by neither root nor the effective user and directories writable by another user without

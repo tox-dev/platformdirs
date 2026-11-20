@@ -14,11 +14,11 @@ from collections import deque
 from pathlib import Path
 
 
-def directory_problem(path: Path, *, missing_ok: bool = False) -> str | None:
+def directory_problem(path: Path, *, missing_ok: bool = False, root_only: bool = False) -> str | None:
     if sys.platform == "win32":
         return None
     try:
-        _verify_path(path.absolute())
+        _verify_path(path.absolute(), root_only=root_only)
     except FileNotFoundError as error:
         return None if missing_ok else f"{error.filename} is missing"
     except PermissionError as error:
@@ -28,10 +28,12 @@ def directory_problem(path: Path, *, missing_ok: bool = False) -> str | None:
     return None
 
 
-def _verify_path(path: Path) -> None:
+def _verify_path(path: Path, *, root_only: bool) -> None:
     directory = Path(path.anchor)
     pending = deque(path.parts[1:])
-    owners = {0, getattr(os, "geteuid")()}  # ruff:ignore[get-attr-with-constant]  # absent from Windows stubs
+    owners = {0}
+    if not root_only:
+        owners.add(getattr(os, "geteuid")())  # ruff:ignore[get-attr-with-constant]  # absent from Windows stubs
     links = 0
     max_links = 40
     while pending:

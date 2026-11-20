@@ -168,10 +168,19 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
         if not self.ensure_exists:
             return
         _ensure_home_known(path)
+        self._create_directory(Path(path), private=private, site=site)
+
+    def _create_directory(  # ruff:ignore[no-self-use]  # Unix override hook
+        self,
+        path: Path,
+        *,
+        private: bool,
+        site: bool,  # Unix override hook
+    ) -> None:
         if site:
-            _make_directories(Path(path), private=private)
+            _make_directories(path, private=private)
         else:
-            _create_checked_directories(Path(path), private=private)
+            _create_checked_directories(path, private=private)
 
     @property
     def _site_data_dirs(self) -> list[str]:
@@ -602,10 +611,7 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]  # full dire
         # Under multipath *_dir joins the site directories with os.pathsep, so place under the single *_path.
         _ensure_home_known(str(directory := user_path(lookup)))
         path = directory / relative
-        if self._use_site:
-            _make_directories(path.parent, private=False)
-        else:
-            _create_checked_directories(path.parent, private=True)
+        self._create_directory(path.parent, private=not self._use_site, site=self._use_site)
         return path
 
     def place_data_file(self, name: str | os.PathLike[str]) -> Path:

@@ -217,6 +217,22 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]  #
             path = "/run"
         return self._append_app_name_and_version(path, private=False)
 
+    def _create_directory(self, path: Path, *, private: bool, site: bool) -> None:
+        if not site or sys.platform == "win32" or geteuid() != 0:
+            super()._create_directory(path, private=private, site=site)
+            return
+        absolute = path.absolute()
+        existing = absolute
+        while not existing.is_dir():
+            existing = existing.parent
+        if problem := directory_problem(existing, missing_ok=False, root_only=True):
+            raise PermissionError(problem)
+        for component in absolute.relative_to(existing).parts:
+            existing /= component
+            existing.mkdir(exist_ok=True)
+            if problem := directory_problem(existing, missing_ok=False, root_only=True):
+                raise PermissionError(problem)
+
     def _default_runtime_dir(self) -> str:
         if sys.platform.startswith("openbsd"):
             path = f"/tmp/run/user/{geteuid()}"  # ruff:ignore[hardcoded-temp-file]  # fixed OpenBSD runtime directory
@@ -459,14 +475,21 @@ def _runtime_dir_parent_problem(path: str, *, missing_ok: bool) -> str | None:
         try:
             if in_shared_dir and (owner := os.lstat(parent).st_uid) not in {0, geteuid()}:
                 return f"{path} is below {parent}, owned by uid {owner}"
-            mode = parent.stat().st_mode  # a symlink that got past the owner check is judged by its target
-        except FileNotFoundError:
-            return None if missing_ok else f"{path} is below missing parent {parent}"
+            info = parent.stat()  # a symlink that got past the owner check is judged by its target
         except OSError as error:
-            return f"{path} is below {parent}, which cannot be checked: {error.strerror}"
-        if (in_shared_dir := bool(mode & stat.S_IWOTH)) and not mode & stat.S_ISVTX:
-            return f"{path} is below {parent}, writable by every user"
+            return _runtime_parent_error(path, parent, error, missing_ok=missing_ok)
+        if in_shared_dir := bool(info.st_mode & stat.S_IWOTH):
+            if not info.st_mode & stat.S_ISVTX:
+                return f"{path} is below {parent}, writable by every user"
+            if info.st_uid not in {0, geteuid()}:
+                return f"{path} is below shared parent {parent}, owned by uid {info.st_uid}"
     return None
+
+
+def _runtime_parent_error(path: str, parent: Path, error: OSError, *, missing_ok: bool) -> str | None:
+    if isinstance(error, FileNotFoundError):
+        return None if missing_ok else f"{path} is below missing parent {parent}"
+    return f"{path} is below {parent}, which cannot be checked: {error.strerror}"
 
 
 def _in_own_runtime_dir(path: Path) -> bool:
