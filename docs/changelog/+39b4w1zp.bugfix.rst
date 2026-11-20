@@ -1,1 +1,2 @@
-Check site directory ownership before root creates directories or places files.
+When root creates Unix site directories or places files there, require root-owned paths. Reject group- or world-writable
+parents without the sticky bit. Create missing directories with mode ``0755``, subject to the umask.

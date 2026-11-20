@@ -1,2 +1,1 @@
-Ignore a ``WIN_PD_OVERRIDE_*`` value such as ``\\.\UNC\server`` or a bare ``\\?\UNC`` that names no UNC server or
-share, which was taken as server ``.`` or ``?`` with share ``UNC``.
+Ignore Windows UNC folder overrides with a missing server or share, or with ``.`` or ``..`` as either name.

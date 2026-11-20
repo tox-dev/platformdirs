@@ -199,8 +199,9 @@ directory is the data directory, so platformdirs creates it too. The module-leve
 
 On Unix, macOS, iOS and Android, platformdirs creates the user directories and each missing parent with mode ``0700``,
 as the `XDG Base Directory Specification <https://specifications.freedesktop.org/basedir/latest/>`_ asks. Site and media
-directories get the default mode so other users can read them. platformdirs leaves the mode of an existing directory
-alone.
+directories use the process umask. When root creates a Unix site directory, it requests mode ``0755`` before the umask
+is applied. Existing directories keep their permissions, except for the Unix temporary runtime fallback, which
+``ensure_exists`` sets to ``0700``.
 
 Without a resolvable home directory, ``ensure_exists`` raises ``RuntimeError`` for a path that would start with ``~``.
 

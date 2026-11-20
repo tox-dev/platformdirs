@@ -1,1 +1,1 @@
-Read Unix media configuration only from a trusted regular file.
+Ignore ``user-dirs.dirs`` on Unix when the file or its parent path fails ownership or permission checks.

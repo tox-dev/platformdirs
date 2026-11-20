@@ -369,8 +369,8 @@ need to separate data from config, use subdirectories within that path.
 
 XDG environment variables (``XDG_DATA_HOME``, ``XDG_CONFIG_HOME``, ``XDG_CACHE_HOME``, etc.) are also supported and take
 precedence over the macOS defaults when set. This allows users who prefer the XDG layout to override the default
-behavior. For ``user_runtime_dir``, ``XDG_RUNTIME_DIR`` must pass the directory check described under Linux below. Its
-parents, including symlink targets, must belong to root or the effective user and cannot be writable by another user
+behavior. Both user and site runtime directories check ``XDG_RUNTIME_DIR`` as described under Linux below. Its parents,
+including symlink targets, must belong to root or the effective user and cannot be writable by another user
 without the sticky bit. Otherwise ``platformdirs`` emits a :class:`~platformdirs.RuntimeDirWarning` and uses the macOS
 default.
 
@@ -441,8 +441,8 @@ The override variable name is ``WIN_PD_OVERRIDE_`` followed by the CSIDL suffix:
       - User binaries (``AppData\Local\Programs``)
 
 ``platformdirs`` ignores a blank value, a path without both a drive and a root (``\shared``, ``D:appdata``), and a UNC
-path without both a server and a share name (``\\server``). It strips any whitespace before a value but only ASCII
-whitespace after it, since other trailing whitespace, such as a no-break space, can end a folder name.
+path missing a server or share name (``\\server``) or using ``.`` or ``..`` for either name. It strips any whitespace before a value
+but only ASCII whitespace after it, since other trailing whitespace, such as a no-break space, can end a folder name.
 
 .. note::
 
@@ -498,27 +498,29 @@ Writing to ``site_*`` directories typically requires root privileges. Normal use
 When root creates a site directory or places a file there, each existing path component must belong to root and must
 not be writable by other users without the sticky bit. A component that fails the check raises :exc:`PermissionError`.
 
-On Unix, ``ensure_exists`` and the ``place_*_file`` methods check existing user directory components before creating a child.
-They reject components owned by neither root nor the effective user and directories writable by another user without
-the sticky bit. Under a sticky shared parent, each new component is checked before creating the next one.
+Root requests mode ``0755`` for new site directories. A stricter umask can remove permissions.
+Root media and font paths use an absolute ``HOME`` when supplied. If another account controls that home, it also
+controls paths returned under it.
+
+For ordinary user directories, ``ensure_exists`` and ``place_*_file`` require each component to belong to root or the
+effective user. Unprivileged callers can use a group-writable parent such as ``~/.config`` at ``0775``. This trusts its
+group members, who can replace entries in a non-sticky directory. World-writable parents require the sticky bit.
+Runtime directories and the parents of ``user-dirs.dirs`` keep the stricter group-write checks.
 
 ``user_runtime_dir`` uses ``XDG_RUNTIME_DIR`` only if it names a directory, not a symlink, that the effective user owns
 with mode ``0700``, as the spec requires. It also rejects any parent owned by neither root nor the effective user, or
 one writable by another user through its group or other mode bits without the sticky bit. This includes parents reached
-through symlinks. If the variable is
-unset or fails that check, ``platformdirs`` emits a
-:class:`~platformdirs.RuntimeDirWarning` once for each distinct cause and tries ``/run/user/<uid>``
-(``/var/run/user/<uid>`` on FreeBSD and NetBSD, ``/tmp/run/user/<uid>`` on OpenBSD) under the same check. When that
-directory is missing or fails the check, it falls back to ``runtime-<uid>`` in :func:`tempfile.gettempdir`, created with
-mode ``0700`` under ``ensure_exists``. If no standard or absolute configured temporary directory is available, it raises
-:exc:`PermissionError` after rejecting Python's chosen directory, or :exc:`FileNotFoundError` when Python finds no
-temporary directory. It also raises :exc:`PermissionError` if the fallback is a symlink, not a directory, or owned by
-another user. Set ``XDG_RUNTIME_DIR`` to a valid directory when no temporary directory is available.
-``ensure_exists`` and
-``place_runtime_file`` create the runtime directory before checking it,
-so one that is missing right after also fails. ``find_runtime_file`` and ``find_runtime_files`` skip a file below
-``XDG_RUNTIME_DIR`` or ``runtime-<uid>`` unless that directory exists and passes the owner check. Root redirection
-and test isolation search their redirected runtime directories independently of these checks. Test suites that
+through symlinks. If the override is unset or unusable, ``platformdirs`` warns once per cause and checks
+``/run/user/<uid>`` (``/var/run/user/<uid>`` on FreeBSD and NetBSD, ``/tmp/run/user/<uid>`` on OpenBSD).
+
+The last fallback is ``runtime-<uid>`` under a temporary directory. Choose a custom base with ``TMPDIR``, ``TEMP`` or
+``TMP``. Python also caches its working-directory fallback in ``tempfile.tempdir``, so setting that value alone cannot
+select a custom base. The fallback's parents must pass the runtime checks. A symlink, non-directory or foreign-owned
+fallback raises :exc:`PermissionError`. If Python cannot find any temporary directory, it raises :exc:`FileNotFoundError`.
+
+``ensure_exists`` and ``place_runtime_file`` create missing runtime directories with mode ``0700`` and check the result.
+Runtime file searches skip rejected XDG paths. Root redirection and test isolation search their own directories.
+Test suites that
 turn warnings into errors and run without a login session, such as in a container, can silence the warning with
 ``warnings.filterwarnings("ignore", category=platformdirs.RuntimeDirWarning)``.
 
