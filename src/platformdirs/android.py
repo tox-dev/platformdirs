@@ -209,7 +209,7 @@ def _shared_storage() -> str:
 
 _USER_ID: Final[re.Pattern[str]] = re.compile(
     r"""
-    /user/         # the per-user data root, under /data or an adopted /mnt/expand volume
+    /user(?:_de)?/ # the credential- or device-protected per-user data root
     (?P<user>\d+)  # the Android user id
     /              # followed by the package folder
     """,
