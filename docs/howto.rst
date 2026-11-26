@@ -256,6 +256,38 @@ root until the child exits. A spawned child starts with the original paths. With
 inherits the server's state. Isolation applies to :data:`~platformdirs.PlatformDirs`. Other platform classes, such as
 :class:`~platformdirs.unix.Unix` on macOS, keep their original paths.
 
+For a spawned worker, enter isolation inside the worker itself. Wrapping only the parent in ``isolated_dirs`` does not
+redirect the child's paths. Define the worker at module level and protect process creation with the ``__main__``
+guard so the example works with ``spawn`` on every platform:
+
+.. code-block:: python
+
+    from concurrent.futures import ProcessPoolExecutor
+    from multiprocessing import get_context
+    from pathlib import Path
+    from tempfile import TemporaryDirectory
+
+    from platformdirs import PlatformDirs
+    from platformdirs.testing import isolated_dirs
+
+
+    def write_config(root: Path) -> Path:
+        with isolated_dirs(root):
+            config = PlatformDirs("MyApp").place_config_file("settings.toml")
+            config.write_text('theme = "dark"', encoding="utf-8")
+            return config
+
+
+    if __name__ == "__main__":
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            with ProcessPoolExecutor(max_workers=1, mp_context=get_context("spawn")) as pool:
+                config = pool.submit(write_config, root / "worker").result()
+            assert config == root / "worker" / "user_config" / "MyApp" / "settings.toml"
+
+Give concurrent workers separate roots when their files must not overlap. Keep each root available until its workers
+have exited, as the temporary directory above does.
+
 Overriding directories with environment variables
 =================================================
 

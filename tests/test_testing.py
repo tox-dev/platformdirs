@@ -182,6 +182,55 @@ def test_isolated_dirs_restores_after_exception(tmp_path: Path) -> None:
     assert _resolve_all() == _ORIGINAL
 
 
+def test_isolated_dirs_spawned_process(tmp_path: Path) -> None:
+    # A real script makes the worker importable under spawn, including on Windows.
+    script = tmp_path / "check_spawned_process.py"
+    code = """
+from multiprocessing import get_context
+from pathlib import Path
+from sys import argv
+
+import platformdirs
+from platformdirs.testing import isolated_dirs
+
+
+def check_child(parent_root: Path, child_root: Path) -> None:
+    dirs = platformdirs.PlatformDirs("app", version="1.0")
+    original = dirs.user_config_path
+    assert not original.is_relative_to(parent_root)
+    assert not platformdirs.user_cache_path("app").is_relative_to(parent_root)
+    with isolated_dirs(child_root):
+        assert dirs.user_config_path == child_root / "user_config/app/1.0"
+        assert platformdirs.user_cache_path("app") == child_root / "user_cache/app"
+        config = dirs.place_config_file("settings.toml")
+        config.write_text("enabled = true", encoding="utf-8")
+    assert dirs.user_config_path == original
+
+
+if __name__ == "__main__":
+    parent_root, child_root = Path(argv[1]) / "parent", Path(argv[1]) / "child"
+    original = platformdirs.user_config_path("app")
+    with isolated_dirs(parent_root):
+        process = get_context("spawn").Process(target=check_child, args=(parent_root, child_root))
+        process.start()
+        try:
+            process.join(timeout=10)
+            assert process.exitcode == 0, process.exitcode
+        finally:
+            if process.is_alive():
+                process.kill()
+            process.join()
+            process.close()
+        assert platformdirs.user_config_path("app") == parent_root / "user_config/app"
+        assert not parent_root.exists()
+    assert platformdirs.user_config_path("app") == original
+    assert (child_root / "user_config/app/1.0/settings.toml").read_text(encoding="utf-8") == "enabled = true"
+    print("ok")
+"""
+    script.write_text(code, encoding="utf-8")
+    assert check_output([sys.executable, str(script), str(tmp_path)], text=True, timeout=20).strip() == "ok"
+
+
 def test_isolated_dirs_nested_restores_outer(tmp_path: Path) -> None:
     with isolated_dirs(tmp_path / "outer"):
         with isolated_dirs(tmp_path / "inner"):
