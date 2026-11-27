@@ -173,11 +173,17 @@ def test_android(params: AppParams, func: str) -> None:
     ("path", "expected"),
     [
         pytest.param("/data/user/1/a/files", "/data/user/1/a", id="user"),
+        pytest.param("/data/user_de/10/a/files/app", "/data/user_de/10/a", id="device-protected"),
         pytest.param("/data/data/a/files", "/data/data/a", id="data"),
         pytest.param(
             "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user/1/a/files",
             "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user/1/a",
             id="adopted",
+        ),
+        pytest.param(
+            "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user_de/11/a/files/app",
+            "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user_de/11/a",
+            id="adopted-device-protected",
         ),
         pytest.param("/data/data/filesync.app/files/app", "/data/data/filesync.app", id="data-files-prefix"),
         pytest.param(
@@ -213,10 +219,16 @@ def _clear_android_caches() -> None:
     [
         pytest.param("/data/data/org.example.app", "/storage/emulated/0", id="owner"),
         pytest.param("/data/user/10/org.example.app", "/storage/emulated/10", id="secondary-user"),
+        pytest.param("/data/user_de/10/org.example.app", "/storage/emulated/10", id="device-protected"),
         pytest.param(
             "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user/11/org.example.app",
             "/storage/emulated/11",
             id="adopted",
+        ),
+        pytest.param(
+            "/mnt/expand/8e06fc2f-a86a-44e8-81ce-109e0eedd5ed/user_de/11/org.example.app",
+            "/storage/emulated/11",
+            id="adopted-device-protected",
         ),
         pytest.param(None, "/storage/emulated/0", id="unknown"),
     ],

@@ -43,10 +43,10 @@ def android_folder() -> str | None:
 _ANDROID_FOLDER_PATTERN: Final[re.Pattern[str]] = re.compile(
     r"""
             (?P<folder>
-                /data/(?:data|user/\d+)  # internal storage of the primary user or of user N
-                /[^/]+                   # package name, one path segment
+                /data/(?:data|user(?:_de)?/\d+)  # credential- or device-protected internal storage
+                /[^/]+                           # package name, one path segment
             )
-            /files(?=/|\Z)               # the files directory the interpreter runs from
+            /files(?=/|\Z)                       # the files directory the interpreter runs from
             """,
     re.VERBOSE,
 )
@@ -55,7 +55,7 @@ _ANDROID_FOLDER_PATTERN_2: Final[re.Pattern[str]] = re.compile(
     r"""
             (?P<folder>
                 /mnt/expand/[a-fA-F0-9-]{36}  # adopted storage volume, named by its UUID
-                /(?:data|user/\d+)             # the primary user or user N
+                /(?:data|user(?:_de)?/\d+)     # credential- or device-protected storage
                 /[^/]+                         # package name, one path segment
             )
             /files(?=/|\Z)                     # the files directory the interpreter runs from
