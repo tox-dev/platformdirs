@@ -44,9 +44,9 @@ _ANDROID_FOLDER_PATTERN: Final[re.Pattern[str]] = re.compile(
     r"""
             (?P<folder>
                 /data/(?:data|user(?:_de)?/\d+)  # credential- or device-protected internal storage
-                /[^/]+                   # package name, one path segment
+                /[^/]+                           # package name, one path segment
             )
-            /files(?=/|\Z)               # the files directory the interpreter runs from
+            /files(?=/|\Z)                       # the files directory the interpreter runs from
             """,
     re.VERBOSE,
 )

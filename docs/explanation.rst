@@ -548,8 +548,8 @@ Android
 ``/data`` and ``ANDROID_ROOT`` is ``/system``. It then looks for the app's package folder, such as ``/data/user/<user
 id>/com.example.app``. With `pyjnius <https://github.com/kivy/pyjnius>`_ it asks the python-for-android activity, or the
 service in a service process. Otherwise it searches :data:`sys.path` for a ``<package folder>/files`` entry under
-``/data/data``, ``/data/user/<user id>`` or an adopted storage volume in ``/mnt/expand``. If neither finds the folder,
-``platformdirs`` uses the Unix backend.
+``/data/data``, ``/data/user/<user id>``, the device-protected ``/data/user_de/<user id>``, or an adopted storage volume
+in ``/mnt/expand``. If neither finds the folder, ``platformdirs`` uses the Unix backend.
 
 App directories sit in the package folder, and Android removes them when the user uninstalls the app.
 
