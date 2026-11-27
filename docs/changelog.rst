@@ -6,6 +6,28 @@
 
 .. towncrier release notes start
 
+.. _release-4-14-9:
+
+*********************
+ 4.14.9 (2026-11-27)
+*********************
+
+.. _release-4-14-9-fixed:
+
+Fixed
+=====
+
+- Detect an Android app whose ``sys.path`` points into device-protected storage (``/data/user_de/<user id>``), and use
+  that user ID for shared storage paths (:pr:`753`) by :user:`gaborbernat` and :user:`adityahaa`.
+
+.. _release-4-14-9-documentation:
+
+Documentation
+=============
+
+- Document how to isolate directories inside spawned worker processes (:pr:`754`) by :user:`gaborbernat` and
+  :user:`PriyansuMaurya`.
+
 .. _release-4-14-8:
 
 *********************
