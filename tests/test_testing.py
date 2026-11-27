@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from multiprocessing import get_context
 from pathlib import Path
-from subprocess import check_output  # ruff:ignore[suspicious-subprocess-import]  # bound the deadlock regression
+from subprocess import check_output  # ruff:ignore[suspicious-subprocess-import]  # run checks in a fresh interpreter
 from threading import Event
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
@@ -202,8 +202,7 @@ def check_child(parent_root: Path, child_root: Path) -> None:
     with isolated_dirs(child_root):
         assert dirs.user_config_path == child_root / "user_config/app/1.0"
         assert platformdirs.user_cache_path("app") == child_root / "user_cache/app"
-        config = dirs.place_config_file("settings.toml")
-        config.write_text("enabled = true", encoding="utf-8")
+        dirs.place_config_file("settings.toml").write_text("enabled = true", encoding="utf-8")
     assert dirs.user_config_path == original
 
 
@@ -213,14 +212,10 @@ if __name__ == "__main__":
     with isolated_dirs(parent_root):
         process = get_context("spawn").Process(target=check_child, args=(parent_root, child_root))
         process.start()
-        try:
-            process.join(timeout=10)
-            assert process.exitcode == 0, process.exitcode
-        finally:
-            if process.is_alive():
-                process.kill()
-            process.join()
-            process.close()
+        process.join(timeout=10)
+        process.kill()
+        process.join()
+        assert process.exitcode == 0, process.exitcode
         assert platformdirs.user_config_path("app") == parent_root / "user_config/app"
         assert not parent_root.exists()
     assert platformdirs.user_config_path("app") == original
