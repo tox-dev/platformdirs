@@ -283,7 +283,7 @@ class MacOS(XDGMixin, _MacOSDefaults):
 
     def _iter_runtime_dirs(self) -> Iterator[str]:
         yield from super()._iter_runtime_dirs()
-        if (base := xdg_dir("XDG_RUNTIME_DIR")) and not Path(base).is_dir():
+        if (base := xdg_dir("XDG_RUNTIME_DIR")) and not os.path.isdir(base):  # ruff:ignore[os-path-isdir]  # Path.is_dir raises on inaccessible paths before Python 3.14
             # Placement falls back here if it cannot create the missing override.
             yield super(XDGMixin, self).user_runtime_dir
 
