@@ -15,7 +15,7 @@ from platformdirs import RuntimeDirWarning
 from platformdirs.macos import MacOS
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterator
 
     from pytest_mock import MockerFixture
 
@@ -948,6 +948,49 @@ def test_macos_search_existing_xdg(runtime_dir: Path) -> None:
     dirs = MacOS("app")
     dirs.place_runtime_file("state").touch()
     assert dirs.find_runtime_files("state") == [runtime_dir / "app/state"]
+
+
+@pytest.fixture
+def inaccessible_runtime_fallback(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    (blocked := tmp_path / "blocked").mkdir()
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(blocked / "session"))
+    blocked.chmod(0)
+    try:
+        yield tmp_path / "home/Library/Caches/TemporaryItems/app"
+    finally:
+        blocked.chmod(0o700)
+    assert not (blocked / "session").exists()
+
+
+@_POSIX_ONLY
+@pytest.mark.skipif(sys.platform != "win32" and os.geteuid() == 0, reason="root searches any directory")
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+@pytest.mark.parametrize("ensure_exists", [False, True])
+def test_macos_search_missing_runtime_with_unsearchable_xdg_parent(
+    inaccessible_runtime_fallback: Path, ensure_exists: bool
+) -> None:
+    dirs = MacOS("app", ensure_exists=ensure_exists)
+    assert dirs.find_runtime_file("state") is None
+    assert dirs.find_runtime_files("state") == []
+    assert not inaccessible_runtime_fallback.exists()
+    assert list(dirs.iter_runtime_paths()) == [inaccessible_runtime_fallback]
+
+
+@_POSIX_ONLY
+@pytest.mark.skipif(sys.platform != "win32" and os.geteuid() == 0, reason="root searches any directory")
+@pytest.mark.filterwarnings("ignore::platformdirs.RuntimeDirWarning")
+@pytest.mark.parametrize("ensure_exists", [False, True])
+def test_macos_search_existing_runtime_with_unsearchable_xdg_parent(
+    inaccessible_runtime_fallback: Path, ensure_exists: bool
+) -> None:
+    inaccessible_runtime_fallback.mkdir(parents=True)
+    marker = inaccessible_runtime_fallback / "state"
+    marker.touch()
+    dirs = MacOS("app", ensure_exists=ensure_exists)
+    assert dirs.find_runtime_file("state") == marker
+    assert dirs.find_runtime_files("state") == [marker]
+    assert list(dirs.iter_runtime_paths()) == [inaccessible_runtime_fallback]
 
 
 @_POSIX_ONLY
